@@ -1,0 +1,5 @@
+export const CORE = {
+  API_URL: process.env.NEXT_PUBLIC_API_URL || "",
+  FRONT_END_URL: process.env.NEXT_PUBLIC_FRONT_END_URL || "",
+  NEED_BLOCK_NAVIGATION_FOR_UNSAVED_CHANGES: process.env.NEXT_PUBLIC_NEED_BLOCK_NAVIGATION_FOR_UNSAVED_CHANGES === "true" || false,
+};
