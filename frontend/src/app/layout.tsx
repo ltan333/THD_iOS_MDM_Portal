@@ -1,9 +1,16 @@
 import { Metadata } from "next";
 import { cookies } from "next/headers";
 import React from "react";
+import { Montserrat } from "next/font/google";
 
 import { AppProvider } from "@providers/app-provider";
 import "@styles/globals.css";
+
+const montserrat = Montserrat({
+  subsets: ["latin", "vietnamese"],
+  display: "swap",
+  variable: "--font-montserrat",
+});
 
 export const metadata: Metadata = {
   title: "THD MDM Portal",
@@ -23,8 +30,8 @@ export default async function RootLayout({
   const defaultMode = theme?.value === "dark" ? "dark" : "light";
 
   return (
-    <html lang="vi" className={defaultMode}>
-      <body>
+    <html lang="vi" className={`${defaultMode} ${montserrat.variable}`}>
+      <body className={montserrat.className}>
         <AppProvider defaultColorMode={defaultMode}>
           {children}
         </AppProvider>
