@@ -26,7 +26,7 @@ export default function LoginPage() {
       heroDesc: 'MDM Portal for iOS devices',
       deviceControl: 'Kiểm soát thiết bị',
       securityPolicy: 'Chính sách bảo mật',
-      globalAccess: 'Truy cập toàn cầu',
+      globalAccess: 'Quản lý đa nền tảng',
       footer: '© 2024 Cổng thông tin THD iOS MDM. Đã đăng ký Bản quyền.'
     },
     en: {
