@@ -8,6 +8,120 @@ import (
 )
 
 var (
+	// MobileConfigsColumns holds the columns for the "mobile_configs" table.
+	MobileConfigsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUint, Increment: true},
+		{Name: "name", Type: field.TypeString, Unique: true, Size: 255},
+		{Name: "payload_identifier", Type: field.TypeString, Unique: true},
+		{Name: "payload_type", Type: field.TypeString},
+		{Name: "payload_display_name", Type: field.TypeString, Size: 255},
+		{Name: "payload_description", Type: field.TypeString, Nullable: true},
+		{Name: "payload_organization", Type: field.TypeString, Nullable: true, Size: 255},
+		{Name: "payload_uuid", Type: field.TypeString},
+		{Name: "payload_version", Type: field.TypeInt, Default: 1},
+		{Name: "payload_removal_disallowed", Type: field.TypeBool, Default: false},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "deleted_at", Type: field.TypeTime, Nullable: true},
+	}
+	// MobileConfigsTable holds the schema information for the "mobile_configs" table.
+	MobileConfigsTable = &schema.Table{
+		Name:       "mobile_configs",
+		Columns:    MobileConfigsColumns,
+		PrimaryKey: []*schema.Column{MobileConfigsColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "mobileconfig_payload_identifier",
+				Unique:  true,
+				Columns: []*schema.Column{MobileConfigsColumns[2]},
+			},
+		},
+	}
+	// PayloadsColumns holds the columns for the "payloads" table.
+	PayloadsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUint, Increment: true},
+		{Name: "payload_description", Type: field.TypeString, Nullable: true},
+		{Name: "payload_display_name", Type: field.TypeString, Size: 255},
+		{Name: "payload_identifier", Type: field.TypeString, Unique: true},
+		{Name: "payload_organization", Type: field.TypeString, Nullable: true, Size: 255},
+		{Name: "payload_type", Type: field.TypeString},
+		{Name: "payload_uuid", Type: field.TypeString},
+		{Name: "payload_version", Type: field.TypeInt, Default: 1},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "deleted_at", Type: field.TypeTime, Nullable: true},
+		{Name: "mobile_config_payloads", Type: field.TypeUint},
+	}
+	// PayloadsTable holds the schema information for the "payloads" table.
+	PayloadsTable = &schema.Table{
+		Name:       "payloads",
+		Columns:    PayloadsColumns,
+		PrimaryKey: []*schema.Column{PayloadsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "payloads_mobile_configs_payloads",
+				Columns:    []*schema.Column{PayloadsColumns[11]},
+				RefColumns: []*schema.Column{MobileConfigsColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+	}
+	// PayloadPropertiesColumns holds the columns for the "payload_properties" table.
+	PayloadPropertiesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUint, Increment: true},
+		{Name: "value_json", Type: field.TypeJSON, Nullable: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "deleted_at", Type: field.TypeTime, Nullable: true},
+		{Name: "payload_properties", Type: field.TypeUint},
+		{Name: "payload_property_definition_properties", Type: field.TypeInt},
+	}
+	// PayloadPropertiesTable holds the schema information for the "payload_properties" table.
+	PayloadPropertiesTable = &schema.Table{
+		Name:       "payload_properties",
+		Columns:    PayloadPropertiesColumns,
+		PrimaryKey: []*schema.Column{PayloadPropertiesColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "payload_properties_payloads_properties",
+				Columns:    []*schema.Column{PayloadPropertiesColumns[5]},
+				RefColumns: []*schema.Column{PayloadsColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "payload_properties_payload_property_definitions_properties",
+				Columns:    []*schema.Column{PayloadPropertiesColumns[6]},
+				RefColumns: []*schema.Column{PayloadPropertyDefinitionsColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+	}
+	// PayloadPropertyDefinitionsColumns holds the columns for the "payload_property_definitions" table.
+	PayloadPropertyDefinitionsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "payload_type", Type: field.TypeString},
+		{Name: "key", Type: field.TypeString},
+		{Name: "value_type", Type: field.TypeString},
+		{Name: "default_value", Type: field.TypeJSON, Nullable: true},
+		{Name: "enum_values", Type: field.TypeJSON, Nullable: true},
+		{Name: "description", Type: field.TypeString, Nullable: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "deleted_at", Type: field.TypeTime, Nullable: true},
+	}
+	// PayloadPropertyDefinitionsTable holds the schema information for the "payload_property_definitions" table.
+	PayloadPropertyDefinitionsTable = &schema.Table{
+		Name:       "payload_property_definitions",
+		Columns:    PayloadPropertyDefinitionsColumns,
+		PrimaryKey: []*schema.Column{PayloadPropertyDefinitionsColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "payloadpropertydefinition_payload_type_key",
+				Unique:  true,
+				Columns: []*schema.Column{PayloadPropertyDefinitionsColumns[1], PayloadPropertyDefinitionsColumns[2]},
+			},
+		},
+	}
 	// UsersColumns holds the columns for the "users" table.
 	UsersColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUint, Increment: true},
@@ -28,9 +142,16 @@ var (
 	}
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
+		MobileConfigsTable,
+		PayloadsTable,
+		PayloadPropertiesTable,
+		PayloadPropertyDefinitionsTable,
 		UsersTable,
 	}
 )
 
 func init() {
+	PayloadsTable.ForeignKeys[0].RefTable = MobileConfigsTable
+	PayloadPropertiesTable.ForeignKeys[0].RefTable = PayloadsTable
+	PayloadPropertiesTable.ForeignKeys[1].RefTable = PayloadPropertyDefinitionsTable
 }

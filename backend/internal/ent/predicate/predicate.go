@@ -6,5 +6,17 @@ import (
 	"entgo.io/ent/dialect/sql"
 )
 
+// MobileConfig is the predicate function for mobileconfig builders.
+type MobileConfig func(*sql.Selector)
+
+// Payload is the predicate function for payload builders.
+type Payload func(*sql.Selector)
+
+// PayloadProperty is the predicate function for payloadproperty builders.
+type PayloadProperty func(*sql.Selector)
+
+// PayloadPropertyDefinition is the predicate function for payloadpropertydefinition builders.
+type PayloadPropertyDefinition func(*sql.Selector)
+
 // User is the predicate function for user builders.
 type User func(*sql.Selector)
