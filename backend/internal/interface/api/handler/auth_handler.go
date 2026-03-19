@@ -31,6 +31,18 @@ func NewAuthHandler(authService service.AuthService, userService service.UserSer
 	}
 }
 
+// Login godoc
+// @Summary Login
+// @Description Authenticate user and return access token information
+// @Tags Auth
+// @Accept json
+// @Produce json
+// @Param request body dto.LoginRequest true "Login payload"
+// @Success 200 {object} LoginSuccessResponse
+// @Failure 400 {object} APIErrorResponse
+// @Failure 401 {object} APIErrorResponse
+// @Failure 500 {object} APIErrorResponse
+// @Router /api/auth/login [post]
 func (h *authHandlerImpl) Login(c *gin.Context) {
 	var req dto.LoginRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -47,6 +59,14 @@ func (h *authHandlerImpl) Login(c *gin.Context) {
 	response.OK(c, loginResp, "Đăng nhập thành công")
 }
 
+// Logout godoc
+// @Summary Logout
+// @Description Logout current user session
+// @Tags Auth
+// @Produce json
+// @Success 200 {object} EmptySuccessResponse
+// @Failure 500 {object} APIErrorResponse
+// @Router /api/auth/logout [post]
 func (h *authHandlerImpl) Logout(c *gin.Context) {
 	if err := h.authService.Logout(c.Request.Context()); err != nil {
 		response.WriteErrorResponse(c, err)
@@ -55,6 +75,17 @@ func (h *authHandlerImpl) Logout(c *gin.Context) {
 	response.OK[any](c, nil, "Đăng xuất thành công")
 }
 
+// GetMe godoc
+// @Summary Get current user
+// @Description Return profile of authenticated user
+// @Tags Auth
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} UserSuccessResponse
+// @Failure 401 {object} APIErrorResponse
+// @Failure 404 {object} APIErrorResponse
+// @Failure 500 {object} APIErrorResponse
+// @Router /api/auth/me [get]
 func (h *authHandlerImpl) GetMe(c *gin.Context) {
 	userID := middleware.GetUserID(c)
 	user, err := h.userService.GetByID(c.Request.Context(), userID)

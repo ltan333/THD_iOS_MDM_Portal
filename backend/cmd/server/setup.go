@@ -22,6 +22,7 @@ func setupDependencies(cfg *config.Config) *gin.Engine {
 	// Repositories
 	client := database.GetClient()
 	userRepo := persistence.NewUserRepository(client)
+	mobileConfigRepo := persistence.NewMobileConfigRepository(client)
 
 	// Casbin Enforcer
 	enforcer, err := authorization.NewEnforcer(cfg.Casbin.ModelPath, database.GetDB())
@@ -37,6 +38,7 @@ func setupDependencies(cfg *config.Config) *gin.Engine {
 	)
 	authService := serviceimpl.NewAuthService(userRepo, jwtService)
 	userService := serviceimpl.NewUserService(userRepo)
+	mobileConfigService := serviceimpl.NewMobileConfigService(mobileConfigRepo)
 	authzService := serviceimpl.NewAuthorizationService(enforcer)
 
 	// Middleware
@@ -47,7 +49,8 @@ func setupDependencies(cfg *config.Config) *gin.Engine {
 	authHandler := handler.NewAuthHandler(authService, userService)
 	userHandler := handler.NewUserHandler(userService)
 	policyHandler := handler.NewPolicyHandler(authzService)
+	mobileConfigHandler := handler.NewMobileConfigHandler(mobileConfigService)
 
 	// Build router
-	return router.SetupRouter(authHandler, userHandler, policyHandler, mw)
+	return router.SetupRouter(authHandler, userHandler, policyHandler, mobileConfigHandler, mw)
 }

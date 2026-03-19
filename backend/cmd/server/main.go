@@ -13,9 +13,20 @@ import (
 	"github.com/thienel/tlog"
 	"go.uber.org/zap"
 
+	_ "github.com/thienel/go-backend-template/docs"
 	"github.com/thienel/go-backend-template/internal/infra/database"
 	"github.com/thienel/go-backend-template/pkg/config"
 )
+
+// @title THD iOS MDM Portal API
+// @version 1.0
+// @description API documentation for THD iOS MDM Portal backend
+// @BasePath /
+// @schemes http https
+// @securityDefinitions.apikey BearerAuth
+// @in header
+// @name Authorization
+// @description Bearer token authentication. Example: Bearer {token}
 
 func main() {
 	// Load configuration

@@ -9,6 +9,54 @@ import (
 	"github.com/thienel/go-backend-template/internal/ent"
 )
 
+// The MobileConfigFunc type is an adapter to allow the use of ordinary
+// function as MobileConfig mutator.
+type MobileConfigFunc func(context.Context, *ent.MobileConfigMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f MobileConfigFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.MobileConfigMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.MobileConfigMutation", m)
+}
+
+// The PayloadFunc type is an adapter to allow the use of ordinary
+// function as Payload mutator.
+type PayloadFunc func(context.Context, *ent.PayloadMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f PayloadFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.PayloadMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.PayloadMutation", m)
+}
+
+// The PayloadPropertyFunc type is an adapter to allow the use of ordinary
+// function as PayloadProperty mutator.
+type PayloadPropertyFunc func(context.Context, *ent.PayloadPropertyMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f PayloadPropertyFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.PayloadPropertyMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.PayloadPropertyMutation", m)
+}
+
+// The PayloadPropertyDefinitionFunc type is an adapter to allow the use of ordinary
+// function as PayloadPropertyDefinition mutator.
+type PayloadPropertyDefinitionFunc func(context.Context, *ent.PayloadPropertyDefinitionMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f PayloadPropertyDefinitionFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.PayloadPropertyDefinitionMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.PayloadPropertyDefinitionMutation", m)
+}
+
 // The UserFunc type is an adapter to allow the use of ordinary
 // function as User mutator.
 type UserFunc func(context.Context, *ent.UserMutation) (ent.Value, error)

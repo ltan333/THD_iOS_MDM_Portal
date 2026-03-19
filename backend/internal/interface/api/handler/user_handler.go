@@ -42,6 +42,25 @@ func NewUserHandler(userService service.UserService) UserHandler {
 	return &userHandlerImpl{userService: userService}
 }
 
+// List godoc
+// @Summary List users
+// @Description Get paginated users with optional filter/sort/search query params
+// @Tags Users
+// @Produce json
+// @Security BearerAuth
+// @Param page query int false "Page number"
+// @Param limit query int false "Page size"
+// @Param sort query string false "Sort field, prefix '-' for desc"
+// @Param search query string false "Search by keyword"
+// @Param username query string false "Filter by username"
+// @Param email query string false "Filter by email"
+// @Param role query string false "Filter by role"
+// @Param status query string false "Filter by status"
+// @Success 200 {object} UserListSuccessResponse
+// @Failure 401 {object} APIErrorResponse
+// @Failure 403 {object} APIErrorResponse
+// @Failure 500 {object} APIErrorResponse
+// @Router /api/users [get]
 func (h *userHandlerImpl) List(c *gin.Context) {
 	params := make(map[string]string)
 	for key, values := range c.Request.URL.Query() {
@@ -76,6 +95,20 @@ func (h *userHandlerImpl) List(c *gin.Context) {
 	}, "")
 }
 
+// GetByID godoc
+// @Summary Get user by ID
+// @Description Retrieve a user by numeric ID
+// @Tags Users
+// @Produce json
+// @Security BearerAuth
+// @Param id path int true "User ID"
+// @Success 200 {object} UserSuccessResponse
+// @Failure 400 {object} APIErrorResponse
+// @Failure 401 {object} APIErrorResponse
+// @Failure 403 {object} APIErrorResponse
+// @Failure 404 {object} APIErrorResponse
+// @Failure 500 {object} APIErrorResponse
+// @Router /api/users/{id} [get]
 func (h *userHandlerImpl) GetByID(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
 	if err != nil {
@@ -92,6 +125,21 @@ func (h *userHandlerImpl) GetByID(c *gin.Context) {
 	response.OK(c, toUserResponse(user), "")
 }
 
+// Create godoc
+// @Summary Create user
+// @Description Create a new user account
+// @Tags Users
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param request body dto.CreateUserRequest true "User payload"
+// @Success 201 {object} UserSuccessResponse
+// @Failure 400 {object} APIErrorResponse
+// @Failure 401 {object} APIErrorResponse
+// @Failure 403 {object} APIErrorResponse
+// @Failure 409 {object} APIErrorResponse
+// @Failure 500 {object} APIErrorResponse
+// @Router /api/users [post]
 func (h *userHandlerImpl) Create(c *gin.Context) {
 	var req dto.CreateUserRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -113,6 +161,23 @@ func (h *userHandlerImpl) Create(c *gin.Context) {
 	response.Created(c, toUserResponse(user), "Tạo người dùng thành công")
 }
 
+// Update godoc
+// @Summary Update user
+// @Description Update an existing user by ID
+// @Tags Users
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param id path int true "User ID"
+// @Param request body dto.UpdateUserRequest true "User payload"
+// @Success 200 {object} UserSuccessResponse
+// @Failure 400 {object} APIErrorResponse
+// @Failure 401 {object} APIErrorResponse
+// @Failure 403 {object} APIErrorResponse
+// @Failure 404 {object} APIErrorResponse
+// @Failure 409 {object} APIErrorResponse
+// @Failure 500 {object} APIErrorResponse
+// @Router /api/users/{id} [put]
 func (h *userHandlerImpl) Update(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
 	if err != nil {
@@ -141,6 +206,20 @@ func (h *userHandlerImpl) Update(c *gin.Context) {
 	response.OK(c, toUserResponse(user), "Cập nhật thành công")
 }
 
+// Delete godoc
+// @Summary Delete user
+// @Description Soft delete a user by ID
+// @Tags Users
+// @Produce json
+// @Security BearerAuth
+// @Param id path int true "User ID"
+// @Success 204 {string} string "No Content"
+// @Failure 400 {object} APIErrorResponse
+// @Failure 401 {object} APIErrorResponse
+// @Failure 403 {object} APIErrorResponse
+// @Failure 404 {object} APIErrorResponse
+// @Failure 500 {object} APIErrorResponse
+// @Router /api/users/{id} [delete]
 func (h *userHandlerImpl) Delete(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
 	if err != nil {

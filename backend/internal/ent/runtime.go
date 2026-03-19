@@ -5,6 +5,10 @@ package ent
 import (
 	"time"
 
+	"github.com/thienel/go-backend-template/internal/ent/mobileconfig"
+	"github.com/thienel/go-backend-template/internal/ent/payload"
+	"github.com/thienel/go-backend-template/internal/ent/payloadproperty"
+	"github.com/thienel/go-backend-template/internal/ent/payloadpropertydefinition"
 	"github.com/thienel/go-backend-template/internal/ent/schema"
 	"github.com/thienel/go-backend-template/internal/ent/user"
 )
@@ -13,6 +17,164 @@ import (
 // (default values, validators, hooks and policies) and stitches it
 // to their package variables.
 func init() {
+	mobileconfigFields := schema.MobileConfig{}.Fields()
+	_ = mobileconfigFields
+	// mobileconfigDescName is the schema descriptor for name field.
+	mobileconfigDescName := mobileconfigFields[1].Descriptor()
+	// mobileconfig.NameValidator is a validator for the "name" field. It is called by the builders before save.
+	mobileconfig.NameValidator = func() func(string) error {
+		validators := mobileconfigDescName.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(name string) error {
+			for _, fn := range fns {
+				if err := fn(name); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// mobileconfigDescPayloadIdentifier is the schema descriptor for payload_identifier field.
+	mobileconfigDescPayloadIdentifier := mobileconfigFields[2].Descriptor()
+	// mobileconfig.PayloadIdentifierValidator is a validator for the "payload_identifier" field. It is called by the builders before save.
+	mobileconfig.PayloadIdentifierValidator = mobileconfigDescPayloadIdentifier.Validators[0].(func(string) error)
+	// mobileconfigDescPayloadType is the schema descriptor for payload_type field.
+	mobileconfigDescPayloadType := mobileconfigFields[3].Descriptor()
+	// mobileconfig.PayloadTypeValidator is a validator for the "payload_type" field. It is called by the builders before save.
+	mobileconfig.PayloadTypeValidator = mobileconfigDescPayloadType.Validators[0].(func(string) error)
+	// mobileconfigDescPayloadDisplayName is the schema descriptor for payload_display_name field.
+	mobileconfigDescPayloadDisplayName := mobileconfigFields[4].Descriptor()
+	// mobileconfig.PayloadDisplayNameValidator is a validator for the "payload_display_name" field. It is called by the builders before save.
+	mobileconfig.PayloadDisplayNameValidator = func() func(string) error {
+		validators := mobileconfigDescPayloadDisplayName.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(payload_display_name string) error {
+			for _, fn := range fns {
+				if err := fn(payload_display_name); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// mobileconfigDescPayloadOrganization is the schema descriptor for payload_organization field.
+	mobileconfigDescPayloadOrganization := mobileconfigFields[6].Descriptor()
+	// mobileconfig.PayloadOrganizationValidator is a validator for the "payload_organization" field. It is called by the builders before save.
+	mobileconfig.PayloadOrganizationValidator = mobileconfigDescPayloadOrganization.Validators[0].(func(string) error)
+	// mobileconfigDescPayloadUUID is the schema descriptor for payload_uuid field.
+	mobileconfigDescPayloadUUID := mobileconfigFields[7].Descriptor()
+	// mobileconfig.PayloadUUIDValidator is a validator for the "payload_uuid" field. It is called by the builders before save.
+	mobileconfig.PayloadUUIDValidator = mobileconfigDescPayloadUUID.Validators[0].(func(string) error)
+	// mobileconfigDescPayloadVersion is the schema descriptor for payload_version field.
+	mobileconfigDescPayloadVersion := mobileconfigFields[8].Descriptor()
+	// mobileconfig.DefaultPayloadVersion holds the default value on creation for the payload_version field.
+	mobileconfig.DefaultPayloadVersion = mobileconfigDescPayloadVersion.Default.(int)
+	// mobileconfigDescPayloadRemovalDisallowed is the schema descriptor for payload_removal_disallowed field.
+	mobileconfigDescPayloadRemovalDisallowed := mobileconfigFields[9].Descriptor()
+	// mobileconfig.DefaultPayloadRemovalDisallowed holds the default value on creation for the payload_removal_disallowed field.
+	mobileconfig.DefaultPayloadRemovalDisallowed = mobileconfigDescPayloadRemovalDisallowed.Default.(bool)
+	// mobileconfigDescCreatedAt is the schema descriptor for created_at field.
+	mobileconfigDescCreatedAt := mobileconfigFields[10].Descriptor()
+	// mobileconfig.DefaultCreatedAt holds the default value on creation for the created_at field.
+	mobileconfig.DefaultCreatedAt = mobileconfigDescCreatedAt.Default.(func() time.Time)
+	// mobileconfigDescUpdatedAt is the schema descriptor for updated_at field.
+	mobileconfigDescUpdatedAt := mobileconfigFields[11].Descriptor()
+	// mobileconfig.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	mobileconfig.DefaultUpdatedAt = mobileconfigDescUpdatedAt.Default.(func() time.Time)
+	// mobileconfig.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	mobileconfig.UpdateDefaultUpdatedAt = mobileconfigDescUpdatedAt.UpdateDefault.(func() time.Time)
+	payloadFields := schema.Payload{}.Fields()
+	_ = payloadFields
+	// payloadDescPayloadDisplayName is the schema descriptor for payload_display_name field.
+	payloadDescPayloadDisplayName := payloadFields[2].Descriptor()
+	// payload.PayloadDisplayNameValidator is a validator for the "payload_display_name" field. It is called by the builders before save.
+	payload.PayloadDisplayNameValidator = func() func(string) error {
+		validators := payloadDescPayloadDisplayName.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(payload_display_name string) error {
+			for _, fn := range fns {
+				if err := fn(payload_display_name); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// payloadDescPayloadIdentifier is the schema descriptor for payload_identifier field.
+	payloadDescPayloadIdentifier := payloadFields[3].Descriptor()
+	// payload.PayloadIdentifierValidator is a validator for the "payload_identifier" field. It is called by the builders before save.
+	payload.PayloadIdentifierValidator = payloadDescPayloadIdentifier.Validators[0].(func(string) error)
+	// payloadDescPayloadOrganization is the schema descriptor for payload_organization field.
+	payloadDescPayloadOrganization := payloadFields[4].Descriptor()
+	// payload.PayloadOrganizationValidator is a validator for the "payload_organization" field. It is called by the builders before save.
+	payload.PayloadOrganizationValidator = payloadDescPayloadOrganization.Validators[0].(func(string) error)
+	// payloadDescPayloadType is the schema descriptor for payload_type field.
+	payloadDescPayloadType := payloadFields[5].Descriptor()
+	// payload.PayloadTypeValidator is a validator for the "payload_type" field. It is called by the builders before save.
+	payload.PayloadTypeValidator = payloadDescPayloadType.Validators[0].(func(string) error)
+	// payloadDescPayloadUUID is the schema descriptor for payload_uuid field.
+	payloadDescPayloadUUID := payloadFields[6].Descriptor()
+	// payload.PayloadUUIDValidator is a validator for the "payload_uuid" field. It is called by the builders before save.
+	payload.PayloadUUIDValidator = payloadDescPayloadUUID.Validators[0].(func(string) error)
+	// payloadDescPayloadVersion is the schema descriptor for payload_version field.
+	payloadDescPayloadVersion := payloadFields[7].Descriptor()
+	// payload.DefaultPayloadVersion holds the default value on creation for the payload_version field.
+	payload.DefaultPayloadVersion = payloadDescPayloadVersion.Default.(int)
+	// payloadDescCreatedAt is the schema descriptor for created_at field.
+	payloadDescCreatedAt := payloadFields[8].Descriptor()
+	// payload.DefaultCreatedAt holds the default value on creation for the created_at field.
+	payload.DefaultCreatedAt = payloadDescCreatedAt.Default.(func() time.Time)
+	// payloadDescUpdatedAt is the schema descriptor for updated_at field.
+	payloadDescUpdatedAt := payloadFields[9].Descriptor()
+	// payload.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	payload.DefaultUpdatedAt = payloadDescUpdatedAt.Default.(func() time.Time)
+	// payload.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	payload.UpdateDefaultUpdatedAt = payloadDescUpdatedAt.UpdateDefault.(func() time.Time)
+	payloadpropertyFields := schema.PayloadProperty{}.Fields()
+	_ = payloadpropertyFields
+	// payloadpropertyDescCreatedAt is the schema descriptor for created_at field.
+	payloadpropertyDescCreatedAt := payloadpropertyFields[2].Descriptor()
+	// payloadproperty.DefaultCreatedAt holds the default value on creation for the created_at field.
+	payloadproperty.DefaultCreatedAt = payloadpropertyDescCreatedAt.Default.(func() time.Time)
+	// payloadpropertyDescUpdatedAt is the schema descriptor for updated_at field.
+	payloadpropertyDescUpdatedAt := payloadpropertyFields[3].Descriptor()
+	// payloadproperty.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	payloadproperty.DefaultUpdatedAt = payloadpropertyDescUpdatedAt.Default.(func() time.Time)
+	// payloadproperty.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	payloadproperty.UpdateDefaultUpdatedAt = payloadpropertyDescUpdatedAt.UpdateDefault.(func() time.Time)
+	payloadpropertydefinitionFields := schema.PayloadPropertyDefinition{}.Fields()
+	_ = payloadpropertydefinitionFields
+	// payloadpropertydefinitionDescPayloadType is the schema descriptor for payload_type field.
+	payloadpropertydefinitionDescPayloadType := payloadpropertydefinitionFields[0].Descriptor()
+	// payloadpropertydefinition.PayloadTypeValidator is a validator for the "payload_type" field. It is called by the builders before save.
+	payloadpropertydefinition.PayloadTypeValidator = payloadpropertydefinitionDescPayloadType.Validators[0].(func(string) error)
+	// payloadpropertydefinitionDescKey is the schema descriptor for key field.
+	payloadpropertydefinitionDescKey := payloadpropertydefinitionFields[1].Descriptor()
+	// payloadpropertydefinition.KeyValidator is a validator for the "key" field. It is called by the builders before save.
+	payloadpropertydefinition.KeyValidator = payloadpropertydefinitionDescKey.Validators[0].(func(string) error)
+	// payloadpropertydefinitionDescValueType is the schema descriptor for value_type field.
+	payloadpropertydefinitionDescValueType := payloadpropertydefinitionFields[2].Descriptor()
+	// payloadpropertydefinition.ValueTypeValidator is a validator for the "value_type" field. It is called by the builders before save.
+	payloadpropertydefinition.ValueTypeValidator = payloadpropertydefinitionDescValueType.Validators[0].(func(string) error)
+	// payloadpropertydefinitionDescCreatedAt is the schema descriptor for created_at field.
+	payloadpropertydefinitionDescCreatedAt := payloadpropertydefinitionFields[6].Descriptor()
+	// payloadpropertydefinition.DefaultCreatedAt holds the default value on creation for the created_at field.
+	payloadpropertydefinition.DefaultCreatedAt = payloadpropertydefinitionDescCreatedAt.Default.(func() time.Time)
+	// payloadpropertydefinitionDescUpdatedAt is the schema descriptor for updated_at field.
+	payloadpropertydefinitionDescUpdatedAt := payloadpropertydefinitionFields[7].Descriptor()
+	// payloadpropertydefinition.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	payloadpropertydefinition.DefaultUpdatedAt = payloadpropertydefinitionDescUpdatedAt.Default.(func() time.Time)
+	// payloadpropertydefinition.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	payloadpropertydefinition.UpdateDefaultUpdatedAt = payloadpropertydefinitionDescUpdatedAt.UpdateDefault.(func() time.Time)
 	userFields := schema.User{}.Fields()
 	_ = userFields
 	// userDescUsername is the schema descriptor for username field.
