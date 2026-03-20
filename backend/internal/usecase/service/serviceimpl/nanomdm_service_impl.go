@@ -14,21 +14,27 @@ import (
 )
 
 type nanomdmServiceImpl struct {
-	baseURL  string
-	username string
-	password string
+	mdmBaseURL  string
+	depBaseURL  string
+	mdmUsername string
+	mdmPassword string
+	depUsername string
+	depPassword string
 }
 
-func NewNanoMDMService(baseURL, username, password string) service.NanoMDMService {
+func NewNanoMDMService(mdmBaseURL, depBaseURL, mdmUser, mdmPass, depUser, depPass string) service.NanoMDMService {
 	return &nanomdmServiceImpl{
-		baseURL:  strings.TrimSuffix(baseURL, "/"),
-		username: username,
-		password: password,
+		mdmBaseURL:  strings.TrimSuffix(mdmBaseURL, "/"),
+		depBaseURL:  strings.TrimSuffix(depBaseURL, "/"),
+		mdmUsername: mdmUser,
+		mdmPassword: mdmPass,
+		depUsername: depUser,
+		depPassword: depPass,
 	}
 }
 
-func (s *nanomdmServiceImpl) doRequest(ctx context.Context, method, path string, body interface{}, query url.Values) (*http.Response, error) {
-	u, err := url.Parse(fmt.Sprintf("%s%s", s.baseURL, path))
+func (s *nanomdmServiceImpl) doRequest(ctx context.Context, method, baseURL, path string, body interface{}, query url.Values, username, password string) (*http.Response, error) {
+	u, err := url.Parse(fmt.Sprintf("%s%s", baseURL, path))
 	if err != nil {
 		return nil, err
 	}
@@ -50,7 +56,7 @@ func (s *nanomdmServiceImpl) doRequest(ctx context.Context, method, path string,
 		return nil, err
 	}
 
-	req.SetBasicAuth(s.username, s.password)
+	req.SetBasicAuth(username, password)
 	if body != nil {
 		req.Header.Set("Content-Type", "application/json")
 	}
@@ -60,7 +66,7 @@ func (s *nanomdmServiceImpl) doRequest(ctx context.Context, method, path string,
 }
 
 func (s *nanomdmServiceImpl) DefineDEPProfile(ctx context.Context, depName string, profile interface{}) (string, error) {
-	resp, err := s.doRequest(ctx, http.MethodPost, "/v1/dep/profiles", profile, nil)
+	resp, err := s.doRequest(ctx, http.MethodPost, s.depBaseURL, "/v1/dep/profiles", profile, nil, s.depUsername, s.depPassword)
 	if err != nil {
 		return "", err
 	}
@@ -80,7 +86,7 @@ func (s *nanomdmServiceImpl) DefineDEPProfile(ctx context.Context, depName strin
 }
 
 func (s *nanomdmServiceImpl) GetDEPProfile(ctx context.Context, depName, profileUUID string) (interface{}, error) {
-	resp, err := s.doRequest(ctx, http.MethodGet, fmt.Sprintf("/v1/dep/profiles/%s", profileUUID), nil, nil)
+	resp, err := s.doRequest(ctx, http.MethodGet, s.depBaseURL, fmt.Sprintf("/v1/dep/profiles/%s", profileUUID), nil, nil, s.depUsername, s.depPassword)
 	if err != nil {
 		return nil, err
 	}
@@ -98,7 +104,7 @@ func (s *nanomdmServiceImpl) GetDEPProfile(ctx context.Context, depName, profile
 }
 
 func (s *nanomdmServiceImpl) SyncDEPDevices(ctx context.Context, depName string) (interface{}, error) {
-	resp, err := s.doRequest(ctx, http.MethodPost, fmt.Sprintf("/proxy/%s/devices/sync", depName), nil, nil)
+	resp, err := s.doRequest(ctx, http.MethodPost, s.depBaseURL, fmt.Sprintf("/proxy/%s/devices/sync", depName), nil, nil, s.depUsername, s.depPassword)
 	if err != nil {
 		return nil, err
 	}
@@ -121,7 +127,7 @@ func (s *nanomdmServiceImpl) DisownDEPDevices(ctx context.Context, depName strin
 	}{
 		Devices: devices,
 	}
-	resp, err := s.doRequest(ctx, http.MethodPost, fmt.Sprintf("/proxy/%s/devices/disown", depName), body, nil)
+	resp, err := s.doRequest(ctx, http.MethodPost, s.depBaseURL, fmt.Sprintf("/proxy/%s/devices/disown", depName), body, nil, s.depUsername, s.depPassword)
 	if err != nil {
 		return nil, err
 	}
@@ -139,7 +145,7 @@ func (s *nanomdmServiceImpl) DisownDEPDevices(ctx context.Context, depName strin
 }
 
 func (s *nanomdmServiceImpl) UploadDEPToken(ctx context.Context, depName string, tokenData []byte) (interface{}, error) {
-	u, err := url.Parse(fmt.Sprintf("%s/v1/tokenpki/%s", s.baseURL, depName))
+	u, err := url.Parse(fmt.Sprintf("%s/v1/tokenpki/%s", s.depBaseURL, depName))
 	if err != nil {
 		return nil, err
 	}
@@ -149,7 +155,7 @@ func (s *nanomdmServiceImpl) UploadDEPToken(ctx context.Context, depName string,
 		return nil, err
 	}
 
-	req.SetBasicAuth(s.username, s.password)
+	req.SetBasicAuth(s.depUsername, s.depPassword)
 	req.Header.Set("Content-Type", "application/x-apple-aspen-config")
 
 	client := &http.Client{}
@@ -171,7 +177,7 @@ func (s *nanomdmServiceImpl) UploadDEPToken(ctx context.Context, depName string,
 }
 
 func (s *nanomdmServiceImpl) UploadPushCert(ctx context.Context, certData []byte) error {
-	resp, err := s.doRequest(ctx, http.MethodPost, "/v1/pushcert", certData, nil)
+	resp, err := s.doRequest(ctx, http.MethodPost, s.mdmBaseURL, "/v1/pushcert", certData, nil, s.mdmUsername, s.mdmPassword)
 	if err != nil {
 		return err
 	}
@@ -184,7 +190,7 @@ func (s *nanomdmServiceImpl) UploadPushCert(ctx context.Context, certData []byte
 }
 
 func (s *nanomdmServiceImpl) GetPushCert(ctx context.Context) (interface{}, error) {
-	resp, err := s.doRequest(ctx, http.MethodGet, "/v1/pushcert", nil, nil)
+	resp, err := s.doRequest(ctx, http.MethodGet, s.mdmBaseURL, "/v1/pushcert", nil, nil, s.mdmUsername, s.mdmPassword)
 	if err != nil {
 		return nil, err
 	}
