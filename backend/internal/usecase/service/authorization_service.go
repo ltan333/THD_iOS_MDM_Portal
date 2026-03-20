@@ -30,4 +30,8 @@ type AuthorizationService interface {
 
 	// Query permissions for a specific role
 	GetPermissionsForRole(role string) ([]PolicyRule, error)
+
+	// Resource-level authorization
+	AuthorizeResource(userID uint, resource string, action string) (bool, error)
+	AddResourcePolicy(userID uint, resource string, action string) (bool, error)
 }
