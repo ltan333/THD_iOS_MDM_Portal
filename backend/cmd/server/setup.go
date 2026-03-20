@@ -39,6 +39,7 @@ func setupDependencies(cfg *config.Config) *gin.Engine {
 	userService := serviceimpl.NewUserService(userRepo)
 	authzService := serviceimpl.NewAuthorizationService(enforcer)
 	nanocmdService := serviceimpl.NewNanoCMDService(cfg.NanoCMD.BaseURL, cfg.NanoCMD.Username, cfg.NanoCMD.Password)
+	nanomdmService := serviceimpl.NewNanoMDMService(cfg.NanoMDM.BaseURL, cfg.NanoMDM.Username, cfg.NanoMDM.Password)
 
 	// Middleware
 	origins := strings.Join(cfg.CORSAllowedOrigins, ",")
@@ -48,8 +49,8 @@ func setupDependencies(cfg *config.Config) *gin.Engine {
 	authHandler := handler.NewAuthHandler(authService, userService)
 	userHandler := handler.NewUserHandler(userService)
 	policyHandler := handler.NewPolicyHandler(authzService)
-	mdmHandler := handler.NewMDMHandler(client)
-	depHandler := handler.NewDEPHandler(client, authzService)
+	mdmHandler := handler.NewMDMHandler(client, nanomdmService)
+	depHandler := handler.NewDEPHandler(client, authzService, nanomdmService)
 	nanocmdHandler := handler.NewNanoCMDHandler(nanocmdService)
 
 	// Build router

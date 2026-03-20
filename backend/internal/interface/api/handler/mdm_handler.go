@@ -1,19 +1,16 @@
 package handler
 
 import (
-	"context"
 	"crypto/x509"
 	"encoding/pem"
 	"fmt"
-	"os"
-	"path/filepath"
+	"io"
 	"time"
 
 	"github.com/gin-gonic/gin"
 
 	"github.com/thienel/go-backend-template/internal/ent"
-	"github.com/thienel/go-backend-template/internal/ent/apnsconfig"
-	"github.com/thienel/go-backend-template/internal/interface/api/dto"
+	"github.com/thienel/go-backend-template/internal/usecase/service"
 	apperror "github.com/thienel/go-backend-template/pkg/error"
 	"github.com/thienel/go-backend-template/pkg/response"
 )
@@ -24,11 +21,15 @@ type MDMHandler interface {
 }
 
 type mdmHandler struct {
-	client *ent.Client
+	client     *ent.Client
+	mdmService service.NanoMDMService // Added field
 }
 
-func NewMDMHandler(client *ent.Client) MDMHandler {
-	return &mdmHandler{client: client}
+func NewMDMHandler(client *ent.Client, mdmService service.NanoMDMService) MDMHandler { // Updated signature
+	return &mdmHandler{
+		client:     client,
+		mdmService: mdmService, // Initialized field
+	}
 }
 
 // PushCert godoc
@@ -50,58 +51,25 @@ func (h *mdmHandler) PushCert(c *gin.Context) {
 		return
 	}
 
-	dst := filepath.Join("storage", "certs", file.Filename)
-	if err := c.SaveUploadedFile(file, dst); err != nil {
+	fileReader, err := file.Open()
+	if err != nil {
 		response.WriteErrorResponse(c, apperror.ErrInternalServerError.WithError(err))
 		return
 	}
+	defer fileReader.Close()
 
-	// Extract topic and expiry from certificate
-	certData, err := os.ReadFile(dst)
+	fileBytes, err := io.ReadAll(fileReader)
 	if err != nil {
 		response.WriteErrorResponse(c, apperror.ErrInternalServerError.WithError(err))
 		return
 	}
 
-	topic, expiry, err := parseCert(certData)
-	if err != nil {
-		response.WriteErrorResponse(c, apperror.ErrBadRequest.WithMessage("Invalid certificate format").WithError(err))
+	if err := h.mdmService.UploadPushCert(c.Request.Context(), fileBytes); err != nil {
+		response.WriteErrorResponse(c, err)
 		return
 	}
 
-	// Check if exists
-	existing, _ := h.client.APNSConfig.Query().Where(apnsconfig.TopicEQ(topic)).First(context.Background())
-
-	var config *ent.APNSConfig
-	if existing != nil {
-		config, err = h.client.APNSConfig.
-			UpdateOne(existing).
-			SetCertFilePath(dst).
-			SetExpiry(expiry).
-			Save(context.Background())
-	} else {
-		config, err = h.client.APNSConfig.
-			Create().
-			SetTopic(topic).
-			SetCertFilePath(dst).
-			SetKeyFilePath(dst).
-			SetExpiry(expiry).
-			Save(context.Background())
-	}
-
-	if err != nil {
-		response.WriteErrorResponse(c, apperror.ErrInternalServerError.WithError(err))
-		return
-	}
-
-	response.OK(c, dto.APNSConfigResponse{
-		ID:           config.ID,
-		Topic:        config.Topic,
-		CertFilePath: config.CertFilePath,
-		Expiry:       config.Expiry,
-		CreatedAt:    config.CreatedAt,
-		UpdatedAt:    config.UpdatedAt,
-	}, "Certificate uploaded successfully")
+	response.OK(c, gin.H{}, "Certificate pushed successfully")
 }
 
 // GetCert godoc
@@ -115,20 +83,12 @@ func (h *mdmHandler) PushCert(c *gin.Context) {
 // @Security BearerAuth
 // @Router /mdm/apns/cert [get]
 func (h *mdmHandler) GetCert(c *gin.Context) {
-	config, err := h.client.APNSConfig.Query().First(context.Background())
+	cert, err := h.mdmService.GetPushCert(c.Request.Context())
 	if err != nil {
-		response.WriteErrorResponse(c, apperror.ErrNotFound.WithMessage("APNs config not found"))
+		response.WriteErrorResponse(c, err)
 		return
 	}
-
-	response.OK(c, dto.APNSConfigResponse{
-		ID:           config.ID,
-		Topic:        config.Topic,
-		CertFilePath: config.CertFilePath,
-		Expiry:       config.Expiry,
-		CreatedAt:    config.CreatedAt,
-		UpdatedAt:    config.UpdatedAt,
-	}, "Certificate retrieved successfully")
+	response.OK(c, cert, "Certificate retrieved successfully")
 }
 
 func parseCert(data []byte) (string, time.Time, error) {

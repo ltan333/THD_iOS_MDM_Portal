@@ -74,6 +74,13 @@ type NanoCMDConfig struct {
 	Password string `env:"NANOCMD_PASSWORD" env-default:"nanocmd"`
 }
 
+// NanoMDMConfig holds NanoMDM server configuration
+type NanoMDMConfig struct {
+	BaseURL  string `env:"NANOMDM_URL" env-default:"http://localhost:9000"`
+	Username string `env:"NANOMDM_USERNAME" env-default:"nanomdm"`
+	Password string `env:"NANOMDM_PASSWORD" env-default:"nanomdm"`
+}
+
 // Config holds all application configuration
 type Config struct {
 	Server    ServerConfig
@@ -84,6 +91,7 @@ type Config struct {
 	RateLimit RateLimitConfig
 	Casbin    CasbinConfig
 	NanoCMD   NanoCMDConfig
+	NanoMDM   NanoMDMConfig
 
 	RedisURL           string   `env:"REDIS_URL" env-default:"redis://localhost:6379"`
 	CORSAllowedOrigins []string `env:"CORS_ALLOWED_ORIGINS" env-default:"http://localhost:3000"`
