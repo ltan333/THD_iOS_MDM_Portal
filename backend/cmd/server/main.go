@@ -77,6 +77,11 @@ func main() {
 
 	tlog.Info("Database connection established")
 
+	// Seed default user if needed
+	if err := database.SeedUser(); err != nil {
+		tlog.Fatal("Failed to seed default user", zap.Error(err))
+	}
+
 	// Set Gin mode
 	if cfg.IsProduction() {
 		gin.SetMode(gin.ReleaseMode)

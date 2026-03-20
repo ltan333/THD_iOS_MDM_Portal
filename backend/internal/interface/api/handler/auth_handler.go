@@ -19,15 +19,17 @@ type AuthHandler interface {
 }
 
 type authHandlerImpl struct {
-	authService service.AuthService
-	userService service.UserService
+	authService  service.AuthService
+	userService  service.UserService
+	authzService service.AuthorizationService
 }
 
 // NewAuthHandler creates a new auth handler
-func NewAuthHandler(authService service.AuthService, userService service.UserService) AuthHandler {
+func NewAuthHandler(authService service.AuthService, userService service.UserService, authzService service.AuthorizationService) AuthHandler {
 	return &authHandlerImpl{
-		authService: authService,
-		userService: userService,
+		authService:  authService,
+		userService:  userService,
+		authzService: authzService,
 	}
 }
 
@@ -89,15 +91,22 @@ func (h *authHandlerImpl) GetMe(c *gin.Context) {
 		response.WriteErrorResponse(c, err)
 		return
 	}
-	response.OK(c, toAuthUserResponse(user), "")
+	response.OK(c, h.toAuthUserResponse(user), "")
 }
 
-func toAuthUserResponse(user *ent.User) dto.UserResponse {
+func (h *authHandlerImpl) toAuthUserResponse(user *ent.User) dto.UserResponse {
+	// Fetch role from Casbin
+	role := "USER"
+	roles, err := h.authzService.GetRolesForUser(user.ID)
+	if err == nil && len(roles) > 0 {
+		role = roles[0]
+	}
+
 	resp := dto.UserResponse{
 		ID:        user.ID,
 		Username:  user.Username,
 		Email:     user.Email,
-		Role:      user.Role,
+		Role:      role,
 		Status:    user.Status,
 		CreatedAt: user.CreatedAt,
 		UpdatedAt: user.UpdatedAt,
