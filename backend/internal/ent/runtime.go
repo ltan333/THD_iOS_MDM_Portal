@@ -5,6 +5,9 @@ package ent
 import (
 	"time"
 
+	"github.com/thienel/go-backend-template/internal/ent/apnsconfig"
+	"github.com/thienel/go-backend-template/internal/ent/deptoken"
+	"github.com/thienel/go-backend-template/internal/ent/device"
 	"github.com/thienel/go-backend-template/internal/ent/mobileconfig"
 	"github.com/thienel/go-backend-template/internal/ent/payload"
 	"github.com/thienel/go-backend-template/internal/ent/payloadproperty"
@@ -17,6 +20,74 @@ import (
 // (default values, validators, hooks and policies) and stitches it
 // to their package variables.
 func init() {
+	apnsconfigFields := schema.APNSConfig{}.Fields()
+	_ = apnsconfigFields
+	// apnsconfigDescTopic is the schema descriptor for topic field.
+	apnsconfigDescTopic := apnsconfigFields[1].Descriptor()
+	// apnsconfig.TopicValidator is a validator for the "topic" field. It is called by the builders before save.
+	apnsconfig.TopicValidator = apnsconfigDescTopic.Validators[0].(func(string) error)
+	// apnsconfigDescCertFilePath is the schema descriptor for cert_file_path field.
+	apnsconfigDescCertFilePath := apnsconfigFields[2].Descriptor()
+	// apnsconfig.CertFilePathValidator is a validator for the "cert_file_path" field. It is called by the builders before save.
+	apnsconfig.CertFilePathValidator = apnsconfigDescCertFilePath.Validators[0].(func(string) error)
+	// apnsconfigDescKeyFilePath is the schema descriptor for key_file_path field.
+	apnsconfigDescKeyFilePath := apnsconfigFields[3].Descriptor()
+	// apnsconfig.KeyFilePathValidator is a validator for the "key_file_path" field. It is called by the builders before save.
+	apnsconfig.KeyFilePathValidator = apnsconfigDescKeyFilePath.Validators[0].(func(string) error)
+	// apnsconfigDescCreatedAt is the schema descriptor for created_at field.
+	apnsconfigDescCreatedAt := apnsconfigFields[5].Descriptor()
+	// apnsconfig.DefaultCreatedAt holds the default value on creation for the created_at field.
+	apnsconfig.DefaultCreatedAt = apnsconfigDescCreatedAt.Default.(func() time.Time)
+	// apnsconfigDescUpdatedAt is the schema descriptor for updated_at field.
+	apnsconfigDescUpdatedAt := apnsconfigFields[6].Descriptor()
+	// apnsconfig.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	apnsconfig.DefaultUpdatedAt = apnsconfigDescUpdatedAt.Default.(func() time.Time)
+	// apnsconfig.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	apnsconfig.UpdateDefaultUpdatedAt = apnsconfigDescUpdatedAt.UpdateDefault.(func() time.Time)
+	deptokenFields := schema.DEPToken{}.Fields()
+	_ = deptokenFields
+	// deptokenDescName is the schema descriptor for name field.
+	deptokenDescName := deptokenFields[1].Descriptor()
+	// deptoken.NameValidator is a validator for the "name" field. It is called by the builders before save.
+	deptoken.NameValidator = deptokenDescName.Validators[0].(func(string) error)
+	// deptokenDescP7mFilePath is the schema descriptor for p7m_file_path field.
+	deptokenDescP7mFilePath := deptokenFields[2].Descriptor()
+	// deptoken.P7mFilePathValidator is a validator for the "p7m_file_path" field. It is called by the builders before save.
+	deptoken.P7mFilePathValidator = deptokenDescP7mFilePath.Validators[0].(func(string) error)
+	// deptokenDescCreatedAt is the schema descriptor for created_at field.
+	deptokenDescCreatedAt := deptokenFields[5].Descriptor()
+	// deptoken.DefaultCreatedAt holds the default value on creation for the created_at field.
+	deptoken.DefaultCreatedAt = deptokenDescCreatedAt.Default.(func() time.Time)
+	// deptokenDescUpdatedAt is the schema descriptor for updated_at field.
+	deptokenDescUpdatedAt := deptokenFields[6].Descriptor()
+	// deptoken.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	deptoken.DefaultUpdatedAt = deptokenDescUpdatedAt.Default.(func() time.Time)
+	// deptoken.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	deptoken.UpdateDefaultUpdatedAt = deptokenDescUpdatedAt.UpdateDefault.(func() time.Time)
+	deviceFields := schema.Device{}.Fields()
+	_ = deviceFields
+	// deviceDescSerialNumber is the schema descriptor for serial_number field.
+	deviceDescSerialNumber := deviceFields[1].Descriptor()
+	// device.SerialNumberValidator is a validator for the "serial_number" field. It is called by the builders before save.
+	device.SerialNumberValidator = deviceDescSerialNumber.Validators[0].(func(string) error)
+	// deviceDescModel is the schema descriptor for model field.
+	deviceDescModel := deviceFields[2].Descriptor()
+	// device.ModelValidator is a validator for the "model" field. It is called by the builders before save.
+	device.ModelValidator = deviceDescModel.Validators[0].(func(string) error)
+	// deviceDescIsEnrolled is the schema descriptor for is_enrolled field.
+	deviceDescIsEnrolled := deviceFields[4].Descriptor()
+	// device.DefaultIsEnrolled holds the default value on creation for the is_enrolled field.
+	device.DefaultIsEnrolled = deviceDescIsEnrolled.Default.(bool)
+	// deviceDescCreatedAt is the schema descriptor for created_at field.
+	deviceDescCreatedAt := deviceFields[7].Descriptor()
+	// device.DefaultCreatedAt holds the default value on creation for the created_at field.
+	device.DefaultCreatedAt = deviceDescCreatedAt.Default.(func() time.Time)
+	// deviceDescUpdatedAt is the schema descriptor for updated_at field.
+	deviceDescUpdatedAt := deviceFields[8].Descriptor()
+	// device.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	device.DefaultUpdatedAt = deviceDescUpdatedAt.Default.(func() time.Time)
+	// device.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	device.UpdateDefaultUpdatedAt = deviceDescUpdatedAt.UpdateDefault.(func() time.Time)
 	mobileconfigFields := schema.MobileConfig{}.Fields()
 	_ = mobileconfigFields
 	// mobileconfigDescName is the schema descriptor for name field.

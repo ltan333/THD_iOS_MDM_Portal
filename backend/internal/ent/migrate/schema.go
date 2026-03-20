@@ -8,6 +8,64 @@ import (
 )
 
 var (
+	// ApnsConfigsColumns holds the columns for the "apns_configs" table.
+	ApnsConfigsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUint, Increment: true},
+		{Name: "topic", Type: field.TypeString, Unique: true},
+		{Name: "cert_file_path", Type: field.TypeString},
+		{Name: "key_file_path", Type: field.TypeString},
+		{Name: "expiry", Type: field.TypeTime, Nullable: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+	}
+	// ApnsConfigsTable holds the schema information for the "apns_configs" table.
+	ApnsConfigsTable = &schema.Table{
+		Name:       "apns_configs",
+		Columns:    ApnsConfigsColumns,
+		PrimaryKey: []*schema.Column{ApnsConfigsColumns[0]},
+	}
+	// DepTokensColumns holds the columns for the "dep_tokens" table.
+	DepTokensColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUint, Increment: true},
+		{Name: "name", Type: field.TypeString, Unique: true},
+		{Name: "p7m_file_path", Type: field.TypeString},
+		{Name: "expiry", Type: field.TypeTime, Nullable: true},
+		{Name: "last_used", Type: field.TypeTime, Nullable: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+	}
+	// DepTokensTable holds the schema information for the "dep_tokens" table.
+	DepTokensTable = &schema.Table{
+		Name:       "dep_tokens",
+		Columns:    DepTokensColumns,
+		PrimaryKey: []*schema.Column{DepTokensColumns[0]},
+	}
+	// DevicesColumns holds the columns for the "devices" table.
+	DevicesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUint, Increment: true},
+		{Name: "serial_number", Type: field.TypeString, Unique: true},
+		{Name: "model", Type: field.TypeString},
+		{Name: "is_enrolled", Type: field.TypeBool, Default: false},
+		{Name: "name", Type: field.TypeString, Nullable: true},
+		{Name: "last_sync", Type: field.TypeTime, Nullable: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "owner_id", Type: field.TypeUint, Nullable: true},
+	}
+	// DevicesTable holds the schema information for the "devices" table.
+	DevicesTable = &schema.Table{
+		Name:       "devices",
+		Columns:    DevicesColumns,
+		PrimaryKey: []*schema.Column{DevicesColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "devices_users_devices",
+				Columns:    []*schema.Column{DevicesColumns[8]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+		},
+	}
 	// MobileConfigsColumns holds the columns for the "mobile_configs" table.
 	MobileConfigsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUint, Increment: true},
@@ -142,6 +200,9 @@ var (
 	}
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
+		ApnsConfigsTable,
+		DepTokensTable,
+		DevicesTable,
 		MobileConfigsTable,
 		PayloadsTable,
 		PayloadPropertiesTable,
@@ -151,6 +212,7 @@ var (
 )
 
 func init() {
+	DevicesTable.ForeignKeys[0].RefTable = UsersTable
 	PayloadsTable.ForeignKeys[0].RefTable = MobileConfigsTable
 	PayloadPropertiesTable.ForeignKeys[0].RefTable = PayloadsTable
 	PayloadPropertiesTable.ForeignKeys[1].RefTable = PayloadPropertyDefinitionsTable
