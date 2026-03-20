@@ -14,6 +14,7 @@ type routeRegister struct {
 	policy handler.PolicyHandler
 	mdm    handler.MDMHandler
 	dep    handler.DEPHandler
+	nanocmd handler.NanoCMDHandler
 	mw     *middleware.Middleware
 }
 
@@ -24,6 +25,7 @@ func SetupRouter(
 	policyHandler handler.PolicyHandler,
 	mdmHandler handler.MDMHandler,
 	depHandler handler.DEPHandler,
+	nanocmdHandler handler.NanoCMDHandler,
 	mw *middleware.Middleware,
 ) *gin.Engine {
 
@@ -33,6 +35,7 @@ func SetupRouter(
 		policy: policyHandler,
 		mdm:    mdmHandler,
 		dep:    depHandler,
+		nanocmd: nanocmdHandler,
 		mw:     mw,
 	}
 
@@ -57,7 +60,11 @@ func SetupRouter(
 		routes.registerPolicyRoutes(protected)
 		routes.registerMDMRoutes(protected)
 		routes.registerDEPRoutes(protected)
+		routes.registerNanoCMDRoutes(protected)
 	}
+
+	// NanoCMD Webhook (Public)
+	router.POST("/nanocmd/webhook", routes.nanocmd.Webhook)
 
 	return router
 }
@@ -121,5 +128,22 @@ func (r *routeRegister) registerDEPRoutes(rg *gin.RouterGroup) {
 		dep.POST("/profiles", r.dep.DefineProfile)
 		dep.GET("/profiles/:uuid", r.dep.GetProfile)
 		dep.POST("/devices/disown", r.dep.DisownDevice)
+	}
+}
+func (r *routeRegister) registerNanoCMDRoutes(rg *gin.RouterGroup) {
+	nanocmd := rg.Group("/v1/nanocmd")
+	{
+		nanocmd.GET("/version", r.nanocmd.GetVersion)
+		nanocmd.POST("/workflow/:name/start", r.nanocmd.StartWorkflow)
+		nanocmd.GET("/event/:name", r.nanocmd.GetEvent)
+		nanocmd.PUT("/event/:name", r.nanocmd.PutEvent)
+		nanocmd.GET("/fvenable/profiletemplate", r.nanocmd.GetFVEnableProfileTemplate)
+		nanocmd.GET("/profile/:name", r.nanocmd.GetProfile)
+		nanocmd.PUT("/profile/:name", r.nanocmd.PutProfile)
+		nanocmd.DELETE("/profile/:name", r.nanocmd.DeleteProfile)
+		nanocmd.GET("/profiles", r.nanocmd.GetProfiles)
+		nanocmd.GET("/cmdplan/:name", r.nanocmd.GetCMDPlan)
+		nanocmd.PUT("/cmdplan/:name", r.nanocmd.PutCMDPlan)
+		nanocmd.GET("/inventory", r.nanocmd.GetInventory)
 	}
 }
