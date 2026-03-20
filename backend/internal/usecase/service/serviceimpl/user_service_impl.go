@@ -123,7 +123,7 @@ func (s *userServiceImpl) Update(ctx context.Context, cmd service.UpdateUserComm
 		sub := fmt.Sprintf("user:%d", user.ID)
 		roles, _ := s.authzService.GetRolesForUser(user.ID)
 		for _, r := range roles {
-			s.authzService.RemoveRoleLink(sub, r)
+			_, _ = s.authzService.RemoveRoleLink(sub, r)
 		}
 		
 		// Add new role link

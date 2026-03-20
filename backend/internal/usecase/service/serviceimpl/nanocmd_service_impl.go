@@ -65,7 +65,7 @@ func (s *nanocmdServiceImpl) GetVersion(ctx context.Context) (*dto.NanoCMDVersio
 	if err != nil {
 		return nil, err
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	if resp.StatusCode != http.StatusOK {
 		return nil, fmt.Errorf("nanocmd error: status %d", resp.StatusCode)
@@ -91,7 +91,7 @@ func (s *nanocmdServiceImpl) StartWorkflow(ctx context.Context, name string, enr
 	if err != nil {
 		return nil, err
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	if resp.StatusCode != http.StatusOK {
 		return nil, fmt.Errorf("nanocmd error: status %d", resp.StatusCode)
@@ -109,7 +109,7 @@ func (s *nanocmdServiceImpl) GetEvent(ctx context.Context, name string) (*dto.Ev
 	if err != nil {
 		return nil, err
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	if resp.StatusCode != http.StatusOK {
 		return nil, fmt.Errorf("nanocmd error: status %d", resp.StatusCode)
@@ -127,7 +127,7 @@ func (s *nanocmdServiceImpl) PutEvent(ctx context.Context, name string, subscrip
 	if err != nil {
 		return err
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	if resp.StatusCode != http.StatusNoContent {
 		return fmt.Errorf("nanocmd error: status %d", resp.StatusCode)
@@ -140,7 +140,7 @@ func (s *nanocmdServiceImpl) GetFVEnableProfileTemplate(ctx context.Context) ([]
 	if err != nil {
 		return nil, err
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	if resp.StatusCode != http.StatusOK {
 		return nil, fmt.Errorf("nanocmd error: status %d", resp.StatusCode)
@@ -153,7 +153,7 @@ func (s *nanocmdServiceImpl) GetProfile(ctx context.Context, name string) ([]byt
 	if err != nil {
 		return nil, err
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	if resp.StatusCode != http.StatusOK {
 		return nil, fmt.Errorf("nanocmd error: status %d", resp.StatusCode)
@@ -180,7 +180,7 @@ func (s *nanocmdServiceImpl) PutProfile(ctx context.Context, name string, profil
 	if err != nil {
 		return err
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	if resp.StatusCode != http.StatusNoContent {
 		return fmt.Errorf("nanocmd error: status %d", resp.StatusCode)
@@ -193,7 +193,7 @@ func (s *nanocmdServiceImpl) DeleteProfile(ctx context.Context, name string) err
 	if err != nil {
 		return err
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	if resp.StatusCode != http.StatusNoContent {
 		return fmt.Errorf("nanocmd error: status %d", resp.StatusCode)
@@ -211,7 +211,7 @@ func (s *nanocmdServiceImpl) GetProfiles(ctx context.Context, names []string) (m
 	if err != nil {
 		return nil, err
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	if resp.StatusCode != http.StatusOK {
 		return nil, fmt.Errorf("nanocmd error: status %d", resp.StatusCode)
@@ -229,7 +229,7 @@ func (s *nanocmdServiceImpl) GetCMDPlan(ctx context.Context, name string) (*dto.
 	if err != nil {
 		return nil, err
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	if resp.StatusCode != http.StatusOK {
 		return nil, fmt.Errorf("nanocmd error: status %d", resp.StatusCode)
@@ -247,7 +247,7 @@ func (s *nanocmdServiceImpl) PutCMDPlan(ctx context.Context, name string, plan *
 	if err != nil {
 		return err
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	if resp.StatusCode != http.StatusNoContent {
 		return fmt.Errorf("nanocmd error: status %d", resp.StatusCode)
@@ -265,7 +265,7 @@ func (s *nanocmdServiceImpl) GetInventory(ctx context.Context, enrollmentIDs []s
 	if err != nil {
 		return nil, err
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	if resp.StatusCode != http.StatusOK {
 		return nil, fmt.Errorf("nanocmd error: status %d", resp.StatusCode)

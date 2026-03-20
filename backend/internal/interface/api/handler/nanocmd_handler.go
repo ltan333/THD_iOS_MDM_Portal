@@ -65,7 +65,7 @@ func (h *nanocmdHandler) GetVersion(c *gin.Context) {
 // @Success 200 {object} response.APIResponse[dto.NanoCMDWorkflowStartResponse]
 // @Failure 401 {object} response.APIResponse[any]
 // @Security BearerAuth
-// @Router /nanocmd/workflow/{name} [get]
+// @Router /nanocmd/workflow/{name}/start [post]
 func (h *nanocmdHandler) StartWorkflow(c *gin.Context) {
 	name := c.Param("name")
 	ids := c.QueryArray("id")
@@ -136,7 +136,7 @@ func (h *nanocmdHandler) PutEvent(c *gin.Context) {
 // @Success 200 {string} string "Apple Configuration Profile"
 // @Failure 401 {object} response.APIResponse[any]
 // @Security BearerAuth
-// @Router /nanocmd/profile/template/fv-enable [get]
+// @Router /nanocmd/fvenable/profiletemplate [get]
 func (h *nanocmdHandler) GetFVEnableProfileTemplate(c *gin.Context) {
 	data, err := h.service.GetFVEnableProfileTemplate(c.Request.Context())
 	if err != nil {

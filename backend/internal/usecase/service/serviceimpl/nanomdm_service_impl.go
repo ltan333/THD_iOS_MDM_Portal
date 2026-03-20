@@ -70,7 +70,7 @@ func (s *nanomdmServiceImpl) DefineDEPProfile(ctx context.Context, depName strin
 	if err != nil {
 		return "", err
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	if resp.StatusCode != http.StatusOK && resp.StatusCode != http.StatusCreated {
 		return "", fmt.Errorf("nanomdm error: status %d", resp.StatusCode)
@@ -90,7 +90,25 @@ func (s *nanomdmServiceImpl) GetDEPProfile(ctx context.Context, depName, profile
 	if err != nil {
 		return nil, err
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("nanomdm error: status %d", resp.StatusCode)
+	}
+
+	var result interface{}
+	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+
+func (s *nanomdmServiceImpl) ListDEPProfiles(ctx context.Context, depName string) (interface{}, error) {
+	resp, err := s.doRequest(ctx, http.MethodGet, s.depBaseURL, "/v1/dep/profiles", nil, nil, s.depUsername, s.depPassword)
+	if err != nil {
+		return nil, err
+	}
+	defer func() { _ = resp.Body.Close() }()
 
 	if resp.StatusCode != http.StatusOK {
 		return nil, fmt.Errorf("nanomdm error: status %d", resp.StatusCode)
@@ -108,7 +126,7 @@ func (s *nanomdmServiceImpl) SyncDEPDevices(ctx context.Context, depName string)
 	if err != nil {
 		return nil, err
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	if resp.StatusCode != http.StatusOK {
 		return nil, fmt.Errorf("nanomdm error: status %d", resp.StatusCode)
@@ -131,7 +149,7 @@ func (s *nanomdmServiceImpl) DisownDEPDevices(ctx context.Context, depName strin
 	if err != nil {
 		return nil, err
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	if resp.StatusCode != http.StatusOK {
 		return nil, fmt.Errorf("nanomdm error: status %d", resp.StatusCode)
@@ -163,7 +181,7 @@ func (s *nanomdmServiceImpl) UploadDEPToken(ctx context.Context, depName string,
 	if err != nil {
 		return nil, err
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	if resp.StatusCode != http.StatusOK {
 		return nil, fmt.Errorf("nanomdm error: status %d", resp.StatusCode)
@@ -181,7 +199,7 @@ func (s *nanomdmServiceImpl) UploadPushCert(ctx context.Context, certData []byte
 	if err != nil {
 		return err
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	if resp.StatusCode != http.StatusOK && resp.StatusCode != http.StatusNoContent {
 		return fmt.Errorf("nanomdm error: status %d", resp.StatusCode)
@@ -194,7 +212,7 @@ func (s *nanomdmServiceImpl) GetPushCert(ctx context.Context) (interface{}, erro
 	if err != nil {
 		return nil, err
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	if resp.StatusCode != http.StatusOK {
 		return nil, fmt.Errorf("nanomdm error: status %d", resp.StatusCode)

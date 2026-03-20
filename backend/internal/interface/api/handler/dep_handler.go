@@ -22,6 +22,7 @@ type DEPHandler interface {
 	SyncDevices(c *gin.Context)
 	DefineProfile(c *gin.Context)
 	GetProfile(c *gin.Context)
+	ListProfiles(c *gin.Context)
 	DisownDevice(c *gin.Context)
 }
 
@@ -51,7 +52,7 @@ func NewDEPHandler(client *ent.Client, authzService service.AuthorizationService
 // @Failure 400 {object} response.APIResponse[any]
 // @Failure 401 {object} response.APIResponse[any]
 // @Security BearerAuth
-// @Router /dep/token/{name} [post]
+// @Router /dep/token/{name} [put]
 func (h *depHandler) PutToken(c *gin.Context) {
 	name := c.Param("name")
 	file, err := c.FormFile("token")
@@ -203,7 +204,7 @@ func (h *depHandler) DefineProfile(c *gin.Context) {
 // @Success 200 {object} response.APIResponse[any]
 // @Failure 401 {object} response.APIResponse[any]
 // @Security BearerAuth
-// @Router /dep/profile [get]
+// @Router /dep/profile/{uuid} [get]
 func (h *depHandler) GetProfile(c *gin.Context) {
 	uuid := c.Param("uuid")
 	profile, err := h.mdmService.GetDEPProfile(c.Request.Context(), "default", uuid)
@@ -212,6 +213,24 @@ func (h *depHandler) GetProfile(c *gin.Context) {
 		return
 	}
 	response.OK(c, profile, "Profile retrieved successfully")
+}
+
+// ListProfiles godoc
+// @Summary List DEP profiles
+// @Description Fetch all defined DEP profiles
+// @Tags DEP
+// @Produce json
+// @Success 200 {object} response.APIResponse[any]
+// @Failure 401 {object} response.APIResponse[any]
+// @Security BearerAuth
+// @Router /dep/profiles [get]
+func (h *depHandler) ListProfiles(c *gin.Context) {
+	profiles, err := h.mdmService.ListDEPProfiles(c.Request.Context(), "default")
+	if err != nil {
+		response.WriteErrorResponse(c, err)
+		return
+	}
+	response.OK(c, profiles, "Profiles retrieved successfully")
 }
 
 // DisownDevice godoc

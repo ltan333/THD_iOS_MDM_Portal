@@ -61,7 +61,7 @@ func main() {
 	if err != nil {
 		log.Fatalf("Failed to initialize logger: %v", err)
 	}
-	defer tlog.Sync()
+	defer func() { _ = tlog.Sync() }()
 
 	tlog.Info("Starting server",
 		zap.String("service", cfg.Server.ServiceName),
@@ -73,7 +73,7 @@ func main() {
 	if err := database.Init(&cfg.Database); err != nil {
 		tlog.Fatal("Failed to initialize database", zap.Error(err))
 	}
-	defer database.Close()
+	defer func() { _ = database.Close() }()
 
 	tlog.Info("Database connection established")
 

@@ -119,7 +119,7 @@ func (r *routeRegister) registerPolicyRoutes(rg *gin.RouterGroup) {
 }
 
 func (r *routeRegister) registerMDMRoutes(rg *gin.RouterGroup) {
-	mdm := rg.Group("/v1/mdm")
+	mdm := rg.Group("/mdm")
 	{
 		mdm.POST("/pushcert", r.mdm.PushCert)
 		mdm.GET("/pushcert", r.mdm.GetCert)
@@ -127,18 +127,19 @@ func (r *routeRegister) registerMDMRoutes(rg *gin.RouterGroup) {
 }
 
 func (r *routeRegister) registerDEPRoutes(rg *gin.RouterGroup) {
-	dep := rg.Group("/v1/dep")
+	dep := rg.Group("/dep")
 	{
-		dep.PUT("/tokenpki/:name", r.dep.PutToken)
-		dep.GET("/tokens/:name", r.dep.GetToken)
+		dep.PUT("/token/:name", r.dep.PutToken)
+		dep.GET("/token/:name", r.dep.GetToken)
 		dep.POST("/sync", r.dep.SyncDevices)
-		dep.POST("/profiles", r.dep.DefineProfile)
-		dep.GET("/profiles/:uuid", r.dep.GetProfile)
-		dep.POST("/devices/disown", r.dep.DisownDevice)
+		dep.POST("/profile", r.dep.DefineProfile)
+		dep.GET("/profiles", r.dep.ListProfiles)
+		dep.GET("/profile/:uuid", r.dep.GetProfile)
+		dep.POST("/disown", r.dep.DisownDevice)
 	}
 }
 func (r *routeRegister) registerNanoCMDRoutes(rg *gin.RouterGroup) {
-	nanocmd := rg.Group("/v1/nanocmd")
+	nanocmd := rg.Group("/nanocmd")
 	{
 		nanocmd.GET("/version", r.nanocmd.GetVersion)
 		nanocmd.POST("/workflow/:name/start", r.nanocmd.StartWorkflow)
