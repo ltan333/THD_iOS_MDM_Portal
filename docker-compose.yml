@@ -13,6 +13,21 @@ services:
     depends_on:
       db:
         condition: service_healthy
+      migration:
+        condition: service_completed_successfully
+    networks:
+      - mdm-network
+
+  migration:
+    image: arigaio/atlas
+    volumes:
+      - ./backend/internal/ent/migrate/migrations:/migrations
+    env_file:
+      - ./backend/.env
+    command: migrate apply --url "postgres://${DB_USER}:${DB_PASSWORD}@db:5432/${DB_NAME}?sslmode=disable" --dir "file:///migrations" 
+    depends_on:
+      db:
+        condition: service_healthy
     networks:
       - mdm-network
 
