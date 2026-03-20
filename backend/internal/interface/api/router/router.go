@@ -84,7 +84,7 @@ func (r *routeRegister) registerAuthRoutes(rg *gin.RouterGroup) {
 	auth := rg.Group("/auth")
 	{
 		auth.POST("/login", r.auth.Login)
-		auth.POST("/logout", r.auth.Logout)
+		auth.POST("/logout", r.mw.Auth(), r.auth.Logout)
 		auth.GET("/me", r.mw.Auth(), r.auth.GetMe)
 	}
 }

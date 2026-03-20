@@ -66,6 +66,8 @@ func (h *authHandlerImpl) Login(c *gin.Context) {
 // @Tags Authentication
 // @Produce json
 // @Success 200 {object} response.APIResponse[any]
+// @Failure 401 {object} response.APIResponse[any]
+// @Security BearerAuth
 // @Router /v1/auth/logout [post]
 func (h *authHandlerImpl) Logout(c *gin.Context) {
 	if err := h.authService.Logout(c.Request.Context()); err != nil {
