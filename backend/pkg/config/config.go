@@ -66,6 +66,13 @@ type CasbinConfig struct {
 	ModelPath string `env:"CASBIN_MODEL_PATH" env-default:"configs/casbin_model.conf"`
 }
 
+// NanoCMDConfig holds NanoCMD server configuration
+type NanoCMDConfig struct {
+	BaseURL  string `env:"NANOCMD_URL" env-default:"http://localhost:9003"`
+	Username string `env:"NANOCMD_USERNAME" env-default:"nanocmd"`
+	Password string `env:"NANOCMD_PASSWORD" env-default:"nanocmd"`
+}
+
 // Config holds all application configuration
 type Config struct {
 	Server    ServerConfig
@@ -75,6 +82,7 @@ type Config struct {
 	Cookie    CookieConfig
 	RateLimit RateLimitConfig
 	Casbin    CasbinConfig
+	NanoCMD   NanoCMDConfig
 
 	RedisURL           string   `env:"REDIS_URL" env-default:"redis://localhost:6379"`
 	CORSAllowedOrigins []string `env:"CORS_ALLOWED_ORIGINS" env-default:"http://localhost:3000"`
