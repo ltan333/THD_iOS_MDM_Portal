@@ -224,3 +224,166 @@ func (s *nanomdmServiceImpl) GetPushCert(ctx context.Context) (interface{}, erro
 	}
 	return result, nil
 }
+
+func (s *nanomdmServiceImpl) ListDEPNames(ctx context.Context) (interface{}, error) {
+	resp, err := s.doRequest(ctx, http.MethodGet, s.depBaseURL, "/v1/dep_names", nil, nil, s.depUsername, s.depPassword)
+	if err != nil {
+		return nil, err
+	}
+	defer func() { _ = resp.Body.Close() }()
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("nanomdm error: status %d", resp.StatusCode)
+	}
+
+	var result interface{}
+	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+
+func (s *nanomdmServiceImpl) GetDEPConfig(ctx context.Context, depName string) (interface{}, error) {
+	resp, err := s.doRequest(ctx, http.MethodGet, s.depBaseURL, fmt.Sprintf("/v1/config/%s", depName), nil, nil, s.depUsername, s.depPassword)
+	if err != nil {
+		return nil, err
+	}
+	defer func() { _ = resp.Body.Close() }()
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("nanomdm error: status %d", resp.StatusCode)
+	}
+
+	var result interface{}
+	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+
+func (s *nanomdmServiceImpl) GetDEPAssigner(ctx context.Context, depName string) (interface{}, error) {
+	resp, err := s.doRequest(ctx, http.MethodGet, s.depBaseURL, fmt.Sprintf("/v1/assigner/%s", depName), nil, nil, s.depUsername, s.depPassword)
+	if err != nil {
+		return nil, err
+	}
+	defer func() { _ = resp.Body.Close() }()
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("nanomdm error: status %d", resp.StatusCode)
+	}
+
+	var result interface{}
+	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+
+func (s *nanomdmServiceImpl) SetDEPAssigner(ctx context.Context, depName string, assigner interface{}) (interface{}, error) {
+	resp, err := s.doRequest(ctx, http.MethodPut, s.depBaseURL, fmt.Sprintf("/v1/assigner/%s", depName), assigner, nil, s.depUsername, s.depPassword)
+	if err != nil {
+		return nil, err
+	}
+	defer func() { _ = resp.Body.Close() }()
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("nanomdm error: status %d", resp.StatusCode)
+	}
+
+	var result interface{}
+	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+
+func (s *nanomdmServiceImpl) GetDEPAccount(ctx context.Context, depName string) (interface{}, error) {
+	resp, err := s.doRequest(ctx, http.MethodGet, s.depBaseURL, fmt.Sprintf("/proxy/%s/account", depName), nil, nil, s.depUsername, s.depPassword)
+	if err != nil {
+		return nil, err
+	}
+	defer func() { _ = resp.Body.Close() }()
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("nanomdm error: status %d", resp.StatusCode)
+	}
+
+	var result interface{}
+	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+
+func (s *nanomdmServiceImpl) GetDEPDevices(ctx context.Context, depName string, cursor string) (interface{}, error) {
+	var query url.Values
+	if cursor != "" {
+		query = url.Values{}
+		query.Set("cursor", cursor)
+	}
+	resp, err := s.doRequest(ctx, http.MethodPost, s.depBaseURL, fmt.Sprintf("/proxy/%s/devices", depName), nil, query, s.depUsername, s.depPassword)
+	if err != nil {
+		return nil, err
+	}
+	defer func() { _ = resp.Body.Close() }()
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("nanomdm error: status %d", resp.StatusCode)
+	}
+
+	var result interface{}
+	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+
+func (s *nanomdmServiceImpl) GetDEPTokens(ctx context.Context, depName string) (interface{}, error) {
+	resp, err := s.doRequest(ctx, http.MethodGet, s.depBaseURL, fmt.Sprintf("/v1/tokens/%s", depName), nil, nil, s.depUsername, s.depPassword)
+	if err != nil {
+		return nil, err
+	}
+	defer func() { _ = resp.Body.Close() }()
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("nanomdm error: status %d", resp.StatusCode)
+	}
+
+	var result interface{}
+	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+
+func (s *nanomdmServiceImpl) EnqueueCommand(ctx context.Context, udid string, cmdData []byte) (interface{}, error) {
+	u, err := url.Parse(fmt.Sprintf("%s/v1/enqueue/%s", s.mdmBaseURL, udid))
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodPut, u.String(), bytes.NewReader(cmdData))
+	if err != nil {
+		return nil, err
+	}
+
+	req.SetBasicAuth(s.mdmUsername, s.mdmPassword)
+	req.Header.Set("Content-Type", "application/xml")
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer func() { _ = resp.Body.Close() }()
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("nanomdm error: status %d", resp.StatusCode)
+	}
+
+	var result interface{}
+	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+		return nil, err
+	}
+	return result, nil
+}

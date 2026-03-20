@@ -15,6 +15,7 @@ import (
 type MDMHandler interface {
 	PushCert(c *gin.Context)
 	GetCert(c *gin.Context)
+	EnqueueCommand(c *gin.Context)
 }
 
 type mdmHandler struct {
@@ -40,7 +41,7 @@ func NewMDMHandler(client *ent.Client, mdmService service.NanoMDMService) MDMHan
 // @Failure 400 {object} response.APIResponse[any]
 // @Failure 401 {object} response.APIResponse[any]
 // @Security BearerAuth
-// @Router /mdm/pushcert [post]
+// @Router /v1/mdm/pushcert [post]
 func (h *mdmHandler) PushCert(c *gin.Context) {
 	file, err := c.FormFile("cert")
 	if err != nil {
@@ -78,7 +79,7 @@ func (h *mdmHandler) PushCert(c *gin.Context) {
 // @Failure 401 {object} response.APIResponse[any]
 // @Failure 404 {object} response.APIResponse[any]
 // @Security BearerAuth
-// @Router /mdm/pushcert [get]
+// @Router /v1/mdm/pushcert [get]
 func (h *mdmHandler) GetCert(c *gin.Context) {
 	cert, err := h.mdmService.GetPushCert(c.Request.Context())
 	if err != nil {
@@ -86,5 +87,33 @@ func (h *mdmHandler) GetCert(c *gin.Context) {
 		return
 	}
 	response.OK(c, cert, "Certificate retrieved successfully")
+}
+
+// EnqueueCommand godoc
+// @Summary Enqueue MDM command
+// @Description Enqueue a raw Apple MDM command (XML) for a specific device UDID
+// @Tags MDM
+// @Accept application/xml
+// @Produce json
+// @Param id path string true "Device UDID"
+// @Param command body string true "Command XML data"
+// @Success 200 {object} response.APIResponse[any]
+// @Failure 401 {object} response.APIResponse[any]
+// @Security BearerAuth
+// @Router /v1/mdm/enqueue/{id} [put]
+func (h *mdmHandler) EnqueueCommand(c *gin.Context) {
+	udid := c.Param("id")
+	data, err := io.ReadAll(c.Request.Body)
+	if err != nil {
+		response.WriteErrorResponse(c, err)
+		return
+	}
+
+	result, err := h.mdmService.EnqueueCommand(c.Request.Context(), udid, data)
+	if err != nil {
+		response.WriteErrorResponse(c, err)
+		return
+	}
+	response.OK(c, result, "Command enqueued successfully")
 }
 

@@ -44,7 +44,7 @@ func NewNanoCMDHandler(svc service.NanoCMDService) NanoCMDHandler {
 // @Success 200 {object} response.APIResponse[dto.NanoCMDVersionResponse]
 // @Failure 401 {object} response.APIResponse[any]
 // @Security BearerAuth
-// @Router /nanocmd/version [get]
+// @Router /v1/nanocmd/version [get]
 func (h *nanocmdHandler) GetVersion(c *gin.Context) {
 	resp, err := h.service.GetVersion(c.Request.Context())
 	if err != nil {
@@ -65,7 +65,7 @@ func (h *nanocmdHandler) GetVersion(c *gin.Context) {
 // @Success 200 {object} response.APIResponse[dto.NanoCMDWorkflowStartResponse]
 // @Failure 401 {object} response.APIResponse[any]
 // @Security BearerAuth
-// @Router /nanocmd/workflow/{name}/start [post]
+// @Router /v1/nanocmd/workflow/{name}/start [post]
 func (h *nanocmdHandler) StartWorkflow(c *gin.Context) {
 	name := c.Param("name")
 	ids := c.QueryArray("id")
@@ -89,7 +89,7 @@ func (h *nanocmdHandler) StartWorkflow(c *gin.Context) {
 // @Failure 401 {object} response.APIResponse[any]
 // @Failure 404 {object} response.APIResponse[any]
 // @Security BearerAuth
-// @Router /nanocmd/event/{name} [get]
+// @Router /v1/nanocmd/event/{name} [get]
 func (h *nanocmdHandler) GetEvent(c *gin.Context) {
 	name := c.Param("name")
 	resp, err := h.service.GetEvent(c.Request.Context(), name)
@@ -112,7 +112,7 @@ func (h *nanocmdHandler) GetEvent(c *gin.Context) {
 // @Failure 400 {object} response.APIResponse[any]
 // @Failure 401 {object} response.APIResponse[any]
 // @Security BearerAuth
-// @Router /nanocmd/event/{name} [put]
+// @Router /v1/nanocmd/event/{name} [put]
 func (h *nanocmdHandler) PutEvent(c *gin.Context) {
 	name := c.Param("name")
 	var sub dto.EventSubscription
@@ -136,7 +136,7 @@ func (h *nanocmdHandler) PutEvent(c *gin.Context) {
 // @Success 200 {string} string "Apple Configuration Profile"
 // @Failure 401 {object} response.APIResponse[any]
 // @Security BearerAuth
-// @Router /nanocmd/fvenable/profiletemplate [get]
+// @Router /v1/nanocmd/fvenable/profiletemplate [get]
 func (h *nanocmdHandler) GetFVEnableProfileTemplate(c *gin.Context) {
 	data, err := h.service.GetFVEnableProfileTemplate(c.Request.Context())
 	if err != nil {
@@ -156,7 +156,7 @@ func (h *nanocmdHandler) GetFVEnableProfileTemplate(c *gin.Context) {
 // @Failure 401 {object} response.APIResponse[any]
 // @Failure 404 {object} response.APIResponse[any]
 // @Security BearerAuth
-// @Router /nanocmd/profile/{name} [get]
+// @Router /v1/nanocmd/profile/{name} [get]
 func (h *nanocmdHandler) GetProfile(c *gin.Context) {
 	name := c.Param("name")
 	data, err := h.service.GetProfile(c.Request.Context(), name)
@@ -178,7 +178,7 @@ func (h *nanocmdHandler) GetProfile(c *gin.Context) {
 // @Failure 400 {object} response.APIResponse[any]
 // @Failure 401 {object} response.APIResponse[any]
 // @Security BearerAuth
-// @Router /nanocmd/profile/{name} [put]
+// @Router /v1/nanocmd/profile/{name} [put]
 func (h *nanocmdHandler) PutProfile(c *gin.Context) {
 	name := c.Param("name")
 	data, err := io.ReadAll(c.Request.Body)
@@ -203,7 +203,7 @@ func (h *nanocmdHandler) PutProfile(c *gin.Context) {
 // @Failure 401 {object} response.APIResponse[any]
 // @Failure 404 {object} response.APIResponse[any]
 // @Security BearerAuth
-// @Router /nanocmd/profile/{name} [delete]
+// @Router /v1/nanocmd/profile/{name} [delete]
 func (h *nanocmdHandler) DeleteProfile(c *gin.Context) {
 	name := c.Param("name")
 	if err := h.service.DeleteProfile(c.Request.Context(), name); err != nil {
@@ -222,7 +222,7 @@ func (h *nanocmdHandler) DeleteProfile(c *gin.Context) {
 // @Success 200 {object} response.APIResponse[[]dto.NanoCMDProfile]
 // @Failure 401 {object} response.APIResponse[any]
 // @Security BearerAuth
-// @Router /nanocmd/profiles [get]
+// @Router /v1/nanocmd/profiles [get]
 func (h *nanocmdHandler) GetProfiles(c *gin.Context) {
 	names := c.QueryArray("name")
 	resp, err := h.service.GetProfiles(c.Request.Context(), names)
@@ -243,7 +243,7 @@ func (h *nanocmdHandler) GetProfiles(c *gin.Context) {
 // @Failure 401 {object} response.APIResponse[any]
 // @Failure 404 {object} response.APIResponse[any]
 // @Security BearerAuth
-// @Router /nanocmd/cmdplan/{name} [get]
+// @Router /v1/nanocmd/cmdplan/{name} [get]
 func (h *nanocmdHandler) GetCMDPlan(c *gin.Context) {
 	name := c.Param("name")
 	resp, err := h.service.GetCMDPlan(c.Request.Context(), name)
@@ -266,7 +266,7 @@ func (h *nanocmdHandler) GetCMDPlan(c *gin.Context) {
 // @Failure 400 {object} response.APIResponse[any]
 // @Failure 401 {object} response.APIResponse[any]
 // @Security BearerAuth
-// @Router /nanocmd/cmdplan/{name} [put]
+// @Router /v1/nanocmd/cmdplan/{name} [put]
 func (h *nanocmdHandler) PutCMDPlan(c *gin.Context) {
 	name := c.Param("name")
 	var plan dto.CMDPlan
@@ -291,7 +291,7 @@ func (h *nanocmdHandler) PutCMDPlan(c *gin.Context) {
 // @Success 200 {object} response.APIResponse[dto.NanoCMDInventoryResponse]
 // @Failure 401 {object} response.APIResponse[any]
 // @Security BearerAuth
-// @Router /nanocmd/inventory [get]
+// @Router /v1/nanocmd/inventory [get]
 func (h *nanocmdHandler) GetInventory(c *gin.Context) {
 	ids := c.QueryArray("id")
 	resp, err := h.service.GetInventory(c.Request.Context(), ids)
@@ -311,7 +311,7 @@ func (h *nanocmdHandler) GetInventory(c *gin.Context) {
 // @Param webhook body dto.NanoCMDWebhook true "Webhook payload"
 // @Success 200 {object} response.APIResponse[any]
 // @Failure 400 {object} response.APIResponse[any]
-// @Router /nanocmd/webhook [post]
+// @Router /v1/nanocmd/webhook [post]
 func (h *nanocmdHandler) Webhook(c *gin.Context) {
 	var webhook dto.NanoCMDWebhook
 	if err := c.ShouldBindJSON(&webhook); err != nil {
