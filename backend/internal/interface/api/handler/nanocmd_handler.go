@@ -7,6 +7,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/thienel/go-backend-template/internal/interface/api/dto"
 	"github.com/thienel/go-backend-template/internal/usecase/service"
+	"github.com/thienel/go-backend-template/pkg/response"
 	"github.com/thienel/tlog"
 	"go.uber.org/zap"
 )
@@ -38,10 +39,10 @@ func NewNanoCMDHandler(svc service.NanoCMDService) NanoCMDHandler {
 func (h *nanocmdHandler) GetVersion(c *gin.Context) {
 	resp, err := h.service.GetVersion(c.Request.Context())
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		response.WriteErrorResponse(c, err)
 		return
 	}
-	c.JSON(http.StatusOK, resp)
+	response.OK(c, resp, "Version retrieved successfully")
 }
 
 func (h *nanocmdHandler) StartWorkflow(c *gin.Context) {
@@ -51,41 +52,41 @@ func (h *nanocmdHandler) StartWorkflow(c *gin.Context) {
 
 	resp, err := h.service.StartWorkflow(c.Request.Context(), name, ids, ctxStr)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		response.WriteErrorResponse(c, err)
 		return
 	}
-	c.JSON(http.StatusOK, resp)
+	response.OK(c, resp, "Workflow started successfully")
 }
 
 func (h *nanocmdHandler) GetEvent(c *gin.Context) {
 	name := c.Param("name")
 	resp, err := h.service.GetEvent(c.Request.Context(), name)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		response.WriteErrorResponse(c, err)
 		return
 	}
-	c.JSON(http.StatusOK, resp)
+	response.OK(c, resp, "Event retrieved successfully")
 }
 
 func (h *nanocmdHandler) PutEvent(c *gin.Context) {
 	name := c.Param("name")
 	var sub dto.EventSubscription
 	if err := c.ShouldBindJSON(&sub); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		response.WriteErrorResponse(c, err)
 		return
 	}
 
 	if err := h.service.PutEvent(c.Request.Context(), name, &sub); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		response.WriteErrorResponse(c, err)
 		return
 	}
-	c.Status(http.StatusNoContent)
+	response.NoContent(c)
 }
 
 func (h *nanocmdHandler) GetFVEnableProfileTemplate(c *gin.Context) {
 	data, err := h.service.GetFVEnableProfileTemplate(c.Request.Context())
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		response.WriteErrorResponse(c, err)
 		return
 	}
 	c.Data(http.StatusOK, "application/x-apple-aspen-config", data)
@@ -95,7 +96,7 @@ func (h *nanocmdHandler) GetProfile(c *gin.Context) {
 	name := c.Param("name")
 	data, err := h.service.GetProfile(c.Request.Context(), name)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		response.WriteErrorResponse(c, err)
 		return
 	}
 	c.Data(http.StatusOK, "application/x-apple-aspen-config", data)
@@ -105,81 +106,81 @@ func (h *nanocmdHandler) PutProfile(c *gin.Context) {
 	name := c.Param("name")
 	data, err := io.ReadAll(c.Request.Body)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		response.WriteErrorResponse(c, err)
 		return
 	}
 
 	if err := h.service.PutProfile(c.Request.Context(), name, data); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		response.WriteErrorResponse(c, err)
 		return
 	}
-	c.Status(http.StatusNoContent)
+	response.NoContent(c)
 }
 
 func (h *nanocmdHandler) DeleteProfile(c *gin.Context) {
 	name := c.Param("name")
 	if err := h.service.DeleteProfile(c.Request.Context(), name); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		response.WriteErrorResponse(c, err)
 		return
 	}
-	c.Status(http.StatusNoContent)
+	response.NoContent(c)
 }
 
 func (h *nanocmdHandler) GetProfiles(c *gin.Context) {
 	names := c.QueryArray("name")
 	resp, err := h.service.GetProfiles(c.Request.Context(), names)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		response.WriteErrorResponse(c, err)
 		return
 	}
-	c.JSON(http.StatusOK, resp)
+	response.OK(c, resp, "Profiles retrieved successfully")
 }
 
 func (h *nanocmdHandler) GetCMDPlan(c *gin.Context) {
 	name := c.Param("name")
 	resp, err := h.service.GetCMDPlan(c.Request.Context(), name)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		response.WriteErrorResponse(c, err)
 		return
 	}
-	c.JSON(http.StatusOK, resp)
+	response.OK(c, resp, "Command plan retrieved successfully")
 }
 
 func (h *nanocmdHandler) PutCMDPlan(c *gin.Context) {
 	name := c.Param("name")
 	var plan dto.CMDPlan
 	if err := c.ShouldBindJSON(&plan); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		response.WriteErrorResponse(c, err)
 		return
 	}
 
 	if err := h.service.PutCMDPlan(c.Request.Context(), name, &plan); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		response.WriteErrorResponse(c, err)
 		return
 	}
-	c.Status(http.StatusNoContent)
+	response.NoContent(c)
 }
 
 func (h *nanocmdHandler) GetInventory(c *gin.Context) {
 	ids := c.QueryArray("id")
 	resp, err := h.service.GetInventory(c.Request.Context(), ids)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		response.WriteErrorResponse(c, err)
 		return
 	}
-	c.JSON(http.StatusOK, resp)
+	response.OK(c, resp, "Inventory retrieved successfully")
 }
 
 func (h *nanocmdHandler) Webhook(c *gin.Context) {
 	var webhook dto.NanoCMDWebhook
 	if err := c.ShouldBindJSON(&webhook); err != nil {
 		tlog.Error("Failed to bind webhook", zap.Error(err))
-		c.Status(http.StatusBadRequest)
+		response.WriteErrorResponse(c, err)
 		return
 	}
 
 	// Process webhook logic here (e.g., update device status)
 	tlog.Info("Received NanoCMD webhook", zap.String("topic", webhook.Topic))
 
-	c.Status(http.StatusOK)
+	response.OK[any](c, nil, "Webhook processed successfully")
 }
