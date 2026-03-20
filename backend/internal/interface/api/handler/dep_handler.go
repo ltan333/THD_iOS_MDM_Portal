@@ -27,12 +27,14 @@ type DEPHandler interface {
 type depHandler struct {
 	client       *ent.Client
 	authzService service.AuthorizationService
+	mdmService   service.NanoMDMService
 }
 
-func NewDEPHandler(client *ent.Client, authzService service.AuthorizationService) DEPHandler {
+func NewDEPHandler(client *ent.Client, authzService service.AuthorizationService, mdmService service.NanoMDMService) DEPHandler {
 	return &depHandler{
 		client:       client,
 		authzService: authzService,
+		mdmService:   mdmService,
 	}
 }
 
@@ -169,8 +171,18 @@ func (h *depHandler) SyncDevices(c *gin.Context) {
 // @Security BearerAuth
 // @Router /dep/profile [post]
 func (h *depHandler) DefineProfile(c *gin.Context) {
-	// Logic to call nanoMDM /proxy/mdm-dep-server/profile
-	response.OK(c, gin.H{"profile_uuid": "MOCK-UUID-12345"}, "Profile defined")
+	var profile interface{}
+	if err := c.ShouldBindJSON(&profile); err != nil {
+		response.WriteErrorResponse(c, err)
+		return
+	}
+
+	uuid, err := h.mdmService.DefineDEPProfile(c.Request.Context(), "default", profile)
+	if err != nil {
+		response.WriteErrorResponse(c, err)
+		return
+	}
+	response.OK(c, gin.H{"profile_uuid": uuid}, "Profile defined successfully")
 }
 
 // GetProfile godoc
@@ -183,8 +195,13 @@ func (h *depHandler) DefineProfile(c *gin.Context) {
 // @Security BearerAuth
 // @Router /dep/profile [get]
 func (h *depHandler) GetProfile(c *gin.Context) {
-	// Logic to call nanoMDM /proxy/mdm-dep-server/profile?profile_uuid=xxx
-	response.OK(c, gin.H{"profile_name": "Default Profile"}, "Profile retrieved")
+	uuid := c.Param("uuid")
+	profile, err := h.mdmService.GetDEPProfile(c.Request.Context(), "default", uuid)
+	if err != nil {
+		response.WriteErrorResponse(c, err)
+		return
+	}
+	response.OK(c, profile, "Profile retrieved successfully")
 }
 
 // DisownDevice godoc
