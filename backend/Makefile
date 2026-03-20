@@ -10,6 +10,7 @@ GOBUILD=$(GOCMD) build
 GORUN=$(GOCMD) run
 GOTEST=$(GOCMD) test
 GOMOD=$(GOCMD) mod
+AIR_BIN=$(shell command -v air 2>/dev/null || echo "$(HOME)/go/bin/air")
 
 # Build the server
 build:
@@ -24,7 +25,13 @@ run: build
 
 # Run with hot reload (requires air: go install github.com/air-verse/air@latest)
 dev:
-	@air -c .air.toml || $(GORUN) ./cmd/server
+	@if [ -x "$(AIR_BIN)" ]; then \
+		"$(AIR_BIN)" -c .air.toml; \
+	else \
+		echo "air not found; running without hot reload"; \
+		echo "Install with: go install github.com/air-verse/air@v1.61.7"; \
+		$(GORUN) ./cmd/server; \
+	fi
 
 # Run tests
 test:

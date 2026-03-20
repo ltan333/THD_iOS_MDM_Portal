@@ -11,6 +11,10 @@ import (
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
+	"github.com/thienel/go-backend-template/internal/ent/mobileconfig"
+	"github.com/thienel/go-backend-template/internal/ent/payload"
+	"github.com/thienel/go-backend-template/internal/ent/payloadproperty"
+	"github.com/thienel/go-backend-template/internal/ent/payloadpropertydefinition"
 	"github.com/thienel/go-backend-template/internal/ent/predicate"
 	"github.com/thienel/go-backend-template/internal/ent/user"
 )
@@ -24,8 +28,3801 @@ const (
 	OpUpdateOne = ent.OpUpdateOne
 
 	// Node types.
-	TypeUser = "User"
+	TypeMobileConfig              = "MobileConfig"
+	TypePayload                   = "Payload"
+	TypePayloadProperty           = "PayloadProperty"
+	TypePayloadPropertyDefinition = "PayloadPropertyDefinition"
+	TypeUser                      = "User"
 )
+
+// MobileConfigMutation represents an operation that mutates the MobileConfig nodes in the graph.
+type MobileConfigMutation struct {
+	config
+	op                         Op
+	typ                        string
+	id                         *uint
+	name                       *string
+	payload_identifier         *string
+	payload_type               *string
+	payload_display_name       *string
+	payload_description        *string
+	payload_organization       *string
+	payload_uuid               *string
+	payload_version            *int
+	addpayload_version         *int
+	payload_removal_disallowed *bool
+	created_at                 *time.Time
+	updated_at                 *time.Time
+	deleted_at                 *time.Time
+	clearedFields              map[string]struct{}
+	payloads                   map[uint]struct{}
+	removedpayloads            map[uint]struct{}
+	clearedpayloads            bool
+	done                       bool
+	oldValue                   func(context.Context) (*MobileConfig, error)
+	predicates                 []predicate.MobileConfig
+}
+
+var _ ent.Mutation = (*MobileConfigMutation)(nil)
+
+// mobileconfigOption allows management of the mutation configuration using functional options.
+type mobileconfigOption func(*MobileConfigMutation)
+
+// newMobileConfigMutation creates new mutation for the MobileConfig entity.
+func newMobileConfigMutation(c config, op Op, opts ...mobileconfigOption) *MobileConfigMutation {
+	m := &MobileConfigMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeMobileConfig,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withMobileConfigID sets the ID field of the mutation.
+func withMobileConfigID(id uint) mobileconfigOption {
+	return func(m *MobileConfigMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *MobileConfig
+		)
+		m.oldValue = func(ctx context.Context) (*MobileConfig, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().MobileConfig.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withMobileConfig sets the old MobileConfig of the mutation.
+func withMobileConfig(node *MobileConfig) mobileconfigOption {
+	return func(m *MobileConfigMutation) {
+		m.oldValue = func(context.Context) (*MobileConfig, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m MobileConfigMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m MobileConfigMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of MobileConfig entities.
+func (m *MobileConfigMutation) SetID(id uint) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *MobileConfigMutation) ID() (id uint, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *MobileConfigMutation) IDs(ctx context.Context) ([]uint, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []uint{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().MobileConfig.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetName sets the "name" field.
+func (m *MobileConfigMutation) SetName(s string) {
+	m.name = &s
+}
+
+// Name returns the value of the "name" field in the mutation.
+func (m *MobileConfigMutation) Name() (r string, exists bool) {
+	v := m.name
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldName returns the old "name" field's value of the MobileConfig entity.
+// If the MobileConfig object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *MobileConfigMutation) OldName(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldName is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldName requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldName: %w", err)
+	}
+	return oldValue.Name, nil
+}
+
+// ResetName resets all changes to the "name" field.
+func (m *MobileConfigMutation) ResetName() {
+	m.name = nil
+}
+
+// SetPayloadIdentifier sets the "payload_identifier" field.
+func (m *MobileConfigMutation) SetPayloadIdentifier(s string) {
+	m.payload_identifier = &s
+}
+
+// PayloadIdentifier returns the value of the "payload_identifier" field in the mutation.
+func (m *MobileConfigMutation) PayloadIdentifier() (r string, exists bool) {
+	v := m.payload_identifier
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPayloadIdentifier returns the old "payload_identifier" field's value of the MobileConfig entity.
+// If the MobileConfig object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *MobileConfigMutation) OldPayloadIdentifier(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldPayloadIdentifier is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldPayloadIdentifier requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPayloadIdentifier: %w", err)
+	}
+	return oldValue.PayloadIdentifier, nil
+}
+
+// ResetPayloadIdentifier resets all changes to the "payload_identifier" field.
+func (m *MobileConfigMutation) ResetPayloadIdentifier() {
+	m.payload_identifier = nil
+}
+
+// SetPayloadType sets the "payload_type" field.
+func (m *MobileConfigMutation) SetPayloadType(s string) {
+	m.payload_type = &s
+}
+
+// PayloadType returns the value of the "payload_type" field in the mutation.
+func (m *MobileConfigMutation) PayloadType() (r string, exists bool) {
+	v := m.payload_type
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPayloadType returns the old "payload_type" field's value of the MobileConfig entity.
+// If the MobileConfig object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *MobileConfigMutation) OldPayloadType(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldPayloadType is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldPayloadType requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPayloadType: %w", err)
+	}
+	return oldValue.PayloadType, nil
+}
+
+// ResetPayloadType resets all changes to the "payload_type" field.
+func (m *MobileConfigMutation) ResetPayloadType() {
+	m.payload_type = nil
+}
+
+// SetPayloadDisplayName sets the "payload_display_name" field.
+func (m *MobileConfigMutation) SetPayloadDisplayName(s string) {
+	m.payload_display_name = &s
+}
+
+// PayloadDisplayName returns the value of the "payload_display_name" field in the mutation.
+func (m *MobileConfigMutation) PayloadDisplayName() (r string, exists bool) {
+	v := m.payload_display_name
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPayloadDisplayName returns the old "payload_display_name" field's value of the MobileConfig entity.
+// If the MobileConfig object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *MobileConfigMutation) OldPayloadDisplayName(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldPayloadDisplayName is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldPayloadDisplayName requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPayloadDisplayName: %w", err)
+	}
+	return oldValue.PayloadDisplayName, nil
+}
+
+// ResetPayloadDisplayName resets all changes to the "payload_display_name" field.
+func (m *MobileConfigMutation) ResetPayloadDisplayName() {
+	m.payload_display_name = nil
+}
+
+// SetPayloadDescription sets the "payload_description" field.
+func (m *MobileConfigMutation) SetPayloadDescription(s string) {
+	m.payload_description = &s
+}
+
+// PayloadDescription returns the value of the "payload_description" field in the mutation.
+func (m *MobileConfigMutation) PayloadDescription() (r string, exists bool) {
+	v := m.payload_description
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPayloadDescription returns the old "payload_description" field's value of the MobileConfig entity.
+// If the MobileConfig object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *MobileConfigMutation) OldPayloadDescription(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldPayloadDescription is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldPayloadDescription requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPayloadDescription: %w", err)
+	}
+	return oldValue.PayloadDescription, nil
+}
+
+// ClearPayloadDescription clears the value of the "payload_description" field.
+func (m *MobileConfigMutation) ClearPayloadDescription() {
+	m.payload_description = nil
+	m.clearedFields[mobileconfig.FieldPayloadDescription] = struct{}{}
+}
+
+// PayloadDescriptionCleared returns if the "payload_description" field was cleared in this mutation.
+func (m *MobileConfigMutation) PayloadDescriptionCleared() bool {
+	_, ok := m.clearedFields[mobileconfig.FieldPayloadDescription]
+	return ok
+}
+
+// ResetPayloadDescription resets all changes to the "payload_description" field.
+func (m *MobileConfigMutation) ResetPayloadDescription() {
+	m.payload_description = nil
+	delete(m.clearedFields, mobileconfig.FieldPayloadDescription)
+}
+
+// SetPayloadOrganization sets the "payload_organization" field.
+func (m *MobileConfigMutation) SetPayloadOrganization(s string) {
+	m.payload_organization = &s
+}
+
+// PayloadOrganization returns the value of the "payload_organization" field in the mutation.
+func (m *MobileConfigMutation) PayloadOrganization() (r string, exists bool) {
+	v := m.payload_organization
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPayloadOrganization returns the old "payload_organization" field's value of the MobileConfig entity.
+// If the MobileConfig object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *MobileConfigMutation) OldPayloadOrganization(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldPayloadOrganization is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldPayloadOrganization requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPayloadOrganization: %w", err)
+	}
+	return oldValue.PayloadOrganization, nil
+}
+
+// ClearPayloadOrganization clears the value of the "payload_organization" field.
+func (m *MobileConfigMutation) ClearPayloadOrganization() {
+	m.payload_organization = nil
+	m.clearedFields[mobileconfig.FieldPayloadOrganization] = struct{}{}
+}
+
+// PayloadOrganizationCleared returns if the "payload_organization" field was cleared in this mutation.
+func (m *MobileConfigMutation) PayloadOrganizationCleared() bool {
+	_, ok := m.clearedFields[mobileconfig.FieldPayloadOrganization]
+	return ok
+}
+
+// ResetPayloadOrganization resets all changes to the "payload_organization" field.
+func (m *MobileConfigMutation) ResetPayloadOrganization() {
+	m.payload_organization = nil
+	delete(m.clearedFields, mobileconfig.FieldPayloadOrganization)
+}
+
+// SetPayloadUUID sets the "payload_uuid" field.
+func (m *MobileConfigMutation) SetPayloadUUID(s string) {
+	m.payload_uuid = &s
+}
+
+// PayloadUUID returns the value of the "payload_uuid" field in the mutation.
+func (m *MobileConfigMutation) PayloadUUID() (r string, exists bool) {
+	v := m.payload_uuid
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPayloadUUID returns the old "payload_uuid" field's value of the MobileConfig entity.
+// If the MobileConfig object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *MobileConfigMutation) OldPayloadUUID(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldPayloadUUID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldPayloadUUID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPayloadUUID: %w", err)
+	}
+	return oldValue.PayloadUUID, nil
+}
+
+// ResetPayloadUUID resets all changes to the "payload_uuid" field.
+func (m *MobileConfigMutation) ResetPayloadUUID() {
+	m.payload_uuid = nil
+}
+
+// SetPayloadVersion sets the "payload_version" field.
+func (m *MobileConfigMutation) SetPayloadVersion(i int) {
+	m.payload_version = &i
+	m.addpayload_version = nil
+}
+
+// PayloadVersion returns the value of the "payload_version" field in the mutation.
+func (m *MobileConfigMutation) PayloadVersion() (r int, exists bool) {
+	v := m.payload_version
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPayloadVersion returns the old "payload_version" field's value of the MobileConfig entity.
+// If the MobileConfig object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *MobileConfigMutation) OldPayloadVersion(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldPayloadVersion is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldPayloadVersion requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPayloadVersion: %w", err)
+	}
+	return oldValue.PayloadVersion, nil
+}
+
+// AddPayloadVersion adds i to the "payload_version" field.
+func (m *MobileConfigMutation) AddPayloadVersion(i int) {
+	if m.addpayload_version != nil {
+		*m.addpayload_version += i
+	} else {
+		m.addpayload_version = &i
+	}
+}
+
+// AddedPayloadVersion returns the value that was added to the "payload_version" field in this mutation.
+func (m *MobileConfigMutation) AddedPayloadVersion() (r int, exists bool) {
+	v := m.addpayload_version
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetPayloadVersion resets all changes to the "payload_version" field.
+func (m *MobileConfigMutation) ResetPayloadVersion() {
+	m.payload_version = nil
+	m.addpayload_version = nil
+}
+
+// SetPayloadRemovalDisallowed sets the "payload_removal_disallowed" field.
+func (m *MobileConfigMutation) SetPayloadRemovalDisallowed(b bool) {
+	m.payload_removal_disallowed = &b
+}
+
+// PayloadRemovalDisallowed returns the value of the "payload_removal_disallowed" field in the mutation.
+func (m *MobileConfigMutation) PayloadRemovalDisallowed() (r bool, exists bool) {
+	v := m.payload_removal_disallowed
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPayloadRemovalDisallowed returns the old "payload_removal_disallowed" field's value of the MobileConfig entity.
+// If the MobileConfig object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *MobileConfigMutation) OldPayloadRemovalDisallowed(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldPayloadRemovalDisallowed is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldPayloadRemovalDisallowed requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPayloadRemovalDisallowed: %w", err)
+	}
+	return oldValue.PayloadRemovalDisallowed, nil
+}
+
+// ResetPayloadRemovalDisallowed resets all changes to the "payload_removal_disallowed" field.
+func (m *MobileConfigMutation) ResetPayloadRemovalDisallowed() {
+	m.payload_removal_disallowed = nil
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *MobileConfigMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *MobileConfigMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the MobileConfig entity.
+// If the MobileConfig object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *MobileConfigMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *MobileConfigMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *MobileConfigMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *MobileConfigMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the MobileConfig entity.
+// If the MobileConfig object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *MobileConfigMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *MobileConfigMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+}
+
+// SetDeletedAt sets the "deleted_at" field.
+func (m *MobileConfigMutation) SetDeletedAt(t time.Time) {
+	m.deleted_at = &t
+}
+
+// DeletedAt returns the value of the "deleted_at" field in the mutation.
+func (m *MobileConfigMutation) DeletedAt() (r time.Time, exists bool) {
+	v := m.deleted_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDeletedAt returns the old "deleted_at" field's value of the MobileConfig entity.
+// If the MobileConfig object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *MobileConfigMutation) OldDeletedAt(ctx context.Context) (v *time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDeletedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDeletedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDeletedAt: %w", err)
+	}
+	return oldValue.DeletedAt, nil
+}
+
+// ClearDeletedAt clears the value of the "deleted_at" field.
+func (m *MobileConfigMutation) ClearDeletedAt() {
+	m.deleted_at = nil
+	m.clearedFields[mobileconfig.FieldDeletedAt] = struct{}{}
+}
+
+// DeletedAtCleared returns if the "deleted_at" field was cleared in this mutation.
+func (m *MobileConfigMutation) DeletedAtCleared() bool {
+	_, ok := m.clearedFields[mobileconfig.FieldDeletedAt]
+	return ok
+}
+
+// ResetDeletedAt resets all changes to the "deleted_at" field.
+func (m *MobileConfigMutation) ResetDeletedAt() {
+	m.deleted_at = nil
+	delete(m.clearedFields, mobileconfig.FieldDeletedAt)
+}
+
+// AddPayloadIDs adds the "payloads" edge to the Payload entity by ids.
+func (m *MobileConfigMutation) AddPayloadIDs(ids ...uint) {
+	if m.payloads == nil {
+		m.payloads = make(map[uint]struct{})
+	}
+	for i := range ids {
+		m.payloads[ids[i]] = struct{}{}
+	}
+}
+
+// ClearPayloads clears the "payloads" edge to the Payload entity.
+func (m *MobileConfigMutation) ClearPayloads() {
+	m.clearedpayloads = true
+}
+
+// PayloadsCleared reports if the "payloads" edge to the Payload entity was cleared.
+func (m *MobileConfigMutation) PayloadsCleared() bool {
+	return m.clearedpayloads
+}
+
+// RemovePayloadIDs removes the "payloads" edge to the Payload entity by IDs.
+func (m *MobileConfigMutation) RemovePayloadIDs(ids ...uint) {
+	if m.removedpayloads == nil {
+		m.removedpayloads = make(map[uint]struct{})
+	}
+	for i := range ids {
+		delete(m.payloads, ids[i])
+		m.removedpayloads[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedPayloads returns the removed IDs of the "payloads" edge to the Payload entity.
+func (m *MobileConfigMutation) RemovedPayloadsIDs() (ids []uint) {
+	for id := range m.removedpayloads {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// PayloadsIDs returns the "payloads" edge IDs in the mutation.
+func (m *MobileConfigMutation) PayloadsIDs() (ids []uint) {
+	for id := range m.payloads {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetPayloads resets all changes to the "payloads" edge.
+func (m *MobileConfigMutation) ResetPayloads() {
+	m.payloads = nil
+	m.clearedpayloads = false
+	m.removedpayloads = nil
+}
+
+// Where appends a list predicates to the MobileConfigMutation builder.
+func (m *MobileConfigMutation) Where(ps ...predicate.MobileConfig) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the MobileConfigMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *MobileConfigMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.MobileConfig, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *MobileConfigMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *MobileConfigMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (MobileConfig).
+func (m *MobileConfigMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *MobileConfigMutation) Fields() []string {
+	fields := make([]string, 0, 12)
+	if m.name != nil {
+		fields = append(fields, mobileconfig.FieldName)
+	}
+	if m.payload_identifier != nil {
+		fields = append(fields, mobileconfig.FieldPayloadIdentifier)
+	}
+	if m.payload_type != nil {
+		fields = append(fields, mobileconfig.FieldPayloadType)
+	}
+	if m.payload_display_name != nil {
+		fields = append(fields, mobileconfig.FieldPayloadDisplayName)
+	}
+	if m.payload_description != nil {
+		fields = append(fields, mobileconfig.FieldPayloadDescription)
+	}
+	if m.payload_organization != nil {
+		fields = append(fields, mobileconfig.FieldPayloadOrganization)
+	}
+	if m.payload_uuid != nil {
+		fields = append(fields, mobileconfig.FieldPayloadUUID)
+	}
+	if m.payload_version != nil {
+		fields = append(fields, mobileconfig.FieldPayloadVersion)
+	}
+	if m.payload_removal_disallowed != nil {
+		fields = append(fields, mobileconfig.FieldPayloadRemovalDisallowed)
+	}
+	if m.created_at != nil {
+		fields = append(fields, mobileconfig.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, mobileconfig.FieldUpdatedAt)
+	}
+	if m.deleted_at != nil {
+		fields = append(fields, mobileconfig.FieldDeletedAt)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *MobileConfigMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case mobileconfig.FieldName:
+		return m.Name()
+	case mobileconfig.FieldPayloadIdentifier:
+		return m.PayloadIdentifier()
+	case mobileconfig.FieldPayloadType:
+		return m.PayloadType()
+	case mobileconfig.FieldPayloadDisplayName:
+		return m.PayloadDisplayName()
+	case mobileconfig.FieldPayloadDescription:
+		return m.PayloadDescription()
+	case mobileconfig.FieldPayloadOrganization:
+		return m.PayloadOrganization()
+	case mobileconfig.FieldPayloadUUID:
+		return m.PayloadUUID()
+	case mobileconfig.FieldPayloadVersion:
+		return m.PayloadVersion()
+	case mobileconfig.FieldPayloadRemovalDisallowed:
+		return m.PayloadRemovalDisallowed()
+	case mobileconfig.FieldCreatedAt:
+		return m.CreatedAt()
+	case mobileconfig.FieldUpdatedAt:
+		return m.UpdatedAt()
+	case mobileconfig.FieldDeletedAt:
+		return m.DeletedAt()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *MobileConfigMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case mobileconfig.FieldName:
+		return m.OldName(ctx)
+	case mobileconfig.FieldPayloadIdentifier:
+		return m.OldPayloadIdentifier(ctx)
+	case mobileconfig.FieldPayloadType:
+		return m.OldPayloadType(ctx)
+	case mobileconfig.FieldPayloadDisplayName:
+		return m.OldPayloadDisplayName(ctx)
+	case mobileconfig.FieldPayloadDescription:
+		return m.OldPayloadDescription(ctx)
+	case mobileconfig.FieldPayloadOrganization:
+		return m.OldPayloadOrganization(ctx)
+	case mobileconfig.FieldPayloadUUID:
+		return m.OldPayloadUUID(ctx)
+	case mobileconfig.FieldPayloadVersion:
+		return m.OldPayloadVersion(ctx)
+	case mobileconfig.FieldPayloadRemovalDisallowed:
+		return m.OldPayloadRemovalDisallowed(ctx)
+	case mobileconfig.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case mobileconfig.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	case mobileconfig.FieldDeletedAt:
+		return m.OldDeletedAt(ctx)
+	}
+	return nil, fmt.Errorf("unknown MobileConfig field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *MobileConfigMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case mobileconfig.FieldName:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetName(v)
+		return nil
+	case mobileconfig.FieldPayloadIdentifier:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPayloadIdentifier(v)
+		return nil
+	case mobileconfig.FieldPayloadType:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPayloadType(v)
+		return nil
+	case mobileconfig.FieldPayloadDisplayName:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPayloadDisplayName(v)
+		return nil
+	case mobileconfig.FieldPayloadDescription:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPayloadDescription(v)
+		return nil
+	case mobileconfig.FieldPayloadOrganization:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPayloadOrganization(v)
+		return nil
+	case mobileconfig.FieldPayloadUUID:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPayloadUUID(v)
+		return nil
+	case mobileconfig.FieldPayloadVersion:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPayloadVersion(v)
+		return nil
+	case mobileconfig.FieldPayloadRemovalDisallowed:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPayloadRemovalDisallowed(v)
+		return nil
+	case mobileconfig.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case mobileconfig.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	case mobileconfig.FieldDeletedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDeletedAt(v)
+		return nil
+	}
+	return fmt.Errorf("unknown MobileConfig field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *MobileConfigMutation) AddedFields() []string {
+	var fields []string
+	if m.addpayload_version != nil {
+		fields = append(fields, mobileconfig.FieldPayloadVersion)
+	}
+	return fields
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *MobileConfigMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case mobileconfig.FieldPayloadVersion:
+		return m.AddedPayloadVersion()
+	}
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *MobileConfigMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	case mobileconfig.FieldPayloadVersion:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddPayloadVersion(v)
+		return nil
+	}
+	return fmt.Errorf("unknown MobileConfig numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *MobileConfigMutation) ClearedFields() []string {
+	var fields []string
+	if m.FieldCleared(mobileconfig.FieldPayloadDescription) {
+		fields = append(fields, mobileconfig.FieldPayloadDescription)
+	}
+	if m.FieldCleared(mobileconfig.FieldPayloadOrganization) {
+		fields = append(fields, mobileconfig.FieldPayloadOrganization)
+	}
+	if m.FieldCleared(mobileconfig.FieldDeletedAt) {
+		fields = append(fields, mobileconfig.FieldDeletedAt)
+	}
+	return fields
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *MobileConfigMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *MobileConfigMutation) ClearField(name string) error {
+	switch name {
+	case mobileconfig.FieldPayloadDescription:
+		m.ClearPayloadDescription()
+		return nil
+	case mobileconfig.FieldPayloadOrganization:
+		m.ClearPayloadOrganization()
+		return nil
+	case mobileconfig.FieldDeletedAt:
+		m.ClearDeletedAt()
+		return nil
+	}
+	return fmt.Errorf("unknown MobileConfig nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *MobileConfigMutation) ResetField(name string) error {
+	switch name {
+	case mobileconfig.FieldName:
+		m.ResetName()
+		return nil
+	case mobileconfig.FieldPayloadIdentifier:
+		m.ResetPayloadIdentifier()
+		return nil
+	case mobileconfig.FieldPayloadType:
+		m.ResetPayloadType()
+		return nil
+	case mobileconfig.FieldPayloadDisplayName:
+		m.ResetPayloadDisplayName()
+		return nil
+	case mobileconfig.FieldPayloadDescription:
+		m.ResetPayloadDescription()
+		return nil
+	case mobileconfig.FieldPayloadOrganization:
+		m.ResetPayloadOrganization()
+		return nil
+	case mobileconfig.FieldPayloadUUID:
+		m.ResetPayloadUUID()
+		return nil
+	case mobileconfig.FieldPayloadVersion:
+		m.ResetPayloadVersion()
+		return nil
+	case mobileconfig.FieldPayloadRemovalDisallowed:
+		m.ResetPayloadRemovalDisallowed()
+		return nil
+	case mobileconfig.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case mobileconfig.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	case mobileconfig.FieldDeletedAt:
+		m.ResetDeletedAt()
+		return nil
+	}
+	return fmt.Errorf("unknown MobileConfig field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *MobileConfigMutation) AddedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.payloads != nil {
+		edges = append(edges, mobileconfig.EdgePayloads)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *MobileConfigMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case mobileconfig.EdgePayloads:
+		ids := make([]ent.Value, 0, len(m.payloads))
+		for id := range m.payloads {
+			ids = append(ids, id)
+		}
+		return ids
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *MobileConfigMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.removedpayloads != nil {
+		edges = append(edges, mobileconfig.EdgePayloads)
+	}
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *MobileConfigMutation) RemovedIDs(name string) []ent.Value {
+	switch name {
+	case mobileconfig.EdgePayloads:
+		ids := make([]ent.Value, 0, len(m.removedpayloads))
+		for id := range m.removedpayloads {
+			ids = append(ids, id)
+		}
+		return ids
+	}
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *MobileConfigMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.clearedpayloads {
+		edges = append(edges, mobileconfig.EdgePayloads)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *MobileConfigMutation) EdgeCleared(name string) bool {
+	switch name {
+	case mobileconfig.EdgePayloads:
+		return m.clearedpayloads
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *MobileConfigMutation) ClearEdge(name string) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown MobileConfig unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *MobileConfigMutation) ResetEdge(name string) error {
+	switch name {
+	case mobileconfig.EdgePayloads:
+		m.ResetPayloads()
+		return nil
+	}
+	return fmt.Errorf("unknown MobileConfig edge %s", name)
+}
+
+// PayloadMutation represents an operation that mutates the Payload nodes in the graph.
+type PayloadMutation struct {
+	config
+	op                   Op
+	typ                  string
+	id                   *uint
+	payload_description  *string
+	payload_display_name *string
+	payload_identifier   *string
+	payload_organization *string
+	payload_type         *string
+	payload_uuid         *string
+	payload_version      *int
+	addpayload_version   *int
+	created_at           *time.Time
+	updated_at           *time.Time
+	deleted_at           *time.Time
+	clearedFields        map[string]struct{}
+	mobile_config        *uint
+	clearedmobile_config bool
+	properties           map[uint]struct{}
+	removedproperties    map[uint]struct{}
+	clearedproperties    bool
+	done                 bool
+	oldValue             func(context.Context) (*Payload, error)
+	predicates           []predicate.Payload
+}
+
+var _ ent.Mutation = (*PayloadMutation)(nil)
+
+// payloadOption allows management of the mutation configuration using functional options.
+type payloadOption func(*PayloadMutation)
+
+// newPayloadMutation creates new mutation for the Payload entity.
+func newPayloadMutation(c config, op Op, opts ...payloadOption) *PayloadMutation {
+	m := &PayloadMutation{
+		config:        c,
+		op:            op,
+		typ:           TypePayload,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withPayloadID sets the ID field of the mutation.
+func withPayloadID(id uint) payloadOption {
+	return func(m *PayloadMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *Payload
+		)
+		m.oldValue = func(ctx context.Context) (*Payload, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().Payload.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withPayload sets the old Payload of the mutation.
+func withPayload(node *Payload) payloadOption {
+	return func(m *PayloadMutation) {
+		m.oldValue = func(context.Context) (*Payload, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m PayloadMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m PayloadMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of Payload entities.
+func (m *PayloadMutation) SetID(id uint) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *PayloadMutation) ID() (id uint, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *PayloadMutation) IDs(ctx context.Context) ([]uint, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []uint{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().Payload.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetPayloadDescription sets the "payload_description" field.
+func (m *PayloadMutation) SetPayloadDescription(s string) {
+	m.payload_description = &s
+}
+
+// PayloadDescription returns the value of the "payload_description" field in the mutation.
+func (m *PayloadMutation) PayloadDescription() (r string, exists bool) {
+	v := m.payload_description
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPayloadDescription returns the old "payload_description" field's value of the Payload entity.
+// If the Payload object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PayloadMutation) OldPayloadDescription(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldPayloadDescription is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldPayloadDescription requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPayloadDescription: %w", err)
+	}
+	return oldValue.PayloadDescription, nil
+}
+
+// ClearPayloadDescription clears the value of the "payload_description" field.
+func (m *PayloadMutation) ClearPayloadDescription() {
+	m.payload_description = nil
+	m.clearedFields[payload.FieldPayloadDescription] = struct{}{}
+}
+
+// PayloadDescriptionCleared returns if the "payload_description" field was cleared in this mutation.
+func (m *PayloadMutation) PayloadDescriptionCleared() bool {
+	_, ok := m.clearedFields[payload.FieldPayloadDescription]
+	return ok
+}
+
+// ResetPayloadDescription resets all changes to the "payload_description" field.
+func (m *PayloadMutation) ResetPayloadDescription() {
+	m.payload_description = nil
+	delete(m.clearedFields, payload.FieldPayloadDescription)
+}
+
+// SetPayloadDisplayName sets the "payload_display_name" field.
+func (m *PayloadMutation) SetPayloadDisplayName(s string) {
+	m.payload_display_name = &s
+}
+
+// PayloadDisplayName returns the value of the "payload_display_name" field in the mutation.
+func (m *PayloadMutation) PayloadDisplayName() (r string, exists bool) {
+	v := m.payload_display_name
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPayloadDisplayName returns the old "payload_display_name" field's value of the Payload entity.
+// If the Payload object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PayloadMutation) OldPayloadDisplayName(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldPayloadDisplayName is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldPayloadDisplayName requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPayloadDisplayName: %w", err)
+	}
+	return oldValue.PayloadDisplayName, nil
+}
+
+// ResetPayloadDisplayName resets all changes to the "payload_display_name" field.
+func (m *PayloadMutation) ResetPayloadDisplayName() {
+	m.payload_display_name = nil
+}
+
+// SetPayloadIdentifier sets the "payload_identifier" field.
+func (m *PayloadMutation) SetPayloadIdentifier(s string) {
+	m.payload_identifier = &s
+}
+
+// PayloadIdentifier returns the value of the "payload_identifier" field in the mutation.
+func (m *PayloadMutation) PayloadIdentifier() (r string, exists bool) {
+	v := m.payload_identifier
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPayloadIdentifier returns the old "payload_identifier" field's value of the Payload entity.
+// If the Payload object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PayloadMutation) OldPayloadIdentifier(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldPayloadIdentifier is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldPayloadIdentifier requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPayloadIdentifier: %w", err)
+	}
+	return oldValue.PayloadIdentifier, nil
+}
+
+// ResetPayloadIdentifier resets all changes to the "payload_identifier" field.
+func (m *PayloadMutation) ResetPayloadIdentifier() {
+	m.payload_identifier = nil
+}
+
+// SetPayloadOrganization sets the "payload_organization" field.
+func (m *PayloadMutation) SetPayloadOrganization(s string) {
+	m.payload_organization = &s
+}
+
+// PayloadOrganization returns the value of the "payload_organization" field in the mutation.
+func (m *PayloadMutation) PayloadOrganization() (r string, exists bool) {
+	v := m.payload_organization
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPayloadOrganization returns the old "payload_organization" field's value of the Payload entity.
+// If the Payload object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PayloadMutation) OldPayloadOrganization(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldPayloadOrganization is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldPayloadOrganization requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPayloadOrganization: %w", err)
+	}
+	return oldValue.PayloadOrganization, nil
+}
+
+// ClearPayloadOrganization clears the value of the "payload_organization" field.
+func (m *PayloadMutation) ClearPayloadOrganization() {
+	m.payload_organization = nil
+	m.clearedFields[payload.FieldPayloadOrganization] = struct{}{}
+}
+
+// PayloadOrganizationCleared returns if the "payload_organization" field was cleared in this mutation.
+func (m *PayloadMutation) PayloadOrganizationCleared() bool {
+	_, ok := m.clearedFields[payload.FieldPayloadOrganization]
+	return ok
+}
+
+// ResetPayloadOrganization resets all changes to the "payload_organization" field.
+func (m *PayloadMutation) ResetPayloadOrganization() {
+	m.payload_organization = nil
+	delete(m.clearedFields, payload.FieldPayloadOrganization)
+}
+
+// SetPayloadType sets the "payload_type" field.
+func (m *PayloadMutation) SetPayloadType(s string) {
+	m.payload_type = &s
+}
+
+// PayloadType returns the value of the "payload_type" field in the mutation.
+func (m *PayloadMutation) PayloadType() (r string, exists bool) {
+	v := m.payload_type
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPayloadType returns the old "payload_type" field's value of the Payload entity.
+// If the Payload object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PayloadMutation) OldPayloadType(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldPayloadType is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldPayloadType requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPayloadType: %w", err)
+	}
+	return oldValue.PayloadType, nil
+}
+
+// ResetPayloadType resets all changes to the "payload_type" field.
+func (m *PayloadMutation) ResetPayloadType() {
+	m.payload_type = nil
+}
+
+// SetPayloadUUID sets the "payload_uuid" field.
+func (m *PayloadMutation) SetPayloadUUID(s string) {
+	m.payload_uuid = &s
+}
+
+// PayloadUUID returns the value of the "payload_uuid" field in the mutation.
+func (m *PayloadMutation) PayloadUUID() (r string, exists bool) {
+	v := m.payload_uuid
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPayloadUUID returns the old "payload_uuid" field's value of the Payload entity.
+// If the Payload object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PayloadMutation) OldPayloadUUID(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldPayloadUUID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldPayloadUUID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPayloadUUID: %w", err)
+	}
+	return oldValue.PayloadUUID, nil
+}
+
+// ResetPayloadUUID resets all changes to the "payload_uuid" field.
+func (m *PayloadMutation) ResetPayloadUUID() {
+	m.payload_uuid = nil
+}
+
+// SetPayloadVersion sets the "payload_version" field.
+func (m *PayloadMutation) SetPayloadVersion(i int) {
+	m.payload_version = &i
+	m.addpayload_version = nil
+}
+
+// PayloadVersion returns the value of the "payload_version" field in the mutation.
+func (m *PayloadMutation) PayloadVersion() (r int, exists bool) {
+	v := m.payload_version
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPayloadVersion returns the old "payload_version" field's value of the Payload entity.
+// If the Payload object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PayloadMutation) OldPayloadVersion(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldPayloadVersion is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldPayloadVersion requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPayloadVersion: %w", err)
+	}
+	return oldValue.PayloadVersion, nil
+}
+
+// AddPayloadVersion adds i to the "payload_version" field.
+func (m *PayloadMutation) AddPayloadVersion(i int) {
+	if m.addpayload_version != nil {
+		*m.addpayload_version += i
+	} else {
+		m.addpayload_version = &i
+	}
+}
+
+// AddedPayloadVersion returns the value that was added to the "payload_version" field in this mutation.
+func (m *PayloadMutation) AddedPayloadVersion() (r int, exists bool) {
+	v := m.addpayload_version
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetPayloadVersion resets all changes to the "payload_version" field.
+func (m *PayloadMutation) ResetPayloadVersion() {
+	m.payload_version = nil
+	m.addpayload_version = nil
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *PayloadMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *PayloadMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the Payload entity.
+// If the Payload object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PayloadMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *PayloadMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *PayloadMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *PayloadMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the Payload entity.
+// If the Payload object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PayloadMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *PayloadMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+}
+
+// SetDeletedAt sets the "deleted_at" field.
+func (m *PayloadMutation) SetDeletedAt(t time.Time) {
+	m.deleted_at = &t
+}
+
+// DeletedAt returns the value of the "deleted_at" field in the mutation.
+func (m *PayloadMutation) DeletedAt() (r time.Time, exists bool) {
+	v := m.deleted_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDeletedAt returns the old "deleted_at" field's value of the Payload entity.
+// If the Payload object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PayloadMutation) OldDeletedAt(ctx context.Context) (v *time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDeletedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDeletedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDeletedAt: %w", err)
+	}
+	return oldValue.DeletedAt, nil
+}
+
+// ClearDeletedAt clears the value of the "deleted_at" field.
+func (m *PayloadMutation) ClearDeletedAt() {
+	m.deleted_at = nil
+	m.clearedFields[payload.FieldDeletedAt] = struct{}{}
+}
+
+// DeletedAtCleared returns if the "deleted_at" field was cleared in this mutation.
+func (m *PayloadMutation) DeletedAtCleared() bool {
+	_, ok := m.clearedFields[payload.FieldDeletedAt]
+	return ok
+}
+
+// ResetDeletedAt resets all changes to the "deleted_at" field.
+func (m *PayloadMutation) ResetDeletedAt() {
+	m.deleted_at = nil
+	delete(m.clearedFields, payload.FieldDeletedAt)
+}
+
+// SetMobileConfigID sets the "mobile_config" edge to the MobileConfig entity by id.
+func (m *PayloadMutation) SetMobileConfigID(id uint) {
+	m.mobile_config = &id
+}
+
+// ClearMobileConfig clears the "mobile_config" edge to the MobileConfig entity.
+func (m *PayloadMutation) ClearMobileConfig() {
+	m.clearedmobile_config = true
+}
+
+// MobileConfigCleared reports if the "mobile_config" edge to the MobileConfig entity was cleared.
+func (m *PayloadMutation) MobileConfigCleared() bool {
+	return m.clearedmobile_config
+}
+
+// MobileConfigID returns the "mobile_config" edge ID in the mutation.
+func (m *PayloadMutation) MobileConfigID() (id uint, exists bool) {
+	if m.mobile_config != nil {
+		return *m.mobile_config, true
+	}
+	return
+}
+
+// MobileConfigIDs returns the "mobile_config" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// MobileConfigID instead. It exists only for internal usage by the builders.
+func (m *PayloadMutation) MobileConfigIDs() (ids []uint) {
+	if id := m.mobile_config; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetMobileConfig resets all changes to the "mobile_config" edge.
+func (m *PayloadMutation) ResetMobileConfig() {
+	m.mobile_config = nil
+	m.clearedmobile_config = false
+}
+
+// AddPropertyIDs adds the "properties" edge to the PayloadProperty entity by ids.
+func (m *PayloadMutation) AddPropertyIDs(ids ...uint) {
+	if m.properties == nil {
+		m.properties = make(map[uint]struct{})
+	}
+	for i := range ids {
+		m.properties[ids[i]] = struct{}{}
+	}
+}
+
+// ClearProperties clears the "properties" edge to the PayloadProperty entity.
+func (m *PayloadMutation) ClearProperties() {
+	m.clearedproperties = true
+}
+
+// PropertiesCleared reports if the "properties" edge to the PayloadProperty entity was cleared.
+func (m *PayloadMutation) PropertiesCleared() bool {
+	return m.clearedproperties
+}
+
+// RemovePropertyIDs removes the "properties" edge to the PayloadProperty entity by IDs.
+func (m *PayloadMutation) RemovePropertyIDs(ids ...uint) {
+	if m.removedproperties == nil {
+		m.removedproperties = make(map[uint]struct{})
+	}
+	for i := range ids {
+		delete(m.properties, ids[i])
+		m.removedproperties[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedProperties returns the removed IDs of the "properties" edge to the PayloadProperty entity.
+func (m *PayloadMutation) RemovedPropertiesIDs() (ids []uint) {
+	for id := range m.removedproperties {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// PropertiesIDs returns the "properties" edge IDs in the mutation.
+func (m *PayloadMutation) PropertiesIDs() (ids []uint) {
+	for id := range m.properties {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetProperties resets all changes to the "properties" edge.
+func (m *PayloadMutation) ResetProperties() {
+	m.properties = nil
+	m.clearedproperties = false
+	m.removedproperties = nil
+}
+
+// Where appends a list predicates to the PayloadMutation builder.
+func (m *PayloadMutation) Where(ps ...predicate.Payload) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the PayloadMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *PayloadMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.Payload, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *PayloadMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *PayloadMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (Payload).
+func (m *PayloadMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *PayloadMutation) Fields() []string {
+	fields := make([]string, 0, 10)
+	if m.payload_description != nil {
+		fields = append(fields, payload.FieldPayloadDescription)
+	}
+	if m.payload_display_name != nil {
+		fields = append(fields, payload.FieldPayloadDisplayName)
+	}
+	if m.payload_identifier != nil {
+		fields = append(fields, payload.FieldPayloadIdentifier)
+	}
+	if m.payload_organization != nil {
+		fields = append(fields, payload.FieldPayloadOrganization)
+	}
+	if m.payload_type != nil {
+		fields = append(fields, payload.FieldPayloadType)
+	}
+	if m.payload_uuid != nil {
+		fields = append(fields, payload.FieldPayloadUUID)
+	}
+	if m.payload_version != nil {
+		fields = append(fields, payload.FieldPayloadVersion)
+	}
+	if m.created_at != nil {
+		fields = append(fields, payload.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, payload.FieldUpdatedAt)
+	}
+	if m.deleted_at != nil {
+		fields = append(fields, payload.FieldDeletedAt)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *PayloadMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case payload.FieldPayloadDescription:
+		return m.PayloadDescription()
+	case payload.FieldPayloadDisplayName:
+		return m.PayloadDisplayName()
+	case payload.FieldPayloadIdentifier:
+		return m.PayloadIdentifier()
+	case payload.FieldPayloadOrganization:
+		return m.PayloadOrganization()
+	case payload.FieldPayloadType:
+		return m.PayloadType()
+	case payload.FieldPayloadUUID:
+		return m.PayloadUUID()
+	case payload.FieldPayloadVersion:
+		return m.PayloadVersion()
+	case payload.FieldCreatedAt:
+		return m.CreatedAt()
+	case payload.FieldUpdatedAt:
+		return m.UpdatedAt()
+	case payload.FieldDeletedAt:
+		return m.DeletedAt()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *PayloadMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case payload.FieldPayloadDescription:
+		return m.OldPayloadDescription(ctx)
+	case payload.FieldPayloadDisplayName:
+		return m.OldPayloadDisplayName(ctx)
+	case payload.FieldPayloadIdentifier:
+		return m.OldPayloadIdentifier(ctx)
+	case payload.FieldPayloadOrganization:
+		return m.OldPayloadOrganization(ctx)
+	case payload.FieldPayloadType:
+		return m.OldPayloadType(ctx)
+	case payload.FieldPayloadUUID:
+		return m.OldPayloadUUID(ctx)
+	case payload.FieldPayloadVersion:
+		return m.OldPayloadVersion(ctx)
+	case payload.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case payload.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	case payload.FieldDeletedAt:
+		return m.OldDeletedAt(ctx)
+	}
+	return nil, fmt.Errorf("unknown Payload field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *PayloadMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case payload.FieldPayloadDescription:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPayloadDescription(v)
+		return nil
+	case payload.FieldPayloadDisplayName:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPayloadDisplayName(v)
+		return nil
+	case payload.FieldPayloadIdentifier:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPayloadIdentifier(v)
+		return nil
+	case payload.FieldPayloadOrganization:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPayloadOrganization(v)
+		return nil
+	case payload.FieldPayloadType:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPayloadType(v)
+		return nil
+	case payload.FieldPayloadUUID:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPayloadUUID(v)
+		return nil
+	case payload.FieldPayloadVersion:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPayloadVersion(v)
+		return nil
+	case payload.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case payload.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	case payload.FieldDeletedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDeletedAt(v)
+		return nil
+	}
+	return fmt.Errorf("unknown Payload field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *PayloadMutation) AddedFields() []string {
+	var fields []string
+	if m.addpayload_version != nil {
+		fields = append(fields, payload.FieldPayloadVersion)
+	}
+	return fields
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *PayloadMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case payload.FieldPayloadVersion:
+		return m.AddedPayloadVersion()
+	}
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *PayloadMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	case payload.FieldPayloadVersion:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddPayloadVersion(v)
+		return nil
+	}
+	return fmt.Errorf("unknown Payload numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *PayloadMutation) ClearedFields() []string {
+	var fields []string
+	if m.FieldCleared(payload.FieldPayloadDescription) {
+		fields = append(fields, payload.FieldPayloadDescription)
+	}
+	if m.FieldCleared(payload.FieldPayloadOrganization) {
+		fields = append(fields, payload.FieldPayloadOrganization)
+	}
+	if m.FieldCleared(payload.FieldDeletedAt) {
+		fields = append(fields, payload.FieldDeletedAt)
+	}
+	return fields
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *PayloadMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *PayloadMutation) ClearField(name string) error {
+	switch name {
+	case payload.FieldPayloadDescription:
+		m.ClearPayloadDescription()
+		return nil
+	case payload.FieldPayloadOrganization:
+		m.ClearPayloadOrganization()
+		return nil
+	case payload.FieldDeletedAt:
+		m.ClearDeletedAt()
+		return nil
+	}
+	return fmt.Errorf("unknown Payload nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *PayloadMutation) ResetField(name string) error {
+	switch name {
+	case payload.FieldPayloadDescription:
+		m.ResetPayloadDescription()
+		return nil
+	case payload.FieldPayloadDisplayName:
+		m.ResetPayloadDisplayName()
+		return nil
+	case payload.FieldPayloadIdentifier:
+		m.ResetPayloadIdentifier()
+		return nil
+	case payload.FieldPayloadOrganization:
+		m.ResetPayloadOrganization()
+		return nil
+	case payload.FieldPayloadType:
+		m.ResetPayloadType()
+		return nil
+	case payload.FieldPayloadUUID:
+		m.ResetPayloadUUID()
+		return nil
+	case payload.FieldPayloadVersion:
+		m.ResetPayloadVersion()
+		return nil
+	case payload.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case payload.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	case payload.FieldDeletedAt:
+		m.ResetDeletedAt()
+		return nil
+	}
+	return fmt.Errorf("unknown Payload field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *PayloadMutation) AddedEdges() []string {
+	edges := make([]string, 0, 2)
+	if m.mobile_config != nil {
+		edges = append(edges, payload.EdgeMobileConfig)
+	}
+	if m.properties != nil {
+		edges = append(edges, payload.EdgeProperties)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *PayloadMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case payload.EdgeMobileConfig:
+		if id := m.mobile_config; id != nil {
+			return []ent.Value{*id}
+		}
+	case payload.EdgeProperties:
+		ids := make([]ent.Value, 0, len(m.properties))
+		for id := range m.properties {
+			ids = append(ids, id)
+		}
+		return ids
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *PayloadMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 2)
+	if m.removedproperties != nil {
+		edges = append(edges, payload.EdgeProperties)
+	}
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *PayloadMutation) RemovedIDs(name string) []ent.Value {
+	switch name {
+	case payload.EdgeProperties:
+		ids := make([]ent.Value, 0, len(m.removedproperties))
+		for id := range m.removedproperties {
+			ids = append(ids, id)
+		}
+		return ids
+	}
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *PayloadMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 2)
+	if m.clearedmobile_config {
+		edges = append(edges, payload.EdgeMobileConfig)
+	}
+	if m.clearedproperties {
+		edges = append(edges, payload.EdgeProperties)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *PayloadMutation) EdgeCleared(name string) bool {
+	switch name {
+	case payload.EdgeMobileConfig:
+		return m.clearedmobile_config
+	case payload.EdgeProperties:
+		return m.clearedproperties
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *PayloadMutation) ClearEdge(name string) error {
+	switch name {
+	case payload.EdgeMobileConfig:
+		m.ClearMobileConfig()
+		return nil
+	}
+	return fmt.Errorf("unknown Payload unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *PayloadMutation) ResetEdge(name string) error {
+	switch name {
+	case payload.EdgeMobileConfig:
+		m.ResetMobileConfig()
+		return nil
+	case payload.EdgeProperties:
+		m.ResetProperties()
+		return nil
+	}
+	return fmt.Errorf("unknown Payload edge %s", name)
+}
+
+// PayloadPropertyMutation represents an operation that mutates the PayloadProperty nodes in the graph.
+type PayloadPropertyMutation struct {
+	config
+	op                Op
+	typ               string
+	id                *uint
+	value_json        *map[string]interface{}
+	created_at        *time.Time
+	updated_at        *time.Time
+	deleted_at        *time.Time
+	clearedFields     map[string]struct{}
+	payload           *uint
+	clearedpayload    bool
+	definition        *int
+	cleareddefinition bool
+	done              bool
+	oldValue          func(context.Context) (*PayloadProperty, error)
+	predicates        []predicate.PayloadProperty
+}
+
+var _ ent.Mutation = (*PayloadPropertyMutation)(nil)
+
+// payloadpropertyOption allows management of the mutation configuration using functional options.
+type payloadpropertyOption func(*PayloadPropertyMutation)
+
+// newPayloadPropertyMutation creates new mutation for the PayloadProperty entity.
+func newPayloadPropertyMutation(c config, op Op, opts ...payloadpropertyOption) *PayloadPropertyMutation {
+	m := &PayloadPropertyMutation{
+		config:        c,
+		op:            op,
+		typ:           TypePayloadProperty,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withPayloadPropertyID sets the ID field of the mutation.
+func withPayloadPropertyID(id uint) payloadpropertyOption {
+	return func(m *PayloadPropertyMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *PayloadProperty
+		)
+		m.oldValue = func(ctx context.Context) (*PayloadProperty, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().PayloadProperty.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withPayloadProperty sets the old PayloadProperty of the mutation.
+func withPayloadProperty(node *PayloadProperty) payloadpropertyOption {
+	return func(m *PayloadPropertyMutation) {
+		m.oldValue = func(context.Context) (*PayloadProperty, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m PayloadPropertyMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m PayloadPropertyMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of PayloadProperty entities.
+func (m *PayloadPropertyMutation) SetID(id uint) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *PayloadPropertyMutation) ID() (id uint, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *PayloadPropertyMutation) IDs(ctx context.Context) ([]uint, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []uint{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().PayloadProperty.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetValueJSON sets the "value_json" field.
+func (m *PayloadPropertyMutation) SetValueJSON(value map[string]interface{}) {
+	m.value_json = &value
+}
+
+// ValueJSON returns the value of the "value_json" field in the mutation.
+func (m *PayloadPropertyMutation) ValueJSON() (r map[string]interface{}, exists bool) {
+	v := m.value_json
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldValueJSON returns the old "value_json" field's value of the PayloadProperty entity.
+// If the PayloadProperty object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PayloadPropertyMutation) OldValueJSON(ctx context.Context) (v map[string]interface{}, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldValueJSON is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldValueJSON requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldValueJSON: %w", err)
+	}
+	return oldValue.ValueJSON, nil
+}
+
+// ClearValueJSON clears the value of the "value_json" field.
+func (m *PayloadPropertyMutation) ClearValueJSON() {
+	m.value_json = nil
+	m.clearedFields[payloadproperty.FieldValueJSON] = struct{}{}
+}
+
+// ValueJSONCleared returns if the "value_json" field was cleared in this mutation.
+func (m *PayloadPropertyMutation) ValueJSONCleared() bool {
+	_, ok := m.clearedFields[payloadproperty.FieldValueJSON]
+	return ok
+}
+
+// ResetValueJSON resets all changes to the "value_json" field.
+func (m *PayloadPropertyMutation) ResetValueJSON() {
+	m.value_json = nil
+	delete(m.clearedFields, payloadproperty.FieldValueJSON)
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *PayloadPropertyMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *PayloadPropertyMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the PayloadProperty entity.
+// If the PayloadProperty object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PayloadPropertyMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *PayloadPropertyMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *PayloadPropertyMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *PayloadPropertyMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the PayloadProperty entity.
+// If the PayloadProperty object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PayloadPropertyMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *PayloadPropertyMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+}
+
+// SetDeletedAt sets the "deleted_at" field.
+func (m *PayloadPropertyMutation) SetDeletedAt(t time.Time) {
+	m.deleted_at = &t
+}
+
+// DeletedAt returns the value of the "deleted_at" field in the mutation.
+func (m *PayloadPropertyMutation) DeletedAt() (r time.Time, exists bool) {
+	v := m.deleted_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDeletedAt returns the old "deleted_at" field's value of the PayloadProperty entity.
+// If the PayloadProperty object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PayloadPropertyMutation) OldDeletedAt(ctx context.Context) (v *time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDeletedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDeletedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDeletedAt: %w", err)
+	}
+	return oldValue.DeletedAt, nil
+}
+
+// ClearDeletedAt clears the value of the "deleted_at" field.
+func (m *PayloadPropertyMutation) ClearDeletedAt() {
+	m.deleted_at = nil
+	m.clearedFields[payloadproperty.FieldDeletedAt] = struct{}{}
+}
+
+// DeletedAtCleared returns if the "deleted_at" field was cleared in this mutation.
+func (m *PayloadPropertyMutation) DeletedAtCleared() bool {
+	_, ok := m.clearedFields[payloadproperty.FieldDeletedAt]
+	return ok
+}
+
+// ResetDeletedAt resets all changes to the "deleted_at" field.
+func (m *PayloadPropertyMutation) ResetDeletedAt() {
+	m.deleted_at = nil
+	delete(m.clearedFields, payloadproperty.FieldDeletedAt)
+}
+
+// SetPayloadID sets the "payload" edge to the Payload entity by id.
+func (m *PayloadPropertyMutation) SetPayloadID(id uint) {
+	m.payload = &id
+}
+
+// ClearPayload clears the "payload" edge to the Payload entity.
+func (m *PayloadPropertyMutation) ClearPayload() {
+	m.clearedpayload = true
+}
+
+// PayloadCleared reports if the "payload" edge to the Payload entity was cleared.
+func (m *PayloadPropertyMutation) PayloadCleared() bool {
+	return m.clearedpayload
+}
+
+// PayloadID returns the "payload" edge ID in the mutation.
+func (m *PayloadPropertyMutation) PayloadID() (id uint, exists bool) {
+	if m.payload != nil {
+		return *m.payload, true
+	}
+	return
+}
+
+// PayloadIDs returns the "payload" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// PayloadID instead. It exists only for internal usage by the builders.
+func (m *PayloadPropertyMutation) PayloadIDs() (ids []uint) {
+	if id := m.payload; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetPayload resets all changes to the "payload" edge.
+func (m *PayloadPropertyMutation) ResetPayload() {
+	m.payload = nil
+	m.clearedpayload = false
+}
+
+// SetDefinitionID sets the "definition" edge to the PayloadPropertyDefinition entity by id.
+func (m *PayloadPropertyMutation) SetDefinitionID(id int) {
+	m.definition = &id
+}
+
+// ClearDefinition clears the "definition" edge to the PayloadPropertyDefinition entity.
+func (m *PayloadPropertyMutation) ClearDefinition() {
+	m.cleareddefinition = true
+}
+
+// DefinitionCleared reports if the "definition" edge to the PayloadPropertyDefinition entity was cleared.
+func (m *PayloadPropertyMutation) DefinitionCleared() bool {
+	return m.cleareddefinition
+}
+
+// DefinitionID returns the "definition" edge ID in the mutation.
+func (m *PayloadPropertyMutation) DefinitionID() (id int, exists bool) {
+	if m.definition != nil {
+		return *m.definition, true
+	}
+	return
+}
+
+// DefinitionIDs returns the "definition" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// DefinitionID instead. It exists only for internal usage by the builders.
+func (m *PayloadPropertyMutation) DefinitionIDs() (ids []int) {
+	if id := m.definition; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetDefinition resets all changes to the "definition" edge.
+func (m *PayloadPropertyMutation) ResetDefinition() {
+	m.definition = nil
+	m.cleareddefinition = false
+}
+
+// Where appends a list predicates to the PayloadPropertyMutation builder.
+func (m *PayloadPropertyMutation) Where(ps ...predicate.PayloadProperty) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the PayloadPropertyMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *PayloadPropertyMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.PayloadProperty, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *PayloadPropertyMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *PayloadPropertyMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (PayloadProperty).
+func (m *PayloadPropertyMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *PayloadPropertyMutation) Fields() []string {
+	fields := make([]string, 0, 4)
+	if m.value_json != nil {
+		fields = append(fields, payloadproperty.FieldValueJSON)
+	}
+	if m.created_at != nil {
+		fields = append(fields, payloadproperty.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, payloadproperty.FieldUpdatedAt)
+	}
+	if m.deleted_at != nil {
+		fields = append(fields, payloadproperty.FieldDeletedAt)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *PayloadPropertyMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case payloadproperty.FieldValueJSON:
+		return m.ValueJSON()
+	case payloadproperty.FieldCreatedAt:
+		return m.CreatedAt()
+	case payloadproperty.FieldUpdatedAt:
+		return m.UpdatedAt()
+	case payloadproperty.FieldDeletedAt:
+		return m.DeletedAt()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *PayloadPropertyMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case payloadproperty.FieldValueJSON:
+		return m.OldValueJSON(ctx)
+	case payloadproperty.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case payloadproperty.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	case payloadproperty.FieldDeletedAt:
+		return m.OldDeletedAt(ctx)
+	}
+	return nil, fmt.Errorf("unknown PayloadProperty field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *PayloadPropertyMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case payloadproperty.FieldValueJSON:
+		v, ok := value.(map[string]interface{})
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetValueJSON(v)
+		return nil
+	case payloadproperty.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case payloadproperty.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	case payloadproperty.FieldDeletedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDeletedAt(v)
+		return nil
+	}
+	return fmt.Errorf("unknown PayloadProperty field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *PayloadPropertyMutation) AddedFields() []string {
+	return nil
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *PayloadPropertyMutation) AddedField(name string) (ent.Value, bool) {
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *PayloadPropertyMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown PayloadProperty numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *PayloadPropertyMutation) ClearedFields() []string {
+	var fields []string
+	if m.FieldCleared(payloadproperty.FieldValueJSON) {
+		fields = append(fields, payloadproperty.FieldValueJSON)
+	}
+	if m.FieldCleared(payloadproperty.FieldDeletedAt) {
+		fields = append(fields, payloadproperty.FieldDeletedAt)
+	}
+	return fields
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *PayloadPropertyMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *PayloadPropertyMutation) ClearField(name string) error {
+	switch name {
+	case payloadproperty.FieldValueJSON:
+		m.ClearValueJSON()
+		return nil
+	case payloadproperty.FieldDeletedAt:
+		m.ClearDeletedAt()
+		return nil
+	}
+	return fmt.Errorf("unknown PayloadProperty nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *PayloadPropertyMutation) ResetField(name string) error {
+	switch name {
+	case payloadproperty.FieldValueJSON:
+		m.ResetValueJSON()
+		return nil
+	case payloadproperty.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case payloadproperty.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	case payloadproperty.FieldDeletedAt:
+		m.ResetDeletedAt()
+		return nil
+	}
+	return fmt.Errorf("unknown PayloadProperty field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *PayloadPropertyMutation) AddedEdges() []string {
+	edges := make([]string, 0, 2)
+	if m.payload != nil {
+		edges = append(edges, payloadproperty.EdgePayload)
+	}
+	if m.definition != nil {
+		edges = append(edges, payloadproperty.EdgeDefinition)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *PayloadPropertyMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case payloadproperty.EdgePayload:
+		if id := m.payload; id != nil {
+			return []ent.Value{*id}
+		}
+	case payloadproperty.EdgeDefinition:
+		if id := m.definition; id != nil {
+			return []ent.Value{*id}
+		}
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *PayloadPropertyMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 2)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *PayloadPropertyMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *PayloadPropertyMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 2)
+	if m.clearedpayload {
+		edges = append(edges, payloadproperty.EdgePayload)
+	}
+	if m.cleareddefinition {
+		edges = append(edges, payloadproperty.EdgeDefinition)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *PayloadPropertyMutation) EdgeCleared(name string) bool {
+	switch name {
+	case payloadproperty.EdgePayload:
+		return m.clearedpayload
+	case payloadproperty.EdgeDefinition:
+		return m.cleareddefinition
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *PayloadPropertyMutation) ClearEdge(name string) error {
+	switch name {
+	case payloadproperty.EdgePayload:
+		m.ClearPayload()
+		return nil
+	case payloadproperty.EdgeDefinition:
+		m.ClearDefinition()
+		return nil
+	}
+	return fmt.Errorf("unknown PayloadProperty unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *PayloadPropertyMutation) ResetEdge(name string) error {
+	switch name {
+	case payloadproperty.EdgePayload:
+		m.ResetPayload()
+		return nil
+	case payloadproperty.EdgeDefinition:
+		m.ResetDefinition()
+		return nil
+	}
+	return fmt.Errorf("unknown PayloadProperty edge %s", name)
+}
+
+// PayloadPropertyDefinitionMutation represents an operation that mutates the PayloadPropertyDefinition nodes in the graph.
+type PayloadPropertyDefinitionMutation struct {
+	config
+	op                Op
+	typ               string
+	id                *int
+	payload_type      *string
+	key               *string
+	value_type        *string
+	default_value     *map[string]interface{}
+	enum_values       *[]interface{}
+	appendenum_values []interface{}
+	description       *string
+	created_at        *time.Time
+	updated_at        *time.Time
+	deleted_at        *time.Time
+	clearedFields     map[string]struct{}
+	properties        map[uint]struct{}
+	removedproperties map[uint]struct{}
+	clearedproperties bool
+	done              bool
+	oldValue          func(context.Context) (*PayloadPropertyDefinition, error)
+	predicates        []predicate.PayloadPropertyDefinition
+}
+
+var _ ent.Mutation = (*PayloadPropertyDefinitionMutation)(nil)
+
+// payloadpropertydefinitionOption allows management of the mutation configuration using functional options.
+type payloadpropertydefinitionOption func(*PayloadPropertyDefinitionMutation)
+
+// newPayloadPropertyDefinitionMutation creates new mutation for the PayloadPropertyDefinition entity.
+func newPayloadPropertyDefinitionMutation(c config, op Op, opts ...payloadpropertydefinitionOption) *PayloadPropertyDefinitionMutation {
+	m := &PayloadPropertyDefinitionMutation{
+		config:        c,
+		op:            op,
+		typ:           TypePayloadPropertyDefinition,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withPayloadPropertyDefinitionID sets the ID field of the mutation.
+func withPayloadPropertyDefinitionID(id int) payloadpropertydefinitionOption {
+	return func(m *PayloadPropertyDefinitionMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *PayloadPropertyDefinition
+		)
+		m.oldValue = func(ctx context.Context) (*PayloadPropertyDefinition, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().PayloadPropertyDefinition.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withPayloadPropertyDefinition sets the old PayloadPropertyDefinition of the mutation.
+func withPayloadPropertyDefinition(node *PayloadPropertyDefinition) payloadpropertydefinitionOption {
+	return func(m *PayloadPropertyDefinitionMutation) {
+		m.oldValue = func(context.Context) (*PayloadPropertyDefinition, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m PayloadPropertyDefinitionMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m PayloadPropertyDefinitionMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *PayloadPropertyDefinitionMutation) ID() (id int, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *PayloadPropertyDefinitionMutation) IDs(ctx context.Context) ([]int, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []int{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().PayloadPropertyDefinition.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetPayloadType sets the "payload_type" field.
+func (m *PayloadPropertyDefinitionMutation) SetPayloadType(s string) {
+	m.payload_type = &s
+}
+
+// PayloadType returns the value of the "payload_type" field in the mutation.
+func (m *PayloadPropertyDefinitionMutation) PayloadType() (r string, exists bool) {
+	v := m.payload_type
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPayloadType returns the old "payload_type" field's value of the PayloadPropertyDefinition entity.
+// If the PayloadPropertyDefinition object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PayloadPropertyDefinitionMutation) OldPayloadType(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldPayloadType is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldPayloadType requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPayloadType: %w", err)
+	}
+	return oldValue.PayloadType, nil
+}
+
+// ResetPayloadType resets all changes to the "payload_type" field.
+func (m *PayloadPropertyDefinitionMutation) ResetPayloadType() {
+	m.payload_type = nil
+}
+
+// SetKey sets the "key" field.
+func (m *PayloadPropertyDefinitionMutation) SetKey(s string) {
+	m.key = &s
+}
+
+// Key returns the value of the "key" field in the mutation.
+func (m *PayloadPropertyDefinitionMutation) Key() (r string, exists bool) {
+	v := m.key
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldKey returns the old "key" field's value of the PayloadPropertyDefinition entity.
+// If the PayloadPropertyDefinition object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PayloadPropertyDefinitionMutation) OldKey(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldKey is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldKey requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldKey: %w", err)
+	}
+	return oldValue.Key, nil
+}
+
+// ResetKey resets all changes to the "key" field.
+func (m *PayloadPropertyDefinitionMutation) ResetKey() {
+	m.key = nil
+}
+
+// SetValueType sets the "value_type" field.
+func (m *PayloadPropertyDefinitionMutation) SetValueType(s string) {
+	m.value_type = &s
+}
+
+// ValueType returns the value of the "value_type" field in the mutation.
+func (m *PayloadPropertyDefinitionMutation) ValueType() (r string, exists bool) {
+	v := m.value_type
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldValueType returns the old "value_type" field's value of the PayloadPropertyDefinition entity.
+// If the PayloadPropertyDefinition object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PayloadPropertyDefinitionMutation) OldValueType(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldValueType is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldValueType requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldValueType: %w", err)
+	}
+	return oldValue.ValueType, nil
+}
+
+// ResetValueType resets all changes to the "value_type" field.
+func (m *PayloadPropertyDefinitionMutation) ResetValueType() {
+	m.value_type = nil
+}
+
+// SetDefaultValue sets the "default_value" field.
+func (m *PayloadPropertyDefinitionMutation) SetDefaultValue(value map[string]interface{}) {
+	m.default_value = &value
+}
+
+// DefaultValue returns the value of the "default_value" field in the mutation.
+func (m *PayloadPropertyDefinitionMutation) DefaultValue() (r map[string]interface{}, exists bool) {
+	v := m.default_value
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDefaultValue returns the old "default_value" field's value of the PayloadPropertyDefinition entity.
+// If the PayloadPropertyDefinition object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PayloadPropertyDefinitionMutation) OldDefaultValue(ctx context.Context) (v map[string]interface{}, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDefaultValue is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDefaultValue requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDefaultValue: %w", err)
+	}
+	return oldValue.DefaultValue, nil
+}
+
+// ClearDefaultValue clears the value of the "default_value" field.
+func (m *PayloadPropertyDefinitionMutation) ClearDefaultValue() {
+	m.default_value = nil
+	m.clearedFields[payloadpropertydefinition.FieldDefaultValue] = struct{}{}
+}
+
+// DefaultValueCleared returns if the "default_value" field was cleared in this mutation.
+func (m *PayloadPropertyDefinitionMutation) DefaultValueCleared() bool {
+	_, ok := m.clearedFields[payloadpropertydefinition.FieldDefaultValue]
+	return ok
+}
+
+// ResetDefaultValue resets all changes to the "default_value" field.
+func (m *PayloadPropertyDefinitionMutation) ResetDefaultValue() {
+	m.default_value = nil
+	delete(m.clearedFields, payloadpropertydefinition.FieldDefaultValue)
+}
+
+// SetEnumValues sets the "enum_values" field.
+func (m *PayloadPropertyDefinitionMutation) SetEnumValues(i []interface{}) {
+	m.enum_values = &i
+	m.appendenum_values = nil
+}
+
+// EnumValues returns the value of the "enum_values" field in the mutation.
+func (m *PayloadPropertyDefinitionMutation) EnumValues() (r []interface{}, exists bool) {
+	v := m.enum_values
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldEnumValues returns the old "enum_values" field's value of the PayloadPropertyDefinition entity.
+// If the PayloadPropertyDefinition object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PayloadPropertyDefinitionMutation) OldEnumValues(ctx context.Context) (v []interface{}, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldEnumValues is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldEnumValues requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldEnumValues: %w", err)
+	}
+	return oldValue.EnumValues, nil
+}
+
+// AppendEnumValues adds i to the "enum_values" field.
+func (m *PayloadPropertyDefinitionMutation) AppendEnumValues(i []interface{}) {
+	m.appendenum_values = append(m.appendenum_values, i...)
+}
+
+// AppendedEnumValues returns the list of values that were appended to the "enum_values" field in this mutation.
+func (m *PayloadPropertyDefinitionMutation) AppendedEnumValues() ([]interface{}, bool) {
+	if len(m.appendenum_values) == 0 {
+		return nil, false
+	}
+	return m.appendenum_values, true
+}
+
+// ClearEnumValues clears the value of the "enum_values" field.
+func (m *PayloadPropertyDefinitionMutation) ClearEnumValues() {
+	m.enum_values = nil
+	m.appendenum_values = nil
+	m.clearedFields[payloadpropertydefinition.FieldEnumValues] = struct{}{}
+}
+
+// EnumValuesCleared returns if the "enum_values" field was cleared in this mutation.
+func (m *PayloadPropertyDefinitionMutation) EnumValuesCleared() bool {
+	_, ok := m.clearedFields[payloadpropertydefinition.FieldEnumValues]
+	return ok
+}
+
+// ResetEnumValues resets all changes to the "enum_values" field.
+func (m *PayloadPropertyDefinitionMutation) ResetEnumValues() {
+	m.enum_values = nil
+	m.appendenum_values = nil
+	delete(m.clearedFields, payloadpropertydefinition.FieldEnumValues)
+}
+
+// SetDescription sets the "description" field.
+func (m *PayloadPropertyDefinitionMutation) SetDescription(s string) {
+	m.description = &s
+}
+
+// Description returns the value of the "description" field in the mutation.
+func (m *PayloadPropertyDefinitionMutation) Description() (r string, exists bool) {
+	v := m.description
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDescription returns the old "description" field's value of the PayloadPropertyDefinition entity.
+// If the PayloadPropertyDefinition object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PayloadPropertyDefinitionMutation) OldDescription(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDescription is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDescription requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDescription: %w", err)
+	}
+	return oldValue.Description, nil
+}
+
+// ClearDescription clears the value of the "description" field.
+func (m *PayloadPropertyDefinitionMutation) ClearDescription() {
+	m.description = nil
+	m.clearedFields[payloadpropertydefinition.FieldDescription] = struct{}{}
+}
+
+// DescriptionCleared returns if the "description" field was cleared in this mutation.
+func (m *PayloadPropertyDefinitionMutation) DescriptionCleared() bool {
+	_, ok := m.clearedFields[payloadpropertydefinition.FieldDescription]
+	return ok
+}
+
+// ResetDescription resets all changes to the "description" field.
+func (m *PayloadPropertyDefinitionMutation) ResetDescription() {
+	m.description = nil
+	delete(m.clearedFields, payloadpropertydefinition.FieldDescription)
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *PayloadPropertyDefinitionMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *PayloadPropertyDefinitionMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the PayloadPropertyDefinition entity.
+// If the PayloadPropertyDefinition object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PayloadPropertyDefinitionMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *PayloadPropertyDefinitionMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *PayloadPropertyDefinitionMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *PayloadPropertyDefinitionMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the PayloadPropertyDefinition entity.
+// If the PayloadPropertyDefinition object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PayloadPropertyDefinitionMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *PayloadPropertyDefinitionMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+}
+
+// SetDeletedAt sets the "deleted_at" field.
+func (m *PayloadPropertyDefinitionMutation) SetDeletedAt(t time.Time) {
+	m.deleted_at = &t
+}
+
+// DeletedAt returns the value of the "deleted_at" field in the mutation.
+func (m *PayloadPropertyDefinitionMutation) DeletedAt() (r time.Time, exists bool) {
+	v := m.deleted_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDeletedAt returns the old "deleted_at" field's value of the PayloadPropertyDefinition entity.
+// If the PayloadPropertyDefinition object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PayloadPropertyDefinitionMutation) OldDeletedAt(ctx context.Context) (v *time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDeletedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDeletedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDeletedAt: %w", err)
+	}
+	return oldValue.DeletedAt, nil
+}
+
+// ClearDeletedAt clears the value of the "deleted_at" field.
+func (m *PayloadPropertyDefinitionMutation) ClearDeletedAt() {
+	m.deleted_at = nil
+	m.clearedFields[payloadpropertydefinition.FieldDeletedAt] = struct{}{}
+}
+
+// DeletedAtCleared returns if the "deleted_at" field was cleared in this mutation.
+func (m *PayloadPropertyDefinitionMutation) DeletedAtCleared() bool {
+	_, ok := m.clearedFields[payloadpropertydefinition.FieldDeletedAt]
+	return ok
+}
+
+// ResetDeletedAt resets all changes to the "deleted_at" field.
+func (m *PayloadPropertyDefinitionMutation) ResetDeletedAt() {
+	m.deleted_at = nil
+	delete(m.clearedFields, payloadpropertydefinition.FieldDeletedAt)
+}
+
+// AddPropertyIDs adds the "properties" edge to the PayloadProperty entity by ids.
+func (m *PayloadPropertyDefinitionMutation) AddPropertyIDs(ids ...uint) {
+	if m.properties == nil {
+		m.properties = make(map[uint]struct{})
+	}
+	for i := range ids {
+		m.properties[ids[i]] = struct{}{}
+	}
+}
+
+// ClearProperties clears the "properties" edge to the PayloadProperty entity.
+func (m *PayloadPropertyDefinitionMutation) ClearProperties() {
+	m.clearedproperties = true
+}
+
+// PropertiesCleared reports if the "properties" edge to the PayloadProperty entity was cleared.
+func (m *PayloadPropertyDefinitionMutation) PropertiesCleared() bool {
+	return m.clearedproperties
+}
+
+// RemovePropertyIDs removes the "properties" edge to the PayloadProperty entity by IDs.
+func (m *PayloadPropertyDefinitionMutation) RemovePropertyIDs(ids ...uint) {
+	if m.removedproperties == nil {
+		m.removedproperties = make(map[uint]struct{})
+	}
+	for i := range ids {
+		delete(m.properties, ids[i])
+		m.removedproperties[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedProperties returns the removed IDs of the "properties" edge to the PayloadProperty entity.
+func (m *PayloadPropertyDefinitionMutation) RemovedPropertiesIDs() (ids []uint) {
+	for id := range m.removedproperties {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// PropertiesIDs returns the "properties" edge IDs in the mutation.
+func (m *PayloadPropertyDefinitionMutation) PropertiesIDs() (ids []uint) {
+	for id := range m.properties {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetProperties resets all changes to the "properties" edge.
+func (m *PayloadPropertyDefinitionMutation) ResetProperties() {
+	m.properties = nil
+	m.clearedproperties = false
+	m.removedproperties = nil
+}
+
+// Where appends a list predicates to the PayloadPropertyDefinitionMutation builder.
+func (m *PayloadPropertyDefinitionMutation) Where(ps ...predicate.PayloadPropertyDefinition) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the PayloadPropertyDefinitionMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *PayloadPropertyDefinitionMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.PayloadPropertyDefinition, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *PayloadPropertyDefinitionMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *PayloadPropertyDefinitionMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (PayloadPropertyDefinition).
+func (m *PayloadPropertyDefinitionMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *PayloadPropertyDefinitionMutation) Fields() []string {
+	fields := make([]string, 0, 9)
+	if m.payload_type != nil {
+		fields = append(fields, payloadpropertydefinition.FieldPayloadType)
+	}
+	if m.key != nil {
+		fields = append(fields, payloadpropertydefinition.FieldKey)
+	}
+	if m.value_type != nil {
+		fields = append(fields, payloadpropertydefinition.FieldValueType)
+	}
+	if m.default_value != nil {
+		fields = append(fields, payloadpropertydefinition.FieldDefaultValue)
+	}
+	if m.enum_values != nil {
+		fields = append(fields, payloadpropertydefinition.FieldEnumValues)
+	}
+	if m.description != nil {
+		fields = append(fields, payloadpropertydefinition.FieldDescription)
+	}
+	if m.created_at != nil {
+		fields = append(fields, payloadpropertydefinition.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, payloadpropertydefinition.FieldUpdatedAt)
+	}
+	if m.deleted_at != nil {
+		fields = append(fields, payloadpropertydefinition.FieldDeletedAt)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *PayloadPropertyDefinitionMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case payloadpropertydefinition.FieldPayloadType:
+		return m.PayloadType()
+	case payloadpropertydefinition.FieldKey:
+		return m.Key()
+	case payloadpropertydefinition.FieldValueType:
+		return m.ValueType()
+	case payloadpropertydefinition.FieldDefaultValue:
+		return m.DefaultValue()
+	case payloadpropertydefinition.FieldEnumValues:
+		return m.EnumValues()
+	case payloadpropertydefinition.FieldDescription:
+		return m.Description()
+	case payloadpropertydefinition.FieldCreatedAt:
+		return m.CreatedAt()
+	case payloadpropertydefinition.FieldUpdatedAt:
+		return m.UpdatedAt()
+	case payloadpropertydefinition.FieldDeletedAt:
+		return m.DeletedAt()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *PayloadPropertyDefinitionMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case payloadpropertydefinition.FieldPayloadType:
+		return m.OldPayloadType(ctx)
+	case payloadpropertydefinition.FieldKey:
+		return m.OldKey(ctx)
+	case payloadpropertydefinition.FieldValueType:
+		return m.OldValueType(ctx)
+	case payloadpropertydefinition.FieldDefaultValue:
+		return m.OldDefaultValue(ctx)
+	case payloadpropertydefinition.FieldEnumValues:
+		return m.OldEnumValues(ctx)
+	case payloadpropertydefinition.FieldDescription:
+		return m.OldDescription(ctx)
+	case payloadpropertydefinition.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case payloadpropertydefinition.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	case payloadpropertydefinition.FieldDeletedAt:
+		return m.OldDeletedAt(ctx)
+	}
+	return nil, fmt.Errorf("unknown PayloadPropertyDefinition field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *PayloadPropertyDefinitionMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case payloadpropertydefinition.FieldPayloadType:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPayloadType(v)
+		return nil
+	case payloadpropertydefinition.FieldKey:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetKey(v)
+		return nil
+	case payloadpropertydefinition.FieldValueType:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetValueType(v)
+		return nil
+	case payloadpropertydefinition.FieldDefaultValue:
+		v, ok := value.(map[string]interface{})
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDefaultValue(v)
+		return nil
+	case payloadpropertydefinition.FieldEnumValues:
+		v, ok := value.([]interface{})
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetEnumValues(v)
+		return nil
+	case payloadpropertydefinition.FieldDescription:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDescription(v)
+		return nil
+	case payloadpropertydefinition.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case payloadpropertydefinition.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	case payloadpropertydefinition.FieldDeletedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDeletedAt(v)
+		return nil
+	}
+	return fmt.Errorf("unknown PayloadPropertyDefinition field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *PayloadPropertyDefinitionMutation) AddedFields() []string {
+	return nil
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *PayloadPropertyDefinitionMutation) AddedField(name string) (ent.Value, bool) {
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *PayloadPropertyDefinitionMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown PayloadPropertyDefinition numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *PayloadPropertyDefinitionMutation) ClearedFields() []string {
+	var fields []string
+	if m.FieldCleared(payloadpropertydefinition.FieldDefaultValue) {
+		fields = append(fields, payloadpropertydefinition.FieldDefaultValue)
+	}
+	if m.FieldCleared(payloadpropertydefinition.FieldEnumValues) {
+		fields = append(fields, payloadpropertydefinition.FieldEnumValues)
+	}
+	if m.FieldCleared(payloadpropertydefinition.FieldDescription) {
+		fields = append(fields, payloadpropertydefinition.FieldDescription)
+	}
+	if m.FieldCleared(payloadpropertydefinition.FieldDeletedAt) {
+		fields = append(fields, payloadpropertydefinition.FieldDeletedAt)
+	}
+	return fields
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *PayloadPropertyDefinitionMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *PayloadPropertyDefinitionMutation) ClearField(name string) error {
+	switch name {
+	case payloadpropertydefinition.FieldDefaultValue:
+		m.ClearDefaultValue()
+		return nil
+	case payloadpropertydefinition.FieldEnumValues:
+		m.ClearEnumValues()
+		return nil
+	case payloadpropertydefinition.FieldDescription:
+		m.ClearDescription()
+		return nil
+	case payloadpropertydefinition.FieldDeletedAt:
+		m.ClearDeletedAt()
+		return nil
+	}
+	return fmt.Errorf("unknown PayloadPropertyDefinition nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *PayloadPropertyDefinitionMutation) ResetField(name string) error {
+	switch name {
+	case payloadpropertydefinition.FieldPayloadType:
+		m.ResetPayloadType()
+		return nil
+	case payloadpropertydefinition.FieldKey:
+		m.ResetKey()
+		return nil
+	case payloadpropertydefinition.FieldValueType:
+		m.ResetValueType()
+		return nil
+	case payloadpropertydefinition.FieldDefaultValue:
+		m.ResetDefaultValue()
+		return nil
+	case payloadpropertydefinition.FieldEnumValues:
+		m.ResetEnumValues()
+		return nil
+	case payloadpropertydefinition.FieldDescription:
+		m.ResetDescription()
+		return nil
+	case payloadpropertydefinition.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case payloadpropertydefinition.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	case payloadpropertydefinition.FieldDeletedAt:
+		m.ResetDeletedAt()
+		return nil
+	}
+	return fmt.Errorf("unknown PayloadPropertyDefinition field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *PayloadPropertyDefinitionMutation) AddedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.properties != nil {
+		edges = append(edges, payloadpropertydefinition.EdgeProperties)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *PayloadPropertyDefinitionMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case payloadpropertydefinition.EdgeProperties:
+		ids := make([]ent.Value, 0, len(m.properties))
+		for id := range m.properties {
+			ids = append(ids, id)
+		}
+		return ids
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *PayloadPropertyDefinitionMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.removedproperties != nil {
+		edges = append(edges, payloadpropertydefinition.EdgeProperties)
+	}
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *PayloadPropertyDefinitionMutation) RemovedIDs(name string) []ent.Value {
+	switch name {
+	case payloadpropertydefinition.EdgeProperties:
+		ids := make([]ent.Value, 0, len(m.removedproperties))
+		for id := range m.removedproperties {
+			ids = append(ids, id)
+		}
+		return ids
+	}
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *PayloadPropertyDefinitionMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.clearedproperties {
+		edges = append(edges, payloadpropertydefinition.EdgeProperties)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *PayloadPropertyDefinitionMutation) EdgeCleared(name string) bool {
+	switch name {
+	case payloadpropertydefinition.EdgeProperties:
+		return m.clearedproperties
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *PayloadPropertyDefinitionMutation) ClearEdge(name string) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown PayloadPropertyDefinition unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *PayloadPropertyDefinitionMutation) ResetEdge(name string) error {
+	switch name {
+	case payloadpropertydefinition.EdgeProperties:
+		m.ResetProperties()
+		return nil
+	}
+	return fmt.Errorf("unknown PayloadPropertyDefinition edge %s", name)
+}
 
 // UserMutation represents an operation that mutates the User nodes in the graph.
 type UserMutation struct {
