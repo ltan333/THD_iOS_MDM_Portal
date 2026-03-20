@@ -107,5 +107,8 @@ func (r *routeRegister) registerMobileConfigRoutes(rg *gin.RouterGroup) {
 	mobileConfigs := rg.Group("/mobile-configs")
 	{
 		mobileConfigs.GET("/:id/xml", r.mobile_config.GetXML)
+		mobileConfigs.POST("", r.mobile_config.Create)
+		mobileConfigs.PUT("/:id", r.mobile_config.Update)
+		mobileConfigs.DELETE("/:id", r.mobile_config.Delete)
 	}
 }

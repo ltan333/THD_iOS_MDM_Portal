@@ -24,6 +24,12 @@ type UserSuccessResponse struct {
 	Message   string           `json:"message,omitempty"`
 }
 
+type MobileConfigSuccessResponse struct {
+	IsSuccess bool                     `json:"is_success"`
+	Data      dto.MobileConfigResponse `json:"data"`
+	Message   string                   `json:"message,omitempty"`
+}
+
 type UserListData struct {
 	Items      []dto.UserResponse `json:"items"`
 	Total      int64              `json:"total"`

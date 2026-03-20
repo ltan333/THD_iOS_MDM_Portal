@@ -46,7 +46,7 @@ func (_c *PayloadPropertyDefinitionCreate) SetDefaultValue(v map[string]interfac
 }
 
 // SetEnumValues sets the "enum_values" field.
-func (_c *PayloadPropertyDefinitionCreate) SetEnumValues(v []string) *PayloadPropertyDefinitionCreate {
+func (_c *PayloadPropertyDefinitionCreate) SetEnumValues(v []interface{}) *PayloadPropertyDefinitionCreate {
 	_c.mutation.SetEnumValues(v)
 	return _c
 }

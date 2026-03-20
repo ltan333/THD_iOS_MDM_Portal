@@ -6,7 +6,10 @@ import (
 	"github.com/thienel/go-backend-template/internal/domain/repository"
 	"github.com/thienel/go-backend-template/internal/ent"
 	"github.com/thienel/go-backend-template/internal/ent/mobileconfig"
-	"github.com/thienel/go-backend-template/pkg/query"
+	"github.com/thienel/go-backend-template/internal/ent/payload"
+	"github.com/thienel/go-backend-template/internal/ent/payloadproperty"
+	"github.com/thienel/go-backend-template/internal/ent/payloadpropertydefinition"
+	apperror "github.com/thienel/go-backend-template/pkg/error"
 )
 
 type mobileConfigRepositoryImpl struct {
@@ -17,28 +20,194 @@ func NewMobileConfigRepository(client *ent.Client) repository.MobileConfigReposi
 	return &mobileConfigRepositoryImpl{client: client}
 }
 
-func (m *mobileConfigRepositoryImpl) Create(ctx context.Context, entity *ent.MobileConfig) error {
-	panic("unimplemented")
+func (m *mobileConfigRepositoryImpl) GetByID(ctx context.Context, id uint) (*ent.MobileConfig, error) {
+	mc, err := m.client.MobileConfig.Query().
+		Where(mobileconfig.IDEQ(id)).
+		First(ctx)
+	if ent.IsNotFound(err) {
+		return nil, apperror.ErrNotFound.WithMessage("MobileConfig không tồn tại")
+	}
+	if err != nil {
+		return nil, apperror.ErrInternalServerError.WithMessage("Lỗi khi truy xuất MobileConfig").WithError(err)
+	}
+
+	return mc, nil
 }
 
-func (m *mobileConfigRepositoryImpl) Delete(ctx context.Context, id uint) error {
-	panic("unimplemented")
+func (m *mobileConfigRepositoryImpl) FindCreateUniqueFieldConflict(ctx context.Context, name string, payloadIdentifier string, payloadIdentifiers []string) (*repository.UniqueFieldConflict, error) {
+	exists, err := m.client.MobileConfig.Query().Where(mobileconfig.NameEQ(name)).Exist(ctx)
+	if err != nil {
+		return nil, apperror.ErrInternalServerError.WithMessage("Lỗi khi kiểm tra unique field name").WithError(err)
+	}
+	if exists {
+		return &repository.UniqueFieldConflict{Field: "name", Value: name}, nil
+	}
+
+	exists, err = m.client.MobileConfig.Query().Where(mobileconfig.PayloadIdentifierEQ(payloadIdentifier)).Exist(ctx)
+	if err != nil {
+		return nil, apperror.ErrInternalServerError.WithMessage("Lỗi khi kiểm tra unique field payload_identifier").WithError(err)
+	}
+	if exists {
+		return &repository.UniqueFieldConflict{Field: "payload_identifier", Value: payloadIdentifier}, nil
+	}
+
+	if len(payloadIdentifiers) == 0 {
+		return nil, nil
+	}
+
+	dupPayload, err := m.client.Payload.Query().Where(payload.PayloadIdentifierIn(payloadIdentifiers...)).First(ctx)
+	if ent.IsNotFound(err) {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, apperror.ErrInternalServerError.WithMessage("Lỗi khi kiểm tra unique field payloads[].payload_identifier").WithError(err)
+	}
+
+	return &repository.UniqueFieldConflict{Field: "payloads[].payload_identifier", Value: dupPayload.PayloadIdentifier}, nil
 }
 
-func (m *mobileConfigRepositoryImpl) Exists(ctx context.Context, id uint) (bool, error) {
-	panic("unimplemented")
+func (m *mobileConfigRepositoryImpl) FindUpdateUniqueFieldConflict(ctx context.Context, id uint, name string, payloadIdentifier string, payloadIdentifiers []string) (*repository.UniqueFieldConflict, error) {
+	exists, err := m.client.MobileConfig.Query().
+		Where(
+			mobileconfig.NameEQ(name),
+			mobileconfig.IDNEQ(id),
+		).
+		Exist(ctx)
+	if err != nil {
+		return nil, apperror.ErrInternalServerError.WithMessage("Lỗi khi kiểm tra unique field name").WithError(err)
+	}
+	if exists {
+		return &repository.UniqueFieldConflict{Field: "name", Value: name}, nil
+	}
+
+	exists, err = m.client.MobileConfig.Query().
+		Where(
+			mobileconfig.PayloadIdentifierEQ(payloadIdentifier),
+			mobileconfig.IDNEQ(id),
+		).
+		Exist(ctx)
+	if err != nil {
+		return nil, apperror.ErrInternalServerError.WithMessage("Lỗi khi kiểm tra unique field payload_identifier").WithError(err)
+	}
+	if exists {
+		return &repository.UniqueFieldConflict{Field: "payload_identifier", Value: payloadIdentifier}, nil
+	}
+
+	if len(payloadIdentifiers) == 0 {
+		return nil, nil
+	}
+
+	dupPayload, err := m.client.Payload.Query().
+		Where(
+			payload.PayloadIdentifierIn(payloadIdentifiers...),
+			payload.HasMobileConfigWith(mobileconfig.IDNEQ(id)),
+		).
+		First(ctx)
+	if ent.IsNotFound(err) {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, apperror.ErrInternalServerError.WithMessage("Lỗi khi kiểm tra unique field payloads[].payload_identifier").WithError(err)
+	}
+
+	return &repository.UniqueFieldConflict{Field: "payloads[].payload_identifier", Value: dupPayload.PayloadIdentifier}, nil
 }
 
-func (m *mobileConfigRepositoryImpl) FindByID(ctx context.Context, id uint) (*ent.MobileConfig, error) {
-	panic("unimplemented")
-}
+func (m *mobileConfigRepositoryImpl) Create(ctx context.Context, entity *ent.MobileConfig, payload []*ent.Payload) (*ent.MobileConfig, error) {
+	if entity == nil {
+		return nil, apperror.ErrBadRequest.WithMessage("MobileConfig is required")
+	}
 
-func (m *mobileConfigRepositoryImpl) List(ctx context.Context, offset int, limit int, opts query.QueryOptions) ([]ent.MobileConfig, int64, error) {
-	panic("unimplemented")
-}
+	tx, err := m.client.Tx(ctx)
+	if err != nil {
+		return nil, apperror.ErrInternalServerError.WithMessage("Failed to start transaction").WithError(err)
+	}
 
-func (m *mobileConfigRepositoryImpl) Update(ctx context.Context, entity *ent.MobileConfig) error {
-	panic("unimplemented")
+	committed := false
+	defer func() {
+		if !committed {
+			_ = tx.Rollback()
+		}
+	}()
+
+	// Create MobileConfig.
+	mc, err := tx.MobileConfig.Create().
+		SetName(entity.Name).
+		SetPayloadIdentifier(entity.PayloadIdentifier).
+		SetPayloadType(entity.PayloadType).
+		SetPayloadDisplayName(entity.PayloadDisplayName).
+		SetPayloadDescription(entity.PayloadDescription).
+		SetPayloadOrganization(entity.PayloadOrganization).
+		SetPayloadUUID(entity.PayloadUUID).
+		SetPayloadVersion(entity.PayloadVersion).
+		SetPayloadRemovalDisallowed(entity.PayloadRemovalDisallowed).
+		Save(ctx)
+	if err != nil {
+		return nil, apperror.ErrInternalServerError.WithMessage("Failed to create MobileConfig").WithError(err)
+	}
+
+	// Create Payloads and their Properties.
+	for _, p := range payload {
+		if p == nil {
+			return nil, apperror.ErrBadRequest.WithMessage("Payload item is required")
+		}
+
+		pl, err := tx.Payload.Create().
+			SetMobileConfigID(mc.ID).
+			SetPayloadDescription(p.PayloadDescription).
+			SetPayloadDisplayName(p.PayloadDisplayName).
+			SetPayloadIdentifier(p.PayloadIdentifier).
+			SetPayloadOrganization(p.PayloadOrganization).
+			SetPayloadType(p.PayloadType).
+			SetPayloadUUID(p.PayloadUUID).
+			SetPayloadVersion(p.PayloadVersion).
+			Save(ctx)
+		if err != nil {
+			return nil, apperror.ErrInternalServerError.WithMessage("Failed to create Payload").WithError(err)
+		}
+
+		for _, prop := range p.Edges.Properties {
+			if prop == nil || prop.Edges.Definition == nil {
+				return nil, apperror.ErrBadRequest.WithMessage("Payload property definition is required")
+			}
+
+			// Validate definition by payload type and key.
+			def, err := tx.PayloadPropertyDefinition.Query().
+				Where(
+					payloadpropertydefinition.PayloadTypeEQ(p.PayloadType),
+					payloadpropertydefinition.KeyEQ(prop.Edges.Definition.Key),
+				).
+				First(ctx)
+			if ent.IsNotFound(err) {
+				return nil, apperror.ErrBadRequest.WithMessage("Invalid property definition for payload type").WithError(err)
+			}
+			if err != nil {
+				return nil, apperror.ErrInternalServerError.WithMessage("Error validating property definition").WithError(err)
+			}
+
+			if _, err := tx.PayloadProperty.Create().
+				SetPayloadID(pl.ID).
+				SetDefinitionID(def.ID).
+				SetValueJSON(prop.ValueJSON).
+				Save(ctx); err != nil {
+				return nil, apperror.ErrInternalServerError.WithMessage("Failed to create payload property").WithError(err)
+			}
+		}
+	}
+
+	if err := tx.Commit(); err != nil {
+		return nil, apperror.ErrInternalServerError.WithMessage("Failed to commit transaction").WithError(err)
+	}
+	committed = true
+
+	return m.client.MobileConfig.Query().
+		Where(mobileconfig.IDEQ(mc.ID)).
+		WithPayloads(func(q *ent.PayloadQuery) {
+			q.WithProperties(func(pq *ent.PayloadPropertyQuery) {
+				pq.WithDefinition()
+			})
+		}).
+		First(ctx)
 }
 
 func (m *mobileConfigRepositoryImpl) GetFullForExport(ctx context.Context, id uint) (*ent.MobileConfig, error) {
@@ -50,4 +219,170 @@ func (m *mobileConfigRepositoryImpl) GetFullForExport(ctx context.Context, id ui
 			})
 		}).
 		First(ctx)
+}
+
+func (m *mobileConfigRepositoryImpl) Update(ctx context.Context, id uint, entity *ent.MobileConfig, payloads []*ent.Payload) (*ent.MobileConfig, error) {
+	if entity == nil {
+		return nil, apperror.ErrBadRequest.WithMessage("MobileConfig is required")
+	}
+
+	tx, err := m.client.Tx(ctx)
+	if err != nil {
+		return nil, apperror.ErrInternalServerError.WithMessage("Failed to start transaction").WithError(err)
+	}
+
+	committed := false
+	defer func() {
+		if !committed {
+			_ = tx.Rollback()
+		}
+	}()
+
+	mc, err := tx.MobileConfig.UpdateOneID(id).
+		SetName(entity.Name).
+		SetPayloadIdentifier(entity.PayloadIdentifier).
+		SetPayloadType(entity.PayloadType).
+		SetPayloadDisplayName(entity.PayloadDisplayName).
+		SetPayloadDescription(entity.PayloadDescription).
+		SetPayloadOrganization(entity.PayloadOrganization).
+		SetPayloadVersion(entity.PayloadVersion).
+		SetPayloadRemovalDisallowed(entity.PayloadRemovalDisallowed).
+		Save(ctx)
+	if ent.IsNotFound(err) {
+		return nil, apperror.ErrNotFound.WithMessage("MobileConfig không tồn tại")
+	}
+	if err != nil {
+		return nil, apperror.ErrInternalServerError.WithMessage("Failed to update MobileConfig").WithError(err)
+	}
+
+	existingPayloads, err := tx.Payload.Query().
+		Where(payload.HasMobileConfigWith(mobileconfig.IDEQ(id))).
+		All(ctx)
+	if err != nil {
+		return nil, apperror.ErrInternalServerError.WithMessage("Failed to query existing payloads").WithError(err)
+	}
+
+	payloadIDs := make([]uint, 0, len(existingPayloads))
+	for _, p := range existingPayloads {
+		payloadIDs = append(payloadIDs, p.ID)
+	}
+
+	if len(payloadIDs) > 0 {
+		if _, err := tx.PayloadProperty.Delete().Where(payloadproperty.HasPayloadWith(payload.IDIn(payloadIDs...))).Exec(ctx); err != nil {
+			return nil, apperror.ErrInternalServerError.WithMessage("Failed to delete old payload properties").WithError(err)
+		}
+		if _, err := tx.Payload.Delete().Where(payload.IDIn(payloadIDs...)).Exec(ctx); err != nil {
+			return nil, apperror.ErrInternalServerError.WithMessage("Failed to delete old payloads").WithError(err)
+		}
+	}
+
+	for _, p := range payloads {
+		if p == nil {
+			return nil, apperror.ErrBadRequest.WithMessage("Payload item is required")
+		}
+
+		pl, err := tx.Payload.Create().
+			SetMobileConfigID(mc.ID).
+			SetPayloadDescription(p.PayloadDescription).
+			SetPayloadDisplayName(p.PayloadDisplayName).
+			SetPayloadIdentifier(p.PayloadIdentifier).
+			SetPayloadOrganization(p.PayloadOrganization).
+			SetPayloadType(p.PayloadType).
+			SetPayloadUUID(p.PayloadUUID).
+			SetPayloadVersion(p.PayloadVersion).
+			Save(ctx)
+		if err != nil {
+			return nil, apperror.ErrInternalServerError.WithMessage("Failed to create Payload").WithError(err)
+		}
+
+		for _, prop := range p.Edges.Properties {
+			if prop == nil || prop.Edges.Definition == nil {
+				return nil, apperror.ErrBadRequest.WithMessage("Payload property definition is required")
+			}
+
+			def, err := tx.PayloadPropertyDefinition.Query().
+				Where(
+					payloadpropertydefinition.PayloadTypeEQ(p.PayloadType),
+					payloadpropertydefinition.KeyEQ(prop.Edges.Definition.Key),
+				).
+				First(ctx)
+			if ent.IsNotFound(err) {
+				return nil, apperror.ErrBadRequest.WithMessage("Invalid property definition for payload type").WithError(err)
+			}
+			if err != nil {
+				return nil, apperror.ErrInternalServerError.WithMessage("Error validating property definition").WithError(err)
+			}
+
+			if _, err := tx.PayloadProperty.Create().
+				SetPayloadID(pl.ID).
+				SetDefinitionID(def.ID).
+				SetValueJSON(prop.ValueJSON).
+				Save(ctx); err != nil {
+				return nil, apperror.ErrInternalServerError.WithMessage("Failed to create payload property").WithError(err)
+			}
+		}
+	}
+
+	if err := tx.Commit(); err != nil {
+		return nil, apperror.ErrInternalServerError.WithMessage("Failed to commit transaction").WithError(err)
+	}
+	committed = true
+
+	return m.client.MobileConfig.Query().
+		Where(mobileconfig.IDEQ(mc.ID)).
+		WithPayloads(func(q *ent.PayloadQuery) {
+			q.WithProperties(func(pq *ent.PayloadPropertyQuery) {
+				pq.WithDefinition()
+			})
+		}).
+		First(ctx)
+}
+
+func (m *mobileConfigRepositoryImpl) Delete(ctx context.Context, id uint) error {
+	tx, err := m.client.Tx(ctx)
+	if err != nil {
+		return apperror.ErrInternalServerError.WithMessage("Failed to start transaction").WithError(err)
+	}
+
+	committed := false
+	defer func() {
+		if !committed {
+			_ = tx.Rollback()
+		}
+	}()
+
+	existingPayloads, err := tx.Payload.Query().
+		Where(payload.HasMobileConfigWith(mobileconfig.IDEQ(id))).
+		All(ctx)
+	if err != nil {
+		return apperror.ErrInternalServerError.WithMessage("Failed to query existing payloads").WithError(err)
+	}
+
+	payloadIDs := make([]uint, 0, len(existingPayloads))
+	for _, p := range existingPayloads {
+		payloadIDs = append(payloadIDs, p.ID)
+	}
+
+	if len(payloadIDs) > 0 {
+		if _, err := tx.PayloadProperty.Delete().Where(payloadproperty.HasPayloadWith(payload.IDIn(payloadIDs...))).Exec(ctx); err != nil {
+			return apperror.ErrInternalServerError.WithMessage("Failed to delete payload properties").WithError(err)
+		}
+		if _, err := tx.Payload.Delete().Where(payload.IDIn(payloadIDs...)).Exec(ctx); err != nil {
+			return apperror.ErrInternalServerError.WithMessage("Failed to delete payloads").WithError(err)
+		}
+	}
+
+	err = tx.MobileConfig.DeleteOneID(id).Exec(ctx)
+	if ent.IsNotFound(err) {
+		return apperror.ErrNotFound.WithMessage("MobileConfig không tồn tại")
+	}
+	if err != nil {
+		return apperror.ErrInternalServerError.WithMessage("Failed to delete MobileConfig").WithError(err)
+	}
+
+	if err := tx.Commit(); err != nil {
+		return apperror.ErrInternalServerError.WithMessage("Failed to commit transaction").WithError(err)
+	}
+	committed = true
+	return nil
 }
