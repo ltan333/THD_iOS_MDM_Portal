@@ -34,4 +34,5 @@ type AuthorizationService interface {
 	// Resource-level authorization
 	AuthorizeResource(userID uint, resource string, action string) (bool, error)
 	AddResourcePolicy(userID uint, resource string, action string) (bool, error)
+	GetRolesForUser(userID uint) ([]string, error)
 }

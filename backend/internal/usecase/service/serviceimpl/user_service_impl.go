@@ -2,6 +2,7 @@ package serviceimpl
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/thienel/tlog"
 	"go.uber.org/zap"
@@ -16,12 +17,16 @@ import (
 )
 
 type userServiceImpl struct {
-	userRepo repository.UserRepository
+	userRepo     repository.UserRepository
+	authzService service.AuthorizationService
 }
 
 // NewUserService creates a new user service
-func NewUserService(userRepo repository.UserRepository) service.UserService {
-	return &userServiceImpl{userRepo: userRepo}
+func NewUserService(userRepo repository.UserRepository, authzService service.AuthorizationService) service.UserService {
+	return &userServiceImpl{
+		userRepo:     userRepo,
+		authzService: authzService,
+	}
 }
 
 func (s *userServiceImpl) Create(ctx context.Context, cmd service.CreateUserCommand) (*ent.User, error) {
@@ -56,7 +61,6 @@ func (s *userServiceImpl) Create(ctx context.Context, cmd service.CreateUserComm
 		Username: cmd.Username,
 		Email:    cmd.Email,
 		Password: string(hashedPassword),
-		Role:     role,
 		Status:   entity.UserStatusActive,
 	}
 
@@ -64,7 +68,14 @@ func (s *userServiceImpl) Create(ctx context.Context, cmd service.CreateUserComm
 		return nil, err
 	}
 
-	tlog.Info("User created", zap.Uint("user_id", user.ID), zap.String("username", user.Username))
+	// Add role link in Casbin
+	if _, err := s.authzService.AddRoleLink(fmt.Sprintf("user:%d", user.ID), role); err != nil {
+		tlog.Error("Failed to add role link in Casbin", zap.Uint("user_id", user.ID), zap.String("role", role), zap.Error(err))
+		// Note: We don't fail the whole creation if role assignment fails, but we log it.
+		// Alternatively, you could wrap this in a transaction if your adapter supports it.
+	}
+
+	tlog.Info("User created", zap.Uint("user_id", user.ID), zap.String("username", user.Username), zap.String("role", role))
 	return user, nil
 }
 
@@ -102,12 +113,23 @@ func (s *userServiceImpl) Update(ctx context.Context, cmd service.UpdateUserComm
 		user.Email = cmd.Email
 	}
 
-	// Update role
+	// Update role in Casbin
 	if cmd.Role != "" {
 		if !entity.IsValidUserRole(cmd.Role) {
 			return nil, apperror.ErrValidation.WithMessage("Role không hợp lệ")
 		}
-		user.Role = cmd.Role
+		
+		// Remove existing role links
+		sub := fmt.Sprintf("user:%d", user.ID)
+		roles, _ := s.authzService.GetRolesForUser(user.ID)
+		for _, r := range roles {
+			s.authzService.RemoveRoleLink(sub, r)
+		}
+		
+		// Add new role link
+		if _, err := s.authzService.AddRoleLink(sub, cmd.Role); err != nil {
+			tlog.Error("Failed to update role link in Casbin", zap.Uint("user_id", user.ID), zap.String("role", cmd.Role), zap.Error(err))
+		}
 	}
 
 	// Update status

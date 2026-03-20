@@ -35,9 +35,9 @@ func setupDependencies(cfg *config.Config) *gin.Engine {
 		cfg.JWT.AccessExpiryMinutes,
 		cfg.JWT.RefreshExpiryHours,
 	)
-	authService := serviceimpl.NewAuthService(userRepo, jwtService)
-	userService := serviceimpl.NewUserService(userRepo)
 	authzService := serviceimpl.NewAuthorizationService(enforcer)
+	authService := serviceimpl.NewAuthService(userRepo, jwtService, authzService)
+	userService := serviceimpl.NewUserService(userRepo, authzService)
 	nanocmdService := serviceimpl.NewNanoCMDService(cfg.NanoCMD.BaseURL, cfg.NanoCMD.Username, cfg.NanoCMD.Password)
 	nanomdmService := serviceimpl.NewNanoMDMService(
 		cfg.NanoMDM.MDMBaseURL,
@@ -53,8 +53,8 @@ func setupDependencies(cfg *config.Config) *gin.Engine {
 	mw := middleware.New(jwtService, authzService, origins)
 
 	// Handlers
-	authHandler := handler.NewAuthHandler(authService, userService)
-	userHandler := handler.NewUserHandler(userService)
+	authHandler := handler.NewAuthHandler(authService, userService, authzService)
+	userHandler := handler. NewUserHandler(userService, authzService)
 	policyHandler := handler.NewPolicyHandler(authzService)
 	mdmHandler := handler.NewMDMHandler(client, nanomdmService)
 	depHandler := handler.NewDEPHandler(client, authzService, nanomdmService)

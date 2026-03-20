@@ -33,12 +33,16 @@ type UserHandler interface {
 }
 
 type userHandlerImpl struct {
-	userService service.UserService
+	userService  service.UserService
+	authzService service.AuthorizationService
 }
 
 // NewUserHandler creates a new user handler
-func NewUserHandler(userService service.UserService) UserHandler {
-	return &userHandlerImpl{userService: userService}
+func NewUserHandler(userService service.UserService, authzService service.AuthorizationService) UserHandler {
+	return &userHandlerImpl{
+		userService:  userService,
+		authzService: authzService,
+	}
 }
 
 // List godoc
@@ -76,7 +80,7 @@ func (h *userHandlerImpl) List(c *gin.Context) {
 
 	items := make([]dto.UserResponse, len(users))
 	for i, u := range users {
-		items[i] = toUserResponse(u)
+		items[i] = h.toUserResponse(u)
 	}
 
 	page := (offset / limit) + 1
@@ -116,7 +120,7 @@ func (h *userHandlerImpl) GetByID(c *gin.Context) {
 		return
 	}
 
-	response.OK(c, toUserResponse(user), "")
+	response.OK(c, h.toUserResponse(user), "")
 }
 
 // Create godoc
@@ -150,7 +154,7 @@ func (h *userHandlerImpl) Create(c *gin.Context) {
 		return
 	}
 
-	response.Created(c, toUserResponse(user), "Tạo người dùng thành công")
+	response.Created(c, h.toUserResponse(user), "Tạo người dùng thành công")
 }
 
 // Update godoc
@@ -192,7 +196,7 @@ func (h *userHandlerImpl) Update(c *gin.Context) {
 		return
 	}
 
-	response.OK(c, toUserResponse(user), "Cập nhật thành công")
+	response.OK(c, h.toUserResponse(user), "Cập nhật thành công")
 }
 
 // Delete godoc
@@ -221,12 +225,19 @@ func (h *userHandlerImpl) Delete(c *gin.Context) {
 	response.NoContent(c)
 }
 
-func toUserResponse(user *ent.User) dto.UserResponse {
+func (h *userHandlerImpl) toUserResponse(user *ent.User) dto.UserResponse {
+	// Fetch role from Casbin
+	role := "USER"
+	roles, err := h.authzService.GetRolesForUser(user.ID)
+	if err == nil && len(roles) > 0 {
+		role = roles[0]
+	}
+
 	resp := dto.UserResponse{
 		ID:        user.ID,
 		Username:  user.Username,
 		Email:     user.Email,
-		Role:      user.Role,
+		Role:      role,
 		Status:    user.Status,
 		CreatedAt: user.CreatedAt,
 		UpdatedAt: user.UpdatedAt,

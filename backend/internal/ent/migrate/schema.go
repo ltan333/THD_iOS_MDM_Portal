@@ -186,7 +186,6 @@ var (
 		{Name: "username", Type: field.TypeString, Unique: true, Size: 50},
 		{Name: "email", Type: field.TypeString, Unique: true, Size: 255},
 		{Name: "password", Type: field.TypeString, Size: 255},
-		{Name: "role", Type: field.TypeString, Size: 20, Default: "USER"},
 		{Name: "status", Type: field.TypeString, Size: 20, Default: "ACTIVE"},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},

@@ -124,3 +124,8 @@ func (s *authorizationServiceImpl) AddResourcePolicy(userID uint, resource strin
 	}
 	return added, nil
 }
+
+func (s *authorizationServiceImpl) GetRolesForUser(userID uint) ([]string, error) {
+	sub := fmt.Sprintf("user:%d", userID)
+	return s.enforcer.GetRolesForUser(sub)
+}
