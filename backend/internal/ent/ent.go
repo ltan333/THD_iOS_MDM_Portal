@@ -12,6 +12,10 @@ import (
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
+	"github.com/thienel/go-backend-template/internal/ent/mobileconfig"
+	"github.com/thienel/go-backend-template/internal/ent/payload"
+	"github.com/thienel/go-backend-template/internal/ent/payloadproperty"
+	"github.com/thienel/go-backend-template/internal/ent/payloadpropertydefinition"
 	"github.com/thienel/go-backend-template/internal/ent/user"
 )
 
@@ -73,7 +77,11 @@ var (
 func checkColumn(t, c string) error {
 	initCheck.Do(func() {
 		columnCheck = sql.NewColumnCheck(map[string]func(string) bool{
-			user.Table: user.ValidColumn,
+			mobileconfig.Table:              mobileconfig.ValidColumn,
+			payload.Table:                   payload.ValidColumn,
+			payloadproperty.Table:           payloadproperty.ValidColumn,
+			payloadpropertydefinition.Table: payloadpropertydefinition.ValidColumn,
+			user.Table:                      user.ValidColumn,
 		})
 	})
 	return columnCheck(t, c)

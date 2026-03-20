@@ -2,6 +2,8 @@ package router
 
 import (
 	"github.com/gin-gonic/gin"
+	swaggerFiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
 	"github.com/thienel/tlog"
 
 	"github.com/thienel/go-backend-template/internal/interface/api/handler"
@@ -9,10 +11,11 @@ import (
 )
 
 type routeRegister struct {
-	auth   handler.AuthHandler
-	user   handler.UserHandler
-	policy handler.PolicyHandler
-	mw     *middleware.Middleware
+	auth          handler.AuthHandler
+	user          handler.UserHandler
+	policy        handler.PolicyHandler
+	mobile_config handler.MobileConfigHandler
+	mw            *middleware.Middleware
 }
 
 // SetupRouter configures all routes following THD-Checkin-App pattern
@@ -20,28 +23,32 @@ func SetupRouter(
 	authHandler handler.AuthHandler,
 	userHandler handler.UserHandler,
 	policyHandler handler.PolicyHandler,
+	mobileConfigHandler handler.MobileConfigHandler,
 	mw *middleware.Middleware,
 ) *gin.Engine {
 
 	routes := routeRegister{
-		auth:   authHandler,
-		user:   userHandler,
-		policy: policyHandler,
-		mw:     mw,
+		auth:          authHandler,
+		user:          userHandler,
+		policy:        policyHandler,
+		mobile_config: mobileConfigHandler,
+		mw:            mw,
 	}
 
 	router := gin.New()
 	router.Use(gin.Recovery(), mw.CORS(), tlog.GinMiddleware(tlog.WithSkipPaths("/health")))
 
 	// Health check
-	router.GET("/health", func(c *gin.Context) {
-		c.JSON(200, gin.H{"status": "ok"})
-	})
+	router.GET("/health", handler.Health)
+
+	// Swagger UI
+	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	// Public API
 	api := router.Group("/api")
 	{
 		routes.registerAuthRoutes(api)
+		routes.registerMobileConfigRoutes(api)
 	}
 
 	// Protected API: Authentication (JWT) + Authorization (Casbin)
@@ -93,5 +100,15 @@ func (r *routeRegister) registerPolicyRoutes(rg *gin.RouterGroup) {
 		roles.GET("", r.policy.ListRoles)
 		roles.POST("", r.policy.AddRole)
 		roles.DELETE("", r.policy.RemoveRole)
+	}
+}
+
+func (r *routeRegister) registerMobileConfigRoutes(rg *gin.RouterGroup) {
+	mobileConfigs := rg.Group("/mobile-configs")
+	{
+		mobileConfigs.GET("/:id/xml", r.mobile_config.GetXML)
+		mobileConfigs.POST("", r.mobile_config.Create)
+		mobileConfigs.PUT("/:id", r.mobile_config.Update)
+		mobileConfigs.DELETE("/:id", r.mobile_config.Delete)
 	}
 }

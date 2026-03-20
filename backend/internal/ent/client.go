@@ -14,6 +14,11 @@ import (
 	"entgo.io/ent"
 	"entgo.io/ent/dialect"
 	"entgo.io/ent/dialect/sql"
+	"entgo.io/ent/dialect/sql/sqlgraph"
+	"github.com/thienel/go-backend-template/internal/ent/mobileconfig"
+	"github.com/thienel/go-backend-template/internal/ent/payload"
+	"github.com/thienel/go-backend-template/internal/ent/payloadproperty"
+	"github.com/thienel/go-backend-template/internal/ent/payloadpropertydefinition"
 	"github.com/thienel/go-backend-template/internal/ent/user"
 )
 
@@ -22,6 +27,14 @@ type Client struct {
 	config
 	// Schema is the client for creating, migrating and dropping schema.
 	Schema *migrate.Schema
+	// MobileConfig is the client for interacting with the MobileConfig builders.
+	MobileConfig *MobileConfigClient
+	// Payload is the client for interacting with the Payload builders.
+	Payload *PayloadClient
+	// PayloadProperty is the client for interacting with the PayloadProperty builders.
+	PayloadProperty *PayloadPropertyClient
+	// PayloadPropertyDefinition is the client for interacting with the PayloadPropertyDefinition builders.
+	PayloadPropertyDefinition *PayloadPropertyDefinitionClient
 	// User is the client for interacting with the User builders.
 	User *UserClient
 }
@@ -35,6 +48,10 @@ func NewClient(opts ...Option) *Client {
 
 func (c *Client) init() {
 	c.Schema = migrate.NewSchema(c.driver)
+	c.MobileConfig = NewMobileConfigClient(c.config)
+	c.Payload = NewPayloadClient(c.config)
+	c.PayloadProperty = NewPayloadPropertyClient(c.config)
+	c.PayloadPropertyDefinition = NewPayloadPropertyDefinitionClient(c.config)
 	c.User = NewUserClient(c.config)
 }
 
@@ -126,9 +143,13 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 	cfg := c.config
 	cfg.driver = tx
 	return &Tx{
-		ctx:    ctx,
-		config: cfg,
-		User:   NewUserClient(cfg),
+		ctx:                       ctx,
+		config:                    cfg,
+		MobileConfig:              NewMobileConfigClient(cfg),
+		Payload:                   NewPayloadClient(cfg),
+		PayloadProperty:           NewPayloadPropertyClient(cfg),
+		PayloadPropertyDefinition: NewPayloadPropertyDefinitionClient(cfg),
+		User:                      NewUserClient(cfg),
 	}, nil
 }
 
@@ -146,16 +167,20 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 	cfg := c.config
 	cfg.driver = &txDriver{tx: tx, drv: c.driver}
 	return &Tx{
-		ctx:    ctx,
-		config: cfg,
-		User:   NewUserClient(cfg),
+		ctx:                       ctx,
+		config:                    cfg,
+		MobileConfig:              NewMobileConfigClient(cfg),
+		Payload:                   NewPayloadClient(cfg),
+		PayloadProperty:           NewPayloadPropertyClient(cfg),
+		PayloadPropertyDefinition: NewPayloadPropertyDefinitionClient(cfg),
+		User:                      NewUserClient(cfg),
 	}, nil
 }
 
 // Debug returns a new debug-client. It's used to get verbose logging on specific operations.
 //
 //	client.Debug().
-//		User.
+//		MobileConfig.
 //		Query().
 //		Count(ctx)
 func (c *Client) Debug() *Client {
@@ -177,22 +202,666 @@ func (c *Client) Close() error {
 // Use adds the mutation hooks to all the entity clients.
 // In order to add hooks to a specific client, call: `client.Node.Use(...)`.
 func (c *Client) Use(hooks ...Hook) {
+	c.MobileConfig.Use(hooks...)
+	c.Payload.Use(hooks...)
+	c.PayloadProperty.Use(hooks...)
+	c.PayloadPropertyDefinition.Use(hooks...)
 	c.User.Use(hooks...)
 }
 
 // Intercept adds the query interceptors to all the entity clients.
 // In order to add interceptors to a specific client, call: `client.Node.Intercept(...)`.
 func (c *Client) Intercept(interceptors ...Interceptor) {
+	c.MobileConfig.Intercept(interceptors...)
+	c.Payload.Intercept(interceptors...)
+	c.PayloadProperty.Intercept(interceptors...)
+	c.PayloadPropertyDefinition.Intercept(interceptors...)
 	c.User.Intercept(interceptors...)
 }
 
 // Mutate implements the ent.Mutator interface.
 func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 	switch m := m.(type) {
+	case *MobileConfigMutation:
+		return c.MobileConfig.mutate(ctx, m)
+	case *PayloadMutation:
+		return c.Payload.mutate(ctx, m)
+	case *PayloadPropertyMutation:
+		return c.PayloadProperty.mutate(ctx, m)
+	case *PayloadPropertyDefinitionMutation:
+		return c.PayloadPropertyDefinition.mutate(ctx, m)
 	case *UserMutation:
 		return c.User.mutate(ctx, m)
 	default:
 		return nil, fmt.Errorf("ent: unknown mutation type %T", m)
+	}
+}
+
+// MobileConfigClient is a client for the MobileConfig schema.
+type MobileConfigClient struct {
+	config
+}
+
+// NewMobileConfigClient returns a client for the MobileConfig from the given config.
+func NewMobileConfigClient(c config) *MobileConfigClient {
+	return &MobileConfigClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `mobileconfig.Hooks(f(g(h())))`.
+func (c *MobileConfigClient) Use(hooks ...Hook) {
+	c.hooks.MobileConfig = append(c.hooks.MobileConfig, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `mobileconfig.Intercept(f(g(h())))`.
+func (c *MobileConfigClient) Intercept(interceptors ...Interceptor) {
+	c.inters.MobileConfig = append(c.inters.MobileConfig, interceptors...)
+}
+
+// Create returns a builder for creating a MobileConfig entity.
+func (c *MobileConfigClient) Create() *MobileConfigCreate {
+	mutation := newMobileConfigMutation(c.config, OpCreate)
+	return &MobileConfigCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of MobileConfig entities.
+func (c *MobileConfigClient) CreateBulk(builders ...*MobileConfigCreate) *MobileConfigCreateBulk {
+	return &MobileConfigCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *MobileConfigClient) MapCreateBulk(slice any, setFunc func(*MobileConfigCreate, int)) *MobileConfigCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &MobileConfigCreateBulk{err: fmt.Errorf("calling to MobileConfigClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*MobileConfigCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &MobileConfigCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for MobileConfig.
+func (c *MobileConfigClient) Update() *MobileConfigUpdate {
+	mutation := newMobileConfigMutation(c.config, OpUpdate)
+	return &MobileConfigUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *MobileConfigClient) UpdateOne(_m *MobileConfig) *MobileConfigUpdateOne {
+	mutation := newMobileConfigMutation(c.config, OpUpdateOne, withMobileConfig(_m))
+	return &MobileConfigUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *MobileConfigClient) UpdateOneID(id uint) *MobileConfigUpdateOne {
+	mutation := newMobileConfigMutation(c.config, OpUpdateOne, withMobileConfigID(id))
+	return &MobileConfigUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for MobileConfig.
+func (c *MobileConfigClient) Delete() *MobileConfigDelete {
+	mutation := newMobileConfigMutation(c.config, OpDelete)
+	return &MobileConfigDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *MobileConfigClient) DeleteOne(_m *MobileConfig) *MobileConfigDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *MobileConfigClient) DeleteOneID(id uint) *MobileConfigDeleteOne {
+	builder := c.Delete().Where(mobileconfig.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &MobileConfigDeleteOne{builder}
+}
+
+// Query returns a query builder for MobileConfig.
+func (c *MobileConfigClient) Query() *MobileConfigQuery {
+	return &MobileConfigQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeMobileConfig},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a MobileConfig entity by its id.
+func (c *MobileConfigClient) Get(ctx context.Context, id uint) (*MobileConfig, error) {
+	return c.Query().Where(mobileconfig.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *MobileConfigClient) GetX(ctx context.Context, id uint) *MobileConfig {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryPayloads queries the payloads edge of a MobileConfig.
+func (c *MobileConfigClient) QueryPayloads(_m *MobileConfig) *PayloadQuery {
+	query := (&PayloadClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(mobileconfig.Table, mobileconfig.FieldID, id),
+			sqlgraph.To(payload.Table, payload.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, mobileconfig.PayloadsTable, mobileconfig.PayloadsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *MobileConfigClient) Hooks() []Hook {
+	return c.hooks.MobileConfig
+}
+
+// Interceptors returns the client interceptors.
+func (c *MobileConfigClient) Interceptors() []Interceptor {
+	return c.inters.MobileConfig
+}
+
+func (c *MobileConfigClient) mutate(ctx context.Context, m *MobileConfigMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&MobileConfigCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&MobileConfigUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&MobileConfigUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&MobileConfigDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown MobileConfig mutation op: %q", m.Op())
+	}
+}
+
+// PayloadClient is a client for the Payload schema.
+type PayloadClient struct {
+	config
+}
+
+// NewPayloadClient returns a client for the Payload from the given config.
+func NewPayloadClient(c config) *PayloadClient {
+	return &PayloadClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `payload.Hooks(f(g(h())))`.
+func (c *PayloadClient) Use(hooks ...Hook) {
+	c.hooks.Payload = append(c.hooks.Payload, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `payload.Intercept(f(g(h())))`.
+func (c *PayloadClient) Intercept(interceptors ...Interceptor) {
+	c.inters.Payload = append(c.inters.Payload, interceptors...)
+}
+
+// Create returns a builder for creating a Payload entity.
+func (c *PayloadClient) Create() *PayloadCreate {
+	mutation := newPayloadMutation(c.config, OpCreate)
+	return &PayloadCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of Payload entities.
+func (c *PayloadClient) CreateBulk(builders ...*PayloadCreate) *PayloadCreateBulk {
+	return &PayloadCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *PayloadClient) MapCreateBulk(slice any, setFunc func(*PayloadCreate, int)) *PayloadCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &PayloadCreateBulk{err: fmt.Errorf("calling to PayloadClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*PayloadCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &PayloadCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for Payload.
+func (c *PayloadClient) Update() *PayloadUpdate {
+	mutation := newPayloadMutation(c.config, OpUpdate)
+	return &PayloadUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *PayloadClient) UpdateOne(_m *Payload) *PayloadUpdateOne {
+	mutation := newPayloadMutation(c.config, OpUpdateOne, withPayload(_m))
+	return &PayloadUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *PayloadClient) UpdateOneID(id uint) *PayloadUpdateOne {
+	mutation := newPayloadMutation(c.config, OpUpdateOne, withPayloadID(id))
+	return &PayloadUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for Payload.
+func (c *PayloadClient) Delete() *PayloadDelete {
+	mutation := newPayloadMutation(c.config, OpDelete)
+	return &PayloadDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *PayloadClient) DeleteOne(_m *Payload) *PayloadDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *PayloadClient) DeleteOneID(id uint) *PayloadDeleteOne {
+	builder := c.Delete().Where(payload.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &PayloadDeleteOne{builder}
+}
+
+// Query returns a query builder for Payload.
+func (c *PayloadClient) Query() *PayloadQuery {
+	return &PayloadQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypePayload},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a Payload entity by its id.
+func (c *PayloadClient) Get(ctx context.Context, id uint) (*Payload, error) {
+	return c.Query().Where(payload.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *PayloadClient) GetX(ctx context.Context, id uint) *Payload {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryMobileConfig queries the mobile_config edge of a Payload.
+func (c *PayloadClient) QueryMobileConfig(_m *Payload) *MobileConfigQuery {
+	query := (&MobileConfigClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(payload.Table, payload.FieldID, id),
+			sqlgraph.To(mobileconfig.Table, mobileconfig.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, payload.MobileConfigTable, payload.MobileConfigColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryProperties queries the properties edge of a Payload.
+func (c *PayloadClient) QueryProperties(_m *Payload) *PayloadPropertyQuery {
+	query := (&PayloadPropertyClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(payload.Table, payload.FieldID, id),
+			sqlgraph.To(payloadproperty.Table, payloadproperty.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, payload.PropertiesTable, payload.PropertiesColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *PayloadClient) Hooks() []Hook {
+	return c.hooks.Payload
+}
+
+// Interceptors returns the client interceptors.
+func (c *PayloadClient) Interceptors() []Interceptor {
+	return c.inters.Payload
+}
+
+func (c *PayloadClient) mutate(ctx context.Context, m *PayloadMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&PayloadCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&PayloadUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&PayloadUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&PayloadDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown Payload mutation op: %q", m.Op())
+	}
+}
+
+// PayloadPropertyClient is a client for the PayloadProperty schema.
+type PayloadPropertyClient struct {
+	config
+}
+
+// NewPayloadPropertyClient returns a client for the PayloadProperty from the given config.
+func NewPayloadPropertyClient(c config) *PayloadPropertyClient {
+	return &PayloadPropertyClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `payloadproperty.Hooks(f(g(h())))`.
+func (c *PayloadPropertyClient) Use(hooks ...Hook) {
+	c.hooks.PayloadProperty = append(c.hooks.PayloadProperty, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `payloadproperty.Intercept(f(g(h())))`.
+func (c *PayloadPropertyClient) Intercept(interceptors ...Interceptor) {
+	c.inters.PayloadProperty = append(c.inters.PayloadProperty, interceptors...)
+}
+
+// Create returns a builder for creating a PayloadProperty entity.
+func (c *PayloadPropertyClient) Create() *PayloadPropertyCreate {
+	mutation := newPayloadPropertyMutation(c.config, OpCreate)
+	return &PayloadPropertyCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of PayloadProperty entities.
+func (c *PayloadPropertyClient) CreateBulk(builders ...*PayloadPropertyCreate) *PayloadPropertyCreateBulk {
+	return &PayloadPropertyCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *PayloadPropertyClient) MapCreateBulk(slice any, setFunc func(*PayloadPropertyCreate, int)) *PayloadPropertyCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &PayloadPropertyCreateBulk{err: fmt.Errorf("calling to PayloadPropertyClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*PayloadPropertyCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &PayloadPropertyCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for PayloadProperty.
+func (c *PayloadPropertyClient) Update() *PayloadPropertyUpdate {
+	mutation := newPayloadPropertyMutation(c.config, OpUpdate)
+	return &PayloadPropertyUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *PayloadPropertyClient) UpdateOne(_m *PayloadProperty) *PayloadPropertyUpdateOne {
+	mutation := newPayloadPropertyMutation(c.config, OpUpdateOne, withPayloadProperty(_m))
+	return &PayloadPropertyUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *PayloadPropertyClient) UpdateOneID(id uint) *PayloadPropertyUpdateOne {
+	mutation := newPayloadPropertyMutation(c.config, OpUpdateOne, withPayloadPropertyID(id))
+	return &PayloadPropertyUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for PayloadProperty.
+func (c *PayloadPropertyClient) Delete() *PayloadPropertyDelete {
+	mutation := newPayloadPropertyMutation(c.config, OpDelete)
+	return &PayloadPropertyDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *PayloadPropertyClient) DeleteOne(_m *PayloadProperty) *PayloadPropertyDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *PayloadPropertyClient) DeleteOneID(id uint) *PayloadPropertyDeleteOne {
+	builder := c.Delete().Where(payloadproperty.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &PayloadPropertyDeleteOne{builder}
+}
+
+// Query returns a query builder for PayloadProperty.
+func (c *PayloadPropertyClient) Query() *PayloadPropertyQuery {
+	return &PayloadPropertyQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypePayloadProperty},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a PayloadProperty entity by its id.
+func (c *PayloadPropertyClient) Get(ctx context.Context, id uint) (*PayloadProperty, error) {
+	return c.Query().Where(payloadproperty.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *PayloadPropertyClient) GetX(ctx context.Context, id uint) *PayloadProperty {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryPayload queries the payload edge of a PayloadProperty.
+func (c *PayloadPropertyClient) QueryPayload(_m *PayloadProperty) *PayloadQuery {
+	query := (&PayloadClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(payloadproperty.Table, payloadproperty.FieldID, id),
+			sqlgraph.To(payload.Table, payload.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, payloadproperty.PayloadTable, payloadproperty.PayloadColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryDefinition queries the definition edge of a PayloadProperty.
+func (c *PayloadPropertyClient) QueryDefinition(_m *PayloadProperty) *PayloadPropertyDefinitionQuery {
+	query := (&PayloadPropertyDefinitionClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(payloadproperty.Table, payloadproperty.FieldID, id),
+			sqlgraph.To(payloadpropertydefinition.Table, payloadpropertydefinition.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, payloadproperty.DefinitionTable, payloadproperty.DefinitionColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *PayloadPropertyClient) Hooks() []Hook {
+	return c.hooks.PayloadProperty
+}
+
+// Interceptors returns the client interceptors.
+func (c *PayloadPropertyClient) Interceptors() []Interceptor {
+	return c.inters.PayloadProperty
+}
+
+func (c *PayloadPropertyClient) mutate(ctx context.Context, m *PayloadPropertyMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&PayloadPropertyCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&PayloadPropertyUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&PayloadPropertyUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&PayloadPropertyDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown PayloadProperty mutation op: %q", m.Op())
+	}
+}
+
+// PayloadPropertyDefinitionClient is a client for the PayloadPropertyDefinition schema.
+type PayloadPropertyDefinitionClient struct {
+	config
+}
+
+// NewPayloadPropertyDefinitionClient returns a client for the PayloadPropertyDefinition from the given config.
+func NewPayloadPropertyDefinitionClient(c config) *PayloadPropertyDefinitionClient {
+	return &PayloadPropertyDefinitionClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `payloadpropertydefinition.Hooks(f(g(h())))`.
+func (c *PayloadPropertyDefinitionClient) Use(hooks ...Hook) {
+	c.hooks.PayloadPropertyDefinition = append(c.hooks.PayloadPropertyDefinition, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `payloadpropertydefinition.Intercept(f(g(h())))`.
+func (c *PayloadPropertyDefinitionClient) Intercept(interceptors ...Interceptor) {
+	c.inters.PayloadPropertyDefinition = append(c.inters.PayloadPropertyDefinition, interceptors...)
+}
+
+// Create returns a builder for creating a PayloadPropertyDefinition entity.
+func (c *PayloadPropertyDefinitionClient) Create() *PayloadPropertyDefinitionCreate {
+	mutation := newPayloadPropertyDefinitionMutation(c.config, OpCreate)
+	return &PayloadPropertyDefinitionCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of PayloadPropertyDefinition entities.
+func (c *PayloadPropertyDefinitionClient) CreateBulk(builders ...*PayloadPropertyDefinitionCreate) *PayloadPropertyDefinitionCreateBulk {
+	return &PayloadPropertyDefinitionCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *PayloadPropertyDefinitionClient) MapCreateBulk(slice any, setFunc func(*PayloadPropertyDefinitionCreate, int)) *PayloadPropertyDefinitionCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &PayloadPropertyDefinitionCreateBulk{err: fmt.Errorf("calling to PayloadPropertyDefinitionClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*PayloadPropertyDefinitionCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &PayloadPropertyDefinitionCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for PayloadPropertyDefinition.
+func (c *PayloadPropertyDefinitionClient) Update() *PayloadPropertyDefinitionUpdate {
+	mutation := newPayloadPropertyDefinitionMutation(c.config, OpUpdate)
+	return &PayloadPropertyDefinitionUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *PayloadPropertyDefinitionClient) UpdateOne(_m *PayloadPropertyDefinition) *PayloadPropertyDefinitionUpdateOne {
+	mutation := newPayloadPropertyDefinitionMutation(c.config, OpUpdateOne, withPayloadPropertyDefinition(_m))
+	return &PayloadPropertyDefinitionUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *PayloadPropertyDefinitionClient) UpdateOneID(id int) *PayloadPropertyDefinitionUpdateOne {
+	mutation := newPayloadPropertyDefinitionMutation(c.config, OpUpdateOne, withPayloadPropertyDefinitionID(id))
+	return &PayloadPropertyDefinitionUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for PayloadPropertyDefinition.
+func (c *PayloadPropertyDefinitionClient) Delete() *PayloadPropertyDefinitionDelete {
+	mutation := newPayloadPropertyDefinitionMutation(c.config, OpDelete)
+	return &PayloadPropertyDefinitionDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *PayloadPropertyDefinitionClient) DeleteOne(_m *PayloadPropertyDefinition) *PayloadPropertyDefinitionDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *PayloadPropertyDefinitionClient) DeleteOneID(id int) *PayloadPropertyDefinitionDeleteOne {
+	builder := c.Delete().Where(payloadpropertydefinition.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &PayloadPropertyDefinitionDeleteOne{builder}
+}
+
+// Query returns a query builder for PayloadPropertyDefinition.
+func (c *PayloadPropertyDefinitionClient) Query() *PayloadPropertyDefinitionQuery {
+	return &PayloadPropertyDefinitionQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypePayloadPropertyDefinition},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a PayloadPropertyDefinition entity by its id.
+func (c *PayloadPropertyDefinitionClient) Get(ctx context.Context, id int) (*PayloadPropertyDefinition, error) {
+	return c.Query().Where(payloadpropertydefinition.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *PayloadPropertyDefinitionClient) GetX(ctx context.Context, id int) *PayloadPropertyDefinition {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryProperties queries the properties edge of a PayloadPropertyDefinition.
+func (c *PayloadPropertyDefinitionClient) QueryProperties(_m *PayloadPropertyDefinition) *PayloadPropertyQuery {
+	query := (&PayloadPropertyClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(payloadpropertydefinition.Table, payloadpropertydefinition.FieldID, id),
+			sqlgraph.To(payloadproperty.Table, payloadproperty.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, payloadpropertydefinition.PropertiesTable, payloadpropertydefinition.PropertiesColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *PayloadPropertyDefinitionClient) Hooks() []Hook {
+	return c.hooks.PayloadPropertyDefinition
+}
+
+// Interceptors returns the client interceptors.
+func (c *PayloadPropertyDefinitionClient) Interceptors() []Interceptor {
+	return c.inters.PayloadPropertyDefinition
+}
+
+func (c *PayloadPropertyDefinitionClient) mutate(ctx context.Context, m *PayloadPropertyDefinitionMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&PayloadPropertyDefinitionCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&PayloadPropertyDefinitionUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&PayloadPropertyDefinitionUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&PayloadPropertyDefinitionDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown PayloadPropertyDefinition mutation op: %q", m.Op())
 	}
 }
 
@@ -332,9 +1001,11 @@ func (c *UserClient) mutate(ctx context.Context, m *UserMutation) (Value, error)
 // hooks and interceptors per client, for fast access.
 type (
 	hooks struct {
+		MobileConfig, Payload, PayloadProperty, PayloadPropertyDefinition,
 		User []ent.Hook
 	}
 	inters struct {
+		MobileConfig, Payload, PayloadProperty, PayloadPropertyDefinition,
 		User []ent.Interceptor
 	}
 )
