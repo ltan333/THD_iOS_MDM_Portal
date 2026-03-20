@@ -67,11 +67,14 @@ type NanoCMDConfig struct {
 	Password string `env:"NANOCMD_PASSWORD" env-default:"nanocmd"`
 }
 
-// NanoMDMConfig holds NanoMDM server configuration
+// NanoMDMConfig holds NanoMDM and NanoDEP server configuration
 type NanoMDMConfig struct {
-	BaseURL  string `env:"NANOMDM_URL" env-default:"http://localhost:9000"`
-	Username string `env:"NANOMDM_USERNAME" env-default:"nanomdm"`
-	Password string `env:"NANOMDM_PASSWORD" env-default:"nanomdm"`
+	MDMBaseURL  string `env:"NANOMDM_URL" env-default:"http://localhost:9000"`
+	DEPBaseURL  string `env:"NANODEP_URL" env-default:"http://localhost:9000"`
+	MDMUsername string `env:"NANOMDM_USERNAME" env-default:"nanomdm"`
+	MDMPassword string `env:"NANOMDM_PASSWORD" env-default:"nanomdm"`
+	DEPUsername string `env:"NANODEP_USERNAME" env-default:"nanodep"`
+	DEPPassword string `env:"NANODEP_PASSWORD" env-default:"nanodep"`
 }
 
 // Config holds all application configuration

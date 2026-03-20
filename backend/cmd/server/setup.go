@@ -39,7 +39,14 @@ func setupDependencies(cfg *config.Config) *gin.Engine {
 	userService := serviceimpl.NewUserService(userRepo)
 	authzService := serviceimpl.NewAuthorizationService(enforcer)
 	nanocmdService := serviceimpl.NewNanoCMDService(cfg.NanoCMD.BaseURL, cfg.NanoCMD.Username, cfg.NanoCMD.Password)
-	nanomdmService := serviceimpl.NewNanoMDMService(cfg.NanoMDM.BaseURL, cfg.NanoMDM.Username, cfg.NanoMDM.Password)
+	nanomdmService := serviceimpl.NewNanoMDMService(
+		cfg.NanoMDM.MDMBaseURL,
+		cfg.NanoMDM.DEPBaseURL,
+		cfg.NanoMDM.MDMUsername,
+		cfg.NanoMDM.MDMPassword,
+		cfg.NanoMDM.DEPUsername,
+		cfg.NanoMDM.DEPPassword,
+	)
 
 	// Middleware
 	origins := strings.Join(cfg.CORSAllowedOrigins, ",")
