@@ -9,10 +9,15 @@ import (
 	"golang.org/x/crypto/bcrypt"
 
 	"github.com/thienel/go-backend-template/internal/domain/entity"
+	"github.com/thienel/go-backend-template/pkg/config"
 )
 
 // SeedUser tạo tài khoản admin mặc định nếu chưa có người dùng nào
-func SeedUser() error {
+func SeedUser(cfg *config.SeedConfig) error {
+	if cfg.AdminUsername == "" || cfg.AdminPassword == "" || cfg.AdminEmail == "" {
+		tlog.Warn("Seeding skipped: administrator credentials not provided in environment")
+		return nil
+	}
 	ctx := context.Background()
 	count, err := client.User.Query().Count(ctx)
 	if err != nil {
@@ -26,14 +31,14 @@ func SeedUser() error {
 
 	tlog.Info("Seeding default admin user...")
 
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte("admin"), bcrypt.DefaultCost)
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(cfg.AdminPassword), bcrypt.DefaultCost)
 	if err != nil {
 		return fmt.Errorf("failed to hash password: %w", err)
 	}
 
 	user, err := client.User.Create().
-		SetUsername("admin").
-		SetEmail("admin@thd.vn").
+		SetUsername(cfg.AdminUsername).
+		SetEmail(cfg.AdminEmail).
 		SetPassword(string(hashedPassword)).
 		SetStatus(entity.UserStatusActive).
 		Save(ctx)

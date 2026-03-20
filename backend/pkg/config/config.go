@@ -10,71 +10,78 @@ import (
 
 // ServerConfig holds server configuration
 type ServerConfig struct {
-	Port        string `env:"PORT" env-default:"8000"`
-	Env         string `env:"ENV" env-default:"development"`
-	ServiceName string `env:"SERVICE_NAME" env-default:"go-backend-template"`
-	Version     string `env:"SERVICE_VERSION" env-default:"1.0.0"`
+	Port        string `env:"PORT"`
+	Env         string `env:"ENV"`
+	ServiceName string `env:"SERVICE_NAME"`
+	Version     string `env:"SERVICE_VERSION"`
 }
 
 // DatabaseConfig holds PostgreSQL configuration
 type DatabaseConfig struct {
-	Host     string `env:"DB_HOST" env-default:"localhost"`
-	Port     int    `env:"DB_PORT" env-default:"5432"`
-	User     string `env:"DB_USER" env-default:"postgres"`
+	Host     string `env:"DB_HOST"`
+	Port     int    `env:"DB_PORT"`
+	User     string `env:"DB_USER"`
 	Password string `env:"DB_PASSWORD"`
-	DBName   string `env:"DB_NAME" env-default:"go_backend_template"`
-	SSLMode  string `env:"DB_SSLMODE" env-default:"disable"`
-	TimeZone string `env:"DB_TIMEZONE" env-default:"Asia/Ho_Chi_Minh"`
+	DBName   string `env:"DB_NAME"`
+	SSLMode  string `env:"DB_SSLMODE"`
+	TimeZone string `env:"DB_TIMEZONE"`
 }
 
 // JWTConfig holds JWT authentication configuration
 type JWTConfig struct {
-	Secret              string `env:"JWT_SECRET" env-default:"change-this-secret-in-production-min-32-chars"`
-	AccessExpiryMinutes int    `env:"JWT_ACCESS_EXPIRY_MINUTES" env-default:"15"`
-	RefreshExpiryHours  int    `env:"JWT_REFRESH_EXPIRY_HOURS" env-default:"12"`
+	Secret              string `env:"JWT_SECRET"`
+	AccessExpiryMinutes int    `env:"JWT_ACCESS_EXPIRY_MINUTES"`
+	RefreshExpiryHours  int    `env:"JWT_REFRESH_EXPIRY_HOURS"`
 }
 
 // LogConfig holds logging configuration
 type LogConfig struct {
-	Level         string `env:"LOG_LEVEL" env-default:"info"`
-	EnableConsole bool   `env:"LOG_ENABLE_CONSOLE" env-default:"true"`
-	FilePath      string `env:"LOG_FILE_PATH" env-default:"./logs/app.log"`
-	MaxSizeMB     int    `env:"LOG_MAX_SIZE_MB" env-default:"100"`
-	MaxBackups    int    `env:"LOG_MAX_BACKUPS" env-default:"30"`
-	MaxAgeDays    int    `env:"LOG_MAX_AGE_DAYS" env-default:"90"`
-	Compress      bool   `env:"LOG_COMPRESS" env-default:"true"`
+	Level         string `env:"LOG_LEVEL"`
+	EnableConsole bool   `env:"LOG_ENABLE_CONSOLE"`
+	FilePath      string `env:"LOG_FILE_PATH"`
+	MaxSizeMB     int    `env:"LOG_MAX_SIZE_MB"`
+	MaxBackups    int    `env:"LOG_MAX_BACKUPS"`
+	MaxAgeDays    int    `env:"LOG_MAX_AGE_DAYS"`
+	Compress      bool   `env:"LOG_COMPRESS"`
 }
 
 // CookieConfig holds cookie configuration
 type CookieConfig struct {
-	Name        string `env:"COOKIE_NAME" env-default:"app_token"`
-	RefreshName string `env:"COOKIE_REFRESH_NAME" env-default:"app_refresh"`
+	Name        string `env:"COOKIE_NAME"`
+	RefreshName string `env:"COOKIE_REFRESH_NAME"`
 	Domain      string `env:"COOKIE_DOMAIN"`
-	Secure      bool   `env:"COOKIE_SECURE" env-default:"false"`
-	SameSite    string `env:"COOKIE_SAMESITE" env-default:"Lax"`
-	Path        string `env:"COOKIE_PATH" env-default:"/"`
+	Secure      bool   `env:"COOKIE_SECURE"`
+	SameSite    string `env:"COOKIE_SAMESITE"`
+	Path        string `env:"COOKIE_PATH"`
 }
 
 // CasbinConfig holds Casbin authorization configuration
 type CasbinConfig struct {
-	ModelPath string `env:"CASBIN_MODEL_PATH" env-default:"configs/casbin_model.conf"`
+	ModelPath string `env:"CASBIN_MODEL_PATH"`
 }
 
 // NanoCMDConfig holds NanoCMD server configuration
 type NanoCMDConfig struct {
-	BaseURL  string `env:"NANOCMD_URL" env-default:"http://localhost:9003"`
-	Username string `env:"NANOCMD_USERNAME" env-default:"nanocmd"`
-	Password string `env:"NANOCMD_PASSWORD" env-default:"nanocmd"`
+	BaseURL  string `env:"NANOCMD_URL"`
+	Username string `env:"NANOCMD_USERNAME"`
+	Password string `env:"NANOCMD_PASSWORD"`
 }
 
 // NanoMDMConfig holds NanoMDM and NanoDEP server configuration
 type NanoMDMConfig struct {
-	MDMBaseURL  string `env:"NANOMDM_URL" env-default:"http://localhost:9000"`
-	DEPBaseURL  string `env:"NANODEP_URL" env-default:"http://localhost:9000"`
-	MDMUsername string `env:"NANOMDM_USERNAME" env-default:"nanomdm"`
-	MDMPassword string `env:"NANOMDM_PASSWORD" env-default:"nanomdm"`
-	DEPUsername string `env:"NANODEP_USERNAME" env-default:"nanodep"`
-	DEPPassword string `env:"NANODEP_PASSWORD" env-default:"nanodep"`
+	MDMBaseURL  string `env:"NANOMDM_URL"`
+	DEPBaseURL  string `env:"NANODEP_URL"`
+	MDMUsername string `env:"NANOMDM_USERNAME"`
+	MDMPassword string `env:"NANOMDM_PASSWORD"`
+	DEPUsername string `env:"NANODEP_USERNAME"`
+	DEPPassword string `env:"NANODEP_PASSWORD"`
+}
+
+// SeedConfig holds default user seeding configuration
+type SeedConfig struct {
+	AdminUsername string `env:"SEED_ADMIN_USERNAME"`
+	AdminPassword string `env:"SEED_ADMIN_PASSWORD"`
+	AdminEmail    string `env:"SEED_ADMIN_EMAIL"`
 }
 
 // Config holds all application configuration
@@ -87,8 +94,9 @@ type Config struct {
 	Casbin    CasbinConfig
 	NanoCMD   NanoCMDConfig
 	NanoMDM   NanoMDMConfig
+	Seed      SeedConfig
 
-	CORSAllowedOrigins []string `env:"CORS_ALLOWED_ORIGINS" env-default:"http://localhost:3000"`
+	CORSAllowedOrigins []string `env:"CORS_ALLOWED_ORIGINS"`
 }
 
 var AppConfig *Config
