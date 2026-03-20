@@ -78,7 +78,7 @@ func main() {
 	tlog.Info("Database connection established")
 
 	// Seed default user if needed
-	if err := database.SeedUser(); err != nil {
+	if err := database.SeedUser(&cfg.Seed); err != nil {
 		tlog.Fatal("Failed to seed default user", zap.Error(err))
 	}
 
