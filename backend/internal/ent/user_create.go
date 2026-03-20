@@ -10,6 +10,7 @@ import (
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/thienel/go-backend-template/internal/ent/device"
 	"github.com/thienel/go-backend-template/internal/ent/user"
 )
 
@@ -112,6 +113,21 @@ func (_c *UserCreate) SetNillableDeletedAt(v *time.Time) *UserCreate {
 func (_c *UserCreate) SetID(v uint) *UserCreate {
 	_c.mutation.SetID(v)
 	return _c
+}
+
+// AddDeviceIDs adds the "devices" edge to the Device entity by IDs.
+func (_c *UserCreate) AddDeviceIDs(ids ...uint) *UserCreate {
+	_c.mutation.AddDeviceIDs(ids...)
+	return _c
+}
+
+// AddDevices adds the "devices" edges to the Device entity.
+func (_c *UserCreate) AddDevices(v ...*Device) *UserCreate {
+	ids := make([]uint, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddDeviceIDs(ids...)
 }
 
 // Mutation returns the UserMutation object of the builder.
@@ -278,6 +294,22 @@ func (_c *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.DeletedAt(); ok {
 		_spec.SetField(user.FieldDeletedAt, field.TypeTime, value)
 		_node.DeletedAt = &value
+	}
+	if nodes := _c.mutation.DevicesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.DevicesTable,
+			Columns: []string{user.DevicesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(device.FieldID, field.TypeUint),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec
 }
