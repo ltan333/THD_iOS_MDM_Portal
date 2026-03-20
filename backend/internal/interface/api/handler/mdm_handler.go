@@ -1,15 +1,12 @@
 package handler
 
 import (
-	"crypto/x509"
-	"encoding/pem"
-	"fmt"
 	"io"
-	"time"
 
 	"github.com/gin-gonic/gin"
 
 	"github.com/thienel/go-backend-template/internal/ent"
+	_ "github.com/thienel/go-backend-template/internal/interface/api/dto"
 	"github.com/thienel/go-backend-template/internal/usecase/service"
 	apperror "github.com/thienel/go-backend-template/pkg/error"
 	"github.com/thienel/go-backend-template/pkg/response"
@@ -43,7 +40,7 @@ func NewMDMHandler(client *ent.Client, mdmService service.NanoMDMService) MDMHan
 // @Failure 400 {object} response.APIResponse[any]
 // @Failure 401 {object} response.APIResponse[any]
 // @Security BearerAuth
-// @Router /mdm/apns/cert [post]
+// @Router /mdm/pushcert [post]
 func (h *mdmHandler) PushCert(c *gin.Context) {
 	file, err := c.FormFile("cert")
 	if err != nil {
@@ -56,7 +53,7 @@ func (h *mdmHandler) PushCert(c *gin.Context) {
 		response.WriteErrorResponse(c, apperror.ErrInternalServerError.WithError(err))
 		return
 	}
-	defer fileReader.Close()
+	defer func() { _ = fileReader.Close() }()
 
 	fileBytes, err := io.ReadAll(fileReader)
 	if err != nil {
@@ -81,7 +78,7 @@ func (h *mdmHandler) PushCert(c *gin.Context) {
 // @Failure 401 {object} response.APIResponse[any]
 // @Failure 404 {object} response.APIResponse[any]
 // @Security BearerAuth
-// @Router /mdm/apns/cert [get]
+// @Router /mdm/pushcert [get]
 func (h *mdmHandler) GetCert(c *gin.Context) {
 	cert, err := h.mdmService.GetPushCert(c.Request.Context())
 	if err != nil {
@@ -91,20 +88,3 @@ func (h *mdmHandler) GetCert(c *gin.Context) {
 	response.OK(c, cert, "Certificate retrieved successfully")
 }
 
-func parseCert(data []byte) (string, time.Time, error) {
-	block, _ := pem.Decode(data)
-	if block == nil {
-		return "", time.Time{}, fmt.Errorf("failed to decode PEM block")
-	}
-
-	cert, err := x509.ParseCertificate(block.Bytes)
-	if err != nil {
-		return "", time.Time{}, err
-	}
-
-	// Topic is usually in the Subject Common Name or an extension
-	topic := cert.Subject.CommonName
-	expiry := cert.NotAfter
-
-	return topic, expiry, nil
-}

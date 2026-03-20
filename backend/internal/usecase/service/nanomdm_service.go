@@ -11,6 +11,7 @@ type NanoMDMService interface {
 	SyncDEPDevices(ctx context.Context, depName string) (interface{}, error)
 	DisownDEPDevices(ctx context.Context, depName string, devices []string) (interface{}, error)
 	UploadDEPToken(ctx context.Context, depName string, tokenData []byte) (interface{}, error)
+	ListDEPProfiles(ctx context.Context, depName string) (interface{}, error)
 	
 	// Push Certificate related
 	UploadPushCert(ctx context.Context, certData []byte) error
