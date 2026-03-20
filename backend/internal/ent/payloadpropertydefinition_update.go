@@ -85,13 +85,13 @@ func (_u *PayloadPropertyDefinitionUpdate) ClearDefaultValue() *PayloadPropertyD
 }
 
 // SetEnumValues sets the "enum_values" field.
-func (_u *PayloadPropertyDefinitionUpdate) SetEnumValues(v []string) *PayloadPropertyDefinitionUpdate {
+func (_u *PayloadPropertyDefinitionUpdate) SetEnumValues(v []interface{}) *PayloadPropertyDefinitionUpdate {
 	_u.mutation.SetEnumValues(v)
 	return _u
 }
 
 // AppendEnumValues appends value to the "enum_values" field.
-func (_u *PayloadPropertyDefinitionUpdate) AppendEnumValues(v []string) *PayloadPropertyDefinitionUpdate {
+func (_u *PayloadPropertyDefinitionUpdate) AppendEnumValues(v []interface{}) *PayloadPropertyDefinitionUpdate {
 	_u.mutation.AppendEnumValues(v)
 	return _u
 }
@@ -418,13 +418,13 @@ func (_u *PayloadPropertyDefinitionUpdateOne) ClearDefaultValue() *PayloadProper
 }
 
 // SetEnumValues sets the "enum_values" field.
-func (_u *PayloadPropertyDefinitionUpdateOne) SetEnumValues(v []string) *PayloadPropertyDefinitionUpdateOne {
+func (_u *PayloadPropertyDefinitionUpdateOne) SetEnumValues(v []interface{}) *PayloadPropertyDefinitionUpdateOne {
 	_u.mutation.SetEnumValues(v)
 	return _u
 }
 
 // AppendEnumValues appends value to the "enum_values" field.
-func (_u *PayloadPropertyDefinitionUpdateOne) AppendEnumValues(v []string) *PayloadPropertyDefinitionUpdateOne {
+func (_u *PayloadPropertyDefinitionUpdateOne) AppendEnumValues(v []interface{}) *PayloadPropertyDefinitionUpdateOne {
 	_u.mutation.AppendEnumValues(v)
 	return _u
 }

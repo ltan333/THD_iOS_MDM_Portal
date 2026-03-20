@@ -2887,8 +2887,8 @@ type PayloadPropertyDefinitionMutation struct {
 	key               *string
 	value_type        *string
 	default_value     *map[string]interface{}
-	enum_values       *[]string
-	appendenum_values []string
+	enum_values       *[]interface{}
+	appendenum_values []interface{}
 	description       *string
 	created_at        *time.Time
 	updated_at        *time.Time
@@ -3158,13 +3158,13 @@ func (m *PayloadPropertyDefinitionMutation) ResetDefaultValue() {
 }
 
 // SetEnumValues sets the "enum_values" field.
-func (m *PayloadPropertyDefinitionMutation) SetEnumValues(s []string) {
-	m.enum_values = &s
+func (m *PayloadPropertyDefinitionMutation) SetEnumValues(i []interface{}) {
+	m.enum_values = &i
 	m.appendenum_values = nil
 }
 
 // EnumValues returns the value of the "enum_values" field in the mutation.
-func (m *PayloadPropertyDefinitionMutation) EnumValues() (r []string, exists bool) {
+func (m *PayloadPropertyDefinitionMutation) EnumValues() (r []interface{}, exists bool) {
 	v := m.enum_values
 	if v == nil {
 		return
@@ -3175,7 +3175,7 @@ func (m *PayloadPropertyDefinitionMutation) EnumValues() (r []string, exists boo
 // OldEnumValues returns the old "enum_values" field's value of the PayloadPropertyDefinition entity.
 // If the PayloadPropertyDefinition object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *PayloadPropertyDefinitionMutation) OldEnumValues(ctx context.Context) (v []string, err error) {
+func (m *PayloadPropertyDefinitionMutation) OldEnumValues(ctx context.Context) (v []interface{}, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldEnumValues is only allowed on UpdateOne operations")
 	}
@@ -3189,13 +3189,13 @@ func (m *PayloadPropertyDefinitionMutation) OldEnumValues(ctx context.Context) (
 	return oldValue.EnumValues, nil
 }
 
-// AppendEnumValues adds s to the "enum_values" field.
-func (m *PayloadPropertyDefinitionMutation) AppendEnumValues(s []string) {
-	m.appendenum_values = append(m.appendenum_values, s...)
+// AppendEnumValues adds i to the "enum_values" field.
+func (m *PayloadPropertyDefinitionMutation) AppendEnumValues(i []interface{}) {
+	m.appendenum_values = append(m.appendenum_values, i...)
 }
 
 // AppendedEnumValues returns the list of values that were appended to the "enum_values" field in this mutation.
-func (m *PayloadPropertyDefinitionMutation) AppendedEnumValues() ([]string, bool) {
+func (m *PayloadPropertyDefinitionMutation) AppendedEnumValues() ([]interface{}, bool) {
 	if len(m.appendenum_values) == 0 {
 		return nil, false
 	}
@@ -3599,7 +3599,7 @@ func (m *PayloadPropertyDefinitionMutation) SetField(name string, value ent.Valu
 		m.SetDefaultValue(v)
 		return nil
 	case payloadpropertydefinition.FieldEnumValues:
-		v, ok := value.([]string)
+		v, ok := value.([]interface{})
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
