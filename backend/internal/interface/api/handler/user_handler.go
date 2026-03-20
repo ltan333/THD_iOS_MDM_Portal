@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"net/http"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
@@ -44,23 +43,20 @@ func NewUserHandler(userService service.UserService) UserHandler {
 
 // List godoc
 // @Summary List users
-// @Description Get paginated users with optional filter/sort/search query params
+// @Description Get a paginated list of users with filtering and sorting
 // @Tags Users
 // @Produce json
-// @Security BearerAuth
-// @Param page query int false "Page number"
-// @Param limit query int false "Page size"
-// @Param sort query string false "Sort field, prefix '-' for desc"
-// @Param search query string false "Search by keyword"
-// @Param username query string false "Filter by username"
-// @Param email query string false "Filter by email"
+// @Param page query int false "Page number (default 1)"
+// @Param limit query int false "Items per page (default 20)"
+// @Param search query string false "Search by username or email"
 // @Param role query string false "Filter by role"
 // @Param status query string false "Filter by status"
-// @Success 200 {object} UserListSuccessResponse
-// @Failure 401 {object} APIErrorResponse
-// @Failure 403 {object} APIErrorResponse
-// @Failure 500 {object} APIErrorResponse
-// @Router /api/users [get]
+// @Param sort query string false "Sort by field (e.g. id,username,created_at)"
+// @Param order query string false "Sort order (asc,desc)"
+// @Success 200 {object} response.APIResponse[dto.ListResponse[dto.UserResponse]]
+// @Failure 401 {object} response.APIResponse[any]
+// @Security BearerAuth
+// @Router /users [get]
 func (h *userHandlerImpl) List(c *gin.Context) {
 	params := make(map[string]string)
 	for key, values := range c.Request.URL.Query() {
@@ -97,18 +93,16 @@ func (h *userHandlerImpl) List(c *gin.Context) {
 
 // GetByID godoc
 // @Summary Get user by ID
-// @Description Retrieve a user by numeric ID
+// @Description Get details of a single user by their ID
 // @Tags Users
 // @Produce json
-// @Security BearerAuth
 // @Param id path int true "User ID"
-// @Success 200 {object} UserSuccessResponse
-// @Failure 400 {object} APIErrorResponse
-// @Failure 401 {object} APIErrorResponse
-// @Failure 403 {object} APIErrorResponse
-// @Failure 404 {object} APIErrorResponse
-// @Failure 500 {object} APIErrorResponse
-// @Router /api/users/{id} [get]
+// @Success 200 {object} response.APIResponse[dto.UserResponse]
+// @Failure 400 {object} response.APIResponse[any]
+// @Failure 401 {object} response.APIResponse[any]
+// @Failure 404 {object} response.APIResponse[any]
+// @Security BearerAuth
+// @Router /users/{id} [get]
 func (h *userHandlerImpl) GetByID(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
 	if err != nil {
@@ -127,19 +121,17 @@ func (h *userHandlerImpl) GetByID(c *gin.Context) {
 
 // Create godoc
 // @Summary Create user
-// @Description Create a new user account
+// @Description Create a new user in the system
 // @Tags Users
 // @Accept json
 // @Produce json
+// @Param user body dto.CreateUserRequest true "User details"
+// @Success 201 {object} response.APIResponse[dto.UserResponse]
+// @Failure 400 {object} response.APIResponse[any]
+// @Failure 401 {object} response.APIResponse[any]
+// @Failure 409 {object} response.APIResponse[any]
 // @Security BearerAuth
-// @Param request body dto.CreateUserRequest true "User payload"
-// @Success 201 {object} UserSuccessResponse
-// @Failure 400 {object} APIErrorResponse
-// @Failure 401 {object} APIErrorResponse
-// @Failure 403 {object} APIErrorResponse
-// @Failure 409 {object} APIErrorResponse
-// @Failure 500 {object} APIErrorResponse
-// @Router /api/users [post]
+// @Router /users [post]
 func (h *userHandlerImpl) Create(c *gin.Context) {
 	var req dto.CreateUserRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -163,21 +155,18 @@ func (h *userHandlerImpl) Create(c *gin.Context) {
 
 // Update godoc
 // @Summary Update user
-// @Description Update an existing user by ID
+// @Description Update an existing user's details
 // @Tags Users
 // @Accept json
 // @Produce json
-// @Security BearerAuth
 // @Param id path int true "User ID"
-// @Param request body dto.UpdateUserRequest true "User payload"
-// @Success 200 {object} UserSuccessResponse
-// @Failure 400 {object} APIErrorResponse
-// @Failure 401 {object} APIErrorResponse
-// @Failure 403 {object} APIErrorResponse
-// @Failure 404 {object} APIErrorResponse
-// @Failure 409 {object} APIErrorResponse
-// @Failure 500 {object} APIErrorResponse
-// @Router /api/users/{id} [put]
+// @Param user body dto.UpdateUserRequest true "Updated user details"
+// @Success 200 {object} response.APIResponse[dto.UserResponse]
+// @Failure 400 {object} response.APIResponse[any]
+// @Failure 401 {object} response.APIResponse[any]
+// @Failure 404 {object} response.APIResponse[any]
+// @Security BearerAuth
+// @Router /users/{id} [put]
 func (h *userHandlerImpl) Update(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
 	if err != nil {
@@ -208,18 +197,15 @@ func (h *userHandlerImpl) Update(c *gin.Context) {
 
 // Delete godoc
 // @Summary Delete user
-// @Description Soft delete a user by ID
+// @Description Delete a user from the system
 // @Tags Users
-// @Produce json
-// @Security BearerAuth
 // @Param id path int true "User ID"
-// @Success 204 {string} string "No Content"
-// @Failure 400 {object} APIErrorResponse
-// @Failure 401 {object} APIErrorResponse
-// @Failure 403 {object} APIErrorResponse
-// @Failure 404 {object} APIErrorResponse
-// @Failure 500 {object} APIErrorResponse
-// @Router /api/users/{id} [delete]
+// @Success 204
+// @Failure 400 {object} response.APIResponse[any]
+// @Failure 401 {object} response.APIResponse[any]
+// @Failure 404 {object} response.APIResponse[any]
+// @Security BearerAuth
+// @Router /users/{id} [delete]
 func (h *userHandlerImpl) Delete(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
 	if err != nil {
@@ -232,7 +218,7 @@ func (h *userHandlerImpl) Delete(c *gin.Context) {
 		return
 	}
 
-	c.Status(http.StatusNoContent)
+	response.NoContent(c)
 }
 
 func toUserResponse(user *ent.User) dto.UserResponse {

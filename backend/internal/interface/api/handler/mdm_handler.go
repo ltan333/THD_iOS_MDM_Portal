@@ -31,6 +31,18 @@ func NewMDMHandler(client *ent.Client) MDMHandler {
 	return &mdmHandler{client: client}
 }
 
+// PushCert godoc
+// @Summary Upload APNs certificate
+// @Description Upload or update an APNs certificate for a specific topic
+// @Tags MDM
+// @Accept multipart/form-data
+// @Produce json
+// @Param cert formData file true "APNs Certificate file"
+// @Success 200 {object} response.APIResponse[dto.APNSConfigResponse]
+// @Failure 400 {object} response.APIResponse[any]
+// @Failure 401 {object} response.APIResponse[any]
+// @Security BearerAuth
+// @Router /mdm/apns/cert [post]
 func (h *mdmHandler) PushCert(c *gin.Context) {
 	file, err := c.FormFile("cert")
 	if err != nil {
@@ -92,6 +104,16 @@ func (h *mdmHandler) PushCert(c *gin.Context) {
 	}, "Certificate uploaded successfully")
 }
 
+// GetCert godoc
+// @Summary Get APNs configuration
+// @Description Get the current APNs certificate configuration and topic
+// @Tags MDM
+// @Produce json
+// @Success 200 {object} response.APIResponse[dto.APNSConfigResponse]
+// @Failure 401 {object} response.APIResponse[any]
+// @Failure 404 {object} response.APIResponse[any]
+// @Security BearerAuth
+// @Router /mdm/apns/cert [get]
 func (h *mdmHandler) GetCert(c *gin.Context) {
 	config, err := h.client.APNSConfig.Query().First(context.Background())
 	if err != nil {

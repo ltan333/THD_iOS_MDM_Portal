@@ -13,21 +13,31 @@ import (
 	"github.com/thienel/tlog"
 	"go.uber.org/zap"
 
-	_ "github.com/thienel/go-backend-template/docs"
 	"github.com/thienel/go-backend-template/internal/infra/database"
 	"github.com/thienel/go-backend-template/pkg/config"
 )
 
 // @title THD iOS MDM Portal API
 // @version 1.0
-// @description API documentation for THD iOS MDM Portal backend
-// @BasePath /
-// @schemes http https
+// @description API Server for THD iOS MDM Portal.
+// @termsOfService http://swagger.io/terms/
+
+// @contact.name API Support
+// @contact.url http://www.swagger.io/support
+// @contact.email support@swagger.io
+
+// @license.name Apache 2.0
+// @license.url http://www.apache.org/licenses/LICENSE-2.0.html
+
+// @host localhost:8000
+// @BasePath /api
+
+// @securityDefinitions.basic BasicAuth
+
 // @securityDefinitions.apikey BearerAuth
 // @in header
 // @name Authorization
-// @description Bearer token authentication. Example: Bearer {token}
-
+// @description Type "Bearer" followed by a space and your JWT token.
 func main() {
 	// Load configuration
 	cfg, err := config.Load()

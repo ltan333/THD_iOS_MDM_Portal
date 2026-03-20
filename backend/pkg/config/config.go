@@ -5,6 +5,7 @@ import (
 	"net/url"
 
 	"github.com/ilyakaznacheev/cleanenv"
+	"github.com/joho/godotenv"
 	"github.com/thienel/tlog"
 )
 
@@ -94,15 +95,15 @@ var AppConfig *Config
 func Load() (*Config, error) {
 	var cfg Config
 
-	// Try reading from .env file first, but don't fail if it doesn't exist
-	err := cleanenv.ReadConfig(".env", &cfg)
-	if err != nil {
-		tlog.Warn("No .env file found or error reading it, falling back to environment variables")
-		err = cleanenv.ReadEnv(&cfg)
-		if err != nil {
-			log.Fatalf("Config error: %v", err)
-			return nil, err
-		}
+	// Load .env file if it exists
+	if err := godotenv.Load(); err != nil {
+		tlog.Warn("No .env file found, using system environment variables")
+	}
+
+	// Read environment variables into Config struct
+	if err := cleanenv.ReadEnv(&cfg); err != nil {
+		log.Fatalf("Config error: %v", err)
+		return nil, err
 	}
 
 	AppConfig = &cfg
