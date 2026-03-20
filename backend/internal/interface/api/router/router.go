@@ -2,8 +2,6 @@ package router
 
 import (
 	"github.com/gin-gonic/gin"
-	swaggerFiles "github.com/swaggo/files"
-	ginSwagger "github.com/swaggo/gin-swagger"
 	"github.com/thienel/tlog"
 
 	"github.com/thienel/go-backend-template/internal/interface/api/handler"
@@ -11,11 +9,12 @@ import (
 )
 
 type routeRegister struct {
-	auth          handler.AuthHandler
-	user          handler.UserHandler
-	policy        handler.PolicyHandler
-	mobile_config handler.MobileConfigHandler
-	mw            *middleware.Middleware
+	auth   handler.AuthHandler
+	user   handler.UserHandler
+	policy handler.PolicyHandler
+	mdm    handler.MDMHandler
+	dep    handler.DEPHandler
+	mw     *middleware.Middleware
 }
 
 // SetupRouter configures all routes following THD-Checkin-App pattern
@@ -23,32 +22,32 @@ func SetupRouter(
 	authHandler handler.AuthHandler,
 	userHandler handler.UserHandler,
 	policyHandler handler.PolicyHandler,
-	mobileConfigHandler handler.MobileConfigHandler,
+	mdmHandler handler.MDMHandler,
+	depHandler handler.DEPHandler,
 	mw *middleware.Middleware,
 ) *gin.Engine {
 
 	routes := routeRegister{
-		auth:          authHandler,
-		user:          userHandler,
-		policy:        policyHandler,
-		mobile_config: mobileConfigHandler,
-		mw:            mw,
+		auth:   authHandler,
+		user:   userHandler,
+		policy: policyHandler,
+		mdm:    mdmHandler,
+		dep:    depHandler,
+		mw:     mw,
 	}
 
 	router := gin.New()
 	router.Use(gin.Recovery(), mw.CORS(), tlog.GinMiddleware(tlog.WithSkipPaths("/health")))
 
 	// Health check
-	router.GET("/health", handler.Health)
-
-	// Swagger UI
-	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+	router.GET("/health", func(c *gin.Context) {
+		c.JSON(200, gin.H{"status": "ok"})
+	})
 
 	// Public API
 	api := router.Group("/api")
 	{
 		routes.registerAuthRoutes(api)
-		routes.registerMobileConfigRoutes(api)
 	}
 
 	// Protected API: Authentication (JWT) + Authorization (Casbin)
@@ -56,6 +55,8 @@ func SetupRouter(
 	{
 		routes.registerUserRoutes(protected)
 		routes.registerPolicyRoutes(protected)
+		routes.registerMDMRoutes(protected)
+		routes.registerDEPRoutes(protected)
 	}
 
 	return router
@@ -103,12 +104,22 @@ func (r *routeRegister) registerPolicyRoutes(rg *gin.RouterGroup) {
 	}
 }
 
-func (r *routeRegister) registerMobileConfigRoutes(rg *gin.RouterGroup) {
-	mobileConfigs := rg.Group("/mobile-configs")
+func (r *routeRegister) registerMDMRoutes(rg *gin.RouterGroup) {
+	mdm := rg.Group("/v1/mdm")
 	{
-		mobileConfigs.GET("/:id/xml", r.mobile_config.GetXML)
-		mobileConfigs.POST("", r.mobile_config.Create)
-		mobileConfigs.PUT("/:id", r.mobile_config.Update)
-		mobileConfigs.DELETE("/:id", r.mobile_config.Delete)
+		mdm.POST("/pushcert", r.mdm.PushCert)
+		mdm.GET("/pushcert", r.mdm.GetCert)
+	}
+}
+
+func (r *routeRegister) registerDEPRoutes(rg *gin.RouterGroup) {
+	dep := rg.Group("/v1/dep")
+	{
+		dep.PUT("/tokenpki/:name", r.dep.PutToken)
+		dep.GET("/tokens/:name", r.dep.GetToken)
+		dep.POST("/sync", r.dep.SyncDevices)
+		dep.POST("/profiles", r.dep.DefineProfile)
+		dep.GET("/profiles/:uuid", r.dep.GetProfile)
+		dep.POST("/devices/disown", r.dep.DisownDevice)
 	}
 }
