@@ -32,17 +32,16 @@ func NewAuthHandler(authService service.AuthService, userService service.UserSer
 }
 
 // Login godoc
-// @Summary Login
-// @Description Authenticate user and return access token information
-// @Tags Auth
+// @Summary User login
+// @Description Authenticate user and return JWT tokens
+// @Tags Authentication
 // @Accept json
 // @Produce json
-// @Param request body dto.LoginRequest true "Login payload"
-// @Success 200 {object} LoginSuccessResponse
-// @Failure 400 {object} APIErrorResponse
-// @Failure 401 {object} APIErrorResponse
-// @Failure 500 {object} APIErrorResponse
-// @Router /api/auth/login [post]
+// @Param login body dto.LoginRequest true "Login credentials"
+// @Success 200 {object} response.APIResponse[dto.LoginResponse]
+// @Failure 400 {object} response.APIResponse[any]
+// @Failure 401 {object} response.APIResponse[any]
+// @Router /auth/login [post]
 func (h *authHandlerImpl) Login(c *gin.Context) {
 	var req dto.LoginRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -60,13 +59,12 @@ func (h *authHandlerImpl) Login(c *gin.Context) {
 }
 
 // Logout godoc
-// @Summary Logout
-// @Description Logout current user session
-// @Tags Auth
+// @Summary User logout
+// @Description Invalidate the current session
+// @Tags Authentication
 // @Produce json
-// @Success 200 {object} EmptySuccessResponse
-// @Failure 500 {object} APIErrorResponse
-// @Router /api/auth/logout [post]
+// @Success 200 {object} response.APIResponse[any]
+// @Router /auth/logout [post]
 func (h *authHandlerImpl) Logout(c *gin.Context) {
 	if err := h.authService.Logout(c.Request.Context()); err != nil {
 		response.WriteErrorResponse(c, err)
@@ -76,16 +74,14 @@ func (h *authHandlerImpl) Logout(c *gin.Context) {
 }
 
 // GetMe godoc
-// @Summary Get current user
-// @Description Return profile of authenticated user
-// @Tags Auth
+// @Summary Get current user info
+// @Description Return the profile of the currently authenticated user
+// @Tags Authentication
 // @Produce json
+// @Success 200 {object} response.APIResponse[dto.UserResponse]
+// @Failure 401 {object} response.APIResponse[any]
 // @Security BearerAuth
-// @Success 200 {object} UserSuccessResponse
-// @Failure 401 {object} APIErrorResponse
-// @Failure 404 {object} APIErrorResponse
-// @Failure 500 {object} APIErrorResponse
-// @Router /api/auth/me [get]
+// @Router /auth/me [get]
 func (h *authHandlerImpl) GetMe(c *gin.Context) {
 	userID := middleware.GetUserID(c)
 	user, err := h.userService.GetByID(c.Request.Context(), userID)

@@ -6,6 +6,10 @@ import (
 
 	"github.com/thienel/go-backend-template/internal/interface/api/handler"
 	"github.com/thienel/go-backend-template/internal/interface/api/middleware"
+
+	_ "github.com/thienel/go-backend-template/docs"
+	swaggerFiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
 )
 
 type routeRegister struct {
@@ -65,6 +69,9 @@ func SetupRouter(
 
 	// NanoCMD Webhook (Public)
 	router.POST("/nanocmd/webhook", routes.nanocmd.Webhook)
+
+	// Swagger documentation
+	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	return router
 }

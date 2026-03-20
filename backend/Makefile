@@ -1,4 +1,4 @@
-.PHONY: build run dev test lint tidy clean
+.PHONY: build run dev test lint tidy clean swagger deps ent/gen ent/new migrate/diff migrate/apply
 
 # Build variables
 BINARY_NAME=server
@@ -11,6 +11,12 @@ GORUN=$(GOCMD) run
 GOTEST=$(GOCMD) test
 GOMOD=$(GOCMD) mod
 AIR_BIN=$(shell command -v air 2>/dev/null || echo "$(HOME)/go/bin/air")
+
+# Load environment variables from .env if it exists
+ifneq (,$(wildcard ./.env))
+    include .env
+    export
+endif
 
 # Build the server
 build:
@@ -59,7 +65,17 @@ clean:
 
 # Generate swagger docs (requires swag)
 swagger:
-	@swag init -g cmd/server/main.go -o docs
+	@echo "Generating swagger docs..."
+	@swag init -g cmd/server/main.go --parseDependency --parseInternal
+	@echo "✓ Swagger docs generated in ./docs"
+
+# Install dependencies (tools)
+deps:
+	@echo "Installing dependencies..."
+	@go install github.com/swaggo/swag/cmd/swag@latest
+	@go install github.com/air-verse/air@latest
+	@go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
+	@echo "✓ Dependencies installed"
 
 # Show help
 help:
@@ -93,8 +109,15 @@ migrate/diff:
 	  --to "ent://internal/ent/schema" \
 	  --dev-url "docker://postgres/15/test"
 
-# Apply pending migrations to the database
-DB_URL ?= "postgres://username:password@localhost:5432/go_backend_template?search_path=public&sslmode=disable"
+# Database migration variables
+DB_USER ?= postgres
+DB_PASSWORD ?= password
+DB_HOST ?= localhost
+DB_PORT ?= 5432
+DB_NAME ?= go_backend_template
+DB_SSLMODE ?= disable
+DB_URL ?= "postgres://$(DB_USER):$(DB_PASSWORD)@$(DB_HOST):$(DB_PORT)/$(DB_NAME)?sslmode=$(DB_SSLMODE)"
+
 migrate/apply:
 	@atlas migrate apply \
 	  --dir "file://internal/ent/migrate/migrations" \

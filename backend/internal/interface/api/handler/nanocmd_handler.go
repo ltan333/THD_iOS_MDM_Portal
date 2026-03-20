@@ -36,6 +36,15 @@ func NewNanoCMDHandler(svc service.NanoCMDService) NanoCMDHandler {
 	return &nanocmdHandler{service: svc}
 }
 
+// GetVersion godoc
+// @Summary Get NanoCMD version
+// @Description Get the version of the NanoCMD server
+// @Tags NanoCMD
+// @Produce json
+// @Success 200 {object} response.APIResponse[dto.NanoCMDVersionResponse]
+// @Failure 401 {object} response.APIResponse[any]
+// @Security BearerAuth
+// @Router /nanocmd/version [get]
 func (h *nanocmdHandler) GetVersion(c *gin.Context) {
 	resp, err := h.service.GetVersion(c.Request.Context())
 	if err != nil {
@@ -45,6 +54,18 @@ func (h *nanocmdHandler) GetVersion(c *gin.Context) {
 	response.OK(c, resp, "Version retrieved successfully")
 }
 
+// StartWorkflow godoc
+// @Summary Start a workflow
+// @Description Initiate a NanoCMD workflow on specific devices
+// @Tags NanoCMD
+// @Produce json
+// @Param name path string true "Workflow name"
+// @Param id query []string false "Device IDs"
+// @Param context query string false "Workflow context"
+// @Success 200 {object} response.APIResponse[dto.NanoCMDWorkflowStartResponse]
+// @Failure 401 {object} response.APIResponse[any]
+// @Security BearerAuth
+// @Router /nanocmd/workflow/{name} [get]
 func (h *nanocmdHandler) StartWorkflow(c *gin.Context) {
 	name := c.Param("name")
 	ids := c.QueryArray("id")
@@ -58,6 +79,17 @@ func (h *nanocmdHandler) StartWorkflow(c *gin.Context) {
 	response.OK(c, resp, "Workflow started successfully")
 }
 
+// GetEvent godoc
+// @Summary Get event subscription
+// @Description Get details of an event subscription by name
+// @Tags NanoCMD
+// @Produce json
+// @Param name path string true "Event name"
+// @Success 200 {object} response.APIResponse[dto.EventSubscription]
+// @Failure 401 {object} response.APIResponse[any]
+// @Failure 404 {object} response.APIResponse[any]
+// @Security BearerAuth
+// @Router /nanocmd/event/{name} [get]
 func (h *nanocmdHandler) GetEvent(c *gin.Context) {
 	name := c.Param("name")
 	resp, err := h.service.GetEvent(c.Request.Context(), name)
@@ -68,6 +100,19 @@ func (h *nanocmdHandler) GetEvent(c *gin.Context) {
 	response.OK(c, resp, "Event retrieved successfully")
 }
 
+// PutEvent godoc
+// @Summary Update event subscription
+// @Description Create or update an event subscription
+// @Tags NanoCMD
+// @Accept json
+// @Produce json
+// @Param name path string true "Event name"
+// @Param subscription body dto.EventSubscription true "Subscription details"
+// @Success 204
+// @Failure 400 {object} response.APIResponse[any]
+// @Failure 401 {object} response.APIResponse[any]
+// @Security BearerAuth
+// @Router /nanocmd/event/{name} [put]
 func (h *nanocmdHandler) PutEvent(c *gin.Context) {
 	name := c.Param("name")
 	var sub dto.EventSubscription
@@ -83,6 +128,15 @@ func (h *nanocmdHandler) PutEvent(c *gin.Context) {
 	response.NoContent(c)
 }
 
+// GetFVEnableProfileTemplate godoc
+// @Summary Get FileVault enable profile template
+// @Description Get the Apple Configuration Profile template for enabling FileVault
+// @Tags NanoCMD
+// @Produce application/x-apple-aspen-config
+// @Success 200 {string} string "Apple Configuration Profile"
+// @Failure 401 {object} response.APIResponse[any]
+// @Security BearerAuth
+// @Router /nanocmd/profile/template/fv-enable [get]
 func (h *nanocmdHandler) GetFVEnableProfileTemplate(c *gin.Context) {
 	data, err := h.service.GetFVEnableProfileTemplate(c.Request.Context())
 	if err != nil {
@@ -92,6 +146,17 @@ func (h *nanocmdHandler) GetFVEnableProfileTemplate(c *gin.Context) {
 	c.Data(http.StatusOK, "application/x-apple-aspen-config", data)
 }
 
+// GetProfile godoc
+// @Summary Get profile by name
+// @Description Fetch an Apple Configuration Profile from NanoCMD
+// @Tags NanoCMD
+// @Produce application/x-apple-aspen-config
+// @Param name path string true "Profile name"
+// @Success 200 {string} string "Apple Configuration Profile"
+// @Failure 401 {object} response.APIResponse[any]
+// @Failure 404 {object} response.APIResponse[any]
+// @Security BearerAuth
+// @Router /nanocmd/profile/{name} [get]
 func (h *nanocmdHandler) GetProfile(c *gin.Context) {
 	name := c.Param("name")
 	data, err := h.service.GetProfile(c.Request.Context(), name)
@@ -102,6 +167,18 @@ func (h *nanocmdHandler) GetProfile(c *gin.Context) {
 	c.Data(http.StatusOK, "application/x-apple-aspen-config", data)
 }
 
+// PutProfile godoc
+// @Summary Create or update profile
+// @Description Upload an Apple Configuration Profile to NanoCMD
+// @Tags NanoCMD
+// @Accept application/x-apple-aspen-config
+// @Param name path string true "Profile name"
+// @Param data body string true "Profile XML data"
+// @Success 204
+// @Failure 400 {object} response.APIResponse[any]
+// @Failure 401 {object} response.APIResponse[any]
+// @Security BearerAuth
+// @Router /nanocmd/profile/{name} [put]
 func (h *nanocmdHandler) PutProfile(c *gin.Context) {
 	name := c.Param("name")
 	data, err := io.ReadAll(c.Request.Body)
@@ -117,6 +194,16 @@ func (h *nanocmdHandler) PutProfile(c *gin.Context) {
 	response.NoContent(c)
 }
 
+// DeleteProfile godoc
+// @Summary Delete profile
+// @Description Remove a profile from NanoCMD
+// @Tags NanoCMD
+// @Param name path string true "Profile name"
+// @Success 204
+// @Failure 401 {object} response.APIResponse[any]
+// @Failure 404 {object} response.APIResponse[any]
+// @Security BearerAuth
+// @Router /nanocmd/profile/{name} [delete]
 func (h *nanocmdHandler) DeleteProfile(c *gin.Context) {
 	name := c.Param("name")
 	if err := h.service.DeleteProfile(c.Request.Context(), name); err != nil {
@@ -126,6 +213,16 @@ func (h *nanocmdHandler) DeleteProfile(c *gin.Context) {
 	response.NoContent(c)
 }
 
+// GetProfiles godoc
+// @Summary List profiles
+// @Description Get a list of profiles by name
+// @Tags NanoCMD
+// @Produce json
+// @Param name query []string false "Profile names"
+// @Success 200 {object} response.APIResponse[[]dto.NanoCMDProfile]
+// @Failure 401 {object} response.APIResponse[any]
+// @Security BearerAuth
+// @Router /nanocmd/profiles [get]
 func (h *nanocmdHandler) GetProfiles(c *gin.Context) {
 	names := c.QueryArray("name")
 	resp, err := h.service.GetProfiles(c.Request.Context(), names)
@@ -136,6 +233,17 @@ func (h *nanocmdHandler) GetProfiles(c *gin.Context) {
 	response.OK(c, resp, "Profiles retrieved successfully")
 }
 
+// GetCMDPlan godoc
+// @Summary Get command plan
+// @Description Fetch detailed command plan for a device from NanoCMD
+// @Tags NanoCMD
+// @Produce json
+// @Param name path string true "Device ID"
+// @Success 200 {object} response.APIResponse[dto.CMDPlan]
+// @Failure 401 {object} response.APIResponse[any]
+// @Failure 404 {object} response.APIResponse[any]
+// @Security BearerAuth
+// @Router /nanocmd/cmdplan/{name} [get]
 func (h *nanocmdHandler) GetCMDPlan(c *gin.Context) {
 	name := c.Param("name")
 	resp, err := h.service.GetCMDPlan(c.Request.Context(), name)
@@ -146,6 +254,19 @@ func (h *nanocmdHandler) GetCMDPlan(c *gin.Context) {
 	response.OK(c, resp, "Command plan retrieved successfully")
 }
 
+// PutCMDPlan godoc
+// @Summary Update command plan
+// @Description Update command plan for a device
+// @Tags NanoCMD
+// @Accept json
+// @Produce json
+// @Param name path string true "Device ID"
+// @Param plan body dto.CMDPlan true "Command plan details"
+// @Success 204
+// @Failure 400 {object} response.APIResponse[any]
+// @Failure 401 {object} response.APIResponse[any]
+// @Security BearerAuth
+// @Router /nanocmd/cmdplan/{name} [put]
 func (h *nanocmdHandler) PutCMDPlan(c *gin.Context) {
 	name := c.Param("name")
 	var plan dto.CMDPlan
@@ -161,6 +282,16 @@ func (h *nanocmdHandler) PutCMDPlan(c *gin.Context) {
 	response.NoContent(c)
 }
 
+// GetInventory godoc
+// @Summary Get device inventory
+// @Description Fetch inventory metadata for specific devices
+// @Tags NanoCMD
+// @Produce json
+// @Param id query []string false "Device IDs"
+// @Success 200 {object} response.APIResponse[dto.NanoCMDInventoryResponse]
+// @Failure 401 {object} response.APIResponse[any]
+// @Security BearerAuth
+// @Router /nanocmd/inventory [get]
 func (h *nanocmdHandler) GetInventory(c *gin.Context) {
 	ids := c.QueryArray("id")
 	resp, err := h.service.GetInventory(c.Request.Context(), ids)
@@ -171,6 +302,16 @@ func (h *nanocmdHandler) GetInventory(c *gin.Context) {
 	response.OK(c, resp, "Inventory retrieved successfully")
 }
 
+// Webhook godoc
+// @Summary NanoCMD Webhook
+// @Description Endpoint for NanoCMD to send event notifications
+// @Tags NanoCMD
+// @Accept json
+// @Produce json
+// @Param webhook body dto.NanoCMDWebhook true "Webhook payload"
+// @Success 200 {object} response.APIResponse[any]
+// @Failure 400 {object} response.APIResponse[any]
+// @Router /nanocmd/webhook [post]
 func (h *nanocmdHandler) Webhook(c *gin.Context) {
 	var webhook dto.NanoCMDWebhook
 	if err := c.ShouldBindJSON(&webhook); err != nil {

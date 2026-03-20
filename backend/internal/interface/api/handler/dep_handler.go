@@ -36,6 +36,19 @@ func NewDEPHandler(client *ent.Client, authzService service.AuthorizationService
 	}
 }
 
+// PutToken godoc
+// @Summary Upload DEP token
+// @Description Upload or update a DEP token (.p7m file) for a specific name
+// @Tags DEP
+// @Accept multipart/form-data
+// @Produce json
+// @Param name path string true "Token name"
+// @Param token formData file true "DEP Token file (.p7m)"
+// @Success 200 {object} response.APIResponse[dto.DEPTokenResponse]
+// @Failure 400 {object} response.APIResponse[any]
+// @Failure 401 {object} response.APIResponse[any]
+// @Security BearerAuth
+// @Router /dep/token/{name} [post]
 func (h *depHandler) PutToken(c *gin.Context) {
 	name := c.Param("name")
 	file, err := c.FormFile("token")
@@ -83,6 +96,17 @@ func (h *depHandler) PutToken(c *gin.Context) {
 	}, "Token saved successfully")
 }
 
+// GetToken godoc
+// @Summary Get DEP token
+// @Description Get details of a DEP token by name
+// @Tags DEP
+// @Produce json
+// @Param name path string true "Token name"
+// @Success 200 {object} response.APIResponse[dto.DEPTokenResponse]
+// @Failure 401 {object} response.APIResponse[any]
+// @Failure 404 {object} response.APIResponse[any]
+// @Security BearerAuth
+// @Router /dep/token/{name} [get]
 func (h *depHandler) GetToken(c *gin.Context) {
 	name := c.Param("name")
 	token, err := h.client.DEPToken.
@@ -106,6 +130,15 @@ func (h *depHandler) GetToken(c *gin.Context) {
 	}, "Token retrieved successfully")
 }
 
+// SyncDevices godoc
+// @Summary Sync DEP devices
+// @Description Initiate a sync with Apple DEP servers to fetch new devices
+// @Tags DEP
+// @Produce json
+// @Success 200 {object} response.APIResponse[any]
+// @Failure 401 {object} response.APIResponse[any]
+// @Security BearerAuth
+// @Router /dep/sync [post]
 func (h *depHandler) SyncDevices(c *gin.Context) {
 	claims := middleware.GetUserClaims(c)
 	if claims == nil {
@@ -125,16 +158,45 @@ func (h *depHandler) SyncDevices(c *gin.Context) {
 	response.OK(c, gin.H{"status": "sync_initiated", "synced_device": sn}, "Sync initiated and permissions granted")
 }
 
+// DefineProfile godoc
+// @Summary Define DEP profile
+// @Description Create or update a DEP assignment profile
+// @Tags DEP
+// @Accept json
+// @Produce json
+// @Success 200 {object} response.APIResponse[any]
+// @Failure 401 {object} response.APIResponse[any]
+// @Security BearerAuth
+// @Router /dep/profile [post]
 func (h *depHandler) DefineProfile(c *gin.Context) {
 	// Logic to call nanoMDM /proxy/mdm-dep-server/profile
 	response.OK(c, gin.H{"profile_uuid": "MOCK-UUID-12345"}, "Profile defined")
 }
 
+// GetProfile godoc
+// @Summary Get DEP profile
+// @Description Fetch details of a defined DEP profile
+// @Tags DEP
+// @Produce json
+// @Success 200 {object} response.APIResponse[any]
+// @Failure 401 {object} response.APIResponse[any]
+// @Security BearerAuth
+// @Router /dep/profile [get]
 func (h *depHandler) GetProfile(c *gin.Context) {
 	// Logic to call nanoMDM /proxy/mdm-dep-server/profile?profile_uuid=xxx
 	response.OK(c, gin.H{"profile_name": "Default Profile"}, "Profile retrieved")
 }
 
+// DisownDevice godoc
+// @Summary Disown DEP device
+// @Description Remove a device from DEP management
+// @Tags DEP
+// @Produce json
+// @Success 200 {object} response.APIResponse[any]
+// @Failure 401 {object} response.APIResponse[any]
+// @Failure 403 {object} response.APIResponse[any]
+// @Security BearerAuth
+// @Router /dep/disown [post]
 func (h *depHandler) DisownDevice(c *gin.Context) {
 	claims := middleware.GetUserClaims(c)
 	if claims == nil {
