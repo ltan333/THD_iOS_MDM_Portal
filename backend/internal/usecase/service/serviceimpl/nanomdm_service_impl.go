@@ -97,6 +97,79 @@ func (s *nanomdmServiceImpl) GetDEPProfile(ctx context.Context, depName, profile
 	return result, nil
 }
 
+func (s *nanomdmServiceImpl) SyncDEPDevices(ctx context.Context, depName string) (interface{}, error) {
+	resp, err := s.doRequest(ctx, http.MethodPost, fmt.Sprintf("/proxy/%s/devices/sync", depName), nil, nil)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("nanomdm error: status %d", resp.StatusCode)
+	}
+
+	var result interface{}
+	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+
+func (s *nanomdmServiceImpl) DisownDEPDevices(ctx context.Context, depName string, devices []string) (interface{}, error) {
+	body := struct {
+		Devices []string `json:"devices"`
+	}{
+		Devices: devices,
+	}
+	resp, err := s.doRequest(ctx, http.MethodPost, fmt.Sprintf("/proxy/%s/devices/disown", depName), body, nil)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("nanomdm error: status %d", resp.StatusCode)
+	}
+
+	var result interface{}
+	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+
+func (s *nanomdmServiceImpl) UploadDEPToken(ctx context.Context, depName string, tokenData []byte) (interface{}, error) {
+	u, err := url.Parse(fmt.Sprintf("%s/v1/tokenpki/%s", s.baseURL, depName))
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodPut, u.String(), bytes.NewReader(tokenData))
+	if err != nil {
+		return nil, err
+	}
+
+	req.SetBasicAuth(s.username, s.password)
+	req.Header.Set("Content-Type", "application/x-apple-aspen-config")
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("nanomdm error: status %d", resp.StatusCode)
+	}
+
+	var result interface{}
+	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+
 func (s *nanomdmServiceImpl) UploadPushCert(ctx context.Context, certData []byte) error {
 	resp, err := s.doRequest(ctx, http.MethodPost, "/v1/pushcert", certData, nil)
 	if err != nil {

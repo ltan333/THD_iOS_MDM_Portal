@@ -2,6 +2,7 @@ package handler
 
 import (
 	"context"
+	"os"
 	"path/filepath"
 
 	"github.com/gin-gonic/gin"
@@ -87,6 +88,20 @@ func (h *depHandler) PutToken(c *gin.Context) {
 		return
 	}
 
+	// Read file for NanoMDM upload
+	tokenData, err := os.ReadFile(dst)
+	if err != nil {
+		response.WriteErrorResponse(c, apperror.ErrInternalServerError.WithError(err))
+		return
+	}
+
+	// Upload to NanoMDM
+	_, err = h.mdmService.UploadDEPToken(c.Request.Context(), name, tokenData)
+	if err != nil {
+		response.WriteErrorResponse(c, err)
+		return
+	}
+
 	response.OK(c, dto.DEPTokenResponse{
 		ID:          token.ID,
 		Name:        token.Name,
@@ -95,7 +110,7 @@ func (h *depHandler) PutToken(c *gin.Context) {
 		LastUsed:    token.LastUsed,
 		CreatedAt:   token.CreatedAt,
 		UpdatedAt:   token.UpdatedAt,
-	}, "Token saved successfully")
+	}, "Token saved and uploaded to MDM successfully")
 }
 
 // GetToken godoc
@@ -142,22 +157,17 @@ func (h *depHandler) GetToken(c *gin.Context) {
 // @Security BearerAuth
 // @Router /dep/sync [post]
 func (h *depHandler) SyncDevices(c *gin.Context) {
-	claims := middleware.GetUserClaims(c)
-	if claims == nil {
-		response.WriteErrorResponse(c, apperror.ErrUnauthorized)
-		return
-	}
-
-	// Mock syncing a device: Serial SN-MOCK-123
-	sn := "SN-MOCK-123"
-	_, err := h.authzService.AddResourcePolicy(claims.UserID, "device:"+sn, "read")
+	// In a real scenario, you might want a 'dep_name' from query or param
+	// Defaulting to "default" as seen in other methods
+	depName := "default"
+	
+	result, err := h.mdmService.SyncDEPDevices(c.Request.Context(), depName)
 	if err != nil {
-		response.WriteErrorResponse(c, apperror.ErrInternalServerError.WithError(err))
+		response.WriteErrorResponse(c, err)
 		return
 	}
-	h.authzService.AddResourcePolicy(claims.UserID, "device:"+sn, "write")
 
-	response.OK(c, gin.H{"status": "sync_initiated", "synced_device": sn}, "Sync initiated and permissions granted")
+	response.OK(c, result, "Sync initiated successfully")
 }
 
 // DefineProfile godoc
@@ -221,21 +231,21 @@ func (h *depHandler) DisownDevice(c *gin.Context) {
 		return
 	}
 
-	// Serial number from request (mocked for now)
-	sn := "SN-MOCK-123"
-
-	// Check permission
-	allowed, err := h.authzService.AuthorizeResource(claims.UserID, "device:"+sn, "write")
-	if err != nil {
-		response.WriteErrorResponse(c, apperror.ErrInternalServerError.WithError(err))
-		return
+	// Serial numbers from request
+	var req struct {
+		Serials []string `json:"serials"`
 	}
-
-	if !allowed {
-		response.WriteErrorResponse(c, apperror.ErrForbidden.WithMessage("Bạn không có quyền thao tác trên thiết bị này"))
+	if err := c.ShouldBindJSON(&req); err != nil {
+		response.WriteErrorResponse(c, err)
 		return
 	}
 
 	// Logic to call nanoMDM /proxy/mdm-dep-server/devices/disown
-	response.OK(c, gin.H{"status": "disowned", "serial_number": sn}, "Device disowned successfully")
+	result, err := h.mdmService.DisownDEPDevices(c.Request.Context(), "default", req.Serials)
+	if err != nil {
+		response.WriteErrorResponse(c, err)
+		return
+	}
+
+	response.OK(c, result, "Devices disowned successfully")
 }

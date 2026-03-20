@@ -2,7 +2,6 @@ package config
 
 import (
 	"log"
-	"net/url"
 
 	"github.com/ilyakaznacheev/cleanenv"
 	"github.com/joho/godotenv"
@@ -56,12 +55,6 @@ type CookieConfig struct {
 	Path        string `env:"COOKIE_PATH" env-default:"/"`
 }
 
-// RateLimitConfig holds rate limiting configuration
-type RateLimitConfig struct {
-	Enabled           bool `env:"RATE_LIMIT_ENABLED" env-default:"true"`
-	RequestsPerMinute int  `env:"RATE_LIMIT_REQUESTS_PER_MIN" env-default:"60"`
-}
-
 // CasbinConfig holds Casbin authorization configuration
 type CasbinConfig struct {
 	ModelPath string `env:"CASBIN_MODEL_PATH" env-default:"configs/casbin_model.conf"`
@@ -88,12 +81,10 @@ type Config struct {
 	JWT       JWTConfig
 	Log       LogConfig
 	Cookie    CookieConfig
-	RateLimit RateLimitConfig
 	Casbin    CasbinConfig
 	NanoCMD   NanoCMDConfig
 	NanoMDM   NanoMDMConfig
 
-	RedisURL           string   `env:"REDIS_URL" env-default:"redis://localhost:6379"`
 	CORSAllowedOrigins []string `env:"CORS_ALLOWED_ORIGINS" env-default:"http://localhost:3000"`
 }
 
@@ -126,14 +117,6 @@ func (c *Config) IsProduction() bool {
 
 func (c *Config) IsDevelopment() bool {
 	return c.Server.Env == "development"
-}
-
-func (c *Config) GetRedisAddr() string {
-	parsed, err := url.Parse(c.RedisURL)
-	if err != nil || parsed.Host == "" {
-		return c.RedisURL
-	}
-	return parsed.Host
 }
 
 func GetConfig() *Config {
