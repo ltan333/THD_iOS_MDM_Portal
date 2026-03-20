@@ -39,7 +39,7 @@ func NewPolicyHandler(authzService service.AuthorizationService) PolicyHandler {
 // @Success 200 {object} response.APIResponse[[]service.PolicyRule]
 // @Failure 401 {object} response.APIResponse[any]
 // @Security BearerAuth
-// @Router /policies [get]
+// @Router /v1/policies [get]
 func (h *policyHandlerImpl) ListPolicies(c *gin.Context) {
 	policies, err := h.authzService.GetAllPolicies()
 	if err != nil {
@@ -61,7 +61,7 @@ func (h *policyHandlerImpl) ListPolicies(c *gin.Context) {
 // @Failure 401 {object} response.APIResponse[any]
 // @Failure 409 {object} response.APIResponse[any]
 // @Security BearerAuth
-// @Router /policies [post]
+// @Router /v1/policies [post]
 func (h *policyHandlerImpl) AddPolicy(c *gin.Context) {
 	var req service.PolicyRule
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -100,7 +100,7 @@ func (h *policyHandlerImpl) AddPolicy(c *gin.Context) {
 // @Failure 401 {object} response.APIResponse[any]
 // @Failure 404 {object} response.APIResponse[any]
 // @Security BearerAuth
-// @Router /policies [delete]
+// @Router /v1/policies [delete]
 func (h *policyHandlerImpl) RemovePolicy(c *gin.Context) {
 	var req service.PolicyRule
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -132,7 +132,7 @@ func (h *policyHandlerImpl) RemovePolicy(c *gin.Context) {
 // @Failure 400 {object} response.APIResponse[any]
 // @Failure 401 {object} response.APIResponse[any]
 // @Security BearerAuth
-// @Router /policies/role/{role} [get]
+// @Router /v1/policies/role/{role} [get]
 func (h *policyHandlerImpl) GetPoliciesForRole(c *gin.Context) {
 	role := c.Param("role")
 	if role == "" {
@@ -157,7 +157,7 @@ func (h *policyHandlerImpl) GetPoliciesForRole(c *gin.Context) {
 // @Success 200 {object} response.APIResponse[[]service.RoleLink]
 // @Failure 401 {object} response.APIResponse[any]
 // @Security BearerAuth
-// @Router /roles [get]
+// @Router /v1/roles [get]
 func (h *policyHandlerImpl) ListRoles(c *gin.Context) {
 	roles, err := h.authzService.GetAllRoles()
 	if err != nil {
@@ -179,7 +179,7 @@ func (h *policyHandlerImpl) ListRoles(c *gin.Context) {
 // @Failure 401 {object} response.APIResponse[any]
 // @Failure 409 {object} response.APIResponse[any]
 // @Security BearerAuth
-// @Router /roles [post]
+// @Router /v1/roles [post]
 func (h *policyHandlerImpl) AddRole(c *gin.Context) {
 	var req service.RoleLink
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -218,7 +218,7 @@ func (h *policyHandlerImpl) AddRole(c *gin.Context) {
 // @Failure 401 {object} response.APIResponse[any]
 // @Failure 404 {object} response.APIResponse[any]
 // @Security BearerAuth
-// @Router /roles [delete]
+// @Router /v1/roles [delete]
 func (h *policyHandlerImpl) RemoveRole(c *gin.Context) {
 	var req service.RoleLink
 	if err := c.ShouldBindJSON(&req); err != nil {

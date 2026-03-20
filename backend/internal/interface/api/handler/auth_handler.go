@@ -43,7 +43,7 @@ func NewAuthHandler(authService service.AuthService, userService service.UserSer
 // @Success 200 {object} response.APIResponse[dto.LoginResponse]
 // @Failure 400 {object} response.APIResponse[any]
 // @Failure 401 {object} response.APIResponse[any]
-// @Router /auth/login [post]
+// @Router /v1/auth/login [post]
 func (h *authHandlerImpl) Login(c *gin.Context) {
 	var req dto.LoginRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -66,7 +66,7 @@ func (h *authHandlerImpl) Login(c *gin.Context) {
 // @Tags Authentication
 // @Produce json
 // @Success 200 {object} response.APIResponse[any]
-// @Router /auth/logout [post]
+// @Router /v1/auth/logout [post]
 func (h *authHandlerImpl) Logout(c *gin.Context) {
 	if err := h.authService.Logout(c.Request.Context()); err != nil {
 		response.WriteErrorResponse(c, err)
@@ -83,7 +83,7 @@ func (h *authHandlerImpl) Logout(c *gin.Context) {
 // @Success 200 {object} response.APIResponse[dto.UserResponse]
 // @Failure 401 {object} response.APIResponse[any]
 // @Security BearerAuth
-// @Router /auth/me [get]
+// @Router /v1/auth/me [get]
 func (h *authHandlerImpl) GetMe(c *gin.Context) {
 	userID := middleware.GetUserID(c)
 	user, err := h.userService.GetByID(c.Request.Context(), userID)
