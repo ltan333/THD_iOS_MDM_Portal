@@ -12,6 +12,7 @@ import (
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"github.com/thienel/go-backend-template/internal/ent/apnsconfig"
+	"github.com/thienel/go-backend-template/internal/ent/depprofile"
 	"github.com/thienel/go-backend-template/internal/ent/deptoken"
 	"github.com/thienel/go-backend-template/internal/ent/device"
 	"github.com/thienel/go-backend-template/internal/ent/mobileconfig"
@@ -33,6 +34,7 @@ const (
 	// Node types.
 	TypeAPNSConfig                = "APNSConfig"
 	TypeDEPToken                  = "DEPToken"
+	TypeDepProfile                = "DepProfile"
 	TypeDevice                    = "Device"
 	TypeMobileConfig              = "MobileConfig"
 	TypePayload                   = "Payload"
@@ -1306,6 +1308,2025 @@ func (m *DEPTokenMutation) ClearEdge(name string) error {
 // It returns an error if the edge is not defined in the schema.
 func (m *DEPTokenMutation) ResetEdge(name string) error {
 	return fmt.Errorf("unknown DEPToken edge %s", name)
+}
+
+// DepProfileMutation represents an operation that mutates the DepProfile nodes in the graph.
+type DepProfileMutation struct {
+	config
+	op                             Op
+	typ                            string
+	id                             *uint
+	profile_name                   *string
+	profile_uuid                   *string
+	allow_pairing                  *bool
+	anchor_certs                   *[]string
+	appendanchor_certs             []string
+	auto_advance_setup             *bool
+	await_device_configured        *bool
+	configuration_web_url          *string
+	department                     *string
+	devices                        *[]string
+	appenddevices                  []string
+	do_not_use_profile_from_backup *bool
+	is_return_to_service           *bool
+	is_mandatory                   *bool
+	is_mdm_removable               *bool
+	is_multi_user                  *bool
+	is_supervised                  *bool
+	language                       *string
+	org_magic                      *string
+	region                         *string
+	skip_setup_items               *[]string
+	appendskip_setup_items         []string
+	supervising_host_certs         *[]string
+	appendsupervising_host_certs   []string
+	support_email_address          *string
+	support_phone_number           *string
+	url                            *string
+	profile_data                   *map[string]interface{}
+	created_at                     *time.Time
+	updated_at                     *time.Time
+	clearedFields                  map[string]struct{}
+	done                           bool
+	oldValue                       func(context.Context) (*DepProfile, error)
+	predicates                     []predicate.DepProfile
+}
+
+var _ ent.Mutation = (*DepProfileMutation)(nil)
+
+// depprofileOption allows management of the mutation configuration using functional options.
+type depprofileOption func(*DepProfileMutation)
+
+// newDepProfileMutation creates new mutation for the DepProfile entity.
+func newDepProfileMutation(c config, op Op, opts ...depprofileOption) *DepProfileMutation {
+	m := &DepProfileMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeDepProfile,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withDepProfileID sets the ID field of the mutation.
+func withDepProfileID(id uint) depprofileOption {
+	return func(m *DepProfileMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *DepProfile
+		)
+		m.oldValue = func(ctx context.Context) (*DepProfile, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().DepProfile.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withDepProfile sets the old DepProfile of the mutation.
+func withDepProfile(node *DepProfile) depprofileOption {
+	return func(m *DepProfileMutation) {
+		m.oldValue = func(context.Context) (*DepProfile, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m DepProfileMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m DepProfileMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of DepProfile entities.
+func (m *DepProfileMutation) SetID(id uint) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *DepProfileMutation) ID() (id uint, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *DepProfileMutation) IDs(ctx context.Context) ([]uint, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []uint{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().DepProfile.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetProfileName sets the "profile_name" field.
+func (m *DepProfileMutation) SetProfileName(s string) {
+	m.profile_name = &s
+}
+
+// ProfileName returns the value of the "profile_name" field in the mutation.
+func (m *DepProfileMutation) ProfileName() (r string, exists bool) {
+	v := m.profile_name
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldProfileName returns the old "profile_name" field's value of the DepProfile entity.
+// If the DepProfile object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *DepProfileMutation) OldProfileName(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldProfileName is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldProfileName requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldProfileName: %w", err)
+	}
+	return oldValue.ProfileName, nil
+}
+
+// ResetProfileName resets all changes to the "profile_name" field.
+func (m *DepProfileMutation) ResetProfileName() {
+	m.profile_name = nil
+}
+
+// SetProfileUUID sets the "profile_uuid" field.
+func (m *DepProfileMutation) SetProfileUUID(s string) {
+	m.profile_uuid = &s
+}
+
+// ProfileUUID returns the value of the "profile_uuid" field in the mutation.
+func (m *DepProfileMutation) ProfileUUID() (r string, exists bool) {
+	v := m.profile_uuid
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldProfileUUID returns the old "profile_uuid" field's value of the DepProfile entity.
+// If the DepProfile object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *DepProfileMutation) OldProfileUUID(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldProfileUUID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldProfileUUID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldProfileUUID: %w", err)
+	}
+	return oldValue.ProfileUUID, nil
+}
+
+// ClearProfileUUID clears the value of the "profile_uuid" field.
+func (m *DepProfileMutation) ClearProfileUUID() {
+	m.profile_uuid = nil
+	m.clearedFields[depprofile.FieldProfileUUID] = struct{}{}
+}
+
+// ProfileUUIDCleared returns if the "profile_uuid" field was cleared in this mutation.
+func (m *DepProfileMutation) ProfileUUIDCleared() bool {
+	_, ok := m.clearedFields[depprofile.FieldProfileUUID]
+	return ok
+}
+
+// ResetProfileUUID resets all changes to the "profile_uuid" field.
+func (m *DepProfileMutation) ResetProfileUUID() {
+	m.profile_uuid = nil
+	delete(m.clearedFields, depprofile.FieldProfileUUID)
+}
+
+// SetAllowPairing sets the "allow_pairing" field.
+func (m *DepProfileMutation) SetAllowPairing(b bool) {
+	m.allow_pairing = &b
+}
+
+// AllowPairing returns the value of the "allow_pairing" field in the mutation.
+func (m *DepProfileMutation) AllowPairing() (r bool, exists bool) {
+	v := m.allow_pairing
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldAllowPairing returns the old "allow_pairing" field's value of the DepProfile entity.
+// If the DepProfile object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *DepProfileMutation) OldAllowPairing(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldAllowPairing is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldAllowPairing requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldAllowPairing: %w", err)
+	}
+	return oldValue.AllowPairing, nil
+}
+
+// ResetAllowPairing resets all changes to the "allow_pairing" field.
+func (m *DepProfileMutation) ResetAllowPairing() {
+	m.allow_pairing = nil
+}
+
+// SetAnchorCerts sets the "anchor_certs" field.
+func (m *DepProfileMutation) SetAnchorCerts(s []string) {
+	m.anchor_certs = &s
+	m.appendanchor_certs = nil
+}
+
+// AnchorCerts returns the value of the "anchor_certs" field in the mutation.
+func (m *DepProfileMutation) AnchorCerts() (r []string, exists bool) {
+	v := m.anchor_certs
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldAnchorCerts returns the old "anchor_certs" field's value of the DepProfile entity.
+// If the DepProfile object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *DepProfileMutation) OldAnchorCerts(ctx context.Context) (v []string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldAnchorCerts is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldAnchorCerts requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldAnchorCerts: %w", err)
+	}
+	return oldValue.AnchorCerts, nil
+}
+
+// AppendAnchorCerts adds s to the "anchor_certs" field.
+func (m *DepProfileMutation) AppendAnchorCerts(s []string) {
+	m.appendanchor_certs = append(m.appendanchor_certs, s...)
+}
+
+// AppendedAnchorCerts returns the list of values that were appended to the "anchor_certs" field in this mutation.
+func (m *DepProfileMutation) AppendedAnchorCerts() ([]string, bool) {
+	if len(m.appendanchor_certs) == 0 {
+		return nil, false
+	}
+	return m.appendanchor_certs, true
+}
+
+// ClearAnchorCerts clears the value of the "anchor_certs" field.
+func (m *DepProfileMutation) ClearAnchorCerts() {
+	m.anchor_certs = nil
+	m.appendanchor_certs = nil
+	m.clearedFields[depprofile.FieldAnchorCerts] = struct{}{}
+}
+
+// AnchorCertsCleared returns if the "anchor_certs" field was cleared in this mutation.
+func (m *DepProfileMutation) AnchorCertsCleared() bool {
+	_, ok := m.clearedFields[depprofile.FieldAnchorCerts]
+	return ok
+}
+
+// ResetAnchorCerts resets all changes to the "anchor_certs" field.
+func (m *DepProfileMutation) ResetAnchorCerts() {
+	m.anchor_certs = nil
+	m.appendanchor_certs = nil
+	delete(m.clearedFields, depprofile.FieldAnchorCerts)
+}
+
+// SetAutoAdvanceSetup sets the "auto_advance_setup" field.
+func (m *DepProfileMutation) SetAutoAdvanceSetup(b bool) {
+	m.auto_advance_setup = &b
+}
+
+// AutoAdvanceSetup returns the value of the "auto_advance_setup" field in the mutation.
+func (m *DepProfileMutation) AutoAdvanceSetup() (r bool, exists bool) {
+	v := m.auto_advance_setup
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldAutoAdvanceSetup returns the old "auto_advance_setup" field's value of the DepProfile entity.
+// If the DepProfile object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *DepProfileMutation) OldAutoAdvanceSetup(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldAutoAdvanceSetup is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldAutoAdvanceSetup requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldAutoAdvanceSetup: %w", err)
+	}
+	return oldValue.AutoAdvanceSetup, nil
+}
+
+// ResetAutoAdvanceSetup resets all changes to the "auto_advance_setup" field.
+func (m *DepProfileMutation) ResetAutoAdvanceSetup() {
+	m.auto_advance_setup = nil
+}
+
+// SetAwaitDeviceConfigured sets the "await_device_configured" field.
+func (m *DepProfileMutation) SetAwaitDeviceConfigured(b bool) {
+	m.await_device_configured = &b
+}
+
+// AwaitDeviceConfigured returns the value of the "await_device_configured" field in the mutation.
+func (m *DepProfileMutation) AwaitDeviceConfigured() (r bool, exists bool) {
+	v := m.await_device_configured
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldAwaitDeviceConfigured returns the old "await_device_configured" field's value of the DepProfile entity.
+// If the DepProfile object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *DepProfileMutation) OldAwaitDeviceConfigured(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldAwaitDeviceConfigured is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldAwaitDeviceConfigured requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldAwaitDeviceConfigured: %w", err)
+	}
+	return oldValue.AwaitDeviceConfigured, nil
+}
+
+// ResetAwaitDeviceConfigured resets all changes to the "await_device_configured" field.
+func (m *DepProfileMutation) ResetAwaitDeviceConfigured() {
+	m.await_device_configured = nil
+}
+
+// SetConfigurationWebURL sets the "configuration_web_url" field.
+func (m *DepProfileMutation) SetConfigurationWebURL(s string) {
+	m.configuration_web_url = &s
+}
+
+// ConfigurationWebURL returns the value of the "configuration_web_url" field in the mutation.
+func (m *DepProfileMutation) ConfigurationWebURL() (r string, exists bool) {
+	v := m.configuration_web_url
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldConfigurationWebURL returns the old "configuration_web_url" field's value of the DepProfile entity.
+// If the DepProfile object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *DepProfileMutation) OldConfigurationWebURL(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldConfigurationWebURL is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldConfigurationWebURL requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldConfigurationWebURL: %w", err)
+	}
+	return oldValue.ConfigurationWebURL, nil
+}
+
+// ClearConfigurationWebURL clears the value of the "configuration_web_url" field.
+func (m *DepProfileMutation) ClearConfigurationWebURL() {
+	m.configuration_web_url = nil
+	m.clearedFields[depprofile.FieldConfigurationWebURL] = struct{}{}
+}
+
+// ConfigurationWebURLCleared returns if the "configuration_web_url" field was cleared in this mutation.
+func (m *DepProfileMutation) ConfigurationWebURLCleared() bool {
+	_, ok := m.clearedFields[depprofile.FieldConfigurationWebURL]
+	return ok
+}
+
+// ResetConfigurationWebURL resets all changes to the "configuration_web_url" field.
+func (m *DepProfileMutation) ResetConfigurationWebURL() {
+	m.configuration_web_url = nil
+	delete(m.clearedFields, depprofile.FieldConfigurationWebURL)
+}
+
+// SetDepartment sets the "department" field.
+func (m *DepProfileMutation) SetDepartment(s string) {
+	m.department = &s
+}
+
+// Department returns the value of the "department" field in the mutation.
+func (m *DepProfileMutation) Department() (r string, exists bool) {
+	v := m.department
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDepartment returns the old "department" field's value of the DepProfile entity.
+// If the DepProfile object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *DepProfileMutation) OldDepartment(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDepartment is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDepartment requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDepartment: %w", err)
+	}
+	return oldValue.Department, nil
+}
+
+// ClearDepartment clears the value of the "department" field.
+func (m *DepProfileMutation) ClearDepartment() {
+	m.department = nil
+	m.clearedFields[depprofile.FieldDepartment] = struct{}{}
+}
+
+// DepartmentCleared returns if the "department" field was cleared in this mutation.
+func (m *DepProfileMutation) DepartmentCleared() bool {
+	_, ok := m.clearedFields[depprofile.FieldDepartment]
+	return ok
+}
+
+// ResetDepartment resets all changes to the "department" field.
+func (m *DepProfileMutation) ResetDepartment() {
+	m.department = nil
+	delete(m.clearedFields, depprofile.FieldDepartment)
+}
+
+// SetDevices sets the "devices" field.
+func (m *DepProfileMutation) SetDevices(s []string) {
+	m.devices = &s
+	m.appenddevices = nil
+}
+
+// Devices returns the value of the "devices" field in the mutation.
+func (m *DepProfileMutation) Devices() (r []string, exists bool) {
+	v := m.devices
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDevices returns the old "devices" field's value of the DepProfile entity.
+// If the DepProfile object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *DepProfileMutation) OldDevices(ctx context.Context) (v []string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDevices is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDevices requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDevices: %w", err)
+	}
+	return oldValue.Devices, nil
+}
+
+// AppendDevices adds s to the "devices" field.
+func (m *DepProfileMutation) AppendDevices(s []string) {
+	m.appenddevices = append(m.appenddevices, s...)
+}
+
+// AppendedDevices returns the list of values that were appended to the "devices" field in this mutation.
+func (m *DepProfileMutation) AppendedDevices() ([]string, bool) {
+	if len(m.appenddevices) == 0 {
+		return nil, false
+	}
+	return m.appenddevices, true
+}
+
+// ClearDevices clears the value of the "devices" field.
+func (m *DepProfileMutation) ClearDevices() {
+	m.devices = nil
+	m.appenddevices = nil
+	m.clearedFields[depprofile.FieldDevices] = struct{}{}
+}
+
+// DevicesCleared returns if the "devices" field was cleared in this mutation.
+func (m *DepProfileMutation) DevicesCleared() bool {
+	_, ok := m.clearedFields[depprofile.FieldDevices]
+	return ok
+}
+
+// ResetDevices resets all changes to the "devices" field.
+func (m *DepProfileMutation) ResetDevices() {
+	m.devices = nil
+	m.appenddevices = nil
+	delete(m.clearedFields, depprofile.FieldDevices)
+}
+
+// SetDoNotUseProfileFromBackup sets the "do_not_use_profile_from_backup" field.
+func (m *DepProfileMutation) SetDoNotUseProfileFromBackup(b bool) {
+	m.do_not_use_profile_from_backup = &b
+}
+
+// DoNotUseProfileFromBackup returns the value of the "do_not_use_profile_from_backup" field in the mutation.
+func (m *DepProfileMutation) DoNotUseProfileFromBackup() (r bool, exists bool) {
+	v := m.do_not_use_profile_from_backup
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDoNotUseProfileFromBackup returns the old "do_not_use_profile_from_backup" field's value of the DepProfile entity.
+// If the DepProfile object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *DepProfileMutation) OldDoNotUseProfileFromBackup(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDoNotUseProfileFromBackup is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDoNotUseProfileFromBackup requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDoNotUseProfileFromBackup: %w", err)
+	}
+	return oldValue.DoNotUseProfileFromBackup, nil
+}
+
+// ResetDoNotUseProfileFromBackup resets all changes to the "do_not_use_profile_from_backup" field.
+func (m *DepProfileMutation) ResetDoNotUseProfileFromBackup() {
+	m.do_not_use_profile_from_backup = nil
+}
+
+// SetIsReturnToService sets the "is_return_to_service" field.
+func (m *DepProfileMutation) SetIsReturnToService(b bool) {
+	m.is_return_to_service = &b
+}
+
+// IsReturnToService returns the value of the "is_return_to_service" field in the mutation.
+func (m *DepProfileMutation) IsReturnToService() (r bool, exists bool) {
+	v := m.is_return_to_service
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldIsReturnToService returns the old "is_return_to_service" field's value of the DepProfile entity.
+// If the DepProfile object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *DepProfileMutation) OldIsReturnToService(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldIsReturnToService is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldIsReturnToService requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldIsReturnToService: %w", err)
+	}
+	return oldValue.IsReturnToService, nil
+}
+
+// ResetIsReturnToService resets all changes to the "is_return_to_service" field.
+func (m *DepProfileMutation) ResetIsReturnToService() {
+	m.is_return_to_service = nil
+}
+
+// SetIsMandatory sets the "is_mandatory" field.
+func (m *DepProfileMutation) SetIsMandatory(b bool) {
+	m.is_mandatory = &b
+}
+
+// IsMandatory returns the value of the "is_mandatory" field in the mutation.
+func (m *DepProfileMutation) IsMandatory() (r bool, exists bool) {
+	v := m.is_mandatory
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldIsMandatory returns the old "is_mandatory" field's value of the DepProfile entity.
+// If the DepProfile object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *DepProfileMutation) OldIsMandatory(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldIsMandatory is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldIsMandatory requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldIsMandatory: %w", err)
+	}
+	return oldValue.IsMandatory, nil
+}
+
+// ResetIsMandatory resets all changes to the "is_mandatory" field.
+func (m *DepProfileMutation) ResetIsMandatory() {
+	m.is_mandatory = nil
+}
+
+// SetIsMdmRemovable sets the "is_mdm_removable" field.
+func (m *DepProfileMutation) SetIsMdmRemovable(b bool) {
+	m.is_mdm_removable = &b
+}
+
+// IsMdmRemovable returns the value of the "is_mdm_removable" field in the mutation.
+func (m *DepProfileMutation) IsMdmRemovable() (r bool, exists bool) {
+	v := m.is_mdm_removable
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldIsMdmRemovable returns the old "is_mdm_removable" field's value of the DepProfile entity.
+// If the DepProfile object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *DepProfileMutation) OldIsMdmRemovable(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldIsMdmRemovable is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldIsMdmRemovable requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldIsMdmRemovable: %w", err)
+	}
+	return oldValue.IsMdmRemovable, nil
+}
+
+// ResetIsMdmRemovable resets all changes to the "is_mdm_removable" field.
+func (m *DepProfileMutation) ResetIsMdmRemovable() {
+	m.is_mdm_removable = nil
+}
+
+// SetIsMultiUser sets the "is_multi_user" field.
+func (m *DepProfileMutation) SetIsMultiUser(b bool) {
+	m.is_multi_user = &b
+}
+
+// IsMultiUser returns the value of the "is_multi_user" field in the mutation.
+func (m *DepProfileMutation) IsMultiUser() (r bool, exists bool) {
+	v := m.is_multi_user
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldIsMultiUser returns the old "is_multi_user" field's value of the DepProfile entity.
+// If the DepProfile object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *DepProfileMutation) OldIsMultiUser(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldIsMultiUser is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldIsMultiUser requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldIsMultiUser: %w", err)
+	}
+	return oldValue.IsMultiUser, nil
+}
+
+// ResetIsMultiUser resets all changes to the "is_multi_user" field.
+func (m *DepProfileMutation) ResetIsMultiUser() {
+	m.is_multi_user = nil
+}
+
+// SetIsSupervised sets the "is_supervised" field.
+func (m *DepProfileMutation) SetIsSupervised(b bool) {
+	m.is_supervised = &b
+}
+
+// IsSupervised returns the value of the "is_supervised" field in the mutation.
+func (m *DepProfileMutation) IsSupervised() (r bool, exists bool) {
+	v := m.is_supervised
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldIsSupervised returns the old "is_supervised" field's value of the DepProfile entity.
+// If the DepProfile object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *DepProfileMutation) OldIsSupervised(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldIsSupervised is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldIsSupervised requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldIsSupervised: %w", err)
+	}
+	return oldValue.IsSupervised, nil
+}
+
+// ResetIsSupervised resets all changes to the "is_supervised" field.
+func (m *DepProfileMutation) ResetIsSupervised() {
+	m.is_supervised = nil
+}
+
+// SetLanguage sets the "language" field.
+func (m *DepProfileMutation) SetLanguage(s string) {
+	m.language = &s
+}
+
+// Language returns the value of the "language" field in the mutation.
+func (m *DepProfileMutation) Language() (r string, exists bool) {
+	v := m.language
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldLanguage returns the old "language" field's value of the DepProfile entity.
+// If the DepProfile object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *DepProfileMutation) OldLanguage(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldLanguage is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldLanguage requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldLanguage: %w", err)
+	}
+	return oldValue.Language, nil
+}
+
+// ClearLanguage clears the value of the "language" field.
+func (m *DepProfileMutation) ClearLanguage() {
+	m.language = nil
+	m.clearedFields[depprofile.FieldLanguage] = struct{}{}
+}
+
+// LanguageCleared returns if the "language" field was cleared in this mutation.
+func (m *DepProfileMutation) LanguageCleared() bool {
+	_, ok := m.clearedFields[depprofile.FieldLanguage]
+	return ok
+}
+
+// ResetLanguage resets all changes to the "language" field.
+func (m *DepProfileMutation) ResetLanguage() {
+	m.language = nil
+	delete(m.clearedFields, depprofile.FieldLanguage)
+}
+
+// SetOrgMagic sets the "org_magic" field.
+func (m *DepProfileMutation) SetOrgMagic(s string) {
+	m.org_magic = &s
+}
+
+// OrgMagic returns the value of the "org_magic" field in the mutation.
+func (m *DepProfileMutation) OrgMagic() (r string, exists bool) {
+	v := m.org_magic
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldOrgMagic returns the old "org_magic" field's value of the DepProfile entity.
+// If the DepProfile object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *DepProfileMutation) OldOrgMagic(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldOrgMagic is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldOrgMagic requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldOrgMagic: %w", err)
+	}
+	return oldValue.OrgMagic, nil
+}
+
+// ClearOrgMagic clears the value of the "org_magic" field.
+func (m *DepProfileMutation) ClearOrgMagic() {
+	m.org_magic = nil
+	m.clearedFields[depprofile.FieldOrgMagic] = struct{}{}
+}
+
+// OrgMagicCleared returns if the "org_magic" field was cleared in this mutation.
+func (m *DepProfileMutation) OrgMagicCleared() bool {
+	_, ok := m.clearedFields[depprofile.FieldOrgMagic]
+	return ok
+}
+
+// ResetOrgMagic resets all changes to the "org_magic" field.
+func (m *DepProfileMutation) ResetOrgMagic() {
+	m.org_magic = nil
+	delete(m.clearedFields, depprofile.FieldOrgMagic)
+}
+
+// SetRegion sets the "region" field.
+func (m *DepProfileMutation) SetRegion(s string) {
+	m.region = &s
+}
+
+// Region returns the value of the "region" field in the mutation.
+func (m *DepProfileMutation) Region() (r string, exists bool) {
+	v := m.region
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldRegion returns the old "region" field's value of the DepProfile entity.
+// If the DepProfile object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *DepProfileMutation) OldRegion(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldRegion is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldRegion requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldRegion: %w", err)
+	}
+	return oldValue.Region, nil
+}
+
+// ClearRegion clears the value of the "region" field.
+func (m *DepProfileMutation) ClearRegion() {
+	m.region = nil
+	m.clearedFields[depprofile.FieldRegion] = struct{}{}
+}
+
+// RegionCleared returns if the "region" field was cleared in this mutation.
+func (m *DepProfileMutation) RegionCleared() bool {
+	_, ok := m.clearedFields[depprofile.FieldRegion]
+	return ok
+}
+
+// ResetRegion resets all changes to the "region" field.
+func (m *DepProfileMutation) ResetRegion() {
+	m.region = nil
+	delete(m.clearedFields, depprofile.FieldRegion)
+}
+
+// SetSkipSetupItems sets the "skip_setup_items" field.
+func (m *DepProfileMutation) SetSkipSetupItems(s []string) {
+	m.skip_setup_items = &s
+	m.appendskip_setup_items = nil
+}
+
+// SkipSetupItems returns the value of the "skip_setup_items" field in the mutation.
+func (m *DepProfileMutation) SkipSetupItems() (r []string, exists bool) {
+	v := m.skip_setup_items
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSkipSetupItems returns the old "skip_setup_items" field's value of the DepProfile entity.
+// If the DepProfile object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *DepProfileMutation) OldSkipSetupItems(ctx context.Context) (v []string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSkipSetupItems is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSkipSetupItems requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSkipSetupItems: %w", err)
+	}
+	return oldValue.SkipSetupItems, nil
+}
+
+// AppendSkipSetupItems adds s to the "skip_setup_items" field.
+func (m *DepProfileMutation) AppendSkipSetupItems(s []string) {
+	m.appendskip_setup_items = append(m.appendskip_setup_items, s...)
+}
+
+// AppendedSkipSetupItems returns the list of values that were appended to the "skip_setup_items" field in this mutation.
+func (m *DepProfileMutation) AppendedSkipSetupItems() ([]string, bool) {
+	if len(m.appendskip_setup_items) == 0 {
+		return nil, false
+	}
+	return m.appendskip_setup_items, true
+}
+
+// ClearSkipSetupItems clears the value of the "skip_setup_items" field.
+func (m *DepProfileMutation) ClearSkipSetupItems() {
+	m.skip_setup_items = nil
+	m.appendskip_setup_items = nil
+	m.clearedFields[depprofile.FieldSkipSetupItems] = struct{}{}
+}
+
+// SkipSetupItemsCleared returns if the "skip_setup_items" field was cleared in this mutation.
+func (m *DepProfileMutation) SkipSetupItemsCleared() bool {
+	_, ok := m.clearedFields[depprofile.FieldSkipSetupItems]
+	return ok
+}
+
+// ResetSkipSetupItems resets all changes to the "skip_setup_items" field.
+func (m *DepProfileMutation) ResetSkipSetupItems() {
+	m.skip_setup_items = nil
+	m.appendskip_setup_items = nil
+	delete(m.clearedFields, depprofile.FieldSkipSetupItems)
+}
+
+// SetSupervisingHostCerts sets the "supervising_host_certs" field.
+func (m *DepProfileMutation) SetSupervisingHostCerts(s []string) {
+	m.supervising_host_certs = &s
+	m.appendsupervising_host_certs = nil
+}
+
+// SupervisingHostCerts returns the value of the "supervising_host_certs" field in the mutation.
+func (m *DepProfileMutation) SupervisingHostCerts() (r []string, exists bool) {
+	v := m.supervising_host_certs
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSupervisingHostCerts returns the old "supervising_host_certs" field's value of the DepProfile entity.
+// If the DepProfile object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *DepProfileMutation) OldSupervisingHostCerts(ctx context.Context) (v []string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSupervisingHostCerts is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSupervisingHostCerts requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSupervisingHostCerts: %w", err)
+	}
+	return oldValue.SupervisingHostCerts, nil
+}
+
+// AppendSupervisingHostCerts adds s to the "supervising_host_certs" field.
+func (m *DepProfileMutation) AppendSupervisingHostCerts(s []string) {
+	m.appendsupervising_host_certs = append(m.appendsupervising_host_certs, s...)
+}
+
+// AppendedSupervisingHostCerts returns the list of values that were appended to the "supervising_host_certs" field in this mutation.
+func (m *DepProfileMutation) AppendedSupervisingHostCerts() ([]string, bool) {
+	if len(m.appendsupervising_host_certs) == 0 {
+		return nil, false
+	}
+	return m.appendsupervising_host_certs, true
+}
+
+// ClearSupervisingHostCerts clears the value of the "supervising_host_certs" field.
+func (m *DepProfileMutation) ClearSupervisingHostCerts() {
+	m.supervising_host_certs = nil
+	m.appendsupervising_host_certs = nil
+	m.clearedFields[depprofile.FieldSupervisingHostCerts] = struct{}{}
+}
+
+// SupervisingHostCertsCleared returns if the "supervising_host_certs" field was cleared in this mutation.
+func (m *DepProfileMutation) SupervisingHostCertsCleared() bool {
+	_, ok := m.clearedFields[depprofile.FieldSupervisingHostCerts]
+	return ok
+}
+
+// ResetSupervisingHostCerts resets all changes to the "supervising_host_certs" field.
+func (m *DepProfileMutation) ResetSupervisingHostCerts() {
+	m.supervising_host_certs = nil
+	m.appendsupervising_host_certs = nil
+	delete(m.clearedFields, depprofile.FieldSupervisingHostCerts)
+}
+
+// SetSupportEmailAddress sets the "support_email_address" field.
+func (m *DepProfileMutation) SetSupportEmailAddress(s string) {
+	m.support_email_address = &s
+}
+
+// SupportEmailAddress returns the value of the "support_email_address" field in the mutation.
+func (m *DepProfileMutation) SupportEmailAddress() (r string, exists bool) {
+	v := m.support_email_address
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSupportEmailAddress returns the old "support_email_address" field's value of the DepProfile entity.
+// If the DepProfile object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *DepProfileMutation) OldSupportEmailAddress(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSupportEmailAddress is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSupportEmailAddress requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSupportEmailAddress: %w", err)
+	}
+	return oldValue.SupportEmailAddress, nil
+}
+
+// ClearSupportEmailAddress clears the value of the "support_email_address" field.
+func (m *DepProfileMutation) ClearSupportEmailAddress() {
+	m.support_email_address = nil
+	m.clearedFields[depprofile.FieldSupportEmailAddress] = struct{}{}
+}
+
+// SupportEmailAddressCleared returns if the "support_email_address" field was cleared in this mutation.
+func (m *DepProfileMutation) SupportEmailAddressCleared() bool {
+	_, ok := m.clearedFields[depprofile.FieldSupportEmailAddress]
+	return ok
+}
+
+// ResetSupportEmailAddress resets all changes to the "support_email_address" field.
+func (m *DepProfileMutation) ResetSupportEmailAddress() {
+	m.support_email_address = nil
+	delete(m.clearedFields, depprofile.FieldSupportEmailAddress)
+}
+
+// SetSupportPhoneNumber sets the "support_phone_number" field.
+func (m *DepProfileMutation) SetSupportPhoneNumber(s string) {
+	m.support_phone_number = &s
+}
+
+// SupportPhoneNumber returns the value of the "support_phone_number" field in the mutation.
+func (m *DepProfileMutation) SupportPhoneNumber() (r string, exists bool) {
+	v := m.support_phone_number
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSupportPhoneNumber returns the old "support_phone_number" field's value of the DepProfile entity.
+// If the DepProfile object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *DepProfileMutation) OldSupportPhoneNumber(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSupportPhoneNumber is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSupportPhoneNumber requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSupportPhoneNumber: %w", err)
+	}
+	return oldValue.SupportPhoneNumber, nil
+}
+
+// ClearSupportPhoneNumber clears the value of the "support_phone_number" field.
+func (m *DepProfileMutation) ClearSupportPhoneNumber() {
+	m.support_phone_number = nil
+	m.clearedFields[depprofile.FieldSupportPhoneNumber] = struct{}{}
+}
+
+// SupportPhoneNumberCleared returns if the "support_phone_number" field was cleared in this mutation.
+func (m *DepProfileMutation) SupportPhoneNumberCleared() bool {
+	_, ok := m.clearedFields[depprofile.FieldSupportPhoneNumber]
+	return ok
+}
+
+// ResetSupportPhoneNumber resets all changes to the "support_phone_number" field.
+func (m *DepProfileMutation) ResetSupportPhoneNumber() {
+	m.support_phone_number = nil
+	delete(m.clearedFields, depprofile.FieldSupportPhoneNumber)
+}
+
+// SetURL sets the "url" field.
+func (m *DepProfileMutation) SetURL(s string) {
+	m.url = &s
+}
+
+// URL returns the value of the "url" field in the mutation.
+func (m *DepProfileMutation) URL() (r string, exists bool) {
+	v := m.url
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldURL returns the old "url" field's value of the DepProfile entity.
+// If the DepProfile object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *DepProfileMutation) OldURL(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldURL is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldURL requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldURL: %w", err)
+	}
+	return oldValue.URL, nil
+}
+
+// ClearURL clears the value of the "url" field.
+func (m *DepProfileMutation) ClearURL() {
+	m.url = nil
+	m.clearedFields[depprofile.FieldURL] = struct{}{}
+}
+
+// URLCleared returns if the "url" field was cleared in this mutation.
+func (m *DepProfileMutation) URLCleared() bool {
+	_, ok := m.clearedFields[depprofile.FieldURL]
+	return ok
+}
+
+// ResetURL resets all changes to the "url" field.
+func (m *DepProfileMutation) ResetURL() {
+	m.url = nil
+	delete(m.clearedFields, depprofile.FieldURL)
+}
+
+// SetProfileData sets the "profile_data" field.
+func (m *DepProfileMutation) SetProfileData(value map[string]interface{}) {
+	m.profile_data = &value
+}
+
+// ProfileData returns the value of the "profile_data" field in the mutation.
+func (m *DepProfileMutation) ProfileData() (r map[string]interface{}, exists bool) {
+	v := m.profile_data
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldProfileData returns the old "profile_data" field's value of the DepProfile entity.
+// If the DepProfile object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *DepProfileMutation) OldProfileData(ctx context.Context) (v map[string]interface{}, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldProfileData is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldProfileData requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldProfileData: %w", err)
+	}
+	return oldValue.ProfileData, nil
+}
+
+// ClearProfileData clears the value of the "profile_data" field.
+func (m *DepProfileMutation) ClearProfileData() {
+	m.profile_data = nil
+	m.clearedFields[depprofile.FieldProfileData] = struct{}{}
+}
+
+// ProfileDataCleared returns if the "profile_data" field was cleared in this mutation.
+func (m *DepProfileMutation) ProfileDataCleared() bool {
+	_, ok := m.clearedFields[depprofile.FieldProfileData]
+	return ok
+}
+
+// ResetProfileData resets all changes to the "profile_data" field.
+func (m *DepProfileMutation) ResetProfileData() {
+	m.profile_data = nil
+	delete(m.clearedFields, depprofile.FieldProfileData)
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *DepProfileMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *DepProfileMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the DepProfile entity.
+// If the DepProfile object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *DepProfileMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *DepProfileMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *DepProfileMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *DepProfileMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the DepProfile entity.
+// If the DepProfile object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *DepProfileMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *DepProfileMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+}
+
+// Where appends a list predicates to the DepProfileMutation builder.
+func (m *DepProfileMutation) Where(ps ...predicate.DepProfile) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the DepProfileMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *DepProfileMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.DepProfile, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *DepProfileMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *DepProfileMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (DepProfile).
+func (m *DepProfileMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *DepProfileMutation) Fields() []string {
+	fields := make([]string, 0, 26)
+	if m.profile_name != nil {
+		fields = append(fields, depprofile.FieldProfileName)
+	}
+	if m.profile_uuid != nil {
+		fields = append(fields, depprofile.FieldProfileUUID)
+	}
+	if m.allow_pairing != nil {
+		fields = append(fields, depprofile.FieldAllowPairing)
+	}
+	if m.anchor_certs != nil {
+		fields = append(fields, depprofile.FieldAnchorCerts)
+	}
+	if m.auto_advance_setup != nil {
+		fields = append(fields, depprofile.FieldAutoAdvanceSetup)
+	}
+	if m.await_device_configured != nil {
+		fields = append(fields, depprofile.FieldAwaitDeviceConfigured)
+	}
+	if m.configuration_web_url != nil {
+		fields = append(fields, depprofile.FieldConfigurationWebURL)
+	}
+	if m.department != nil {
+		fields = append(fields, depprofile.FieldDepartment)
+	}
+	if m.devices != nil {
+		fields = append(fields, depprofile.FieldDevices)
+	}
+	if m.do_not_use_profile_from_backup != nil {
+		fields = append(fields, depprofile.FieldDoNotUseProfileFromBackup)
+	}
+	if m.is_return_to_service != nil {
+		fields = append(fields, depprofile.FieldIsReturnToService)
+	}
+	if m.is_mandatory != nil {
+		fields = append(fields, depprofile.FieldIsMandatory)
+	}
+	if m.is_mdm_removable != nil {
+		fields = append(fields, depprofile.FieldIsMdmRemovable)
+	}
+	if m.is_multi_user != nil {
+		fields = append(fields, depprofile.FieldIsMultiUser)
+	}
+	if m.is_supervised != nil {
+		fields = append(fields, depprofile.FieldIsSupervised)
+	}
+	if m.language != nil {
+		fields = append(fields, depprofile.FieldLanguage)
+	}
+	if m.org_magic != nil {
+		fields = append(fields, depprofile.FieldOrgMagic)
+	}
+	if m.region != nil {
+		fields = append(fields, depprofile.FieldRegion)
+	}
+	if m.skip_setup_items != nil {
+		fields = append(fields, depprofile.FieldSkipSetupItems)
+	}
+	if m.supervising_host_certs != nil {
+		fields = append(fields, depprofile.FieldSupervisingHostCerts)
+	}
+	if m.support_email_address != nil {
+		fields = append(fields, depprofile.FieldSupportEmailAddress)
+	}
+	if m.support_phone_number != nil {
+		fields = append(fields, depprofile.FieldSupportPhoneNumber)
+	}
+	if m.url != nil {
+		fields = append(fields, depprofile.FieldURL)
+	}
+	if m.profile_data != nil {
+		fields = append(fields, depprofile.FieldProfileData)
+	}
+	if m.created_at != nil {
+		fields = append(fields, depprofile.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, depprofile.FieldUpdatedAt)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *DepProfileMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case depprofile.FieldProfileName:
+		return m.ProfileName()
+	case depprofile.FieldProfileUUID:
+		return m.ProfileUUID()
+	case depprofile.FieldAllowPairing:
+		return m.AllowPairing()
+	case depprofile.FieldAnchorCerts:
+		return m.AnchorCerts()
+	case depprofile.FieldAutoAdvanceSetup:
+		return m.AutoAdvanceSetup()
+	case depprofile.FieldAwaitDeviceConfigured:
+		return m.AwaitDeviceConfigured()
+	case depprofile.FieldConfigurationWebURL:
+		return m.ConfigurationWebURL()
+	case depprofile.FieldDepartment:
+		return m.Department()
+	case depprofile.FieldDevices:
+		return m.Devices()
+	case depprofile.FieldDoNotUseProfileFromBackup:
+		return m.DoNotUseProfileFromBackup()
+	case depprofile.FieldIsReturnToService:
+		return m.IsReturnToService()
+	case depprofile.FieldIsMandatory:
+		return m.IsMandatory()
+	case depprofile.FieldIsMdmRemovable:
+		return m.IsMdmRemovable()
+	case depprofile.FieldIsMultiUser:
+		return m.IsMultiUser()
+	case depprofile.FieldIsSupervised:
+		return m.IsSupervised()
+	case depprofile.FieldLanguage:
+		return m.Language()
+	case depprofile.FieldOrgMagic:
+		return m.OrgMagic()
+	case depprofile.FieldRegion:
+		return m.Region()
+	case depprofile.FieldSkipSetupItems:
+		return m.SkipSetupItems()
+	case depprofile.FieldSupervisingHostCerts:
+		return m.SupervisingHostCerts()
+	case depprofile.FieldSupportEmailAddress:
+		return m.SupportEmailAddress()
+	case depprofile.FieldSupportPhoneNumber:
+		return m.SupportPhoneNumber()
+	case depprofile.FieldURL:
+		return m.URL()
+	case depprofile.FieldProfileData:
+		return m.ProfileData()
+	case depprofile.FieldCreatedAt:
+		return m.CreatedAt()
+	case depprofile.FieldUpdatedAt:
+		return m.UpdatedAt()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *DepProfileMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case depprofile.FieldProfileName:
+		return m.OldProfileName(ctx)
+	case depprofile.FieldProfileUUID:
+		return m.OldProfileUUID(ctx)
+	case depprofile.FieldAllowPairing:
+		return m.OldAllowPairing(ctx)
+	case depprofile.FieldAnchorCerts:
+		return m.OldAnchorCerts(ctx)
+	case depprofile.FieldAutoAdvanceSetup:
+		return m.OldAutoAdvanceSetup(ctx)
+	case depprofile.FieldAwaitDeviceConfigured:
+		return m.OldAwaitDeviceConfigured(ctx)
+	case depprofile.FieldConfigurationWebURL:
+		return m.OldConfigurationWebURL(ctx)
+	case depprofile.FieldDepartment:
+		return m.OldDepartment(ctx)
+	case depprofile.FieldDevices:
+		return m.OldDevices(ctx)
+	case depprofile.FieldDoNotUseProfileFromBackup:
+		return m.OldDoNotUseProfileFromBackup(ctx)
+	case depprofile.FieldIsReturnToService:
+		return m.OldIsReturnToService(ctx)
+	case depprofile.FieldIsMandatory:
+		return m.OldIsMandatory(ctx)
+	case depprofile.FieldIsMdmRemovable:
+		return m.OldIsMdmRemovable(ctx)
+	case depprofile.FieldIsMultiUser:
+		return m.OldIsMultiUser(ctx)
+	case depprofile.FieldIsSupervised:
+		return m.OldIsSupervised(ctx)
+	case depprofile.FieldLanguage:
+		return m.OldLanguage(ctx)
+	case depprofile.FieldOrgMagic:
+		return m.OldOrgMagic(ctx)
+	case depprofile.FieldRegion:
+		return m.OldRegion(ctx)
+	case depprofile.FieldSkipSetupItems:
+		return m.OldSkipSetupItems(ctx)
+	case depprofile.FieldSupervisingHostCerts:
+		return m.OldSupervisingHostCerts(ctx)
+	case depprofile.FieldSupportEmailAddress:
+		return m.OldSupportEmailAddress(ctx)
+	case depprofile.FieldSupportPhoneNumber:
+		return m.OldSupportPhoneNumber(ctx)
+	case depprofile.FieldURL:
+		return m.OldURL(ctx)
+	case depprofile.FieldProfileData:
+		return m.OldProfileData(ctx)
+	case depprofile.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case depprofile.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	}
+	return nil, fmt.Errorf("unknown DepProfile field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *DepProfileMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case depprofile.FieldProfileName:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetProfileName(v)
+		return nil
+	case depprofile.FieldProfileUUID:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetProfileUUID(v)
+		return nil
+	case depprofile.FieldAllowPairing:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetAllowPairing(v)
+		return nil
+	case depprofile.FieldAnchorCerts:
+		v, ok := value.([]string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetAnchorCerts(v)
+		return nil
+	case depprofile.FieldAutoAdvanceSetup:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetAutoAdvanceSetup(v)
+		return nil
+	case depprofile.FieldAwaitDeviceConfigured:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetAwaitDeviceConfigured(v)
+		return nil
+	case depprofile.FieldConfigurationWebURL:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetConfigurationWebURL(v)
+		return nil
+	case depprofile.FieldDepartment:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDepartment(v)
+		return nil
+	case depprofile.FieldDevices:
+		v, ok := value.([]string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDevices(v)
+		return nil
+	case depprofile.FieldDoNotUseProfileFromBackup:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDoNotUseProfileFromBackup(v)
+		return nil
+	case depprofile.FieldIsReturnToService:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetIsReturnToService(v)
+		return nil
+	case depprofile.FieldIsMandatory:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetIsMandatory(v)
+		return nil
+	case depprofile.FieldIsMdmRemovable:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetIsMdmRemovable(v)
+		return nil
+	case depprofile.FieldIsMultiUser:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetIsMultiUser(v)
+		return nil
+	case depprofile.FieldIsSupervised:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetIsSupervised(v)
+		return nil
+	case depprofile.FieldLanguage:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetLanguage(v)
+		return nil
+	case depprofile.FieldOrgMagic:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetOrgMagic(v)
+		return nil
+	case depprofile.FieldRegion:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetRegion(v)
+		return nil
+	case depprofile.FieldSkipSetupItems:
+		v, ok := value.([]string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSkipSetupItems(v)
+		return nil
+	case depprofile.FieldSupervisingHostCerts:
+		v, ok := value.([]string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSupervisingHostCerts(v)
+		return nil
+	case depprofile.FieldSupportEmailAddress:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSupportEmailAddress(v)
+		return nil
+	case depprofile.FieldSupportPhoneNumber:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSupportPhoneNumber(v)
+		return nil
+	case depprofile.FieldURL:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetURL(v)
+		return nil
+	case depprofile.FieldProfileData:
+		v, ok := value.(map[string]interface{})
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetProfileData(v)
+		return nil
+	case depprofile.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case depprofile.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	}
+	return fmt.Errorf("unknown DepProfile field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *DepProfileMutation) AddedFields() []string {
+	return nil
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *DepProfileMutation) AddedField(name string) (ent.Value, bool) {
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *DepProfileMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown DepProfile numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *DepProfileMutation) ClearedFields() []string {
+	var fields []string
+	if m.FieldCleared(depprofile.FieldProfileUUID) {
+		fields = append(fields, depprofile.FieldProfileUUID)
+	}
+	if m.FieldCleared(depprofile.FieldAnchorCerts) {
+		fields = append(fields, depprofile.FieldAnchorCerts)
+	}
+	if m.FieldCleared(depprofile.FieldConfigurationWebURL) {
+		fields = append(fields, depprofile.FieldConfigurationWebURL)
+	}
+	if m.FieldCleared(depprofile.FieldDepartment) {
+		fields = append(fields, depprofile.FieldDepartment)
+	}
+	if m.FieldCleared(depprofile.FieldDevices) {
+		fields = append(fields, depprofile.FieldDevices)
+	}
+	if m.FieldCleared(depprofile.FieldLanguage) {
+		fields = append(fields, depprofile.FieldLanguage)
+	}
+	if m.FieldCleared(depprofile.FieldOrgMagic) {
+		fields = append(fields, depprofile.FieldOrgMagic)
+	}
+	if m.FieldCleared(depprofile.FieldRegion) {
+		fields = append(fields, depprofile.FieldRegion)
+	}
+	if m.FieldCleared(depprofile.FieldSkipSetupItems) {
+		fields = append(fields, depprofile.FieldSkipSetupItems)
+	}
+	if m.FieldCleared(depprofile.FieldSupervisingHostCerts) {
+		fields = append(fields, depprofile.FieldSupervisingHostCerts)
+	}
+	if m.FieldCleared(depprofile.FieldSupportEmailAddress) {
+		fields = append(fields, depprofile.FieldSupportEmailAddress)
+	}
+	if m.FieldCleared(depprofile.FieldSupportPhoneNumber) {
+		fields = append(fields, depprofile.FieldSupportPhoneNumber)
+	}
+	if m.FieldCleared(depprofile.FieldURL) {
+		fields = append(fields, depprofile.FieldURL)
+	}
+	if m.FieldCleared(depprofile.FieldProfileData) {
+		fields = append(fields, depprofile.FieldProfileData)
+	}
+	return fields
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *DepProfileMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *DepProfileMutation) ClearField(name string) error {
+	switch name {
+	case depprofile.FieldProfileUUID:
+		m.ClearProfileUUID()
+		return nil
+	case depprofile.FieldAnchorCerts:
+		m.ClearAnchorCerts()
+		return nil
+	case depprofile.FieldConfigurationWebURL:
+		m.ClearConfigurationWebURL()
+		return nil
+	case depprofile.FieldDepartment:
+		m.ClearDepartment()
+		return nil
+	case depprofile.FieldDevices:
+		m.ClearDevices()
+		return nil
+	case depprofile.FieldLanguage:
+		m.ClearLanguage()
+		return nil
+	case depprofile.FieldOrgMagic:
+		m.ClearOrgMagic()
+		return nil
+	case depprofile.FieldRegion:
+		m.ClearRegion()
+		return nil
+	case depprofile.FieldSkipSetupItems:
+		m.ClearSkipSetupItems()
+		return nil
+	case depprofile.FieldSupervisingHostCerts:
+		m.ClearSupervisingHostCerts()
+		return nil
+	case depprofile.FieldSupportEmailAddress:
+		m.ClearSupportEmailAddress()
+		return nil
+	case depprofile.FieldSupportPhoneNumber:
+		m.ClearSupportPhoneNumber()
+		return nil
+	case depprofile.FieldURL:
+		m.ClearURL()
+		return nil
+	case depprofile.FieldProfileData:
+		m.ClearProfileData()
+		return nil
+	}
+	return fmt.Errorf("unknown DepProfile nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *DepProfileMutation) ResetField(name string) error {
+	switch name {
+	case depprofile.FieldProfileName:
+		m.ResetProfileName()
+		return nil
+	case depprofile.FieldProfileUUID:
+		m.ResetProfileUUID()
+		return nil
+	case depprofile.FieldAllowPairing:
+		m.ResetAllowPairing()
+		return nil
+	case depprofile.FieldAnchorCerts:
+		m.ResetAnchorCerts()
+		return nil
+	case depprofile.FieldAutoAdvanceSetup:
+		m.ResetAutoAdvanceSetup()
+		return nil
+	case depprofile.FieldAwaitDeviceConfigured:
+		m.ResetAwaitDeviceConfigured()
+		return nil
+	case depprofile.FieldConfigurationWebURL:
+		m.ResetConfigurationWebURL()
+		return nil
+	case depprofile.FieldDepartment:
+		m.ResetDepartment()
+		return nil
+	case depprofile.FieldDevices:
+		m.ResetDevices()
+		return nil
+	case depprofile.FieldDoNotUseProfileFromBackup:
+		m.ResetDoNotUseProfileFromBackup()
+		return nil
+	case depprofile.FieldIsReturnToService:
+		m.ResetIsReturnToService()
+		return nil
+	case depprofile.FieldIsMandatory:
+		m.ResetIsMandatory()
+		return nil
+	case depprofile.FieldIsMdmRemovable:
+		m.ResetIsMdmRemovable()
+		return nil
+	case depprofile.FieldIsMultiUser:
+		m.ResetIsMultiUser()
+		return nil
+	case depprofile.FieldIsSupervised:
+		m.ResetIsSupervised()
+		return nil
+	case depprofile.FieldLanguage:
+		m.ResetLanguage()
+		return nil
+	case depprofile.FieldOrgMagic:
+		m.ResetOrgMagic()
+		return nil
+	case depprofile.FieldRegion:
+		m.ResetRegion()
+		return nil
+	case depprofile.FieldSkipSetupItems:
+		m.ResetSkipSetupItems()
+		return nil
+	case depprofile.FieldSupervisingHostCerts:
+		m.ResetSupervisingHostCerts()
+		return nil
+	case depprofile.FieldSupportEmailAddress:
+		m.ResetSupportEmailAddress()
+		return nil
+	case depprofile.FieldSupportPhoneNumber:
+		m.ResetSupportPhoneNumber()
+		return nil
+	case depprofile.FieldURL:
+		m.ResetURL()
+		return nil
+	case depprofile.FieldProfileData:
+		m.ResetProfileData()
+		return nil
+	case depprofile.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case depprofile.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	}
+	return fmt.Errorf("unknown DepProfile field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *DepProfileMutation) AddedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *DepProfileMutation) AddedIDs(name string) []ent.Value {
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *DepProfileMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *DepProfileMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *DepProfileMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *DepProfileMutation) EdgeCleared(name string) bool {
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *DepProfileMutation) ClearEdge(name string) error {
+	return fmt.Errorf("unknown DepProfile unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *DepProfileMutation) ResetEdge(name string) error {
+	return fmt.Errorf("unknown DepProfile edge %s", name)
 }
 
 // DeviceMutation represents an operation that mutates the Device nodes in the graph.

@@ -33,6 +33,18 @@ func (f DEPTokenFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, er
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.DEPTokenMutation", m)
 }
 
+// The DepProfileFunc type is an adapter to allow the use of ordinary
+// function as DepProfile mutator.
+type DepProfileFunc func(context.Context, *ent.DepProfileMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f DepProfileFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.DepProfileMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.DepProfileMutation", m)
+}
+
 // The DeviceFunc type is an adapter to allow the use of ordinary
 // function as Device mutator.
 type DeviceFunc func(context.Context, *ent.DeviceMutation) (ent.Value, error)

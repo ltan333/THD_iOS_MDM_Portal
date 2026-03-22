@@ -16,6 +16,7 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"github.com/thienel/go-backend-template/internal/ent/apnsconfig"
+	"github.com/thienel/go-backend-template/internal/ent/depprofile"
 	"github.com/thienel/go-backend-template/internal/ent/deptoken"
 	"github.com/thienel/go-backend-template/internal/ent/device"
 	"github.com/thienel/go-backend-template/internal/ent/mobileconfig"
@@ -34,6 +35,8 @@ type Client struct {
 	APNSConfig *APNSConfigClient
 	// DEPToken is the client for interacting with the DEPToken builders.
 	DEPToken *DEPTokenClient
+	// DepProfile is the client for interacting with the DepProfile builders.
+	DepProfile *DepProfileClient
 	// Device is the client for interacting with the Device builders.
 	Device *DeviceClient
 	// MobileConfig is the client for interacting with the MobileConfig builders.
@@ -59,6 +62,7 @@ func (c *Client) init() {
 	c.Schema = migrate.NewSchema(c.driver)
 	c.APNSConfig = NewAPNSConfigClient(c.config)
 	c.DEPToken = NewDEPTokenClient(c.config)
+	c.DepProfile = NewDepProfileClient(c.config)
 	c.Device = NewDeviceClient(c.config)
 	c.MobileConfig = NewMobileConfigClient(c.config)
 	c.Payload = NewPayloadClient(c.config)
@@ -159,6 +163,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		config:                    cfg,
 		APNSConfig:                NewAPNSConfigClient(cfg),
 		DEPToken:                  NewDEPTokenClient(cfg),
+		DepProfile:                NewDepProfileClient(cfg),
 		Device:                    NewDeviceClient(cfg),
 		MobileConfig:              NewMobileConfigClient(cfg),
 		Payload:                   NewPayloadClient(cfg),
@@ -186,6 +191,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		config:                    cfg,
 		APNSConfig:                NewAPNSConfigClient(cfg),
 		DEPToken:                  NewDEPTokenClient(cfg),
+		DepProfile:                NewDepProfileClient(cfg),
 		Device:                    NewDeviceClient(cfg),
 		MobileConfig:              NewMobileConfigClient(cfg),
 		Payload:                   NewPayloadClient(cfg),
@@ -221,7 +227,7 @@ func (c *Client) Close() error {
 // In order to add hooks to a specific client, call: `client.Node.Use(...)`.
 func (c *Client) Use(hooks ...Hook) {
 	for _, n := range []interface{ Use(...Hook) }{
-		c.APNSConfig, c.DEPToken, c.Device, c.MobileConfig, c.Payload,
+		c.APNSConfig, c.DEPToken, c.DepProfile, c.Device, c.MobileConfig, c.Payload,
 		c.PayloadProperty, c.PayloadPropertyDefinition, c.User,
 	} {
 		n.Use(hooks...)
@@ -232,7 +238,7 @@ func (c *Client) Use(hooks ...Hook) {
 // In order to add interceptors to a specific client, call: `client.Node.Intercept(...)`.
 func (c *Client) Intercept(interceptors ...Interceptor) {
 	for _, n := range []interface{ Intercept(...Interceptor) }{
-		c.APNSConfig, c.DEPToken, c.Device, c.MobileConfig, c.Payload,
+		c.APNSConfig, c.DEPToken, c.DepProfile, c.Device, c.MobileConfig, c.Payload,
 		c.PayloadProperty, c.PayloadPropertyDefinition, c.User,
 	} {
 		n.Intercept(interceptors...)
@@ -246,6 +252,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.APNSConfig.mutate(ctx, m)
 	case *DEPTokenMutation:
 		return c.DEPToken.mutate(ctx, m)
+	case *DepProfileMutation:
+		return c.DepProfile.mutate(ctx, m)
 	case *DeviceMutation:
 		return c.Device.mutate(ctx, m)
 	case *MobileConfigMutation:
@@ -526,6 +534,139 @@ func (c *DEPTokenClient) mutate(ctx context.Context, m *DEPTokenMutation) (Value
 		return (&DEPTokenDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("ent: unknown DEPToken mutation op: %q", m.Op())
+	}
+}
+
+// DepProfileClient is a client for the DepProfile schema.
+type DepProfileClient struct {
+	config
+}
+
+// NewDepProfileClient returns a client for the DepProfile from the given config.
+func NewDepProfileClient(c config) *DepProfileClient {
+	return &DepProfileClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `depprofile.Hooks(f(g(h())))`.
+func (c *DepProfileClient) Use(hooks ...Hook) {
+	c.hooks.DepProfile = append(c.hooks.DepProfile, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `depprofile.Intercept(f(g(h())))`.
+func (c *DepProfileClient) Intercept(interceptors ...Interceptor) {
+	c.inters.DepProfile = append(c.inters.DepProfile, interceptors...)
+}
+
+// Create returns a builder for creating a DepProfile entity.
+func (c *DepProfileClient) Create() *DepProfileCreate {
+	mutation := newDepProfileMutation(c.config, OpCreate)
+	return &DepProfileCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of DepProfile entities.
+func (c *DepProfileClient) CreateBulk(builders ...*DepProfileCreate) *DepProfileCreateBulk {
+	return &DepProfileCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *DepProfileClient) MapCreateBulk(slice any, setFunc func(*DepProfileCreate, int)) *DepProfileCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &DepProfileCreateBulk{err: fmt.Errorf("calling to DepProfileClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*DepProfileCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &DepProfileCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for DepProfile.
+func (c *DepProfileClient) Update() *DepProfileUpdate {
+	mutation := newDepProfileMutation(c.config, OpUpdate)
+	return &DepProfileUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *DepProfileClient) UpdateOne(_m *DepProfile) *DepProfileUpdateOne {
+	mutation := newDepProfileMutation(c.config, OpUpdateOne, withDepProfile(_m))
+	return &DepProfileUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *DepProfileClient) UpdateOneID(id uint) *DepProfileUpdateOne {
+	mutation := newDepProfileMutation(c.config, OpUpdateOne, withDepProfileID(id))
+	return &DepProfileUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for DepProfile.
+func (c *DepProfileClient) Delete() *DepProfileDelete {
+	mutation := newDepProfileMutation(c.config, OpDelete)
+	return &DepProfileDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *DepProfileClient) DeleteOne(_m *DepProfile) *DepProfileDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *DepProfileClient) DeleteOneID(id uint) *DepProfileDeleteOne {
+	builder := c.Delete().Where(depprofile.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &DepProfileDeleteOne{builder}
+}
+
+// Query returns a query builder for DepProfile.
+func (c *DepProfileClient) Query() *DepProfileQuery {
+	return &DepProfileQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeDepProfile},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a DepProfile entity by its id.
+func (c *DepProfileClient) Get(ctx context.Context, id uint) (*DepProfile, error) {
+	return c.Query().Where(depprofile.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *DepProfileClient) GetX(ctx context.Context, id uint) *DepProfile {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *DepProfileClient) Hooks() []Hook {
+	return c.hooks.DepProfile
+}
+
+// Interceptors returns the client interceptors.
+func (c *DepProfileClient) Interceptors() []Interceptor {
+	return c.inters.DepProfile
+}
+
+func (c *DepProfileClient) mutate(ctx context.Context, m *DepProfileMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&DepProfileCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&DepProfileUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&DepProfileUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&DepProfileDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown DepProfile mutation op: %q", m.Op())
 	}
 }
 
@@ -1458,11 +1599,11 @@ func (c *UserClient) mutate(ctx context.Context, m *UserMutation) (Value, error)
 // hooks and interceptors per client, for fast access.
 type (
 	hooks struct {
-		APNSConfig, DEPToken, Device, MobileConfig, Payload, PayloadProperty,
-		PayloadPropertyDefinition, User []ent.Hook
+		APNSConfig, DEPToken, DepProfile, Device, MobileConfig, Payload,
+		PayloadProperty, PayloadPropertyDefinition, User []ent.Hook
 	}
 	inters struct {
-		APNSConfig, DEPToken, Device, MobileConfig, Payload, PayloadProperty,
-		PayloadPropertyDefinition, User []ent.Interceptor
+		APNSConfig, DEPToken, DepProfile, Device, MobileConfig, Payload,
+		PayloadProperty, PayloadPropertyDefinition, User []ent.Interceptor
 	}
 )

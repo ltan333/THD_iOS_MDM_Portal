@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/thienel/go-backend-template/internal/ent/apnsconfig"
+	"github.com/thienel/go-backend-template/internal/ent/depprofile"
 	"github.com/thienel/go-backend-template/internal/ent/deptoken"
 	"github.com/thienel/go-backend-template/internal/ent/device"
 	"github.com/thienel/go-backend-template/internal/ent/mobileconfig"
@@ -64,6 +65,58 @@ func init() {
 	deptoken.DefaultUpdatedAt = deptokenDescUpdatedAt.Default.(func() time.Time)
 	// deptoken.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
 	deptoken.UpdateDefaultUpdatedAt = deptokenDescUpdatedAt.UpdateDefault.(func() time.Time)
+	depprofileFields := schema.DepProfile{}.Fields()
+	_ = depprofileFields
+	// depprofileDescProfileName is the schema descriptor for profile_name field.
+	depprofileDescProfileName := depprofileFields[1].Descriptor()
+	// depprofile.ProfileNameValidator is a validator for the "profile_name" field. It is called by the builders before save.
+	depprofile.ProfileNameValidator = depprofileDescProfileName.Validators[0].(func(string) error)
+	// depprofileDescAllowPairing is the schema descriptor for allow_pairing field.
+	depprofileDescAllowPairing := depprofileFields[3].Descriptor()
+	// depprofile.DefaultAllowPairing holds the default value on creation for the allow_pairing field.
+	depprofile.DefaultAllowPairing = depprofileDescAllowPairing.Default.(bool)
+	// depprofileDescAutoAdvanceSetup is the schema descriptor for auto_advance_setup field.
+	depprofileDescAutoAdvanceSetup := depprofileFields[5].Descriptor()
+	// depprofile.DefaultAutoAdvanceSetup holds the default value on creation for the auto_advance_setup field.
+	depprofile.DefaultAutoAdvanceSetup = depprofileDescAutoAdvanceSetup.Default.(bool)
+	// depprofileDescAwaitDeviceConfigured is the schema descriptor for await_device_configured field.
+	depprofileDescAwaitDeviceConfigured := depprofileFields[6].Descriptor()
+	// depprofile.DefaultAwaitDeviceConfigured holds the default value on creation for the await_device_configured field.
+	depprofile.DefaultAwaitDeviceConfigured = depprofileDescAwaitDeviceConfigured.Default.(bool)
+	// depprofileDescDoNotUseProfileFromBackup is the schema descriptor for do_not_use_profile_from_backup field.
+	depprofileDescDoNotUseProfileFromBackup := depprofileFields[10].Descriptor()
+	// depprofile.DefaultDoNotUseProfileFromBackup holds the default value on creation for the do_not_use_profile_from_backup field.
+	depprofile.DefaultDoNotUseProfileFromBackup = depprofileDescDoNotUseProfileFromBackup.Default.(bool)
+	// depprofileDescIsReturnToService is the schema descriptor for is_return_to_service field.
+	depprofileDescIsReturnToService := depprofileFields[11].Descriptor()
+	// depprofile.DefaultIsReturnToService holds the default value on creation for the is_return_to_service field.
+	depprofile.DefaultIsReturnToService = depprofileDescIsReturnToService.Default.(bool)
+	// depprofileDescIsMandatory is the schema descriptor for is_mandatory field.
+	depprofileDescIsMandatory := depprofileFields[12].Descriptor()
+	// depprofile.DefaultIsMandatory holds the default value on creation for the is_mandatory field.
+	depprofile.DefaultIsMandatory = depprofileDescIsMandatory.Default.(bool)
+	// depprofileDescIsMdmRemovable is the schema descriptor for is_mdm_removable field.
+	depprofileDescIsMdmRemovable := depprofileFields[13].Descriptor()
+	// depprofile.DefaultIsMdmRemovable holds the default value on creation for the is_mdm_removable field.
+	depprofile.DefaultIsMdmRemovable = depprofileDescIsMdmRemovable.Default.(bool)
+	// depprofileDescIsMultiUser is the schema descriptor for is_multi_user field.
+	depprofileDescIsMultiUser := depprofileFields[14].Descriptor()
+	// depprofile.DefaultIsMultiUser holds the default value on creation for the is_multi_user field.
+	depprofile.DefaultIsMultiUser = depprofileDescIsMultiUser.Default.(bool)
+	// depprofileDescIsSupervised is the schema descriptor for is_supervised field.
+	depprofileDescIsSupervised := depprofileFields[15].Descriptor()
+	// depprofile.DefaultIsSupervised holds the default value on creation for the is_supervised field.
+	depprofile.DefaultIsSupervised = depprofileDescIsSupervised.Default.(bool)
+	// depprofileDescCreatedAt is the schema descriptor for created_at field.
+	depprofileDescCreatedAt := depprofileFields[25].Descriptor()
+	// depprofile.DefaultCreatedAt holds the default value on creation for the created_at field.
+	depprofile.DefaultCreatedAt = depprofileDescCreatedAt.Default.(func() time.Time)
+	// depprofileDescUpdatedAt is the schema descriptor for updated_at field.
+	depprofileDescUpdatedAt := depprofileFields[26].Descriptor()
+	// depprofile.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	depprofile.DefaultUpdatedAt = depprofileDescUpdatedAt.Default.(func() time.Time)
+	// depprofile.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	depprofile.UpdateDefaultUpdatedAt = depprofileDescUpdatedAt.UpdateDefault.(func() time.Time)
 	deviceFields := schema.Device{}.Fields()
 	_ = deviceFields
 	// deviceDescSerialNumber is the schema descriptor for serial_number field.

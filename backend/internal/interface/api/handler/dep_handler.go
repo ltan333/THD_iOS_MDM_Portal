@@ -12,6 +12,7 @@ import (
 	"github.com/thienel/go-backend-template/internal/interface/api/dto"
 	"github.com/thienel/go-backend-template/internal/usecase/service"
 	apperror "github.com/thienel/go-backend-template/pkg/error"
+	"github.com/thienel/go-backend-template/pkg/query"
 	"github.com/thienel/go-backend-template/pkg/response"
 )
 
@@ -35,16 +36,23 @@ type DEPHandler interface {
 }
 
 type depHandler struct {
-	client       *ent.Client
-	authzService service.AuthorizationService
-	mdmService   service.NanoMDMService
+	client            *ent.Client
+	authzService      service.AuthorizationService
+	mdmService        service.NanoMDMService
+	depProfileService service.DepProfileService
 }
 
-func NewDEPHandler(client *ent.Client, authzService service.AuthorizationService, mdmService service.NanoMDMService) DEPHandler {
+func NewDEPHandler(
+	client *ent.Client,
+	authzService service.AuthorizationService,
+	mdmService service.NanoMDMService,
+	depProfileService service.DepProfileService,
+) DEPHandler {
 	return &depHandler{
-		client:       client,
-		authzService: authzService,
-		mdmService:   mdmService,
+		client:            client,
+		authzService:      authzService,
+		mdmService:        mdmService,
+		depProfileService: depProfileService,
 	}
 }
 
@@ -201,18 +209,19 @@ func (h *depHandler) DefineProfile(c *gin.Context) {
 		depName = "default"
 	}
 
-	var profile interface{}
-	if err := c.ShouldBindJSON(&profile); err != nil {
+	var req dto.DEPProfileRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
 		response.WriteErrorResponse(c, err)
 		return
 	}
 
-	uuid, err := h.mdmService.DefineDEPProfile(c.Request.Context(), depName, profile)
+	resp, err := h.depProfileService.DefineProfile(c.Request.Context(), depName, &req)
 	if err != nil {
 		response.WriteErrorResponse(c, err)
 		return
 	}
-	response.OK(c, gin.H{"profile_uuid": uuid}, "Profile defined successfully")
+
+	response.OK(c, resp, "Profile defined and saved locally successfully")
 }
 
 // GetProfile godoc
@@ -233,12 +242,13 @@ func (h *depHandler) GetProfile(c *gin.Context) {
 	}
 	uuid := c.Query("profile_uuid")
 
-	profile, err := h.mdmService.GetDEPProfile(c.Request.Context(), depName, uuid)
+	resp, err := h.depProfileService.GetProfile(c.Request.Context(), depName, uuid)
 	if err != nil {
 		response.WriteErrorResponse(c, err)
 		return
 	}
-	response.OK(c, profile, "Profile retrieved successfully")
+
+	response.OK(c, resp, "Profile retrieved successfully")
 }
 
 // ListProfiles godoc
@@ -251,11 +261,13 @@ func (h *depHandler) GetProfile(c *gin.Context) {
 // @Security BearerAuth
 // @Router /v1/dep/profiles [get]
 func (h *depHandler) ListProfiles(c *gin.Context) {
-	profiles, err := h.mdmService.ListDEPProfiles(c.Request.Context(), "default")
+	// For simplicity, we use hardcoded offset/limit or get from query
+	profiles, _, err := h.depProfileService.ListProfiles(c.Request.Context(), 0, 100, query.QueryOptions{})
 	if err != nil {
 		response.WriteErrorResponse(c, err)
 		return
 	}
+
 	response.OK(c, profiles, "Profiles retrieved successfully")
 }
 
