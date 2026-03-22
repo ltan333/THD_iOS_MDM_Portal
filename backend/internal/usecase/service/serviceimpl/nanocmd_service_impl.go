@@ -12,9 +12,12 @@ import (
 
 	"github.com/thienel/go-backend-template/internal/interface/api/dto"
 	"github.com/thienel/go-backend-template/internal/usecase/service"
+	apperror "github.com/thienel/go-backend-template/pkg/error"
+	"github.com/thienel/go-backend-template/pkg/httpclient"
 )
 
 type nanocmdServiceImpl struct {
+	client   *http.Client
 	baseURL  string
 	username string
 	password string
@@ -22,6 +25,7 @@ type nanocmdServiceImpl struct {
 
 func NewNanoCMDService(baseURL, username, password string) service.NanoCMDService {
 	return &nanocmdServiceImpl{
+		client:   httpclient.DefaultClient(),
 		baseURL:  strings.TrimSuffix(baseURL, "/"),
 		username: username,
 		password: password,
@@ -39,11 +43,15 @@ func (s *nanocmdServiceImpl) doRequest(ctx context.Context, method, path string,
 
 	var bodyReader io.Reader
 	if body != nil {
-		b, err := json.Marshal(body)
-		if err != nil {
-			return nil, err
+		if b, ok := body.([]byte); ok {
+			bodyReader = bytes.NewReader(b)
+		} else {
+			b, err := json.Marshal(body)
+			if err != nil {
+				return nil, err
+			}
+			bodyReader = bytes.NewReader(b)
 		}
-		bodyReader = bytes.NewReader(b)
 	}
 
 	req, err := http.NewRequestWithContext(ctx, method, u.String(), bodyReader)
@@ -53,11 +61,44 @@ func (s *nanocmdServiceImpl) doRequest(ctx context.Context, method, path string,
 
 	req.SetBasicAuth(s.username, s.password)
 	if body != nil {
-		req.Header.Set("Content-Type", "application/json")
+		if _, ok := body.([]byte); !ok {
+			req.Header.Set("Content-Type", "application/json")
+		}
 	}
 
-	client := &http.Client{}
-	return client.Do(req)
+	return s.client.Do(req)
+}
+
+func (s *nanocmdServiceImpl) handleResponse(resp *http.Response, target interface{}) error {
+	defer func() { _ = resp.Body.Close() }()
+
+	if resp.StatusCode >= 200 && resp.StatusCode < 300 {
+		if target == nil {
+			return nil
+		}
+		if b, ok := target.(*[]byte); ok {
+			data, err := io.ReadAll(resp.Body)
+			if err != nil {
+				return err
+			}
+			*b = data
+			return nil
+		}
+		return json.NewDecoder(resp.Body).Decode(target)
+	}
+
+	// Capture response body for better error logging
+	body, _ := io.ReadAll(resp.Body)
+	errMsg := fmt.Sprintf("nanocmd error: status %d, body: %s", resp.StatusCode, string(body))
+
+	if resp.StatusCode == http.StatusNotFound {
+		return apperror.ErrNotFound.WithMessage(errMsg)
+	}
+	if resp.StatusCode == http.StatusBadRequest {
+		return apperror.ErrBadRequest.WithMessage(errMsg)
+	}
+
+	return fmt.Errorf("%s", errMsg)
 }
 
 func (s *nanocmdServiceImpl) GetVersion(ctx context.Context) (*dto.NanoCMDVersionResponse, error) {
@@ -65,14 +106,9 @@ func (s *nanocmdServiceImpl) GetVersion(ctx context.Context) (*dto.NanoCMDVersio
 	if err != nil {
 		return nil, err
 	}
-	defer func() { _ = resp.Body.Close() }()
-
-	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("nanocmd error: status %d", resp.StatusCode)
-	}
 
 	var result dto.NanoCMDVersionResponse
-	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+	if err := s.handleResponse(resp, &result); err != nil {
 		return nil, err
 	}
 	return &result, nil
@@ -91,14 +127,9 @@ func (s *nanocmdServiceImpl) StartWorkflow(ctx context.Context, name string, enr
 	if err != nil {
 		return nil, err
 	}
-	defer func() { _ = resp.Body.Close() }()
-
-	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("nanocmd error: status %d", resp.StatusCode)
-	}
 
 	var result dto.NanoCMDWorkflowStartResponse
-	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+	if err := s.handleResponse(resp, &result); err != nil {
 		return nil, err
 	}
 	return &result, nil
@@ -109,14 +140,9 @@ func (s *nanocmdServiceImpl) GetEvent(ctx context.Context, name string) (*dto.Ev
 	if err != nil {
 		return nil, err
 	}
-	defer func() { _ = resp.Body.Close() }()
-
-	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("nanocmd error: status %d", resp.StatusCode)
-	}
 
 	var result dto.EventSubscription
-	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+	if err := s.handleResponse(resp, &result); err != nil {
 		return nil, err
 	}
 	return &result, nil
@@ -127,12 +153,7 @@ func (s *nanocmdServiceImpl) PutEvent(ctx context.Context, name string, subscrip
 	if err != nil {
 		return err
 	}
-	defer func() { _ = resp.Body.Close() }()
-
-	if resp.StatusCode != http.StatusNoContent {
-		return fmt.Errorf("nanocmd error: status %d", resp.StatusCode)
-	}
-	return nil
+	return s.handleResponse(resp, nil)
 }
 
 func (s *nanocmdServiceImpl) GetFVEnableProfileTemplate(ctx context.Context) ([]byte, error) {
@@ -140,12 +161,12 @@ func (s *nanocmdServiceImpl) GetFVEnableProfileTemplate(ctx context.Context) ([]
 	if err != nil {
 		return nil, err
 	}
-	defer func() { _ = resp.Body.Close() }()
 
-	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("nanocmd error: status %d", resp.StatusCode)
+	var result []byte
+	if err := s.handleResponse(resp, &result); err != nil {
+		return nil, err
 	}
-	return io.ReadAll(resp.Body)
+	return result, nil
 }
 
 func (s *nanocmdServiceImpl) GetProfile(ctx context.Context, name string) ([]byte, error) {
@@ -153,15 +174,16 @@ func (s *nanocmdServiceImpl) GetProfile(ctx context.Context, name string) ([]byt
 	if err != nil {
 		return nil, err
 	}
-	defer func() { _ = resp.Body.Close() }()
 
-	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("nanocmd error: status %d", resp.StatusCode)
+	var result []byte
+	if err := s.handleResponse(resp, &result); err != nil {
+		return nil, err
 	}
-	return io.ReadAll(resp.Body)
+	return result, nil
 }
 
 func (s *nanocmdServiceImpl) PutProfile(ctx context.Context, name string, profileData []byte) error {
+	// Custom path because it doesn't use JSON
 	u, err := url.Parse(fmt.Sprintf("%s/v1/profile/%s", s.baseURL, name))
 	if err != nil {
 		return err
@@ -175,17 +197,11 @@ func (s *nanocmdServiceImpl) PutProfile(ctx context.Context, name string, profil
 	req.SetBasicAuth(s.username, s.password)
 	req.Header.Set("Content-Type", "application/x-apple-aspen-config")
 
-	client := &http.Client{}
-	resp, err := client.Do(req)
+	resp, err := s.client.Do(req)
 	if err != nil {
 		return err
 	}
-	defer func() { _ = resp.Body.Close() }()
-
-	if resp.StatusCode != http.StatusNoContent {
-		return fmt.Errorf("nanocmd error: status %d", resp.StatusCode)
-	}
-	return nil
+	return s.handleResponse(resp, nil)
 }
 
 func (s *nanocmdServiceImpl) DeleteProfile(ctx context.Context, name string) error {
@@ -193,12 +209,7 @@ func (s *nanocmdServiceImpl) DeleteProfile(ctx context.Context, name string) err
 	if err != nil {
 		return err
 	}
-	defer func() { _ = resp.Body.Close() }()
-
-	if resp.StatusCode != http.StatusNoContent {
-		return fmt.Errorf("nanocmd error: status %d", resp.StatusCode)
-	}
-	return nil
+	return s.handleResponse(resp, nil)
 }
 
 func (s *nanocmdServiceImpl) GetProfiles(ctx context.Context, names []string) (map[string]dto.NanoCMDProfile, error) {
@@ -211,14 +222,9 @@ func (s *nanocmdServiceImpl) GetProfiles(ctx context.Context, names []string) (m
 	if err != nil {
 		return nil, err
 	}
-	defer func() { _ = resp.Body.Close() }()
-
-	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("nanocmd error: status %d", resp.StatusCode)
-	}
 
 	var result map[string]dto.NanoCMDProfile
-	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+	if err := s.handleResponse(resp, &result); err != nil {
 		return nil, err
 	}
 	return result, nil
@@ -229,14 +235,9 @@ func (s *nanocmdServiceImpl) GetCMDPlan(ctx context.Context, name string) (*dto.
 	if err != nil {
 		return nil, err
 	}
-	defer func() { _ = resp.Body.Close() }()
-
-	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("nanocmd error: status %d", resp.StatusCode)
-	}
 
 	var result dto.CMDPlan
-	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+	if err := s.handleResponse(resp, &result); err != nil {
 		return nil, err
 	}
 	return &result, nil
@@ -247,12 +248,7 @@ func (s *nanocmdServiceImpl) PutCMDPlan(ctx context.Context, name string, plan *
 	if err != nil {
 		return err
 	}
-	defer func() { _ = resp.Body.Close() }()
-
-	if resp.StatusCode != http.StatusNoContent {
-		return fmt.Errorf("nanocmd error: status %d", resp.StatusCode)
-	}
-	return nil
+	return s.handleResponse(resp, nil)
 }
 
 func (s *nanocmdServiceImpl) GetInventory(ctx context.Context, enrollmentIDs []string) (dto.NanoCMDInventoryResponse, error) {
@@ -265,14 +261,9 @@ func (s *nanocmdServiceImpl) GetInventory(ctx context.Context, enrollmentIDs []s
 	if err != nil {
 		return nil, err
 	}
-	defer func() { _ = resp.Body.Close() }()
-
-	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("nanocmd error: status %d", resp.StatusCode)
-	}
 
 	var result dto.NanoCMDInventoryResponse
-	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+	if err := s.handleResponse(resp, &result); err != nil {
 		return nil, err
 	}
 	return result, nil
