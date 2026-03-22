@@ -93,6 +93,7 @@ help:
 	@echo "  ent/new        - Create a new Ent schema (usage: make ent/new NAME=User)"
 	@echo "  migrate/diff   - Create a migration file based on schema changes (usage: make migrate/diff NAME=add_users)"
 	@echo "  migrate/apply  - Apply pending migrations to the database (usage: make migrate/apply DB_URL=...)"
+	@echo "  migrate/hash   - Recalculate the migration directory hash (atlas.sum)"
 
 # Generate Ent code
 ent/gen:
@@ -122,3 +123,7 @@ migrate/apply:
 	@atlas migrate apply \
 	  --dir "file://internal/ent/migrate/migrations" \
 	  --url $(DB_URL)
+
+migrate/hash:
+	@atlas migrate hash \
+	  --dir "file://internal/ent/migrate/migrations"
