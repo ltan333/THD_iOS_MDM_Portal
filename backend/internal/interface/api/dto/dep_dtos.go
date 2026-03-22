@@ -3,13 +3,18 @@ package dto
 import "time"
 
 type DEPTokenResponse struct {
-	ID          uint      `json:"id"`
-	Name        string    `json:"name"`
-	P7mFilePath string    `json:"p7m_file_path"`
-	Expiry      time.Time `json:"expiry"`
-	LastUsed    time.Time `json:"last_used"`
-	CreatedAt   time.Time `json:"created_at"`
-	UpdatedAt   time.Time `json:"updated_at"`
+	ID                string     `json:"id"`
+	ConsumerKey       string    `json:"consumer_key,omitempty"`
+	ConsumerSecret    string    `json:"consumer_secret,omitempty"`
+	AccessToken       string    `json:"access_token,omitempty"`
+	AccessSecret      string    `json:"access_secret,omitempty"`
+	AccessTokenExpiry *time.Time `json:"access_token_expiry,omitempty"`
+	ConfigBaseURL     string    `json:"config_base_url,omitempty"`
+	TokenpkiCertPem   string    `json:"tokenpki_cert_pem,omitempty"`
+	TokenpkiKey_pem   string    `json:"tokenpki_key_pem,omitempty"`
+	SyncerCursor      string    `json:"syncer_cursor,omitempty"`
+	CreatedAt         time.Time `json:"created_at"`
+	UpdatedAt         time.Time `json:"updated_at"`
 }
 
 type DEPProfileRequest struct {
@@ -67,7 +72,7 @@ type DEPProfileResponse struct {
 }
 
 type DeviceResponse struct {
-	ID           uint      `json:"id"`
+	ID           string    `json:"id"`
 	SerialNumber string    `json:"serial_number"`
 	Model        string    `json:"model"`
 	OwnerID      uint      `json:"owner_id"`

@@ -43,6 +43,12 @@ func (_u *DeviceUpdate) SetNillableSerialNumber(v *string) *DeviceUpdate {
 	return _u
 }
 
+// ClearSerialNumber clears the value of the "serial_number" field.
+func (_u *DeviceUpdate) ClearSerialNumber() *DeviceUpdate {
+	_u.mutation.ClearSerialNumber()
+	return _u
+}
+
 // SetModel sets the "model" field.
 func (_u *DeviceUpdate) SetModel(v string) *DeviceUpdate {
 	_u.mutation.SetModel(v)
@@ -54,6 +60,12 @@ func (_u *DeviceUpdate) SetNillableModel(v *string) *DeviceUpdate {
 	if v != nil {
 		_u.SetModel(*v)
 	}
+	return _u
+}
+
+// ClearModel clears the value of the "model" field.
+func (_u *DeviceUpdate) ClearModel() *DeviceUpdate {
+	_u.mutation.ClearModel()
 	return _u
 }
 
@@ -189,26 +201,8 @@ func (_u *DeviceUpdate) defaults() {
 	}
 }
 
-// check runs all checks and user-defined validators on the builder.
-func (_u *DeviceUpdate) check() error {
-	if v, ok := _u.mutation.SerialNumber(); ok {
-		if err := device.SerialNumberValidator(v); err != nil {
-			return &ValidationError{Name: "serial_number", err: fmt.Errorf(`ent: validator failed for field "Device.serial_number": %w`, err)}
-		}
-	}
-	if v, ok := _u.mutation.Model(); ok {
-		if err := device.ModelValidator(v); err != nil {
-			return &ValidationError{Name: "model", err: fmt.Errorf(`ent: validator failed for field "Device.model": %w`, err)}
-		}
-	}
-	return nil
-}
-
 func (_u *DeviceUpdate) sqlSave(ctx context.Context) (_node int, err error) {
-	if err := _u.check(); err != nil {
-		return _node, err
-	}
-	_spec := sqlgraph.NewUpdateSpec(device.Table, device.Columns, sqlgraph.NewFieldSpec(device.FieldID, field.TypeUint))
+	_spec := sqlgraph.NewUpdateSpec(device.Table, device.Columns, sqlgraph.NewFieldSpec(device.FieldID, field.TypeString))
 	if ps := _u.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
@@ -219,8 +213,14 @@ func (_u *DeviceUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	if value, ok := _u.mutation.SerialNumber(); ok {
 		_spec.SetField(device.FieldSerialNumber, field.TypeString, value)
 	}
+	if _u.mutation.SerialNumberCleared() {
+		_spec.ClearField(device.FieldSerialNumber, field.TypeString)
+	}
 	if value, ok := _u.mutation.Model(); ok {
 		_spec.SetField(device.FieldModel, field.TypeString, value)
+	}
+	if _u.mutation.ModelCleared() {
+		_spec.ClearField(device.FieldModel, field.TypeString)
 	}
 	if value, ok := _u.mutation.IsEnrolled(); ok {
 		_spec.SetField(device.FieldIsEnrolled, field.TypeBool, value)
@@ -303,6 +303,12 @@ func (_u *DeviceUpdateOne) SetNillableSerialNumber(v *string) *DeviceUpdateOne {
 	return _u
 }
 
+// ClearSerialNumber clears the value of the "serial_number" field.
+func (_u *DeviceUpdateOne) ClearSerialNumber() *DeviceUpdateOne {
+	_u.mutation.ClearSerialNumber()
+	return _u
+}
+
 // SetModel sets the "model" field.
 func (_u *DeviceUpdateOne) SetModel(v string) *DeviceUpdateOne {
 	_u.mutation.SetModel(v)
@@ -314,6 +320,12 @@ func (_u *DeviceUpdateOne) SetNillableModel(v *string) *DeviceUpdateOne {
 	if v != nil {
 		_u.SetModel(*v)
 	}
+	return _u
+}
+
+// ClearModel clears the value of the "model" field.
+func (_u *DeviceUpdateOne) ClearModel() *DeviceUpdateOne {
+	_u.mutation.ClearModel()
 	return _u
 }
 
@@ -462,26 +474,8 @@ func (_u *DeviceUpdateOne) defaults() {
 	}
 }
 
-// check runs all checks and user-defined validators on the builder.
-func (_u *DeviceUpdateOne) check() error {
-	if v, ok := _u.mutation.SerialNumber(); ok {
-		if err := device.SerialNumberValidator(v); err != nil {
-			return &ValidationError{Name: "serial_number", err: fmt.Errorf(`ent: validator failed for field "Device.serial_number": %w`, err)}
-		}
-	}
-	if v, ok := _u.mutation.Model(); ok {
-		if err := device.ModelValidator(v); err != nil {
-			return &ValidationError{Name: "model", err: fmt.Errorf(`ent: validator failed for field "Device.model": %w`, err)}
-		}
-	}
-	return nil
-}
-
 func (_u *DeviceUpdateOne) sqlSave(ctx context.Context) (_node *Device, err error) {
-	if err := _u.check(); err != nil {
-		return _node, err
-	}
-	_spec := sqlgraph.NewUpdateSpec(device.Table, device.Columns, sqlgraph.NewFieldSpec(device.FieldID, field.TypeUint))
+	_spec := sqlgraph.NewUpdateSpec(device.Table, device.Columns, sqlgraph.NewFieldSpec(device.FieldID, field.TypeString))
 	id, ok := _u.mutation.ID()
 	if !ok {
 		return nil, &ValidationError{Name: "id", err: errors.New(`ent: missing "Device.id" for update`)}
@@ -509,8 +503,14 @@ func (_u *DeviceUpdateOne) sqlSave(ctx context.Context) (_node *Device, err erro
 	if value, ok := _u.mutation.SerialNumber(); ok {
 		_spec.SetField(device.FieldSerialNumber, field.TypeString, value)
 	}
+	if _u.mutation.SerialNumberCleared() {
+		_spec.ClearField(device.FieldSerialNumber, field.TypeString)
+	}
 	if value, ok := _u.mutation.Model(); ok {
 		_spec.SetField(device.FieldModel, field.TypeString, value)
+	}
+	if _u.mutation.ModelCleared() {
+		_spec.ClearField(device.FieldModel, field.TypeString)
 	}
 	if value, ok := _u.mutation.IsEnrolled(); ok {
 		_spec.SetField(device.FieldIsEnrolled, field.TypeBool, value)

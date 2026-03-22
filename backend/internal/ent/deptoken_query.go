@@ -82,8 +82,8 @@ func (_q *DEPTokenQuery) FirstX(ctx context.Context) *DEPToken {
 
 // FirstID returns the first DEPToken ID from the query.
 // Returns a *NotFoundError when no DEPToken ID was found.
-func (_q *DEPTokenQuery) FirstID(ctx context.Context) (id uint, err error) {
-	var ids []uint
+func (_q *DEPTokenQuery) FirstID(ctx context.Context) (id string, err error) {
+	var ids []string
 	if ids, err = _q.Limit(1).IDs(setContextOp(ctx, _q.ctx, ent.OpQueryFirstID)); err != nil {
 		return
 	}
@@ -95,7 +95,7 @@ func (_q *DEPTokenQuery) FirstID(ctx context.Context) (id uint, err error) {
 }
 
 // FirstIDX is like FirstID, but panics if an error occurs.
-func (_q *DEPTokenQuery) FirstIDX(ctx context.Context) uint {
+func (_q *DEPTokenQuery) FirstIDX(ctx context.Context) string {
 	id, err := _q.FirstID(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
@@ -133,8 +133,8 @@ func (_q *DEPTokenQuery) OnlyX(ctx context.Context) *DEPToken {
 // OnlyID is like Only, but returns the only DEPToken ID in the query.
 // Returns a *NotSingularError when more than one DEPToken ID is found.
 // Returns a *NotFoundError when no entities are found.
-func (_q *DEPTokenQuery) OnlyID(ctx context.Context) (id uint, err error) {
-	var ids []uint
+func (_q *DEPTokenQuery) OnlyID(ctx context.Context) (id string, err error) {
+	var ids []string
 	if ids, err = _q.Limit(2).IDs(setContextOp(ctx, _q.ctx, ent.OpQueryOnlyID)); err != nil {
 		return
 	}
@@ -150,7 +150,7 @@ func (_q *DEPTokenQuery) OnlyID(ctx context.Context) (id uint, err error) {
 }
 
 // OnlyIDX is like OnlyID, but panics if an error occurs.
-func (_q *DEPTokenQuery) OnlyIDX(ctx context.Context) uint {
+func (_q *DEPTokenQuery) OnlyIDX(ctx context.Context) string {
 	id, err := _q.OnlyID(ctx)
 	if err != nil {
 		panic(err)
@@ -178,7 +178,7 @@ func (_q *DEPTokenQuery) AllX(ctx context.Context) []*DEPToken {
 }
 
 // IDs executes the query and returns a list of DEPToken IDs.
-func (_q *DEPTokenQuery) IDs(ctx context.Context) (ids []uint, err error) {
+func (_q *DEPTokenQuery) IDs(ctx context.Context) (ids []string, err error) {
 	if _q.ctx.Unique == nil && _q.path != nil {
 		_q.Unique(true)
 	}
@@ -190,7 +190,7 @@ func (_q *DEPTokenQuery) IDs(ctx context.Context) (ids []uint, err error) {
 }
 
 // IDsX is like IDs, but panics if an error occurs.
-func (_q *DEPTokenQuery) IDsX(ctx context.Context) []uint {
+func (_q *DEPTokenQuery) IDsX(ctx context.Context) []string {
 	ids, err := _q.IDs(ctx)
 	if err != nil {
 		panic(err)
@@ -262,12 +262,12 @@ func (_q *DEPTokenQuery) Clone() *DEPTokenQuery {
 // Example:
 //
 //	var v []struct {
-//		Name string `json:"name,omitempty"`
+//		ConsumerKey string `json:"consumer_key,omitempty"`
 //		Count int `json:"count,omitempty"`
 //	}
 //
 //	client.DEPToken.Query().
-//		GroupBy(deptoken.FieldName).
+//		GroupBy(deptoken.FieldConsumerKey).
 //		Aggregate(ent.Count()).
 //		Scan(ctx, &v)
 func (_q *DEPTokenQuery) GroupBy(field string, fields ...string) *DEPTokenGroupBy {
@@ -285,11 +285,11 @@ func (_q *DEPTokenQuery) GroupBy(field string, fields ...string) *DEPTokenGroupB
 // Example:
 //
 //	var v []struct {
-//		Name string `json:"name,omitempty"`
+//		ConsumerKey string `json:"consumer_key,omitempty"`
 //	}
 //
 //	client.DEPToken.Query().
-//		Select(deptoken.FieldName).
+//		Select(deptoken.FieldConsumerKey).
 //		Scan(ctx, &v)
 func (_q *DEPTokenQuery) Select(fields ...string) *DEPTokenSelect {
 	_q.ctx.Fields = append(_q.ctx.Fields, fields...)
@@ -365,7 +365,7 @@ func (_q *DEPTokenQuery) sqlCount(ctx context.Context) (int, error) {
 }
 
 func (_q *DEPTokenQuery) querySpec() *sqlgraph.QuerySpec {
-	_spec := sqlgraph.NewQuerySpec(deptoken.Table, deptoken.Columns, sqlgraph.NewFieldSpec(deptoken.FieldID, field.TypeUint))
+	_spec := sqlgraph.NewQuerySpec(deptoken.Table, deptoken.Columns, sqlgraph.NewFieldSpec(deptoken.FieldID, field.TypeString))
 	_spec.From = _q.sql
 	if unique := _q.ctx.Unique; unique != nil {
 		_spec.Unique = *unique

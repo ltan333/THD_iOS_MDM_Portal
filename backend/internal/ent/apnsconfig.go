@@ -16,15 +16,13 @@ import (
 type APNSConfig struct {
 	config `json:"-"`
 	// ID of the ent.
-	ID uint `json:"id,omitempty"`
-	// Topic holds the value of the "topic" field.
-	Topic string `json:"topic,omitempty"`
-	// CertFilePath holds the value of the "cert_file_path" field.
-	CertFilePath string `json:"cert_file_path,omitempty"`
-	// KeyFilePath holds the value of the "key_file_path" field.
-	KeyFilePath string `json:"key_file_path,omitempty"`
-	// Expiry holds the value of the "expiry" field.
-	Expiry time.Time `json:"expiry,omitempty"`
+	ID string `json:"id,omitempty"`
+	// CertPem holds the value of the "cert_pem" field.
+	CertPem string `json:"cert_pem,omitempty"`
+	// KeyPem holds the value of the "key_pem" field.
+	KeyPem string `json:"key_pem,omitempty"`
+	// StaleToken holds the value of the "stale_token" field.
+	StaleToken int `json:"stale_token,omitempty"`
 	// CreatedAt holds the value of the "created_at" field.
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	// UpdatedAt holds the value of the "updated_at" field.
@@ -37,11 +35,11 @@ func (*APNSConfig) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case apnsconfig.FieldID:
+		case apnsconfig.FieldStaleToken:
 			values[i] = new(sql.NullInt64)
-		case apnsconfig.FieldTopic, apnsconfig.FieldCertFilePath, apnsconfig.FieldKeyFilePath:
+		case apnsconfig.FieldID, apnsconfig.FieldCertPem, apnsconfig.FieldKeyPem:
 			values[i] = new(sql.NullString)
-		case apnsconfig.FieldExpiry, apnsconfig.FieldCreatedAt, apnsconfig.FieldUpdatedAt:
+		case apnsconfig.FieldCreatedAt, apnsconfig.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
 		default:
 			values[i] = new(sql.UnknownType)
@@ -59,34 +57,28 @@ func (_m *APNSConfig) assignValues(columns []string, values []any) error {
 	for i := range columns {
 		switch columns[i] {
 		case apnsconfig.FieldID:
-			value, ok := values[i].(*sql.NullInt64)
-			if !ok {
-				return fmt.Errorf("unexpected type %T for field id", value)
-			}
-			_m.ID = uint(value.Int64)
-		case apnsconfig.FieldTopic:
 			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field topic", values[i])
+				return fmt.Errorf("unexpected type %T for field id", values[i])
 			} else if value.Valid {
-				_m.Topic = value.String
+				_m.ID = value.String
 			}
-		case apnsconfig.FieldCertFilePath:
+		case apnsconfig.FieldCertPem:
 			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field cert_file_path", values[i])
+				return fmt.Errorf("unexpected type %T for field cert_pem", values[i])
 			} else if value.Valid {
-				_m.CertFilePath = value.String
+				_m.CertPem = value.String
 			}
-		case apnsconfig.FieldKeyFilePath:
+		case apnsconfig.FieldKeyPem:
 			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field key_file_path", values[i])
+				return fmt.Errorf("unexpected type %T for field key_pem", values[i])
 			} else if value.Valid {
-				_m.KeyFilePath = value.String
+				_m.KeyPem = value.String
 			}
-		case apnsconfig.FieldExpiry:
-			if value, ok := values[i].(*sql.NullTime); !ok {
-				return fmt.Errorf("unexpected type %T for field expiry", values[i])
+		case apnsconfig.FieldStaleToken:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field stale_token", values[i])
 			} else if value.Valid {
-				_m.Expiry = value.Time
+				_m.StaleToken = int(value.Int64)
 			}
 		case apnsconfig.FieldCreatedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
@@ -136,17 +128,14 @@ func (_m *APNSConfig) String() string {
 	var builder strings.Builder
 	builder.WriteString("APNSConfig(")
 	builder.WriteString(fmt.Sprintf("id=%v, ", _m.ID))
-	builder.WriteString("topic=")
-	builder.WriteString(_m.Topic)
+	builder.WriteString("cert_pem=")
+	builder.WriteString(_m.CertPem)
 	builder.WriteString(", ")
-	builder.WriteString("cert_file_path=")
-	builder.WriteString(_m.CertFilePath)
+	builder.WriteString("key_pem=")
+	builder.WriteString(_m.KeyPem)
 	builder.WriteString(", ")
-	builder.WriteString("key_file_path=")
-	builder.WriteString(_m.KeyFilePath)
-	builder.WriteString(", ")
-	builder.WriteString("expiry=")
-	builder.WriteString(_m.Expiry.Format(time.ANSIC))
+	builder.WriteString("stale_token=")
+	builder.WriteString(fmt.Sprintf("%v", _m.StaleToken))
 	builder.WriteString(", ")
 	builder.WriteString("created_at=")
 	builder.WriteString(_m.CreatedAt.Format(time.ANSIC))

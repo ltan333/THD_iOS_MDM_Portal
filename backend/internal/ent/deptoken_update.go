@@ -28,71 +28,203 @@ func (_u *DEPTokenUpdate) Where(ps ...predicate.DEPToken) *DEPTokenUpdate {
 	return _u
 }
 
-// SetName sets the "name" field.
-func (_u *DEPTokenUpdate) SetName(v string) *DEPTokenUpdate {
-	_u.mutation.SetName(v)
+// SetConsumerKey sets the "consumer_key" field.
+func (_u *DEPTokenUpdate) SetConsumerKey(v string) *DEPTokenUpdate {
+	_u.mutation.SetConsumerKey(v)
 	return _u
 }
 
-// SetNillableName sets the "name" field if the given value is not nil.
-func (_u *DEPTokenUpdate) SetNillableName(v *string) *DEPTokenUpdate {
+// SetNillableConsumerKey sets the "consumer_key" field if the given value is not nil.
+func (_u *DEPTokenUpdate) SetNillableConsumerKey(v *string) *DEPTokenUpdate {
 	if v != nil {
-		_u.SetName(*v)
+		_u.SetConsumerKey(*v)
 	}
 	return _u
 }
 
-// SetP7mFilePath sets the "p7m_file_path" field.
-func (_u *DEPTokenUpdate) SetP7mFilePath(v string) *DEPTokenUpdate {
-	_u.mutation.SetP7mFilePath(v)
+// ClearConsumerKey clears the value of the "consumer_key" field.
+func (_u *DEPTokenUpdate) ClearConsumerKey() *DEPTokenUpdate {
+	_u.mutation.ClearConsumerKey()
 	return _u
 }
 
-// SetNillableP7mFilePath sets the "p7m_file_path" field if the given value is not nil.
-func (_u *DEPTokenUpdate) SetNillableP7mFilePath(v *string) *DEPTokenUpdate {
+// SetConsumerSecret sets the "consumer_secret" field.
+func (_u *DEPTokenUpdate) SetConsumerSecret(v string) *DEPTokenUpdate {
+	_u.mutation.SetConsumerSecret(v)
+	return _u
+}
+
+// SetNillableConsumerSecret sets the "consumer_secret" field if the given value is not nil.
+func (_u *DEPTokenUpdate) SetNillableConsumerSecret(v *string) *DEPTokenUpdate {
 	if v != nil {
-		_u.SetP7mFilePath(*v)
+		_u.SetConsumerSecret(*v)
 	}
 	return _u
 }
 
-// SetExpiry sets the "expiry" field.
-func (_u *DEPTokenUpdate) SetExpiry(v time.Time) *DEPTokenUpdate {
-	_u.mutation.SetExpiry(v)
+// ClearConsumerSecret clears the value of the "consumer_secret" field.
+func (_u *DEPTokenUpdate) ClearConsumerSecret() *DEPTokenUpdate {
+	_u.mutation.ClearConsumerSecret()
 	return _u
 }
 
-// SetNillableExpiry sets the "expiry" field if the given value is not nil.
-func (_u *DEPTokenUpdate) SetNillableExpiry(v *time.Time) *DEPTokenUpdate {
+// SetAccessToken sets the "access_token" field.
+func (_u *DEPTokenUpdate) SetAccessToken(v string) *DEPTokenUpdate {
+	_u.mutation.SetAccessToken(v)
+	return _u
+}
+
+// SetNillableAccessToken sets the "access_token" field if the given value is not nil.
+func (_u *DEPTokenUpdate) SetNillableAccessToken(v *string) *DEPTokenUpdate {
 	if v != nil {
-		_u.SetExpiry(*v)
+		_u.SetAccessToken(*v)
 	}
 	return _u
 }
 
-// ClearExpiry clears the value of the "expiry" field.
-func (_u *DEPTokenUpdate) ClearExpiry() *DEPTokenUpdate {
-	_u.mutation.ClearExpiry()
+// ClearAccessToken clears the value of the "access_token" field.
+func (_u *DEPTokenUpdate) ClearAccessToken() *DEPTokenUpdate {
+	_u.mutation.ClearAccessToken()
 	return _u
 }
 
-// SetLastUsed sets the "last_used" field.
-func (_u *DEPTokenUpdate) SetLastUsed(v time.Time) *DEPTokenUpdate {
-	_u.mutation.SetLastUsed(v)
+// SetAccessSecret sets the "access_secret" field.
+func (_u *DEPTokenUpdate) SetAccessSecret(v string) *DEPTokenUpdate {
+	_u.mutation.SetAccessSecret(v)
 	return _u
 }
 
-// SetNillableLastUsed sets the "last_used" field if the given value is not nil.
-func (_u *DEPTokenUpdate) SetNillableLastUsed(v *time.Time) *DEPTokenUpdate {
+// SetNillableAccessSecret sets the "access_secret" field if the given value is not nil.
+func (_u *DEPTokenUpdate) SetNillableAccessSecret(v *string) *DEPTokenUpdate {
 	if v != nil {
-		_u.SetLastUsed(*v)
+		_u.SetAccessSecret(*v)
 	}
 	return _u
 }
 
-// ClearLastUsed clears the value of the "last_used" field.
-func (_u *DEPTokenUpdate) ClearLastUsed() *DEPTokenUpdate {
-	_u.mutation.ClearLastUsed()
+// ClearAccessSecret clears the value of the "access_secret" field.
+func (_u *DEPTokenUpdate) ClearAccessSecret() *DEPTokenUpdate {
+	_u.mutation.ClearAccessSecret()
+	return _u
+}
+
+// SetAccessTokenExpiry sets the "access_token_expiry" field.
+func (_u *DEPTokenUpdate) SetAccessTokenExpiry(v time.Time) *DEPTokenUpdate {
+	_u.mutation.SetAccessTokenExpiry(v)
+	return _u
+}
+
+// SetNillableAccessTokenExpiry sets the "access_token_expiry" field if the given value is not nil.
+func (_u *DEPTokenUpdate) SetNillableAccessTokenExpiry(v *time.Time) *DEPTokenUpdate {
+	if v != nil {
+		_u.SetAccessTokenExpiry(*v)
+	}
+	return _u
+}
+
+// ClearAccessTokenExpiry clears the value of the "access_token_expiry" field.
+func (_u *DEPTokenUpdate) ClearAccessTokenExpiry() *DEPTokenUpdate {
+	_u.mutation.ClearAccessTokenExpiry()
+	return _u
+}
+
+// SetConfigBaseURL sets the "config_base_url" field.
+func (_u *DEPTokenUpdate) SetConfigBaseURL(v string) *DEPTokenUpdate {
+	_u.mutation.SetConfigBaseURL(v)
+	return _u
+}
+
+// SetNillableConfigBaseURL sets the "config_base_url" field if the given value is not nil.
+func (_u *DEPTokenUpdate) SetNillableConfigBaseURL(v *string) *DEPTokenUpdate {
+	if v != nil {
+		_u.SetConfigBaseURL(*v)
+	}
+	return _u
+}
+
+// ClearConfigBaseURL clears the value of the "config_base_url" field.
+func (_u *DEPTokenUpdate) ClearConfigBaseURL() *DEPTokenUpdate {
+	_u.mutation.ClearConfigBaseURL()
+	return _u
+}
+
+// SetTokenpkiCertPem sets the "tokenpki_cert_pem" field.
+func (_u *DEPTokenUpdate) SetTokenpkiCertPem(v string) *DEPTokenUpdate {
+	_u.mutation.SetTokenpkiCertPem(v)
+	return _u
+}
+
+// SetNillableTokenpkiCertPem sets the "tokenpki_cert_pem" field if the given value is not nil.
+func (_u *DEPTokenUpdate) SetNillableTokenpkiCertPem(v *string) *DEPTokenUpdate {
+	if v != nil {
+		_u.SetTokenpkiCertPem(*v)
+	}
+	return _u
+}
+
+// ClearTokenpkiCertPem clears the value of the "tokenpki_cert_pem" field.
+func (_u *DEPTokenUpdate) ClearTokenpkiCertPem() *DEPTokenUpdate {
+	_u.mutation.ClearTokenpkiCertPem()
+	return _u
+}
+
+// SetTokenpkiKeyPem sets the "tokenpki_key_pem" field.
+func (_u *DEPTokenUpdate) SetTokenpkiKeyPem(v string) *DEPTokenUpdate {
+	_u.mutation.SetTokenpkiKeyPem(v)
+	return _u
+}
+
+// SetNillableTokenpkiKeyPem sets the "tokenpki_key_pem" field if the given value is not nil.
+func (_u *DEPTokenUpdate) SetNillableTokenpkiKeyPem(v *string) *DEPTokenUpdate {
+	if v != nil {
+		_u.SetTokenpkiKeyPem(*v)
+	}
+	return _u
+}
+
+// ClearTokenpkiKeyPem clears the value of the "tokenpki_key_pem" field.
+func (_u *DEPTokenUpdate) ClearTokenpkiKeyPem() *DEPTokenUpdate {
+	_u.mutation.ClearTokenpkiKeyPem()
+	return _u
+}
+
+// SetSyncerCursor sets the "syncer_cursor" field.
+func (_u *DEPTokenUpdate) SetSyncerCursor(v string) *DEPTokenUpdate {
+	_u.mutation.SetSyncerCursor(v)
+	return _u
+}
+
+// SetNillableSyncerCursor sets the "syncer_cursor" field if the given value is not nil.
+func (_u *DEPTokenUpdate) SetNillableSyncerCursor(v *string) *DEPTokenUpdate {
+	if v != nil {
+		_u.SetSyncerCursor(*v)
+	}
+	return _u
+}
+
+// ClearSyncerCursor clears the value of the "syncer_cursor" field.
+func (_u *DEPTokenUpdate) ClearSyncerCursor() *DEPTokenUpdate {
+	_u.mutation.ClearSyncerCursor()
+	return _u
+}
+
+// SetAssignerProfileUUID sets the "assigner_profile_uuid" field.
+func (_u *DEPTokenUpdate) SetAssignerProfileUUID(v string) *DEPTokenUpdate {
+	_u.mutation.SetAssignerProfileUUID(v)
+	return _u
+}
+
+// SetNillableAssignerProfileUUID sets the "assigner_profile_uuid" field if the given value is not nil.
+func (_u *DEPTokenUpdate) SetNillableAssignerProfileUUID(v *string) *DEPTokenUpdate {
+	if v != nil {
+		_u.SetAssignerProfileUUID(*v)
+	}
+	return _u
+}
+
+// ClearAssignerProfileUUID clears the value of the "assigner_profile_uuid" field.
+func (_u *DEPTokenUpdate) ClearAssignerProfileUUID() *DEPTokenUpdate {
+	_u.mutation.ClearAssignerProfileUUID()
 	return _u
 }
 
@@ -143,26 +275,8 @@ func (_u *DEPTokenUpdate) defaults() {
 	}
 }
 
-// check runs all checks and user-defined validators on the builder.
-func (_u *DEPTokenUpdate) check() error {
-	if v, ok := _u.mutation.Name(); ok {
-		if err := deptoken.NameValidator(v); err != nil {
-			return &ValidationError{Name: "name", err: fmt.Errorf(`ent: validator failed for field "DEPToken.name": %w`, err)}
-		}
-	}
-	if v, ok := _u.mutation.P7mFilePath(); ok {
-		if err := deptoken.P7mFilePathValidator(v); err != nil {
-			return &ValidationError{Name: "p7m_file_path", err: fmt.Errorf(`ent: validator failed for field "DEPToken.p7m_file_path": %w`, err)}
-		}
-	}
-	return nil
-}
-
 func (_u *DEPTokenUpdate) sqlSave(ctx context.Context) (_node int, err error) {
-	if err := _u.check(); err != nil {
-		return _node, err
-	}
-	_spec := sqlgraph.NewUpdateSpec(deptoken.Table, deptoken.Columns, sqlgraph.NewFieldSpec(deptoken.FieldID, field.TypeUint))
+	_spec := sqlgraph.NewUpdateSpec(deptoken.Table, deptoken.Columns, sqlgraph.NewFieldSpec(deptoken.FieldID, field.TypeString))
 	if ps := _u.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
@@ -170,23 +284,65 @@ func (_u *DEPTokenUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 			}
 		}
 	}
-	if value, ok := _u.mutation.Name(); ok {
-		_spec.SetField(deptoken.FieldName, field.TypeString, value)
+	if value, ok := _u.mutation.ConsumerKey(); ok {
+		_spec.SetField(deptoken.FieldConsumerKey, field.TypeString, value)
 	}
-	if value, ok := _u.mutation.P7mFilePath(); ok {
-		_spec.SetField(deptoken.FieldP7mFilePath, field.TypeString, value)
+	if _u.mutation.ConsumerKeyCleared() {
+		_spec.ClearField(deptoken.FieldConsumerKey, field.TypeString)
 	}
-	if value, ok := _u.mutation.Expiry(); ok {
-		_spec.SetField(deptoken.FieldExpiry, field.TypeTime, value)
+	if value, ok := _u.mutation.ConsumerSecret(); ok {
+		_spec.SetField(deptoken.FieldConsumerSecret, field.TypeString, value)
 	}
-	if _u.mutation.ExpiryCleared() {
-		_spec.ClearField(deptoken.FieldExpiry, field.TypeTime)
+	if _u.mutation.ConsumerSecretCleared() {
+		_spec.ClearField(deptoken.FieldConsumerSecret, field.TypeString)
 	}
-	if value, ok := _u.mutation.LastUsed(); ok {
-		_spec.SetField(deptoken.FieldLastUsed, field.TypeTime, value)
+	if value, ok := _u.mutation.AccessToken(); ok {
+		_spec.SetField(deptoken.FieldAccessToken, field.TypeString, value)
 	}
-	if _u.mutation.LastUsedCleared() {
-		_spec.ClearField(deptoken.FieldLastUsed, field.TypeTime)
+	if _u.mutation.AccessTokenCleared() {
+		_spec.ClearField(deptoken.FieldAccessToken, field.TypeString)
+	}
+	if value, ok := _u.mutation.AccessSecret(); ok {
+		_spec.SetField(deptoken.FieldAccessSecret, field.TypeString, value)
+	}
+	if _u.mutation.AccessSecretCleared() {
+		_spec.ClearField(deptoken.FieldAccessSecret, field.TypeString)
+	}
+	if value, ok := _u.mutation.AccessTokenExpiry(); ok {
+		_spec.SetField(deptoken.FieldAccessTokenExpiry, field.TypeTime, value)
+	}
+	if _u.mutation.AccessTokenExpiryCleared() {
+		_spec.ClearField(deptoken.FieldAccessTokenExpiry, field.TypeTime)
+	}
+	if value, ok := _u.mutation.ConfigBaseURL(); ok {
+		_spec.SetField(deptoken.FieldConfigBaseURL, field.TypeString, value)
+	}
+	if _u.mutation.ConfigBaseURLCleared() {
+		_spec.ClearField(deptoken.FieldConfigBaseURL, field.TypeString)
+	}
+	if value, ok := _u.mutation.TokenpkiCertPem(); ok {
+		_spec.SetField(deptoken.FieldTokenpkiCertPem, field.TypeString, value)
+	}
+	if _u.mutation.TokenpkiCertPemCleared() {
+		_spec.ClearField(deptoken.FieldTokenpkiCertPem, field.TypeString)
+	}
+	if value, ok := _u.mutation.TokenpkiKeyPem(); ok {
+		_spec.SetField(deptoken.FieldTokenpkiKeyPem, field.TypeString, value)
+	}
+	if _u.mutation.TokenpkiKeyPemCleared() {
+		_spec.ClearField(deptoken.FieldTokenpkiKeyPem, field.TypeString)
+	}
+	if value, ok := _u.mutation.SyncerCursor(); ok {
+		_spec.SetField(deptoken.FieldSyncerCursor, field.TypeString, value)
+	}
+	if _u.mutation.SyncerCursorCleared() {
+		_spec.ClearField(deptoken.FieldSyncerCursor, field.TypeString)
+	}
+	if value, ok := _u.mutation.AssignerProfileUUID(); ok {
+		_spec.SetField(deptoken.FieldAssignerProfileUUID, field.TypeString, value)
+	}
+	if _u.mutation.AssignerProfileUUIDCleared() {
+		_spec.ClearField(deptoken.FieldAssignerProfileUUID, field.TypeString)
 	}
 	if value, ok := _u.mutation.UpdatedAt(); ok {
 		_spec.SetField(deptoken.FieldUpdatedAt, field.TypeTime, value)
@@ -211,71 +367,203 @@ type DEPTokenUpdateOne struct {
 	mutation *DEPTokenMutation
 }
 
-// SetName sets the "name" field.
-func (_u *DEPTokenUpdateOne) SetName(v string) *DEPTokenUpdateOne {
-	_u.mutation.SetName(v)
+// SetConsumerKey sets the "consumer_key" field.
+func (_u *DEPTokenUpdateOne) SetConsumerKey(v string) *DEPTokenUpdateOne {
+	_u.mutation.SetConsumerKey(v)
 	return _u
 }
 
-// SetNillableName sets the "name" field if the given value is not nil.
-func (_u *DEPTokenUpdateOne) SetNillableName(v *string) *DEPTokenUpdateOne {
+// SetNillableConsumerKey sets the "consumer_key" field if the given value is not nil.
+func (_u *DEPTokenUpdateOne) SetNillableConsumerKey(v *string) *DEPTokenUpdateOne {
 	if v != nil {
-		_u.SetName(*v)
+		_u.SetConsumerKey(*v)
 	}
 	return _u
 }
 
-// SetP7mFilePath sets the "p7m_file_path" field.
-func (_u *DEPTokenUpdateOne) SetP7mFilePath(v string) *DEPTokenUpdateOne {
-	_u.mutation.SetP7mFilePath(v)
+// ClearConsumerKey clears the value of the "consumer_key" field.
+func (_u *DEPTokenUpdateOne) ClearConsumerKey() *DEPTokenUpdateOne {
+	_u.mutation.ClearConsumerKey()
 	return _u
 }
 
-// SetNillableP7mFilePath sets the "p7m_file_path" field if the given value is not nil.
-func (_u *DEPTokenUpdateOne) SetNillableP7mFilePath(v *string) *DEPTokenUpdateOne {
+// SetConsumerSecret sets the "consumer_secret" field.
+func (_u *DEPTokenUpdateOne) SetConsumerSecret(v string) *DEPTokenUpdateOne {
+	_u.mutation.SetConsumerSecret(v)
+	return _u
+}
+
+// SetNillableConsumerSecret sets the "consumer_secret" field if the given value is not nil.
+func (_u *DEPTokenUpdateOne) SetNillableConsumerSecret(v *string) *DEPTokenUpdateOne {
 	if v != nil {
-		_u.SetP7mFilePath(*v)
+		_u.SetConsumerSecret(*v)
 	}
 	return _u
 }
 
-// SetExpiry sets the "expiry" field.
-func (_u *DEPTokenUpdateOne) SetExpiry(v time.Time) *DEPTokenUpdateOne {
-	_u.mutation.SetExpiry(v)
+// ClearConsumerSecret clears the value of the "consumer_secret" field.
+func (_u *DEPTokenUpdateOne) ClearConsumerSecret() *DEPTokenUpdateOne {
+	_u.mutation.ClearConsumerSecret()
 	return _u
 }
 
-// SetNillableExpiry sets the "expiry" field if the given value is not nil.
-func (_u *DEPTokenUpdateOne) SetNillableExpiry(v *time.Time) *DEPTokenUpdateOne {
+// SetAccessToken sets the "access_token" field.
+func (_u *DEPTokenUpdateOne) SetAccessToken(v string) *DEPTokenUpdateOne {
+	_u.mutation.SetAccessToken(v)
+	return _u
+}
+
+// SetNillableAccessToken sets the "access_token" field if the given value is not nil.
+func (_u *DEPTokenUpdateOne) SetNillableAccessToken(v *string) *DEPTokenUpdateOne {
 	if v != nil {
-		_u.SetExpiry(*v)
+		_u.SetAccessToken(*v)
 	}
 	return _u
 }
 
-// ClearExpiry clears the value of the "expiry" field.
-func (_u *DEPTokenUpdateOne) ClearExpiry() *DEPTokenUpdateOne {
-	_u.mutation.ClearExpiry()
+// ClearAccessToken clears the value of the "access_token" field.
+func (_u *DEPTokenUpdateOne) ClearAccessToken() *DEPTokenUpdateOne {
+	_u.mutation.ClearAccessToken()
 	return _u
 }
 
-// SetLastUsed sets the "last_used" field.
-func (_u *DEPTokenUpdateOne) SetLastUsed(v time.Time) *DEPTokenUpdateOne {
-	_u.mutation.SetLastUsed(v)
+// SetAccessSecret sets the "access_secret" field.
+func (_u *DEPTokenUpdateOne) SetAccessSecret(v string) *DEPTokenUpdateOne {
+	_u.mutation.SetAccessSecret(v)
 	return _u
 }
 
-// SetNillableLastUsed sets the "last_used" field if the given value is not nil.
-func (_u *DEPTokenUpdateOne) SetNillableLastUsed(v *time.Time) *DEPTokenUpdateOne {
+// SetNillableAccessSecret sets the "access_secret" field if the given value is not nil.
+func (_u *DEPTokenUpdateOne) SetNillableAccessSecret(v *string) *DEPTokenUpdateOne {
 	if v != nil {
-		_u.SetLastUsed(*v)
+		_u.SetAccessSecret(*v)
 	}
 	return _u
 }
 
-// ClearLastUsed clears the value of the "last_used" field.
-func (_u *DEPTokenUpdateOne) ClearLastUsed() *DEPTokenUpdateOne {
-	_u.mutation.ClearLastUsed()
+// ClearAccessSecret clears the value of the "access_secret" field.
+func (_u *DEPTokenUpdateOne) ClearAccessSecret() *DEPTokenUpdateOne {
+	_u.mutation.ClearAccessSecret()
+	return _u
+}
+
+// SetAccessTokenExpiry sets the "access_token_expiry" field.
+func (_u *DEPTokenUpdateOne) SetAccessTokenExpiry(v time.Time) *DEPTokenUpdateOne {
+	_u.mutation.SetAccessTokenExpiry(v)
+	return _u
+}
+
+// SetNillableAccessTokenExpiry sets the "access_token_expiry" field if the given value is not nil.
+func (_u *DEPTokenUpdateOne) SetNillableAccessTokenExpiry(v *time.Time) *DEPTokenUpdateOne {
+	if v != nil {
+		_u.SetAccessTokenExpiry(*v)
+	}
+	return _u
+}
+
+// ClearAccessTokenExpiry clears the value of the "access_token_expiry" field.
+func (_u *DEPTokenUpdateOne) ClearAccessTokenExpiry() *DEPTokenUpdateOne {
+	_u.mutation.ClearAccessTokenExpiry()
+	return _u
+}
+
+// SetConfigBaseURL sets the "config_base_url" field.
+func (_u *DEPTokenUpdateOne) SetConfigBaseURL(v string) *DEPTokenUpdateOne {
+	_u.mutation.SetConfigBaseURL(v)
+	return _u
+}
+
+// SetNillableConfigBaseURL sets the "config_base_url" field if the given value is not nil.
+func (_u *DEPTokenUpdateOne) SetNillableConfigBaseURL(v *string) *DEPTokenUpdateOne {
+	if v != nil {
+		_u.SetConfigBaseURL(*v)
+	}
+	return _u
+}
+
+// ClearConfigBaseURL clears the value of the "config_base_url" field.
+func (_u *DEPTokenUpdateOne) ClearConfigBaseURL() *DEPTokenUpdateOne {
+	_u.mutation.ClearConfigBaseURL()
+	return _u
+}
+
+// SetTokenpkiCertPem sets the "tokenpki_cert_pem" field.
+func (_u *DEPTokenUpdateOne) SetTokenpkiCertPem(v string) *DEPTokenUpdateOne {
+	_u.mutation.SetTokenpkiCertPem(v)
+	return _u
+}
+
+// SetNillableTokenpkiCertPem sets the "tokenpki_cert_pem" field if the given value is not nil.
+func (_u *DEPTokenUpdateOne) SetNillableTokenpkiCertPem(v *string) *DEPTokenUpdateOne {
+	if v != nil {
+		_u.SetTokenpkiCertPem(*v)
+	}
+	return _u
+}
+
+// ClearTokenpkiCertPem clears the value of the "tokenpki_cert_pem" field.
+func (_u *DEPTokenUpdateOne) ClearTokenpkiCertPem() *DEPTokenUpdateOne {
+	_u.mutation.ClearTokenpkiCertPem()
+	return _u
+}
+
+// SetTokenpkiKeyPem sets the "tokenpki_key_pem" field.
+func (_u *DEPTokenUpdateOne) SetTokenpkiKeyPem(v string) *DEPTokenUpdateOne {
+	_u.mutation.SetTokenpkiKeyPem(v)
+	return _u
+}
+
+// SetNillableTokenpkiKeyPem sets the "tokenpki_key_pem" field if the given value is not nil.
+func (_u *DEPTokenUpdateOne) SetNillableTokenpkiKeyPem(v *string) *DEPTokenUpdateOne {
+	if v != nil {
+		_u.SetTokenpkiKeyPem(*v)
+	}
+	return _u
+}
+
+// ClearTokenpkiKeyPem clears the value of the "tokenpki_key_pem" field.
+func (_u *DEPTokenUpdateOne) ClearTokenpkiKeyPem() *DEPTokenUpdateOne {
+	_u.mutation.ClearTokenpkiKeyPem()
+	return _u
+}
+
+// SetSyncerCursor sets the "syncer_cursor" field.
+func (_u *DEPTokenUpdateOne) SetSyncerCursor(v string) *DEPTokenUpdateOne {
+	_u.mutation.SetSyncerCursor(v)
+	return _u
+}
+
+// SetNillableSyncerCursor sets the "syncer_cursor" field if the given value is not nil.
+func (_u *DEPTokenUpdateOne) SetNillableSyncerCursor(v *string) *DEPTokenUpdateOne {
+	if v != nil {
+		_u.SetSyncerCursor(*v)
+	}
+	return _u
+}
+
+// ClearSyncerCursor clears the value of the "syncer_cursor" field.
+func (_u *DEPTokenUpdateOne) ClearSyncerCursor() *DEPTokenUpdateOne {
+	_u.mutation.ClearSyncerCursor()
+	return _u
+}
+
+// SetAssignerProfileUUID sets the "assigner_profile_uuid" field.
+func (_u *DEPTokenUpdateOne) SetAssignerProfileUUID(v string) *DEPTokenUpdateOne {
+	_u.mutation.SetAssignerProfileUUID(v)
+	return _u
+}
+
+// SetNillableAssignerProfileUUID sets the "assigner_profile_uuid" field if the given value is not nil.
+func (_u *DEPTokenUpdateOne) SetNillableAssignerProfileUUID(v *string) *DEPTokenUpdateOne {
+	if v != nil {
+		_u.SetAssignerProfileUUID(*v)
+	}
+	return _u
+}
+
+// ClearAssignerProfileUUID clears the value of the "assigner_profile_uuid" field.
+func (_u *DEPTokenUpdateOne) ClearAssignerProfileUUID() *DEPTokenUpdateOne {
+	_u.mutation.ClearAssignerProfileUUID()
 	return _u
 }
 
@@ -339,26 +627,8 @@ func (_u *DEPTokenUpdateOne) defaults() {
 	}
 }
 
-// check runs all checks and user-defined validators on the builder.
-func (_u *DEPTokenUpdateOne) check() error {
-	if v, ok := _u.mutation.Name(); ok {
-		if err := deptoken.NameValidator(v); err != nil {
-			return &ValidationError{Name: "name", err: fmt.Errorf(`ent: validator failed for field "DEPToken.name": %w`, err)}
-		}
-	}
-	if v, ok := _u.mutation.P7mFilePath(); ok {
-		if err := deptoken.P7mFilePathValidator(v); err != nil {
-			return &ValidationError{Name: "p7m_file_path", err: fmt.Errorf(`ent: validator failed for field "DEPToken.p7m_file_path": %w`, err)}
-		}
-	}
-	return nil
-}
-
 func (_u *DEPTokenUpdateOne) sqlSave(ctx context.Context) (_node *DEPToken, err error) {
-	if err := _u.check(); err != nil {
-		return _node, err
-	}
-	_spec := sqlgraph.NewUpdateSpec(deptoken.Table, deptoken.Columns, sqlgraph.NewFieldSpec(deptoken.FieldID, field.TypeUint))
+	_spec := sqlgraph.NewUpdateSpec(deptoken.Table, deptoken.Columns, sqlgraph.NewFieldSpec(deptoken.FieldID, field.TypeString))
 	id, ok := _u.mutation.ID()
 	if !ok {
 		return nil, &ValidationError{Name: "id", err: errors.New(`ent: missing "DEPToken.id" for update`)}
@@ -383,23 +653,65 @@ func (_u *DEPTokenUpdateOne) sqlSave(ctx context.Context) (_node *DEPToken, err 
 			}
 		}
 	}
-	if value, ok := _u.mutation.Name(); ok {
-		_spec.SetField(deptoken.FieldName, field.TypeString, value)
+	if value, ok := _u.mutation.ConsumerKey(); ok {
+		_spec.SetField(deptoken.FieldConsumerKey, field.TypeString, value)
 	}
-	if value, ok := _u.mutation.P7mFilePath(); ok {
-		_spec.SetField(deptoken.FieldP7mFilePath, field.TypeString, value)
+	if _u.mutation.ConsumerKeyCleared() {
+		_spec.ClearField(deptoken.FieldConsumerKey, field.TypeString)
 	}
-	if value, ok := _u.mutation.Expiry(); ok {
-		_spec.SetField(deptoken.FieldExpiry, field.TypeTime, value)
+	if value, ok := _u.mutation.ConsumerSecret(); ok {
+		_spec.SetField(deptoken.FieldConsumerSecret, field.TypeString, value)
 	}
-	if _u.mutation.ExpiryCleared() {
-		_spec.ClearField(deptoken.FieldExpiry, field.TypeTime)
+	if _u.mutation.ConsumerSecretCleared() {
+		_spec.ClearField(deptoken.FieldConsumerSecret, field.TypeString)
 	}
-	if value, ok := _u.mutation.LastUsed(); ok {
-		_spec.SetField(deptoken.FieldLastUsed, field.TypeTime, value)
+	if value, ok := _u.mutation.AccessToken(); ok {
+		_spec.SetField(deptoken.FieldAccessToken, field.TypeString, value)
 	}
-	if _u.mutation.LastUsedCleared() {
-		_spec.ClearField(deptoken.FieldLastUsed, field.TypeTime)
+	if _u.mutation.AccessTokenCleared() {
+		_spec.ClearField(deptoken.FieldAccessToken, field.TypeString)
+	}
+	if value, ok := _u.mutation.AccessSecret(); ok {
+		_spec.SetField(deptoken.FieldAccessSecret, field.TypeString, value)
+	}
+	if _u.mutation.AccessSecretCleared() {
+		_spec.ClearField(deptoken.FieldAccessSecret, field.TypeString)
+	}
+	if value, ok := _u.mutation.AccessTokenExpiry(); ok {
+		_spec.SetField(deptoken.FieldAccessTokenExpiry, field.TypeTime, value)
+	}
+	if _u.mutation.AccessTokenExpiryCleared() {
+		_spec.ClearField(deptoken.FieldAccessTokenExpiry, field.TypeTime)
+	}
+	if value, ok := _u.mutation.ConfigBaseURL(); ok {
+		_spec.SetField(deptoken.FieldConfigBaseURL, field.TypeString, value)
+	}
+	if _u.mutation.ConfigBaseURLCleared() {
+		_spec.ClearField(deptoken.FieldConfigBaseURL, field.TypeString)
+	}
+	if value, ok := _u.mutation.TokenpkiCertPem(); ok {
+		_spec.SetField(deptoken.FieldTokenpkiCertPem, field.TypeString, value)
+	}
+	if _u.mutation.TokenpkiCertPemCleared() {
+		_spec.ClearField(deptoken.FieldTokenpkiCertPem, field.TypeString)
+	}
+	if value, ok := _u.mutation.TokenpkiKeyPem(); ok {
+		_spec.SetField(deptoken.FieldTokenpkiKeyPem, field.TypeString, value)
+	}
+	if _u.mutation.TokenpkiKeyPemCleared() {
+		_spec.ClearField(deptoken.FieldTokenpkiKeyPem, field.TypeString)
+	}
+	if value, ok := _u.mutation.SyncerCursor(); ok {
+		_spec.SetField(deptoken.FieldSyncerCursor, field.TypeString, value)
+	}
+	if _u.mutation.SyncerCursorCleared() {
+		_spec.ClearField(deptoken.FieldSyncerCursor, field.TypeString)
+	}
+	if value, ok := _u.mutation.AssignerProfileUUID(); ok {
+		_spec.SetField(deptoken.FieldAssignerProfileUUID, field.TypeString, value)
+	}
+	if _u.mutation.AssignerProfileUUIDCleared() {
+		_spec.ClearField(deptoken.FieldAssignerProfileUUID, field.TypeString)
 	}
 	if value, ok := _u.mutation.UpdatedAt(); ok {
 		_spec.SetField(deptoken.FieldUpdatedAt, field.TypeTime, value)

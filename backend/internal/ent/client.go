@@ -332,7 +332,7 @@ func (c *APNSConfigClient) UpdateOne(_m *APNSConfig) *APNSConfigUpdateOne {
 }
 
 // UpdateOneID returns an update builder for the given id.
-func (c *APNSConfigClient) UpdateOneID(id uint) *APNSConfigUpdateOne {
+func (c *APNSConfigClient) UpdateOneID(id string) *APNSConfigUpdateOne {
 	mutation := newAPNSConfigMutation(c.config, OpUpdateOne, withAPNSConfigID(id))
 	return &APNSConfigUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
@@ -349,7 +349,7 @@ func (c *APNSConfigClient) DeleteOne(_m *APNSConfig) *APNSConfigDeleteOne {
 }
 
 // DeleteOneID returns a builder for deleting the given entity by its id.
-func (c *APNSConfigClient) DeleteOneID(id uint) *APNSConfigDeleteOne {
+func (c *APNSConfigClient) DeleteOneID(id string) *APNSConfigDeleteOne {
 	builder := c.Delete().Where(apnsconfig.ID(id))
 	builder.mutation.id = &id
 	builder.mutation.op = OpDeleteOne
@@ -366,12 +366,12 @@ func (c *APNSConfigClient) Query() *APNSConfigQuery {
 }
 
 // Get returns a APNSConfig entity by its id.
-func (c *APNSConfigClient) Get(ctx context.Context, id uint) (*APNSConfig, error) {
+func (c *APNSConfigClient) Get(ctx context.Context, id string) (*APNSConfig, error) {
 	return c.Query().Where(apnsconfig.ID(id)).Only(ctx)
 }
 
 // GetX is like Get, but panics if an error occurs.
-func (c *APNSConfigClient) GetX(ctx context.Context, id uint) *APNSConfig {
+func (c *APNSConfigClient) GetX(ctx context.Context, id string) *APNSConfig {
 	obj, err := c.Get(ctx, id)
 	if err != nil {
 		panic(err)
@@ -465,7 +465,7 @@ func (c *DEPTokenClient) UpdateOne(_m *DEPToken) *DEPTokenUpdateOne {
 }
 
 // UpdateOneID returns an update builder for the given id.
-func (c *DEPTokenClient) UpdateOneID(id uint) *DEPTokenUpdateOne {
+func (c *DEPTokenClient) UpdateOneID(id string) *DEPTokenUpdateOne {
 	mutation := newDEPTokenMutation(c.config, OpUpdateOne, withDEPTokenID(id))
 	return &DEPTokenUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
@@ -482,7 +482,7 @@ func (c *DEPTokenClient) DeleteOne(_m *DEPToken) *DEPTokenDeleteOne {
 }
 
 // DeleteOneID returns a builder for deleting the given entity by its id.
-func (c *DEPTokenClient) DeleteOneID(id uint) *DEPTokenDeleteOne {
+func (c *DEPTokenClient) DeleteOneID(id string) *DEPTokenDeleteOne {
 	builder := c.Delete().Where(deptoken.ID(id))
 	builder.mutation.id = &id
 	builder.mutation.op = OpDeleteOne
@@ -499,12 +499,12 @@ func (c *DEPTokenClient) Query() *DEPTokenQuery {
 }
 
 // Get returns a DEPToken entity by its id.
-func (c *DEPTokenClient) Get(ctx context.Context, id uint) (*DEPToken, error) {
+func (c *DEPTokenClient) Get(ctx context.Context, id string) (*DEPToken, error) {
 	return c.Query().Where(deptoken.ID(id)).Only(ctx)
 }
 
 // GetX is like Get, but panics if an error occurs.
-func (c *DEPTokenClient) GetX(ctx context.Context, id uint) *DEPToken {
+func (c *DEPTokenClient) GetX(ctx context.Context, id string) *DEPToken {
 	obj, err := c.Get(ctx, id)
 	if err != nil {
 		panic(err)
@@ -731,7 +731,7 @@ func (c *DeviceClient) UpdateOne(_m *Device) *DeviceUpdateOne {
 }
 
 // UpdateOneID returns an update builder for the given id.
-func (c *DeviceClient) UpdateOneID(id uint) *DeviceUpdateOne {
+func (c *DeviceClient) UpdateOneID(id string) *DeviceUpdateOne {
 	mutation := newDeviceMutation(c.config, OpUpdateOne, withDeviceID(id))
 	return &DeviceUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
@@ -748,7 +748,7 @@ func (c *DeviceClient) DeleteOne(_m *Device) *DeviceDeleteOne {
 }
 
 // DeleteOneID returns a builder for deleting the given entity by its id.
-func (c *DeviceClient) DeleteOneID(id uint) *DeviceDeleteOne {
+func (c *DeviceClient) DeleteOneID(id string) *DeviceDeleteOne {
 	builder := c.Delete().Where(device.ID(id))
 	builder.mutation.id = &id
 	builder.mutation.op = OpDeleteOne
@@ -765,12 +765,12 @@ func (c *DeviceClient) Query() *DeviceQuery {
 }
 
 // Get returns a Device entity by its id.
-func (c *DeviceClient) Get(ctx context.Context, id uint) (*Device, error) {
+func (c *DeviceClient) Get(ctx context.Context, id string) (*Device, error) {
 	return c.Query().Where(device.ID(id)).Only(ctx)
 }
 
 // GetX is like Get, but panics if an error occurs.
-func (c *DeviceClient) GetX(ctx context.Context, id uint) *Device {
+func (c *DeviceClient) GetX(ctx context.Context, id string) *Device {
 	obj, err := c.Get(ctx, id)
 	if err != nil {
 		panic(err)

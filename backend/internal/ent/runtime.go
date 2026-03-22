@@ -23,48 +23,48 @@ import (
 func init() {
 	apnsconfigFields := schema.APNSConfig{}.Fields()
 	_ = apnsconfigFields
-	// apnsconfigDescTopic is the schema descriptor for topic field.
-	apnsconfigDescTopic := apnsconfigFields[1].Descriptor()
-	// apnsconfig.TopicValidator is a validator for the "topic" field. It is called by the builders before save.
-	apnsconfig.TopicValidator = apnsconfigDescTopic.Validators[0].(func(string) error)
-	// apnsconfigDescCertFilePath is the schema descriptor for cert_file_path field.
-	apnsconfigDescCertFilePath := apnsconfigFields[2].Descriptor()
-	// apnsconfig.CertFilePathValidator is a validator for the "cert_file_path" field. It is called by the builders before save.
-	apnsconfig.CertFilePathValidator = apnsconfigDescCertFilePath.Validators[0].(func(string) error)
-	// apnsconfigDescKeyFilePath is the schema descriptor for key_file_path field.
-	apnsconfigDescKeyFilePath := apnsconfigFields[3].Descriptor()
-	// apnsconfig.KeyFilePathValidator is a validator for the "key_file_path" field. It is called by the builders before save.
-	apnsconfig.KeyFilePathValidator = apnsconfigDescKeyFilePath.Validators[0].(func(string) error)
+	// apnsconfigDescCertPem is the schema descriptor for cert_pem field.
+	apnsconfigDescCertPem := apnsconfigFields[1].Descriptor()
+	// apnsconfig.CertPemValidator is a validator for the "cert_pem" field. It is called by the builders before save.
+	apnsconfig.CertPemValidator = apnsconfigDescCertPem.Validators[0].(func(string) error)
+	// apnsconfigDescKeyPem is the schema descriptor for key_pem field.
+	apnsconfigDescKeyPem := apnsconfigFields[2].Descriptor()
+	// apnsconfig.KeyPemValidator is a validator for the "key_pem" field. It is called by the builders before save.
+	apnsconfig.KeyPemValidator = apnsconfigDescKeyPem.Validators[0].(func(string) error)
+	// apnsconfigDescStaleToken is the schema descriptor for stale_token field.
+	apnsconfigDescStaleToken := apnsconfigFields[3].Descriptor()
+	// apnsconfig.DefaultStaleToken holds the default value on creation for the stale_token field.
+	apnsconfig.DefaultStaleToken = apnsconfigDescStaleToken.Default.(int)
 	// apnsconfigDescCreatedAt is the schema descriptor for created_at field.
-	apnsconfigDescCreatedAt := apnsconfigFields[5].Descriptor()
+	apnsconfigDescCreatedAt := apnsconfigFields[4].Descriptor()
 	// apnsconfig.DefaultCreatedAt holds the default value on creation for the created_at field.
 	apnsconfig.DefaultCreatedAt = apnsconfigDescCreatedAt.Default.(func() time.Time)
 	// apnsconfigDescUpdatedAt is the schema descriptor for updated_at field.
-	apnsconfigDescUpdatedAt := apnsconfigFields[6].Descriptor()
+	apnsconfigDescUpdatedAt := apnsconfigFields[5].Descriptor()
 	// apnsconfig.DefaultUpdatedAt holds the default value on creation for the updated_at field.
 	apnsconfig.DefaultUpdatedAt = apnsconfigDescUpdatedAt.Default.(func() time.Time)
 	// apnsconfig.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
 	apnsconfig.UpdateDefaultUpdatedAt = apnsconfigDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// apnsconfigDescID is the schema descriptor for id field.
+	apnsconfigDescID := apnsconfigFields[0].Descriptor()
+	// apnsconfig.IDValidator is a validator for the "id" field. It is called by the builders before save.
+	apnsconfig.IDValidator = apnsconfigDescID.Validators[0].(func(string) error)
 	deptokenFields := schema.DEPToken{}.Fields()
 	_ = deptokenFields
-	// deptokenDescName is the schema descriptor for name field.
-	deptokenDescName := deptokenFields[1].Descriptor()
-	// deptoken.NameValidator is a validator for the "name" field. It is called by the builders before save.
-	deptoken.NameValidator = deptokenDescName.Validators[0].(func(string) error)
-	// deptokenDescP7mFilePath is the schema descriptor for p7m_file_path field.
-	deptokenDescP7mFilePath := deptokenFields[2].Descriptor()
-	// deptoken.P7mFilePathValidator is a validator for the "p7m_file_path" field. It is called by the builders before save.
-	deptoken.P7mFilePathValidator = deptokenDescP7mFilePath.Validators[0].(func(string) error)
 	// deptokenDescCreatedAt is the schema descriptor for created_at field.
-	deptokenDescCreatedAt := deptokenFields[5].Descriptor()
+	deptokenDescCreatedAt := deptokenFields[11].Descriptor()
 	// deptoken.DefaultCreatedAt holds the default value on creation for the created_at field.
 	deptoken.DefaultCreatedAt = deptokenDescCreatedAt.Default.(func() time.Time)
 	// deptokenDescUpdatedAt is the schema descriptor for updated_at field.
-	deptokenDescUpdatedAt := deptokenFields[6].Descriptor()
+	deptokenDescUpdatedAt := deptokenFields[12].Descriptor()
 	// deptoken.DefaultUpdatedAt holds the default value on creation for the updated_at field.
 	deptoken.DefaultUpdatedAt = deptokenDescUpdatedAt.Default.(func() time.Time)
 	// deptoken.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
 	deptoken.UpdateDefaultUpdatedAt = deptokenDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// deptokenDescID is the schema descriptor for id field.
+	deptokenDescID := deptokenFields[0].Descriptor()
+	// deptoken.IDValidator is a validator for the "id" field. It is called by the builders before save.
+	deptoken.IDValidator = deptokenDescID.Validators[0].(func(string) error)
 	depprofileFields := schema.DepProfile{}.Fields()
 	_ = depprofileFields
 	// depprofileDescProfileName is the schema descriptor for profile_name field.
@@ -119,14 +119,6 @@ func init() {
 	depprofile.UpdateDefaultUpdatedAt = depprofileDescUpdatedAt.UpdateDefault.(func() time.Time)
 	deviceFields := schema.Device{}.Fields()
 	_ = deviceFields
-	// deviceDescSerialNumber is the schema descriptor for serial_number field.
-	deviceDescSerialNumber := deviceFields[1].Descriptor()
-	// device.SerialNumberValidator is a validator for the "serial_number" field. It is called by the builders before save.
-	device.SerialNumberValidator = deviceDescSerialNumber.Validators[0].(func(string) error)
-	// deviceDescModel is the schema descriptor for model field.
-	deviceDescModel := deviceFields[2].Descriptor()
-	// device.ModelValidator is a validator for the "model" field. It is called by the builders before save.
-	device.ModelValidator = deviceDescModel.Validators[0].(func(string) error)
 	// deviceDescIsEnrolled is the schema descriptor for is_enrolled field.
 	deviceDescIsEnrolled := deviceFields[4].Descriptor()
 	// device.DefaultIsEnrolled holds the default value on creation for the is_enrolled field.
@@ -141,6 +133,10 @@ func init() {
 	device.DefaultUpdatedAt = deviceDescUpdatedAt.Default.(func() time.Time)
 	// device.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
 	device.UpdateDefaultUpdatedAt = deviceDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// deviceDescID is the schema descriptor for id field.
+	deviceDescID := deviceFields[0].Descriptor()
+	// device.IDValidator is a validator for the "id" field. It is called by the builders before save.
+	device.IDValidator = deviceDescID.Validators[0].(func(string) error)
 	mobileconfigFields := schema.MobileConfig{}.Fields()
 	_ = mobileconfigFields
 	// mobileconfigDescName is the schema descriptor for name field.

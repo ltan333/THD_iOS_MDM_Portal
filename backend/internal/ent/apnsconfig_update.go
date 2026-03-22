@@ -28,65 +28,52 @@ func (_u *APNSConfigUpdate) Where(ps ...predicate.APNSConfig) *APNSConfigUpdate 
 	return _u
 }
 
-// SetTopic sets the "topic" field.
-func (_u *APNSConfigUpdate) SetTopic(v string) *APNSConfigUpdate {
-	_u.mutation.SetTopic(v)
+// SetCertPem sets the "cert_pem" field.
+func (_u *APNSConfigUpdate) SetCertPem(v string) *APNSConfigUpdate {
+	_u.mutation.SetCertPem(v)
 	return _u
 }
 
-// SetNillableTopic sets the "topic" field if the given value is not nil.
-func (_u *APNSConfigUpdate) SetNillableTopic(v *string) *APNSConfigUpdate {
+// SetNillableCertPem sets the "cert_pem" field if the given value is not nil.
+func (_u *APNSConfigUpdate) SetNillableCertPem(v *string) *APNSConfigUpdate {
 	if v != nil {
-		_u.SetTopic(*v)
+		_u.SetCertPem(*v)
 	}
 	return _u
 }
 
-// SetCertFilePath sets the "cert_file_path" field.
-func (_u *APNSConfigUpdate) SetCertFilePath(v string) *APNSConfigUpdate {
-	_u.mutation.SetCertFilePath(v)
+// SetKeyPem sets the "key_pem" field.
+func (_u *APNSConfigUpdate) SetKeyPem(v string) *APNSConfigUpdate {
+	_u.mutation.SetKeyPem(v)
 	return _u
 }
 
-// SetNillableCertFilePath sets the "cert_file_path" field if the given value is not nil.
-func (_u *APNSConfigUpdate) SetNillableCertFilePath(v *string) *APNSConfigUpdate {
+// SetNillableKeyPem sets the "key_pem" field if the given value is not nil.
+func (_u *APNSConfigUpdate) SetNillableKeyPem(v *string) *APNSConfigUpdate {
 	if v != nil {
-		_u.SetCertFilePath(*v)
+		_u.SetKeyPem(*v)
 	}
 	return _u
 }
 
-// SetKeyFilePath sets the "key_file_path" field.
-func (_u *APNSConfigUpdate) SetKeyFilePath(v string) *APNSConfigUpdate {
-	_u.mutation.SetKeyFilePath(v)
+// SetStaleToken sets the "stale_token" field.
+func (_u *APNSConfigUpdate) SetStaleToken(v int) *APNSConfigUpdate {
+	_u.mutation.ResetStaleToken()
+	_u.mutation.SetStaleToken(v)
 	return _u
 }
 
-// SetNillableKeyFilePath sets the "key_file_path" field if the given value is not nil.
-func (_u *APNSConfigUpdate) SetNillableKeyFilePath(v *string) *APNSConfigUpdate {
+// SetNillableStaleToken sets the "stale_token" field if the given value is not nil.
+func (_u *APNSConfigUpdate) SetNillableStaleToken(v *int) *APNSConfigUpdate {
 	if v != nil {
-		_u.SetKeyFilePath(*v)
+		_u.SetStaleToken(*v)
 	}
 	return _u
 }
 
-// SetExpiry sets the "expiry" field.
-func (_u *APNSConfigUpdate) SetExpiry(v time.Time) *APNSConfigUpdate {
-	_u.mutation.SetExpiry(v)
-	return _u
-}
-
-// SetNillableExpiry sets the "expiry" field if the given value is not nil.
-func (_u *APNSConfigUpdate) SetNillableExpiry(v *time.Time) *APNSConfigUpdate {
-	if v != nil {
-		_u.SetExpiry(*v)
-	}
-	return _u
-}
-
-// ClearExpiry clears the value of the "expiry" field.
-func (_u *APNSConfigUpdate) ClearExpiry() *APNSConfigUpdate {
-	_u.mutation.ClearExpiry()
+// AddStaleToken adds value to the "stale_token" field.
+func (_u *APNSConfigUpdate) AddStaleToken(v int) *APNSConfigUpdate {
+	_u.mutation.AddStaleToken(v)
 	return _u
 }
 
@@ -139,19 +126,14 @@ func (_u *APNSConfigUpdate) defaults() {
 
 // check runs all checks and user-defined validators on the builder.
 func (_u *APNSConfigUpdate) check() error {
-	if v, ok := _u.mutation.Topic(); ok {
-		if err := apnsconfig.TopicValidator(v); err != nil {
-			return &ValidationError{Name: "topic", err: fmt.Errorf(`ent: validator failed for field "APNSConfig.topic": %w`, err)}
+	if v, ok := _u.mutation.CertPem(); ok {
+		if err := apnsconfig.CertPemValidator(v); err != nil {
+			return &ValidationError{Name: "cert_pem", err: fmt.Errorf(`ent: validator failed for field "APNSConfig.cert_pem": %w`, err)}
 		}
 	}
-	if v, ok := _u.mutation.CertFilePath(); ok {
-		if err := apnsconfig.CertFilePathValidator(v); err != nil {
-			return &ValidationError{Name: "cert_file_path", err: fmt.Errorf(`ent: validator failed for field "APNSConfig.cert_file_path": %w`, err)}
-		}
-	}
-	if v, ok := _u.mutation.KeyFilePath(); ok {
-		if err := apnsconfig.KeyFilePathValidator(v); err != nil {
-			return &ValidationError{Name: "key_file_path", err: fmt.Errorf(`ent: validator failed for field "APNSConfig.key_file_path": %w`, err)}
+	if v, ok := _u.mutation.KeyPem(); ok {
+		if err := apnsconfig.KeyPemValidator(v); err != nil {
+			return &ValidationError{Name: "key_pem", err: fmt.Errorf(`ent: validator failed for field "APNSConfig.key_pem": %w`, err)}
 		}
 	}
 	return nil
@@ -161,7 +143,7 @@ func (_u *APNSConfigUpdate) sqlSave(ctx context.Context) (_node int, err error) 
 	if err := _u.check(); err != nil {
 		return _node, err
 	}
-	_spec := sqlgraph.NewUpdateSpec(apnsconfig.Table, apnsconfig.Columns, sqlgraph.NewFieldSpec(apnsconfig.FieldID, field.TypeUint))
+	_spec := sqlgraph.NewUpdateSpec(apnsconfig.Table, apnsconfig.Columns, sqlgraph.NewFieldSpec(apnsconfig.FieldID, field.TypeString))
 	if ps := _u.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
@@ -169,20 +151,17 @@ func (_u *APNSConfigUpdate) sqlSave(ctx context.Context) (_node int, err error) 
 			}
 		}
 	}
-	if value, ok := _u.mutation.Topic(); ok {
-		_spec.SetField(apnsconfig.FieldTopic, field.TypeString, value)
+	if value, ok := _u.mutation.CertPem(); ok {
+		_spec.SetField(apnsconfig.FieldCertPem, field.TypeString, value)
 	}
-	if value, ok := _u.mutation.CertFilePath(); ok {
-		_spec.SetField(apnsconfig.FieldCertFilePath, field.TypeString, value)
+	if value, ok := _u.mutation.KeyPem(); ok {
+		_spec.SetField(apnsconfig.FieldKeyPem, field.TypeString, value)
 	}
-	if value, ok := _u.mutation.KeyFilePath(); ok {
-		_spec.SetField(apnsconfig.FieldKeyFilePath, field.TypeString, value)
+	if value, ok := _u.mutation.StaleToken(); ok {
+		_spec.SetField(apnsconfig.FieldStaleToken, field.TypeInt, value)
 	}
-	if value, ok := _u.mutation.Expiry(); ok {
-		_spec.SetField(apnsconfig.FieldExpiry, field.TypeTime, value)
-	}
-	if _u.mutation.ExpiryCleared() {
-		_spec.ClearField(apnsconfig.FieldExpiry, field.TypeTime)
+	if value, ok := _u.mutation.AddedStaleToken(); ok {
+		_spec.AddField(apnsconfig.FieldStaleToken, field.TypeInt, value)
 	}
 	if value, ok := _u.mutation.UpdatedAt(); ok {
 		_spec.SetField(apnsconfig.FieldUpdatedAt, field.TypeTime, value)
@@ -207,65 +186,52 @@ type APNSConfigUpdateOne struct {
 	mutation *APNSConfigMutation
 }
 
-// SetTopic sets the "topic" field.
-func (_u *APNSConfigUpdateOne) SetTopic(v string) *APNSConfigUpdateOne {
-	_u.mutation.SetTopic(v)
+// SetCertPem sets the "cert_pem" field.
+func (_u *APNSConfigUpdateOne) SetCertPem(v string) *APNSConfigUpdateOne {
+	_u.mutation.SetCertPem(v)
 	return _u
 }
 
-// SetNillableTopic sets the "topic" field if the given value is not nil.
-func (_u *APNSConfigUpdateOne) SetNillableTopic(v *string) *APNSConfigUpdateOne {
+// SetNillableCertPem sets the "cert_pem" field if the given value is not nil.
+func (_u *APNSConfigUpdateOne) SetNillableCertPem(v *string) *APNSConfigUpdateOne {
 	if v != nil {
-		_u.SetTopic(*v)
+		_u.SetCertPem(*v)
 	}
 	return _u
 }
 
-// SetCertFilePath sets the "cert_file_path" field.
-func (_u *APNSConfigUpdateOne) SetCertFilePath(v string) *APNSConfigUpdateOne {
-	_u.mutation.SetCertFilePath(v)
+// SetKeyPem sets the "key_pem" field.
+func (_u *APNSConfigUpdateOne) SetKeyPem(v string) *APNSConfigUpdateOne {
+	_u.mutation.SetKeyPem(v)
 	return _u
 }
 
-// SetNillableCertFilePath sets the "cert_file_path" field if the given value is not nil.
-func (_u *APNSConfigUpdateOne) SetNillableCertFilePath(v *string) *APNSConfigUpdateOne {
+// SetNillableKeyPem sets the "key_pem" field if the given value is not nil.
+func (_u *APNSConfigUpdateOne) SetNillableKeyPem(v *string) *APNSConfigUpdateOne {
 	if v != nil {
-		_u.SetCertFilePath(*v)
+		_u.SetKeyPem(*v)
 	}
 	return _u
 }
 
-// SetKeyFilePath sets the "key_file_path" field.
-func (_u *APNSConfigUpdateOne) SetKeyFilePath(v string) *APNSConfigUpdateOne {
-	_u.mutation.SetKeyFilePath(v)
+// SetStaleToken sets the "stale_token" field.
+func (_u *APNSConfigUpdateOne) SetStaleToken(v int) *APNSConfigUpdateOne {
+	_u.mutation.ResetStaleToken()
+	_u.mutation.SetStaleToken(v)
 	return _u
 }
 
-// SetNillableKeyFilePath sets the "key_file_path" field if the given value is not nil.
-func (_u *APNSConfigUpdateOne) SetNillableKeyFilePath(v *string) *APNSConfigUpdateOne {
+// SetNillableStaleToken sets the "stale_token" field if the given value is not nil.
+func (_u *APNSConfigUpdateOne) SetNillableStaleToken(v *int) *APNSConfigUpdateOne {
 	if v != nil {
-		_u.SetKeyFilePath(*v)
+		_u.SetStaleToken(*v)
 	}
 	return _u
 }
 
-// SetExpiry sets the "expiry" field.
-func (_u *APNSConfigUpdateOne) SetExpiry(v time.Time) *APNSConfigUpdateOne {
-	_u.mutation.SetExpiry(v)
-	return _u
-}
-
-// SetNillableExpiry sets the "expiry" field if the given value is not nil.
-func (_u *APNSConfigUpdateOne) SetNillableExpiry(v *time.Time) *APNSConfigUpdateOne {
-	if v != nil {
-		_u.SetExpiry(*v)
-	}
-	return _u
-}
-
-// ClearExpiry clears the value of the "expiry" field.
-func (_u *APNSConfigUpdateOne) ClearExpiry() *APNSConfigUpdateOne {
-	_u.mutation.ClearExpiry()
+// AddStaleToken adds value to the "stale_token" field.
+func (_u *APNSConfigUpdateOne) AddStaleToken(v int) *APNSConfigUpdateOne {
+	_u.mutation.AddStaleToken(v)
 	return _u
 }
 
@@ -331,19 +297,14 @@ func (_u *APNSConfigUpdateOne) defaults() {
 
 // check runs all checks and user-defined validators on the builder.
 func (_u *APNSConfigUpdateOne) check() error {
-	if v, ok := _u.mutation.Topic(); ok {
-		if err := apnsconfig.TopicValidator(v); err != nil {
-			return &ValidationError{Name: "topic", err: fmt.Errorf(`ent: validator failed for field "APNSConfig.topic": %w`, err)}
+	if v, ok := _u.mutation.CertPem(); ok {
+		if err := apnsconfig.CertPemValidator(v); err != nil {
+			return &ValidationError{Name: "cert_pem", err: fmt.Errorf(`ent: validator failed for field "APNSConfig.cert_pem": %w`, err)}
 		}
 	}
-	if v, ok := _u.mutation.CertFilePath(); ok {
-		if err := apnsconfig.CertFilePathValidator(v); err != nil {
-			return &ValidationError{Name: "cert_file_path", err: fmt.Errorf(`ent: validator failed for field "APNSConfig.cert_file_path": %w`, err)}
-		}
-	}
-	if v, ok := _u.mutation.KeyFilePath(); ok {
-		if err := apnsconfig.KeyFilePathValidator(v); err != nil {
-			return &ValidationError{Name: "key_file_path", err: fmt.Errorf(`ent: validator failed for field "APNSConfig.key_file_path": %w`, err)}
+	if v, ok := _u.mutation.KeyPem(); ok {
+		if err := apnsconfig.KeyPemValidator(v); err != nil {
+			return &ValidationError{Name: "key_pem", err: fmt.Errorf(`ent: validator failed for field "APNSConfig.key_pem": %w`, err)}
 		}
 	}
 	return nil
@@ -353,7 +314,7 @@ func (_u *APNSConfigUpdateOne) sqlSave(ctx context.Context) (_node *APNSConfig, 
 	if err := _u.check(); err != nil {
 		return _node, err
 	}
-	_spec := sqlgraph.NewUpdateSpec(apnsconfig.Table, apnsconfig.Columns, sqlgraph.NewFieldSpec(apnsconfig.FieldID, field.TypeUint))
+	_spec := sqlgraph.NewUpdateSpec(apnsconfig.Table, apnsconfig.Columns, sqlgraph.NewFieldSpec(apnsconfig.FieldID, field.TypeString))
 	id, ok := _u.mutation.ID()
 	if !ok {
 		return nil, &ValidationError{Name: "id", err: errors.New(`ent: missing "APNSConfig.id" for update`)}
@@ -378,20 +339,17 @@ func (_u *APNSConfigUpdateOne) sqlSave(ctx context.Context) (_node *APNSConfig, 
 			}
 		}
 	}
-	if value, ok := _u.mutation.Topic(); ok {
-		_spec.SetField(apnsconfig.FieldTopic, field.TypeString, value)
+	if value, ok := _u.mutation.CertPem(); ok {
+		_spec.SetField(apnsconfig.FieldCertPem, field.TypeString, value)
 	}
-	if value, ok := _u.mutation.CertFilePath(); ok {
-		_spec.SetField(apnsconfig.FieldCertFilePath, field.TypeString, value)
+	if value, ok := _u.mutation.KeyPem(); ok {
+		_spec.SetField(apnsconfig.FieldKeyPem, field.TypeString, value)
 	}
-	if value, ok := _u.mutation.KeyFilePath(); ok {
-		_spec.SetField(apnsconfig.FieldKeyFilePath, field.TypeString, value)
+	if value, ok := _u.mutation.StaleToken(); ok {
+		_spec.SetField(apnsconfig.FieldStaleToken, field.TypeInt, value)
 	}
-	if value, ok := _u.mutation.Expiry(); ok {
-		_spec.SetField(apnsconfig.FieldExpiry, field.TypeTime, value)
-	}
-	if _u.mutation.ExpiryCleared() {
-		_spec.ClearField(apnsconfig.FieldExpiry, field.TypeTime)
+	if value, ok := _u.mutation.AddedStaleToken(); ok {
+		_spec.AddField(apnsconfig.FieldStaleToken, field.TypeInt, value)
 	}
 	if value, ok := _u.mutation.UpdatedAt(); ok {
 		_spec.SetField(apnsconfig.FieldUpdatedAt, field.TypeTime, value)

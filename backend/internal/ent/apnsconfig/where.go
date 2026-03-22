@@ -10,68 +10,73 @@ import (
 )
 
 // ID filters vertices based on their ID field.
-func ID(id uint) predicate.APNSConfig {
+func ID(id string) predicate.APNSConfig {
 	return predicate.APNSConfig(sql.FieldEQ(FieldID, id))
 }
 
 // IDEQ applies the EQ predicate on the ID field.
-func IDEQ(id uint) predicate.APNSConfig {
+func IDEQ(id string) predicate.APNSConfig {
 	return predicate.APNSConfig(sql.FieldEQ(FieldID, id))
 }
 
 // IDNEQ applies the NEQ predicate on the ID field.
-func IDNEQ(id uint) predicate.APNSConfig {
+func IDNEQ(id string) predicate.APNSConfig {
 	return predicate.APNSConfig(sql.FieldNEQ(FieldID, id))
 }
 
 // IDIn applies the In predicate on the ID field.
-func IDIn(ids ...uint) predicate.APNSConfig {
+func IDIn(ids ...string) predicate.APNSConfig {
 	return predicate.APNSConfig(sql.FieldIn(FieldID, ids...))
 }
 
 // IDNotIn applies the NotIn predicate on the ID field.
-func IDNotIn(ids ...uint) predicate.APNSConfig {
+func IDNotIn(ids ...string) predicate.APNSConfig {
 	return predicate.APNSConfig(sql.FieldNotIn(FieldID, ids...))
 }
 
 // IDGT applies the GT predicate on the ID field.
-func IDGT(id uint) predicate.APNSConfig {
+func IDGT(id string) predicate.APNSConfig {
 	return predicate.APNSConfig(sql.FieldGT(FieldID, id))
 }
 
 // IDGTE applies the GTE predicate on the ID field.
-func IDGTE(id uint) predicate.APNSConfig {
+func IDGTE(id string) predicate.APNSConfig {
 	return predicate.APNSConfig(sql.FieldGTE(FieldID, id))
 }
 
 // IDLT applies the LT predicate on the ID field.
-func IDLT(id uint) predicate.APNSConfig {
+func IDLT(id string) predicate.APNSConfig {
 	return predicate.APNSConfig(sql.FieldLT(FieldID, id))
 }
 
 // IDLTE applies the LTE predicate on the ID field.
-func IDLTE(id uint) predicate.APNSConfig {
+func IDLTE(id string) predicate.APNSConfig {
 	return predicate.APNSConfig(sql.FieldLTE(FieldID, id))
 }
 
-// Topic applies equality check predicate on the "topic" field. It's identical to TopicEQ.
-func Topic(v string) predicate.APNSConfig {
-	return predicate.APNSConfig(sql.FieldEQ(FieldTopic, v))
+// IDEqualFold applies the EqualFold predicate on the ID field.
+func IDEqualFold(id string) predicate.APNSConfig {
+	return predicate.APNSConfig(sql.FieldEqualFold(FieldID, id))
 }
 
-// CertFilePath applies equality check predicate on the "cert_file_path" field. It's identical to CertFilePathEQ.
-func CertFilePath(v string) predicate.APNSConfig {
-	return predicate.APNSConfig(sql.FieldEQ(FieldCertFilePath, v))
+// IDContainsFold applies the ContainsFold predicate on the ID field.
+func IDContainsFold(id string) predicate.APNSConfig {
+	return predicate.APNSConfig(sql.FieldContainsFold(FieldID, id))
 }
 
-// KeyFilePath applies equality check predicate on the "key_file_path" field. It's identical to KeyFilePathEQ.
-func KeyFilePath(v string) predicate.APNSConfig {
-	return predicate.APNSConfig(sql.FieldEQ(FieldKeyFilePath, v))
+// CertPem applies equality check predicate on the "cert_pem" field. It's identical to CertPemEQ.
+func CertPem(v string) predicate.APNSConfig {
+	return predicate.APNSConfig(sql.FieldEQ(FieldCertPem, v))
 }
 
-// Expiry applies equality check predicate on the "expiry" field. It's identical to ExpiryEQ.
-func Expiry(v time.Time) predicate.APNSConfig {
-	return predicate.APNSConfig(sql.FieldEQ(FieldExpiry, v))
+// KeyPem applies equality check predicate on the "key_pem" field. It's identical to KeyPemEQ.
+func KeyPem(v string) predicate.APNSConfig {
+	return predicate.APNSConfig(sql.FieldEQ(FieldKeyPem, v))
+}
+
+// StaleToken applies equality check predicate on the "stale_token" field. It's identical to StaleTokenEQ.
+func StaleToken(v int) predicate.APNSConfig {
+	return predicate.APNSConfig(sql.FieldEQ(FieldStaleToken, v))
 }
 
 // CreatedAt applies equality check predicate on the "created_at" field. It's identical to CreatedAtEQ.
@@ -84,249 +89,174 @@ func UpdatedAt(v time.Time) predicate.APNSConfig {
 	return predicate.APNSConfig(sql.FieldEQ(FieldUpdatedAt, v))
 }
 
-// TopicEQ applies the EQ predicate on the "topic" field.
-func TopicEQ(v string) predicate.APNSConfig {
-	return predicate.APNSConfig(sql.FieldEQ(FieldTopic, v))
+// CertPemEQ applies the EQ predicate on the "cert_pem" field.
+func CertPemEQ(v string) predicate.APNSConfig {
+	return predicate.APNSConfig(sql.FieldEQ(FieldCertPem, v))
 }
 
-// TopicNEQ applies the NEQ predicate on the "topic" field.
-func TopicNEQ(v string) predicate.APNSConfig {
-	return predicate.APNSConfig(sql.FieldNEQ(FieldTopic, v))
+// CertPemNEQ applies the NEQ predicate on the "cert_pem" field.
+func CertPemNEQ(v string) predicate.APNSConfig {
+	return predicate.APNSConfig(sql.FieldNEQ(FieldCertPem, v))
 }
 
-// TopicIn applies the In predicate on the "topic" field.
-func TopicIn(vs ...string) predicate.APNSConfig {
-	return predicate.APNSConfig(sql.FieldIn(FieldTopic, vs...))
+// CertPemIn applies the In predicate on the "cert_pem" field.
+func CertPemIn(vs ...string) predicate.APNSConfig {
+	return predicate.APNSConfig(sql.FieldIn(FieldCertPem, vs...))
 }
 
-// TopicNotIn applies the NotIn predicate on the "topic" field.
-func TopicNotIn(vs ...string) predicate.APNSConfig {
-	return predicate.APNSConfig(sql.FieldNotIn(FieldTopic, vs...))
+// CertPemNotIn applies the NotIn predicate on the "cert_pem" field.
+func CertPemNotIn(vs ...string) predicate.APNSConfig {
+	return predicate.APNSConfig(sql.FieldNotIn(FieldCertPem, vs...))
 }
 
-// TopicGT applies the GT predicate on the "topic" field.
-func TopicGT(v string) predicate.APNSConfig {
-	return predicate.APNSConfig(sql.FieldGT(FieldTopic, v))
+// CertPemGT applies the GT predicate on the "cert_pem" field.
+func CertPemGT(v string) predicate.APNSConfig {
+	return predicate.APNSConfig(sql.FieldGT(FieldCertPem, v))
 }
 
-// TopicGTE applies the GTE predicate on the "topic" field.
-func TopicGTE(v string) predicate.APNSConfig {
-	return predicate.APNSConfig(sql.FieldGTE(FieldTopic, v))
+// CertPemGTE applies the GTE predicate on the "cert_pem" field.
+func CertPemGTE(v string) predicate.APNSConfig {
+	return predicate.APNSConfig(sql.FieldGTE(FieldCertPem, v))
 }
 
-// TopicLT applies the LT predicate on the "topic" field.
-func TopicLT(v string) predicate.APNSConfig {
-	return predicate.APNSConfig(sql.FieldLT(FieldTopic, v))
+// CertPemLT applies the LT predicate on the "cert_pem" field.
+func CertPemLT(v string) predicate.APNSConfig {
+	return predicate.APNSConfig(sql.FieldLT(FieldCertPem, v))
 }
 
-// TopicLTE applies the LTE predicate on the "topic" field.
-func TopicLTE(v string) predicate.APNSConfig {
-	return predicate.APNSConfig(sql.FieldLTE(FieldTopic, v))
+// CertPemLTE applies the LTE predicate on the "cert_pem" field.
+func CertPemLTE(v string) predicate.APNSConfig {
+	return predicate.APNSConfig(sql.FieldLTE(FieldCertPem, v))
 }
 
-// TopicContains applies the Contains predicate on the "topic" field.
-func TopicContains(v string) predicate.APNSConfig {
-	return predicate.APNSConfig(sql.FieldContains(FieldTopic, v))
+// CertPemContains applies the Contains predicate on the "cert_pem" field.
+func CertPemContains(v string) predicate.APNSConfig {
+	return predicate.APNSConfig(sql.FieldContains(FieldCertPem, v))
 }
 
-// TopicHasPrefix applies the HasPrefix predicate on the "topic" field.
-func TopicHasPrefix(v string) predicate.APNSConfig {
-	return predicate.APNSConfig(sql.FieldHasPrefix(FieldTopic, v))
+// CertPemHasPrefix applies the HasPrefix predicate on the "cert_pem" field.
+func CertPemHasPrefix(v string) predicate.APNSConfig {
+	return predicate.APNSConfig(sql.FieldHasPrefix(FieldCertPem, v))
 }
 
-// TopicHasSuffix applies the HasSuffix predicate on the "topic" field.
-func TopicHasSuffix(v string) predicate.APNSConfig {
-	return predicate.APNSConfig(sql.FieldHasSuffix(FieldTopic, v))
+// CertPemHasSuffix applies the HasSuffix predicate on the "cert_pem" field.
+func CertPemHasSuffix(v string) predicate.APNSConfig {
+	return predicate.APNSConfig(sql.FieldHasSuffix(FieldCertPem, v))
 }
 
-// TopicEqualFold applies the EqualFold predicate on the "topic" field.
-func TopicEqualFold(v string) predicate.APNSConfig {
-	return predicate.APNSConfig(sql.FieldEqualFold(FieldTopic, v))
+// CertPemEqualFold applies the EqualFold predicate on the "cert_pem" field.
+func CertPemEqualFold(v string) predicate.APNSConfig {
+	return predicate.APNSConfig(sql.FieldEqualFold(FieldCertPem, v))
 }
 
-// TopicContainsFold applies the ContainsFold predicate on the "topic" field.
-func TopicContainsFold(v string) predicate.APNSConfig {
-	return predicate.APNSConfig(sql.FieldContainsFold(FieldTopic, v))
+// CertPemContainsFold applies the ContainsFold predicate on the "cert_pem" field.
+func CertPemContainsFold(v string) predicate.APNSConfig {
+	return predicate.APNSConfig(sql.FieldContainsFold(FieldCertPem, v))
 }
 
-// CertFilePathEQ applies the EQ predicate on the "cert_file_path" field.
-func CertFilePathEQ(v string) predicate.APNSConfig {
-	return predicate.APNSConfig(sql.FieldEQ(FieldCertFilePath, v))
+// KeyPemEQ applies the EQ predicate on the "key_pem" field.
+func KeyPemEQ(v string) predicate.APNSConfig {
+	return predicate.APNSConfig(sql.FieldEQ(FieldKeyPem, v))
 }
 
-// CertFilePathNEQ applies the NEQ predicate on the "cert_file_path" field.
-func CertFilePathNEQ(v string) predicate.APNSConfig {
-	return predicate.APNSConfig(sql.FieldNEQ(FieldCertFilePath, v))
+// KeyPemNEQ applies the NEQ predicate on the "key_pem" field.
+func KeyPemNEQ(v string) predicate.APNSConfig {
+	return predicate.APNSConfig(sql.FieldNEQ(FieldKeyPem, v))
 }
 
-// CertFilePathIn applies the In predicate on the "cert_file_path" field.
-func CertFilePathIn(vs ...string) predicate.APNSConfig {
-	return predicate.APNSConfig(sql.FieldIn(FieldCertFilePath, vs...))
+// KeyPemIn applies the In predicate on the "key_pem" field.
+func KeyPemIn(vs ...string) predicate.APNSConfig {
+	return predicate.APNSConfig(sql.FieldIn(FieldKeyPem, vs...))
 }
 
-// CertFilePathNotIn applies the NotIn predicate on the "cert_file_path" field.
-func CertFilePathNotIn(vs ...string) predicate.APNSConfig {
-	return predicate.APNSConfig(sql.FieldNotIn(FieldCertFilePath, vs...))
+// KeyPemNotIn applies the NotIn predicate on the "key_pem" field.
+func KeyPemNotIn(vs ...string) predicate.APNSConfig {
+	return predicate.APNSConfig(sql.FieldNotIn(FieldKeyPem, vs...))
 }
 
-// CertFilePathGT applies the GT predicate on the "cert_file_path" field.
-func CertFilePathGT(v string) predicate.APNSConfig {
-	return predicate.APNSConfig(sql.FieldGT(FieldCertFilePath, v))
+// KeyPemGT applies the GT predicate on the "key_pem" field.
+func KeyPemGT(v string) predicate.APNSConfig {
+	return predicate.APNSConfig(sql.FieldGT(FieldKeyPem, v))
 }
 
-// CertFilePathGTE applies the GTE predicate on the "cert_file_path" field.
-func CertFilePathGTE(v string) predicate.APNSConfig {
-	return predicate.APNSConfig(sql.FieldGTE(FieldCertFilePath, v))
+// KeyPemGTE applies the GTE predicate on the "key_pem" field.
+func KeyPemGTE(v string) predicate.APNSConfig {
+	return predicate.APNSConfig(sql.FieldGTE(FieldKeyPem, v))
 }
 
-// CertFilePathLT applies the LT predicate on the "cert_file_path" field.
-func CertFilePathLT(v string) predicate.APNSConfig {
-	return predicate.APNSConfig(sql.FieldLT(FieldCertFilePath, v))
+// KeyPemLT applies the LT predicate on the "key_pem" field.
+func KeyPemLT(v string) predicate.APNSConfig {
+	return predicate.APNSConfig(sql.FieldLT(FieldKeyPem, v))
 }
 
-// CertFilePathLTE applies the LTE predicate on the "cert_file_path" field.
-func CertFilePathLTE(v string) predicate.APNSConfig {
-	return predicate.APNSConfig(sql.FieldLTE(FieldCertFilePath, v))
+// KeyPemLTE applies the LTE predicate on the "key_pem" field.
+func KeyPemLTE(v string) predicate.APNSConfig {
+	return predicate.APNSConfig(sql.FieldLTE(FieldKeyPem, v))
 }
 
-// CertFilePathContains applies the Contains predicate on the "cert_file_path" field.
-func CertFilePathContains(v string) predicate.APNSConfig {
-	return predicate.APNSConfig(sql.FieldContains(FieldCertFilePath, v))
+// KeyPemContains applies the Contains predicate on the "key_pem" field.
+func KeyPemContains(v string) predicate.APNSConfig {
+	return predicate.APNSConfig(sql.FieldContains(FieldKeyPem, v))
 }
 
-// CertFilePathHasPrefix applies the HasPrefix predicate on the "cert_file_path" field.
-func CertFilePathHasPrefix(v string) predicate.APNSConfig {
-	return predicate.APNSConfig(sql.FieldHasPrefix(FieldCertFilePath, v))
+// KeyPemHasPrefix applies the HasPrefix predicate on the "key_pem" field.
+func KeyPemHasPrefix(v string) predicate.APNSConfig {
+	return predicate.APNSConfig(sql.FieldHasPrefix(FieldKeyPem, v))
 }
 
-// CertFilePathHasSuffix applies the HasSuffix predicate on the "cert_file_path" field.
-func CertFilePathHasSuffix(v string) predicate.APNSConfig {
-	return predicate.APNSConfig(sql.FieldHasSuffix(FieldCertFilePath, v))
+// KeyPemHasSuffix applies the HasSuffix predicate on the "key_pem" field.
+func KeyPemHasSuffix(v string) predicate.APNSConfig {
+	return predicate.APNSConfig(sql.FieldHasSuffix(FieldKeyPem, v))
 }
 
-// CertFilePathEqualFold applies the EqualFold predicate on the "cert_file_path" field.
-func CertFilePathEqualFold(v string) predicate.APNSConfig {
-	return predicate.APNSConfig(sql.FieldEqualFold(FieldCertFilePath, v))
+// KeyPemEqualFold applies the EqualFold predicate on the "key_pem" field.
+func KeyPemEqualFold(v string) predicate.APNSConfig {
+	return predicate.APNSConfig(sql.FieldEqualFold(FieldKeyPem, v))
 }
 
-// CertFilePathContainsFold applies the ContainsFold predicate on the "cert_file_path" field.
-func CertFilePathContainsFold(v string) predicate.APNSConfig {
-	return predicate.APNSConfig(sql.FieldContainsFold(FieldCertFilePath, v))
+// KeyPemContainsFold applies the ContainsFold predicate on the "key_pem" field.
+func KeyPemContainsFold(v string) predicate.APNSConfig {
+	return predicate.APNSConfig(sql.FieldContainsFold(FieldKeyPem, v))
 }
 
-// KeyFilePathEQ applies the EQ predicate on the "key_file_path" field.
-func KeyFilePathEQ(v string) predicate.APNSConfig {
-	return predicate.APNSConfig(sql.FieldEQ(FieldKeyFilePath, v))
+// StaleTokenEQ applies the EQ predicate on the "stale_token" field.
+func StaleTokenEQ(v int) predicate.APNSConfig {
+	return predicate.APNSConfig(sql.FieldEQ(FieldStaleToken, v))
 }
 
-// KeyFilePathNEQ applies the NEQ predicate on the "key_file_path" field.
-func KeyFilePathNEQ(v string) predicate.APNSConfig {
-	return predicate.APNSConfig(sql.FieldNEQ(FieldKeyFilePath, v))
+// StaleTokenNEQ applies the NEQ predicate on the "stale_token" field.
+func StaleTokenNEQ(v int) predicate.APNSConfig {
+	return predicate.APNSConfig(sql.FieldNEQ(FieldStaleToken, v))
 }
 
-// KeyFilePathIn applies the In predicate on the "key_file_path" field.
-func KeyFilePathIn(vs ...string) predicate.APNSConfig {
-	return predicate.APNSConfig(sql.FieldIn(FieldKeyFilePath, vs...))
+// StaleTokenIn applies the In predicate on the "stale_token" field.
+func StaleTokenIn(vs ...int) predicate.APNSConfig {
+	return predicate.APNSConfig(sql.FieldIn(FieldStaleToken, vs...))
 }
 
-// KeyFilePathNotIn applies the NotIn predicate on the "key_file_path" field.
-func KeyFilePathNotIn(vs ...string) predicate.APNSConfig {
-	return predicate.APNSConfig(sql.FieldNotIn(FieldKeyFilePath, vs...))
+// StaleTokenNotIn applies the NotIn predicate on the "stale_token" field.
+func StaleTokenNotIn(vs ...int) predicate.APNSConfig {
+	return predicate.APNSConfig(sql.FieldNotIn(FieldStaleToken, vs...))
 }
 
-// KeyFilePathGT applies the GT predicate on the "key_file_path" field.
-func KeyFilePathGT(v string) predicate.APNSConfig {
-	return predicate.APNSConfig(sql.FieldGT(FieldKeyFilePath, v))
+// StaleTokenGT applies the GT predicate on the "stale_token" field.
+func StaleTokenGT(v int) predicate.APNSConfig {
+	return predicate.APNSConfig(sql.FieldGT(FieldStaleToken, v))
 }
 
-// KeyFilePathGTE applies the GTE predicate on the "key_file_path" field.
-func KeyFilePathGTE(v string) predicate.APNSConfig {
-	return predicate.APNSConfig(sql.FieldGTE(FieldKeyFilePath, v))
+// StaleTokenGTE applies the GTE predicate on the "stale_token" field.
+func StaleTokenGTE(v int) predicate.APNSConfig {
+	return predicate.APNSConfig(sql.FieldGTE(FieldStaleToken, v))
 }
 
-// KeyFilePathLT applies the LT predicate on the "key_file_path" field.
-func KeyFilePathLT(v string) predicate.APNSConfig {
-	return predicate.APNSConfig(sql.FieldLT(FieldKeyFilePath, v))
+// StaleTokenLT applies the LT predicate on the "stale_token" field.
+func StaleTokenLT(v int) predicate.APNSConfig {
+	return predicate.APNSConfig(sql.FieldLT(FieldStaleToken, v))
 }
 
-// KeyFilePathLTE applies the LTE predicate on the "key_file_path" field.
-func KeyFilePathLTE(v string) predicate.APNSConfig {
-	return predicate.APNSConfig(sql.FieldLTE(FieldKeyFilePath, v))
-}
-
-// KeyFilePathContains applies the Contains predicate on the "key_file_path" field.
-func KeyFilePathContains(v string) predicate.APNSConfig {
-	return predicate.APNSConfig(sql.FieldContains(FieldKeyFilePath, v))
-}
-
-// KeyFilePathHasPrefix applies the HasPrefix predicate on the "key_file_path" field.
-func KeyFilePathHasPrefix(v string) predicate.APNSConfig {
-	return predicate.APNSConfig(sql.FieldHasPrefix(FieldKeyFilePath, v))
-}
-
-// KeyFilePathHasSuffix applies the HasSuffix predicate on the "key_file_path" field.
-func KeyFilePathHasSuffix(v string) predicate.APNSConfig {
-	return predicate.APNSConfig(sql.FieldHasSuffix(FieldKeyFilePath, v))
-}
-
-// KeyFilePathEqualFold applies the EqualFold predicate on the "key_file_path" field.
-func KeyFilePathEqualFold(v string) predicate.APNSConfig {
-	return predicate.APNSConfig(sql.FieldEqualFold(FieldKeyFilePath, v))
-}
-
-// KeyFilePathContainsFold applies the ContainsFold predicate on the "key_file_path" field.
-func KeyFilePathContainsFold(v string) predicate.APNSConfig {
-	return predicate.APNSConfig(sql.FieldContainsFold(FieldKeyFilePath, v))
-}
-
-// ExpiryEQ applies the EQ predicate on the "expiry" field.
-func ExpiryEQ(v time.Time) predicate.APNSConfig {
-	return predicate.APNSConfig(sql.FieldEQ(FieldExpiry, v))
-}
-
-// ExpiryNEQ applies the NEQ predicate on the "expiry" field.
-func ExpiryNEQ(v time.Time) predicate.APNSConfig {
-	return predicate.APNSConfig(sql.FieldNEQ(FieldExpiry, v))
-}
-
-// ExpiryIn applies the In predicate on the "expiry" field.
-func ExpiryIn(vs ...time.Time) predicate.APNSConfig {
-	return predicate.APNSConfig(sql.FieldIn(FieldExpiry, vs...))
-}
-
-// ExpiryNotIn applies the NotIn predicate on the "expiry" field.
-func ExpiryNotIn(vs ...time.Time) predicate.APNSConfig {
-	return predicate.APNSConfig(sql.FieldNotIn(FieldExpiry, vs...))
-}
-
-// ExpiryGT applies the GT predicate on the "expiry" field.
-func ExpiryGT(v time.Time) predicate.APNSConfig {
-	return predicate.APNSConfig(sql.FieldGT(FieldExpiry, v))
-}
-
-// ExpiryGTE applies the GTE predicate on the "expiry" field.
-func ExpiryGTE(v time.Time) predicate.APNSConfig {
-	return predicate.APNSConfig(sql.FieldGTE(FieldExpiry, v))
-}
-
-// ExpiryLT applies the LT predicate on the "expiry" field.
-func ExpiryLT(v time.Time) predicate.APNSConfig {
-	return predicate.APNSConfig(sql.FieldLT(FieldExpiry, v))
-}
-
-// ExpiryLTE applies the LTE predicate on the "expiry" field.
-func ExpiryLTE(v time.Time) predicate.APNSConfig {
-	return predicate.APNSConfig(sql.FieldLTE(FieldExpiry, v))
-}
-
-// ExpiryIsNil applies the IsNil predicate on the "expiry" field.
-func ExpiryIsNil() predicate.APNSConfig {
-	return predicate.APNSConfig(sql.FieldIsNull(FieldExpiry))
-}
-
-// ExpiryNotNil applies the NotNil predicate on the "expiry" field.
-func ExpiryNotNil() predicate.APNSConfig {
-	return predicate.APNSConfig(sql.FieldNotNull(FieldExpiry))
+// StaleTokenLTE applies the LTE predicate on the "stale_token" field.
+func StaleTokenLTE(v int) predicate.APNSConfig {
+	return predicate.APNSConfig(sql.FieldLTE(FieldStaleToken, v))
 }
 
 // CreatedAtEQ applies the EQ predicate on the "created_at" field.

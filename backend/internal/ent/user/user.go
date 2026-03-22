@@ -31,7 +31,7 @@ const (
 	// EdgeDevices holds the string denoting the devices edge name in mutations.
 	EdgeDevices = "devices"
 	// Table holds the table name of the user in the database.
-	Table = "users"
+	Table = "portal_users"
 	// DevicesTable is the table that holds the devices relation/edge.
 	DevicesTable = "devices"
 	// DevicesInverseTable is the table name for the Device entity.

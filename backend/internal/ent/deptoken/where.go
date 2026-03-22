@@ -10,68 +10,108 @@ import (
 )
 
 // ID filters vertices based on their ID field.
-func ID(id uint) predicate.DEPToken {
+func ID(id string) predicate.DEPToken {
 	return predicate.DEPToken(sql.FieldEQ(FieldID, id))
 }
 
 // IDEQ applies the EQ predicate on the ID field.
-func IDEQ(id uint) predicate.DEPToken {
+func IDEQ(id string) predicate.DEPToken {
 	return predicate.DEPToken(sql.FieldEQ(FieldID, id))
 }
 
 // IDNEQ applies the NEQ predicate on the ID field.
-func IDNEQ(id uint) predicate.DEPToken {
+func IDNEQ(id string) predicate.DEPToken {
 	return predicate.DEPToken(sql.FieldNEQ(FieldID, id))
 }
 
 // IDIn applies the In predicate on the ID field.
-func IDIn(ids ...uint) predicate.DEPToken {
+func IDIn(ids ...string) predicate.DEPToken {
 	return predicate.DEPToken(sql.FieldIn(FieldID, ids...))
 }
 
 // IDNotIn applies the NotIn predicate on the ID field.
-func IDNotIn(ids ...uint) predicate.DEPToken {
+func IDNotIn(ids ...string) predicate.DEPToken {
 	return predicate.DEPToken(sql.FieldNotIn(FieldID, ids...))
 }
 
 // IDGT applies the GT predicate on the ID field.
-func IDGT(id uint) predicate.DEPToken {
+func IDGT(id string) predicate.DEPToken {
 	return predicate.DEPToken(sql.FieldGT(FieldID, id))
 }
 
 // IDGTE applies the GTE predicate on the ID field.
-func IDGTE(id uint) predicate.DEPToken {
+func IDGTE(id string) predicate.DEPToken {
 	return predicate.DEPToken(sql.FieldGTE(FieldID, id))
 }
 
 // IDLT applies the LT predicate on the ID field.
-func IDLT(id uint) predicate.DEPToken {
+func IDLT(id string) predicate.DEPToken {
 	return predicate.DEPToken(sql.FieldLT(FieldID, id))
 }
 
 // IDLTE applies the LTE predicate on the ID field.
-func IDLTE(id uint) predicate.DEPToken {
+func IDLTE(id string) predicate.DEPToken {
 	return predicate.DEPToken(sql.FieldLTE(FieldID, id))
 }
 
-// Name applies equality check predicate on the "name" field. It's identical to NameEQ.
-func Name(v string) predicate.DEPToken {
-	return predicate.DEPToken(sql.FieldEQ(FieldName, v))
+// IDEqualFold applies the EqualFold predicate on the ID field.
+func IDEqualFold(id string) predicate.DEPToken {
+	return predicate.DEPToken(sql.FieldEqualFold(FieldID, id))
 }
 
-// P7mFilePath applies equality check predicate on the "p7m_file_path" field. It's identical to P7mFilePathEQ.
-func P7mFilePath(v string) predicate.DEPToken {
-	return predicate.DEPToken(sql.FieldEQ(FieldP7mFilePath, v))
+// IDContainsFold applies the ContainsFold predicate on the ID field.
+func IDContainsFold(id string) predicate.DEPToken {
+	return predicate.DEPToken(sql.FieldContainsFold(FieldID, id))
 }
 
-// Expiry applies equality check predicate on the "expiry" field. It's identical to ExpiryEQ.
-func Expiry(v time.Time) predicate.DEPToken {
-	return predicate.DEPToken(sql.FieldEQ(FieldExpiry, v))
+// ConsumerKey applies equality check predicate on the "consumer_key" field. It's identical to ConsumerKeyEQ.
+func ConsumerKey(v string) predicate.DEPToken {
+	return predicate.DEPToken(sql.FieldEQ(FieldConsumerKey, v))
 }
 
-// LastUsed applies equality check predicate on the "last_used" field. It's identical to LastUsedEQ.
-func LastUsed(v time.Time) predicate.DEPToken {
-	return predicate.DEPToken(sql.FieldEQ(FieldLastUsed, v))
+// ConsumerSecret applies equality check predicate on the "consumer_secret" field. It's identical to ConsumerSecretEQ.
+func ConsumerSecret(v string) predicate.DEPToken {
+	return predicate.DEPToken(sql.FieldEQ(FieldConsumerSecret, v))
+}
+
+// AccessToken applies equality check predicate on the "access_token" field. It's identical to AccessTokenEQ.
+func AccessToken(v string) predicate.DEPToken {
+	return predicate.DEPToken(sql.FieldEQ(FieldAccessToken, v))
+}
+
+// AccessSecret applies equality check predicate on the "access_secret" field. It's identical to AccessSecretEQ.
+func AccessSecret(v string) predicate.DEPToken {
+	return predicate.DEPToken(sql.FieldEQ(FieldAccessSecret, v))
+}
+
+// AccessTokenExpiry applies equality check predicate on the "access_token_expiry" field. It's identical to AccessTokenExpiryEQ.
+func AccessTokenExpiry(v time.Time) predicate.DEPToken {
+	return predicate.DEPToken(sql.FieldEQ(FieldAccessTokenExpiry, v))
+}
+
+// ConfigBaseURL applies equality check predicate on the "config_base_url" field. It's identical to ConfigBaseURLEQ.
+func ConfigBaseURL(v string) predicate.DEPToken {
+	return predicate.DEPToken(sql.FieldEQ(FieldConfigBaseURL, v))
+}
+
+// TokenpkiCertPem applies equality check predicate on the "tokenpki_cert_pem" field. It's identical to TokenpkiCertPemEQ.
+func TokenpkiCertPem(v string) predicate.DEPToken {
+	return predicate.DEPToken(sql.FieldEQ(FieldTokenpkiCertPem, v))
+}
+
+// TokenpkiKeyPem applies equality check predicate on the "tokenpki_key_pem" field. It's identical to TokenpkiKeyPemEQ.
+func TokenpkiKeyPem(v string) predicate.DEPToken {
+	return predicate.DEPToken(sql.FieldEQ(FieldTokenpkiKeyPem, v))
+}
+
+// SyncerCursor applies equality check predicate on the "syncer_cursor" field. It's identical to SyncerCursorEQ.
+func SyncerCursor(v string) predicate.DEPToken {
+	return predicate.DEPToken(sql.FieldEQ(FieldSyncerCursor, v))
+}
+
+// AssignerProfileUUID applies equality check predicate on the "assigner_profile_uuid" field. It's identical to AssignerProfileUUIDEQ.
+func AssignerProfileUUID(v string) predicate.DEPToken {
+	return predicate.DEPToken(sql.FieldEQ(FieldAssignerProfileUUID, v))
 }
 
 // CreatedAt applies equality check predicate on the "created_at" field. It's identical to CreatedAtEQ.
@@ -84,234 +124,729 @@ func UpdatedAt(v time.Time) predicate.DEPToken {
 	return predicate.DEPToken(sql.FieldEQ(FieldUpdatedAt, v))
 }
 
-// NameEQ applies the EQ predicate on the "name" field.
-func NameEQ(v string) predicate.DEPToken {
-	return predicate.DEPToken(sql.FieldEQ(FieldName, v))
+// ConsumerKeyEQ applies the EQ predicate on the "consumer_key" field.
+func ConsumerKeyEQ(v string) predicate.DEPToken {
+	return predicate.DEPToken(sql.FieldEQ(FieldConsumerKey, v))
 }
 
-// NameNEQ applies the NEQ predicate on the "name" field.
-func NameNEQ(v string) predicate.DEPToken {
-	return predicate.DEPToken(sql.FieldNEQ(FieldName, v))
+// ConsumerKeyNEQ applies the NEQ predicate on the "consumer_key" field.
+func ConsumerKeyNEQ(v string) predicate.DEPToken {
+	return predicate.DEPToken(sql.FieldNEQ(FieldConsumerKey, v))
 }
 
-// NameIn applies the In predicate on the "name" field.
-func NameIn(vs ...string) predicate.DEPToken {
-	return predicate.DEPToken(sql.FieldIn(FieldName, vs...))
+// ConsumerKeyIn applies the In predicate on the "consumer_key" field.
+func ConsumerKeyIn(vs ...string) predicate.DEPToken {
+	return predicate.DEPToken(sql.FieldIn(FieldConsumerKey, vs...))
 }
 
-// NameNotIn applies the NotIn predicate on the "name" field.
-func NameNotIn(vs ...string) predicate.DEPToken {
-	return predicate.DEPToken(sql.FieldNotIn(FieldName, vs...))
+// ConsumerKeyNotIn applies the NotIn predicate on the "consumer_key" field.
+func ConsumerKeyNotIn(vs ...string) predicate.DEPToken {
+	return predicate.DEPToken(sql.FieldNotIn(FieldConsumerKey, vs...))
 }
 
-// NameGT applies the GT predicate on the "name" field.
-func NameGT(v string) predicate.DEPToken {
-	return predicate.DEPToken(sql.FieldGT(FieldName, v))
+// ConsumerKeyGT applies the GT predicate on the "consumer_key" field.
+func ConsumerKeyGT(v string) predicate.DEPToken {
+	return predicate.DEPToken(sql.FieldGT(FieldConsumerKey, v))
 }
 
-// NameGTE applies the GTE predicate on the "name" field.
-func NameGTE(v string) predicate.DEPToken {
-	return predicate.DEPToken(sql.FieldGTE(FieldName, v))
+// ConsumerKeyGTE applies the GTE predicate on the "consumer_key" field.
+func ConsumerKeyGTE(v string) predicate.DEPToken {
+	return predicate.DEPToken(sql.FieldGTE(FieldConsumerKey, v))
 }
 
-// NameLT applies the LT predicate on the "name" field.
-func NameLT(v string) predicate.DEPToken {
-	return predicate.DEPToken(sql.FieldLT(FieldName, v))
+// ConsumerKeyLT applies the LT predicate on the "consumer_key" field.
+func ConsumerKeyLT(v string) predicate.DEPToken {
+	return predicate.DEPToken(sql.FieldLT(FieldConsumerKey, v))
 }
 
-// NameLTE applies the LTE predicate on the "name" field.
-func NameLTE(v string) predicate.DEPToken {
-	return predicate.DEPToken(sql.FieldLTE(FieldName, v))
+// ConsumerKeyLTE applies the LTE predicate on the "consumer_key" field.
+func ConsumerKeyLTE(v string) predicate.DEPToken {
+	return predicate.DEPToken(sql.FieldLTE(FieldConsumerKey, v))
 }
 
-// NameContains applies the Contains predicate on the "name" field.
-func NameContains(v string) predicate.DEPToken {
-	return predicate.DEPToken(sql.FieldContains(FieldName, v))
+// ConsumerKeyContains applies the Contains predicate on the "consumer_key" field.
+func ConsumerKeyContains(v string) predicate.DEPToken {
+	return predicate.DEPToken(sql.FieldContains(FieldConsumerKey, v))
 }
 
-// NameHasPrefix applies the HasPrefix predicate on the "name" field.
-func NameHasPrefix(v string) predicate.DEPToken {
-	return predicate.DEPToken(sql.FieldHasPrefix(FieldName, v))
+// ConsumerKeyHasPrefix applies the HasPrefix predicate on the "consumer_key" field.
+func ConsumerKeyHasPrefix(v string) predicate.DEPToken {
+	return predicate.DEPToken(sql.FieldHasPrefix(FieldConsumerKey, v))
 }
 
-// NameHasSuffix applies the HasSuffix predicate on the "name" field.
-func NameHasSuffix(v string) predicate.DEPToken {
-	return predicate.DEPToken(sql.FieldHasSuffix(FieldName, v))
+// ConsumerKeyHasSuffix applies the HasSuffix predicate on the "consumer_key" field.
+func ConsumerKeyHasSuffix(v string) predicate.DEPToken {
+	return predicate.DEPToken(sql.FieldHasSuffix(FieldConsumerKey, v))
 }
 
-// NameEqualFold applies the EqualFold predicate on the "name" field.
-func NameEqualFold(v string) predicate.DEPToken {
-	return predicate.DEPToken(sql.FieldEqualFold(FieldName, v))
+// ConsumerKeyIsNil applies the IsNil predicate on the "consumer_key" field.
+func ConsumerKeyIsNil() predicate.DEPToken {
+	return predicate.DEPToken(sql.FieldIsNull(FieldConsumerKey))
 }
 
-// NameContainsFold applies the ContainsFold predicate on the "name" field.
-func NameContainsFold(v string) predicate.DEPToken {
-	return predicate.DEPToken(sql.FieldContainsFold(FieldName, v))
+// ConsumerKeyNotNil applies the NotNil predicate on the "consumer_key" field.
+func ConsumerKeyNotNil() predicate.DEPToken {
+	return predicate.DEPToken(sql.FieldNotNull(FieldConsumerKey))
 }
 
-// P7mFilePathEQ applies the EQ predicate on the "p7m_file_path" field.
-func P7mFilePathEQ(v string) predicate.DEPToken {
-	return predicate.DEPToken(sql.FieldEQ(FieldP7mFilePath, v))
+// ConsumerKeyEqualFold applies the EqualFold predicate on the "consumer_key" field.
+func ConsumerKeyEqualFold(v string) predicate.DEPToken {
+	return predicate.DEPToken(sql.FieldEqualFold(FieldConsumerKey, v))
 }
 
-// P7mFilePathNEQ applies the NEQ predicate on the "p7m_file_path" field.
-func P7mFilePathNEQ(v string) predicate.DEPToken {
-	return predicate.DEPToken(sql.FieldNEQ(FieldP7mFilePath, v))
+// ConsumerKeyContainsFold applies the ContainsFold predicate on the "consumer_key" field.
+func ConsumerKeyContainsFold(v string) predicate.DEPToken {
+	return predicate.DEPToken(sql.FieldContainsFold(FieldConsumerKey, v))
 }
 
-// P7mFilePathIn applies the In predicate on the "p7m_file_path" field.
-func P7mFilePathIn(vs ...string) predicate.DEPToken {
-	return predicate.DEPToken(sql.FieldIn(FieldP7mFilePath, vs...))
+// ConsumerSecretEQ applies the EQ predicate on the "consumer_secret" field.
+func ConsumerSecretEQ(v string) predicate.DEPToken {
+	return predicate.DEPToken(sql.FieldEQ(FieldConsumerSecret, v))
 }
 
-// P7mFilePathNotIn applies the NotIn predicate on the "p7m_file_path" field.
-func P7mFilePathNotIn(vs ...string) predicate.DEPToken {
-	return predicate.DEPToken(sql.FieldNotIn(FieldP7mFilePath, vs...))
+// ConsumerSecretNEQ applies the NEQ predicate on the "consumer_secret" field.
+func ConsumerSecretNEQ(v string) predicate.DEPToken {
+	return predicate.DEPToken(sql.FieldNEQ(FieldConsumerSecret, v))
 }
 
-// P7mFilePathGT applies the GT predicate on the "p7m_file_path" field.
-func P7mFilePathGT(v string) predicate.DEPToken {
-	return predicate.DEPToken(sql.FieldGT(FieldP7mFilePath, v))
+// ConsumerSecretIn applies the In predicate on the "consumer_secret" field.
+func ConsumerSecretIn(vs ...string) predicate.DEPToken {
+	return predicate.DEPToken(sql.FieldIn(FieldConsumerSecret, vs...))
 }
 
-// P7mFilePathGTE applies the GTE predicate on the "p7m_file_path" field.
-func P7mFilePathGTE(v string) predicate.DEPToken {
-	return predicate.DEPToken(sql.FieldGTE(FieldP7mFilePath, v))
+// ConsumerSecretNotIn applies the NotIn predicate on the "consumer_secret" field.
+func ConsumerSecretNotIn(vs ...string) predicate.DEPToken {
+	return predicate.DEPToken(sql.FieldNotIn(FieldConsumerSecret, vs...))
 }
 
-// P7mFilePathLT applies the LT predicate on the "p7m_file_path" field.
-func P7mFilePathLT(v string) predicate.DEPToken {
-	return predicate.DEPToken(sql.FieldLT(FieldP7mFilePath, v))
+// ConsumerSecretGT applies the GT predicate on the "consumer_secret" field.
+func ConsumerSecretGT(v string) predicate.DEPToken {
+	return predicate.DEPToken(sql.FieldGT(FieldConsumerSecret, v))
 }
 
-// P7mFilePathLTE applies the LTE predicate on the "p7m_file_path" field.
-func P7mFilePathLTE(v string) predicate.DEPToken {
-	return predicate.DEPToken(sql.FieldLTE(FieldP7mFilePath, v))
+// ConsumerSecretGTE applies the GTE predicate on the "consumer_secret" field.
+func ConsumerSecretGTE(v string) predicate.DEPToken {
+	return predicate.DEPToken(sql.FieldGTE(FieldConsumerSecret, v))
 }
 
-// P7mFilePathContains applies the Contains predicate on the "p7m_file_path" field.
-func P7mFilePathContains(v string) predicate.DEPToken {
-	return predicate.DEPToken(sql.FieldContains(FieldP7mFilePath, v))
+// ConsumerSecretLT applies the LT predicate on the "consumer_secret" field.
+func ConsumerSecretLT(v string) predicate.DEPToken {
+	return predicate.DEPToken(sql.FieldLT(FieldConsumerSecret, v))
 }
 
-// P7mFilePathHasPrefix applies the HasPrefix predicate on the "p7m_file_path" field.
-func P7mFilePathHasPrefix(v string) predicate.DEPToken {
-	return predicate.DEPToken(sql.FieldHasPrefix(FieldP7mFilePath, v))
+// ConsumerSecretLTE applies the LTE predicate on the "consumer_secret" field.
+func ConsumerSecretLTE(v string) predicate.DEPToken {
+	return predicate.DEPToken(sql.FieldLTE(FieldConsumerSecret, v))
 }
 
-// P7mFilePathHasSuffix applies the HasSuffix predicate on the "p7m_file_path" field.
-func P7mFilePathHasSuffix(v string) predicate.DEPToken {
-	return predicate.DEPToken(sql.FieldHasSuffix(FieldP7mFilePath, v))
+// ConsumerSecretContains applies the Contains predicate on the "consumer_secret" field.
+func ConsumerSecretContains(v string) predicate.DEPToken {
+	return predicate.DEPToken(sql.FieldContains(FieldConsumerSecret, v))
 }
 
-// P7mFilePathEqualFold applies the EqualFold predicate on the "p7m_file_path" field.
-func P7mFilePathEqualFold(v string) predicate.DEPToken {
-	return predicate.DEPToken(sql.FieldEqualFold(FieldP7mFilePath, v))
+// ConsumerSecretHasPrefix applies the HasPrefix predicate on the "consumer_secret" field.
+func ConsumerSecretHasPrefix(v string) predicate.DEPToken {
+	return predicate.DEPToken(sql.FieldHasPrefix(FieldConsumerSecret, v))
 }
 
-// P7mFilePathContainsFold applies the ContainsFold predicate on the "p7m_file_path" field.
-func P7mFilePathContainsFold(v string) predicate.DEPToken {
-	return predicate.DEPToken(sql.FieldContainsFold(FieldP7mFilePath, v))
+// ConsumerSecretHasSuffix applies the HasSuffix predicate on the "consumer_secret" field.
+func ConsumerSecretHasSuffix(v string) predicate.DEPToken {
+	return predicate.DEPToken(sql.FieldHasSuffix(FieldConsumerSecret, v))
 }
 
-// ExpiryEQ applies the EQ predicate on the "expiry" field.
-func ExpiryEQ(v time.Time) predicate.DEPToken {
-	return predicate.DEPToken(sql.FieldEQ(FieldExpiry, v))
+// ConsumerSecretIsNil applies the IsNil predicate on the "consumer_secret" field.
+func ConsumerSecretIsNil() predicate.DEPToken {
+	return predicate.DEPToken(sql.FieldIsNull(FieldConsumerSecret))
 }
 
-// ExpiryNEQ applies the NEQ predicate on the "expiry" field.
-func ExpiryNEQ(v time.Time) predicate.DEPToken {
-	return predicate.DEPToken(sql.FieldNEQ(FieldExpiry, v))
+// ConsumerSecretNotNil applies the NotNil predicate on the "consumer_secret" field.
+func ConsumerSecretNotNil() predicate.DEPToken {
+	return predicate.DEPToken(sql.FieldNotNull(FieldConsumerSecret))
 }
 
-// ExpiryIn applies the In predicate on the "expiry" field.
-func ExpiryIn(vs ...time.Time) predicate.DEPToken {
-	return predicate.DEPToken(sql.FieldIn(FieldExpiry, vs...))
+// ConsumerSecretEqualFold applies the EqualFold predicate on the "consumer_secret" field.
+func ConsumerSecretEqualFold(v string) predicate.DEPToken {
+	return predicate.DEPToken(sql.FieldEqualFold(FieldConsumerSecret, v))
 }
 
-// ExpiryNotIn applies the NotIn predicate on the "expiry" field.
-func ExpiryNotIn(vs ...time.Time) predicate.DEPToken {
-	return predicate.DEPToken(sql.FieldNotIn(FieldExpiry, vs...))
+// ConsumerSecretContainsFold applies the ContainsFold predicate on the "consumer_secret" field.
+func ConsumerSecretContainsFold(v string) predicate.DEPToken {
+	return predicate.DEPToken(sql.FieldContainsFold(FieldConsumerSecret, v))
 }
 
-// ExpiryGT applies the GT predicate on the "expiry" field.
-func ExpiryGT(v time.Time) predicate.DEPToken {
-	return predicate.DEPToken(sql.FieldGT(FieldExpiry, v))
+// AccessTokenEQ applies the EQ predicate on the "access_token" field.
+func AccessTokenEQ(v string) predicate.DEPToken {
+	return predicate.DEPToken(sql.FieldEQ(FieldAccessToken, v))
 }
 
-// ExpiryGTE applies the GTE predicate on the "expiry" field.
-func ExpiryGTE(v time.Time) predicate.DEPToken {
-	return predicate.DEPToken(sql.FieldGTE(FieldExpiry, v))
+// AccessTokenNEQ applies the NEQ predicate on the "access_token" field.
+func AccessTokenNEQ(v string) predicate.DEPToken {
+	return predicate.DEPToken(sql.FieldNEQ(FieldAccessToken, v))
 }
 
-// ExpiryLT applies the LT predicate on the "expiry" field.
-func ExpiryLT(v time.Time) predicate.DEPToken {
-	return predicate.DEPToken(sql.FieldLT(FieldExpiry, v))
+// AccessTokenIn applies the In predicate on the "access_token" field.
+func AccessTokenIn(vs ...string) predicate.DEPToken {
+	return predicate.DEPToken(sql.FieldIn(FieldAccessToken, vs...))
 }
 
-// ExpiryLTE applies the LTE predicate on the "expiry" field.
-func ExpiryLTE(v time.Time) predicate.DEPToken {
-	return predicate.DEPToken(sql.FieldLTE(FieldExpiry, v))
+// AccessTokenNotIn applies the NotIn predicate on the "access_token" field.
+func AccessTokenNotIn(vs ...string) predicate.DEPToken {
+	return predicate.DEPToken(sql.FieldNotIn(FieldAccessToken, vs...))
 }
 
-// ExpiryIsNil applies the IsNil predicate on the "expiry" field.
-func ExpiryIsNil() predicate.DEPToken {
-	return predicate.DEPToken(sql.FieldIsNull(FieldExpiry))
+// AccessTokenGT applies the GT predicate on the "access_token" field.
+func AccessTokenGT(v string) predicate.DEPToken {
+	return predicate.DEPToken(sql.FieldGT(FieldAccessToken, v))
 }
 
-// ExpiryNotNil applies the NotNil predicate on the "expiry" field.
-func ExpiryNotNil() predicate.DEPToken {
-	return predicate.DEPToken(sql.FieldNotNull(FieldExpiry))
+// AccessTokenGTE applies the GTE predicate on the "access_token" field.
+func AccessTokenGTE(v string) predicate.DEPToken {
+	return predicate.DEPToken(sql.FieldGTE(FieldAccessToken, v))
 }
 
-// LastUsedEQ applies the EQ predicate on the "last_used" field.
-func LastUsedEQ(v time.Time) predicate.DEPToken {
-	return predicate.DEPToken(sql.FieldEQ(FieldLastUsed, v))
+// AccessTokenLT applies the LT predicate on the "access_token" field.
+func AccessTokenLT(v string) predicate.DEPToken {
+	return predicate.DEPToken(sql.FieldLT(FieldAccessToken, v))
 }
 
-// LastUsedNEQ applies the NEQ predicate on the "last_used" field.
-func LastUsedNEQ(v time.Time) predicate.DEPToken {
-	return predicate.DEPToken(sql.FieldNEQ(FieldLastUsed, v))
+// AccessTokenLTE applies the LTE predicate on the "access_token" field.
+func AccessTokenLTE(v string) predicate.DEPToken {
+	return predicate.DEPToken(sql.FieldLTE(FieldAccessToken, v))
 }
 
-// LastUsedIn applies the In predicate on the "last_used" field.
-func LastUsedIn(vs ...time.Time) predicate.DEPToken {
-	return predicate.DEPToken(sql.FieldIn(FieldLastUsed, vs...))
+// AccessTokenContains applies the Contains predicate on the "access_token" field.
+func AccessTokenContains(v string) predicate.DEPToken {
+	return predicate.DEPToken(sql.FieldContains(FieldAccessToken, v))
 }
 
-// LastUsedNotIn applies the NotIn predicate on the "last_used" field.
-func LastUsedNotIn(vs ...time.Time) predicate.DEPToken {
-	return predicate.DEPToken(sql.FieldNotIn(FieldLastUsed, vs...))
+// AccessTokenHasPrefix applies the HasPrefix predicate on the "access_token" field.
+func AccessTokenHasPrefix(v string) predicate.DEPToken {
+	return predicate.DEPToken(sql.FieldHasPrefix(FieldAccessToken, v))
 }
 
-// LastUsedGT applies the GT predicate on the "last_used" field.
-func LastUsedGT(v time.Time) predicate.DEPToken {
-	return predicate.DEPToken(sql.FieldGT(FieldLastUsed, v))
+// AccessTokenHasSuffix applies the HasSuffix predicate on the "access_token" field.
+func AccessTokenHasSuffix(v string) predicate.DEPToken {
+	return predicate.DEPToken(sql.FieldHasSuffix(FieldAccessToken, v))
 }
 
-// LastUsedGTE applies the GTE predicate on the "last_used" field.
-func LastUsedGTE(v time.Time) predicate.DEPToken {
-	return predicate.DEPToken(sql.FieldGTE(FieldLastUsed, v))
+// AccessTokenIsNil applies the IsNil predicate on the "access_token" field.
+func AccessTokenIsNil() predicate.DEPToken {
+	return predicate.DEPToken(sql.FieldIsNull(FieldAccessToken))
 }
 
-// LastUsedLT applies the LT predicate on the "last_used" field.
-func LastUsedLT(v time.Time) predicate.DEPToken {
-	return predicate.DEPToken(sql.FieldLT(FieldLastUsed, v))
+// AccessTokenNotNil applies the NotNil predicate on the "access_token" field.
+func AccessTokenNotNil() predicate.DEPToken {
+	return predicate.DEPToken(sql.FieldNotNull(FieldAccessToken))
 }
 
-// LastUsedLTE applies the LTE predicate on the "last_used" field.
-func LastUsedLTE(v time.Time) predicate.DEPToken {
-	return predicate.DEPToken(sql.FieldLTE(FieldLastUsed, v))
+// AccessTokenEqualFold applies the EqualFold predicate on the "access_token" field.
+func AccessTokenEqualFold(v string) predicate.DEPToken {
+	return predicate.DEPToken(sql.FieldEqualFold(FieldAccessToken, v))
 }
 
-// LastUsedIsNil applies the IsNil predicate on the "last_used" field.
-func LastUsedIsNil() predicate.DEPToken {
-	return predicate.DEPToken(sql.FieldIsNull(FieldLastUsed))
+// AccessTokenContainsFold applies the ContainsFold predicate on the "access_token" field.
+func AccessTokenContainsFold(v string) predicate.DEPToken {
+	return predicate.DEPToken(sql.FieldContainsFold(FieldAccessToken, v))
 }
 
-// LastUsedNotNil applies the NotNil predicate on the "last_used" field.
-func LastUsedNotNil() predicate.DEPToken {
-	return predicate.DEPToken(sql.FieldNotNull(FieldLastUsed))
+// AccessSecretEQ applies the EQ predicate on the "access_secret" field.
+func AccessSecretEQ(v string) predicate.DEPToken {
+	return predicate.DEPToken(sql.FieldEQ(FieldAccessSecret, v))
+}
+
+// AccessSecretNEQ applies the NEQ predicate on the "access_secret" field.
+func AccessSecretNEQ(v string) predicate.DEPToken {
+	return predicate.DEPToken(sql.FieldNEQ(FieldAccessSecret, v))
+}
+
+// AccessSecretIn applies the In predicate on the "access_secret" field.
+func AccessSecretIn(vs ...string) predicate.DEPToken {
+	return predicate.DEPToken(sql.FieldIn(FieldAccessSecret, vs...))
+}
+
+// AccessSecretNotIn applies the NotIn predicate on the "access_secret" field.
+func AccessSecretNotIn(vs ...string) predicate.DEPToken {
+	return predicate.DEPToken(sql.FieldNotIn(FieldAccessSecret, vs...))
+}
+
+// AccessSecretGT applies the GT predicate on the "access_secret" field.
+func AccessSecretGT(v string) predicate.DEPToken {
+	return predicate.DEPToken(sql.FieldGT(FieldAccessSecret, v))
+}
+
+// AccessSecretGTE applies the GTE predicate on the "access_secret" field.
+func AccessSecretGTE(v string) predicate.DEPToken {
+	return predicate.DEPToken(sql.FieldGTE(FieldAccessSecret, v))
+}
+
+// AccessSecretLT applies the LT predicate on the "access_secret" field.
+func AccessSecretLT(v string) predicate.DEPToken {
+	return predicate.DEPToken(sql.FieldLT(FieldAccessSecret, v))
+}
+
+// AccessSecretLTE applies the LTE predicate on the "access_secret" field.
+func AccessSecretLTE(v string) predicate.DEPToken {
+	return predicate.DEPToken(sql.FieldLTE(FieldAccessSecret, v))
+}
+
+// AccessSecretContains applies the Contains predicate on the "access_secret" field.
+func AccessSecretContains(v string) predicate.DEPToken {
+	return predicate.DEPToken(sql.FieldContains(FieldAccessSecret, v))
+}
+
+// AccessSecretHasPrefix applies the HasPrefix predicate on the "access_secret" field.
+func AccessSecretHasPrefix(v string) predicate.DEPToken {
+	return predicate.DEPToken(sql.FieldHasPrefix(FieldAccessSecret, v))
+}
+
+// AccessSecretHasSuffix applies the HasSuffix predicate on the "access_secret" field.
+func AccessSecretHasSuffix(v string) predicate.DEPToken {
+	return predicate.DEPToken(sql.FieldHasSuffix(FieldAccessSecret, v))
+}
+
+// AccessSecretIsNil applies the IsNil predicate on the "access_secret" field.
+func AccessSecretIsNil() predicate.DEPToken {
+	return predicate.DEPToken(sql.FieldIsNull(FieldAccessSecret))
+}
+
+// AccessSecretNotNil applies the NotNil predicate on the "access_secret" field.
+func AccessSecretNotNil() predicate.DEPToken {
+	return predicate.DEPToken(sql.FieldNotNull(FieldAccessSecret))
+}
+
+// AccessSecretEqualFold applies the EqualFold predicate on the "access_secret" field.
+func AccessSecretEqualFold(v string) predicate.DEPToken {
+	return predicate.DEPToken(sql.FieldEqualFold(FieldAccessSecret, v))
+}
+
+// AccessSecretContainsFold applies the ContainsFold predicate on the "access_secret" field.
+func AccessSecretContainsFold(v string) predicate.DEPToken {
+	return predicate.DEPToken(sql.FieldContainsFold(FieldAccessSecret, v))
+}
+
+// AccessTokenExpiryEQ applies the EQ predicate on the "access_token_expiry" field.
+func AccessTokenExpiryEQ(v time.Time) predicate.DEPToken {
+	return predicate.DEPToken(sql.FieldEQ(FieldAccessTokenExpiry, v))
+}
+
+// AccessTokenExpiryNEQ applies the NEQ predicate on the "access_token_expiry" field.
+func AccessTokenExpiryNEQ(v time.Time) predicate.DEPToken {
+	return predicate.DEPToken(sql.FieldNEQ(FieldAccessTokenExpiry, v))
+}
+
+// AccessTokenExpiryIn applies the In predicate on the "access_token_expiry" field.
+func AccessTokenExpiryIn(vs ...time.Time) predicate.DEPToken {
+	return predicate.DEPToken(sql.FieldIn(FieldAccessTokenExpiry, vs...))
+}
+
+// AccessTokenExpiryNotIn applies the NotIn predicate on the "access_token_expiry" field.
+func AccessTokenExpiryNotIn(vs ...time.Time) predicate.DEPToken {
+	return predicate.DEPToken(sql.FieldNotIn(FieldAccessTokenExpiry, vs...))
+}
+
+// AccessTokenExpiryGT applies the GT predicate on the "access_token_expiry" field.
+func AccessTokenExpiryGT(v time.Time) predicate.DEPToken {
+	return predicate.DEPToken(sql.FieldGT(FieldAccessTokenExpiry, v))
+}
+
+// AccessTokenExpiryGTE applies the GTE predicate on the "access_token_expiry" field.
+func AccessTokenExpiryGTE(v time.Time) predicate.DEPToken {
+	return predicate.DEPToken(sql.FieldGTE(FieldAccessTokenExpiry, v))
+}
+
+// AccessTokenExpiryLT applies the LT predicate on the "access_token_expiry" field.
+func AccessTokenExpiryLT(v time.Time) predicate.DEPToken {
+	return predicate.DEPToken(sql.FieldLT(FieldAccessTokenExpiry, v))
+}
+
+// AccessTokenExpiryLTE applies the LTE predicate on the "access_token_expiry" field.
+func AccessTokenExpiryLTE(v time.Time) predicate.DEPToken {
+	return predicate.DEPToken(sql.FieldLTE(FieldAccessTokenExpiry, v))
+}
+
+// AccessTokenExpiryIsNil applies the IsNil predicate on the "access_token_expiry" field.
+func AccessTokenExpiryIsNil() predicate.DEPToken {
+	return predicate.DEPToken(sql.FieldIsNull(FieldAccessTokenExpiry))
+}
+
+// AccessTokenExpiryNotNil applies the NotNil predicate on the "access_token_expiry" field.
+func AccessTokenExpiryNotNil() predicate.DEPToken {
+	return predicate.DEPToken(sql.FieldNotNull(FieldAccessTokenExpiry))
+}
+
+// ConfigBaseURLEQ applies the EQ predicate on the "config_base_url" field.
+func ConfigBaseURLEQ(v string) predicate.DEPToken {
+	return predicate.DEPToken(sql.FieldEQ(FieldConfigBaseURL, v))
+}
+
+// ConfigBaseURLNEQ applies the NEQ predicate on the "config_base_url" field.
+func ConfigBaseURLNEQ(v string) predicate.DEPToken {
+	return predicate.DEPToken(sql.FieldNEQ(FieldConfigBaseURL, v))
+}
+
+// ConfigBaseURLIn applies the In predicate on the "config_base_url" field.
+func ConfigBaseURLIn(vs ...string) predicate.DEPToken {
+	return predicate.DEPToken(sql.FieldIn(FieldConfigBaseURL, vs...))
+}
+
+// ConfigBaseURLNotIn applies the NotIn predicate on the "config_base_url" field.
+func ConfigBaseURLNotIn(vs ...string) predicate.DEPToken {
+	return predicate.DEPToken(sql.FieldNotIn(FieldConfigBaseURL, vs...))
+}
+
+// ConfigBaseURLGT applies the GT predicate on the "config_base_url" field.
+func ConfigBaseURLGT(v string) predicate.DEPToken {
+	return predicate.DEPToken(sql.FieldGT(FieldConfigBaseURL, v))
+}
+
+// ConfigBaseURLGTE applies the GTE predicate on the "config_base_url" field.
+func ConfigBaseURLGTE(v string) predicate.DEPToken {
+	return predicate.DEPToken(sql.FieldGTE(FieldConfigBaseURL, v))
+}
+
+// ConfigBaseURLLT applies the LT predicate on the "config_base_url" field.
+func ConfigBaseURLLT(v string) predicate.DEPToken {
+	return predicate.DEPToken(sql.FieldLT(FieldConfigBaseURL, v))
+}
+
+// ConfigBaseURLLTE applies the LTE predicate on the "config_base_url" field.
+func ConfigBaseURLLTE(v string) predicate.DEPToken {
+	return predicate.DEPToken(sql.FieldLTE(FieldConfigBaseURL, v))
+}
+
+// ConfigBaseURLContains applies the Contains predicate on the "config_base_url" field.
+func ConfigBaseURLContains(v string) predicate.DEPToken {
+	return predicate.DEPToken(sql.FieldContains(FieldConfigBaseURL, v))
+}
+
+// ConfigBaseURLHasPrefix applies the HasPrefix predicate on the "config_base_url" field.
+func ConfigBaseURLHasPrefix(v string) predicate.DEPToken {
+	return predicate.DEPToken(sql.FieldHasPrefix(FieldConfigBaseURL, v))
+}
+
+// ConfigBaseURLHasSuffix applies the HasSuffix predicate on the "config_base_url" field.
+func ConfigBaseURLHasSuffix(v string) predicate.DEPToken {
+	return predicate.DEPToken(sql.FieldHasSuffix(FieldConfigBaseURL, v))
+}
+
+// ConfigBaseURLIsNil applies the IsNil predicate on the "config_base_url" field.
+func ConfigBaseURLIsNil() predicate.DEPToken {
+	return predicate.DEPToken(sql.FieldIsNull(FieldConfigBaseURL))
+}
+
+// ConfigBaseURLNotNil applies the NotNil predicate on the "config_base_url" field.
+func ConfigBaseURLNotNil() predicate.DEPToken {
+	return predicate.DEPToken(sql.FieldNotNull(FieldConfigBaseURL))
+}
+
+// ConfigBaseURLEqualFold applies the EqualFold predicate on the "config_base_url" field.
+func ConfigBaseURLEqualFold(v string) predicate.DEPToken {
+	return predicate.DEPToken(sql.FieldEqualFold(FieldConfigBaseURL, v))
+}
+
+// ConfigBaseURLContainsFold applies the ContainsFold predicate on the "config_base_url" field.
+func ConfigBaseURLContainsFold(v string) predicate.DEPToken {
+	return predicate.DEPToken(sql.FieldContainsFold(FieldConfigBaseURL, v))
+}
+
+// TokenpkiCertPemEQ applies the EQ predicate on the "tokenpki_cert_pem" field.
+func TokenpkiCertPemEQ(v string) predicate.DEPToken {
+	return predicate.DEPToken(sql.FieldEQ(FieldTokenpkiCertPem, v))
+}
+
+// TokenpkiCertPemNEQ applies the NEQ predicate on the "tokenpki_cert_pem" field.
+func TokenpkiCertPemNEQ(v string) predicate.DEPToken {
+	return predicate.DEPToken(sql.FieldNEQ(FieldTokenpkiCertPem, v))
+}
+
+// TokenpkiCertPemIn applies the In predicate on the "tokenpki_cert_pem" field.
+func TokenpkiCertPemIn(vs ...string) predicate.DEPToken {
+	return predicate.DEPToken(sql.FieldIn(FieldTokenpkiCertPem, vs...))
+}
+
+// TokenpkiCertPemNotIn applies the NotIn predicate on the "tokenpki_cert_pem" field.
+func TokenpkiCertPemNotIn(vs ...string) predicate.DEPToken {
+	return predicate.DEPToken(sql.FieldNotIn(FieldTokenpkiCertPem, vs...))
+}
+
+// TokenpkiCertPemGT applies the GT predicate on the "tokenpki_cert_pem" field.
+func TokenpkiCertPemGT(v string) predicate.DEPToken {
+	return predicate.DEPToken(sql.FieldGT(FieldTokenpkiCertPem, v))
+}
+
+// TokenpkiCertPemGTE applies the GTE predicate on the "tokenpki_cert_pem" field.
+func TokenpkiCertPemGTE(v string) predicate.DEPToken {
+	return predicate.DEPToken(sql.FieldGTE(FieldTokenpkiCertPem, v))
+}
+
+// TokenpkiCertPemLT applies the LT predicate on the "tokenpki_cert_pem" field.
+func TokenpkiCertPemLT(v string) predicate.DEPToken {
+	return predicate.DEPToken(sql.FieldLT(FieldTokenpkiCertPem, v))
+}
+
+// TokenpkiCertPemLTE applies the LTE predicate on the "tokenpki_cert_pem" field.
+func TokenpkiCertPemLTE(v string) predicate.DEPToken {
+	return predicate.DEPToken(sql.FieldLTE(FieldTokenpkiCertPem, v))
+}
+
+// TokenpkiCertPemContains applies the Contains predicate on the "tokenpki_cert_pem" field.
+func TokenpkiCertPemContains(v string) predicate.DEPToken {
+	return predicate.DEPToken(sql.FieldContains(FieldTokenpkiCertPem, v))
+}
+
+// TokenpkiCertPemHasPrefix applies the HasPrefix predicate on the "tokenpki_cert_pem" field.
+func TokenpkiCertPemHasPrefix(v string) predicate.DEPToken {
+	return predicate.DEPToken(sql.FieldHasPrefix(FieldTokenpkiCertPem, v))
+}
+
+// TokenpkiCertPemHasSuffix applies the HasSuffix predicate on the "tokenpki_cert_pem" field.
+func TokenpkiCertPemHasSuffix(v string) predicate.DEPToken {
+	return predicate.DEPToken(sql.FieldHasSuffix(FieldTokenpkiCertPem, v))
+}
+
+// TokenpkiCertPemIsNil applies the IsNil predicate on the "tokenpki_cert_pem" field.
+func TokenpkiCertPemIsNil() predicate.DEPToken {
+	return predicate.DEPToken(sql.FieldIsNull(FieldTokenpkiCertPem))
+}
+
+// TokenpkiCertPemNotNil applies the NotNil predicate on the "tokenpki_cert_pem" field.
+func TokenpkiCertPemNotNil() predicate.DEPToken {
+	return predicate.DEPToken(sql.FieldNotNull(FieldTokenpkiCertPem))
+}
+
+// TokenpkiCertPemEqualFold applies the EqualFold predicate on the "tokenpki_cert_pem" field.
+func TokenpkiCertPemEqualFold(v string) predicate.DEPToken {
+	return predicate.DEPToken(sql.FieldEqualFold(FieldTokenpkiCertPem, v))
+}
+
+// TokenpkiCertPemContainsFold applies the ContainsFold predicate on the "tokenpki_cert_pem" field.
+func TokenpkiCertPemContainsFold(v string) predicate.DEPToken {
+	return predicate.DEPToken(sql.FieldContainsFold(FieldTokenpkiCertPem, v))
+}
+
+// TokenpkiKeyPemEQ applies the EQ predicate on the "tokenpki_key_pem" field.
+func TokenpkiKeyPemEQ(v string) predicate.DEPToken {
+	return predicate.DEPToken(sql.FieldEQ(FieldTokenpkiKeyPem, v))
+}
+
+// TokenpkiKeyPemNEQ applies the NEQ predicate on the "tokenpki_key_pem" field.
+func TokenpkiKeyPemNEQ(v string) predicate.DEPToken {
+	return predicate.DEPToken(sql.FieldNEQ(FieldTokenpkiKeyPem, v))
+}
+
+// TokenpkiKeyPemIn applies the In predicate on the "tokenpki_key_pem" field.
+func TokenpkiKeyPemIn(vs ...string) predicate.DEPToken {
+	return predicate.DEPToken(sql.FieldIn(FieldTokenpkiKeyPem, vs...))
+}
+
+// TokenpkiKeyPemNotIn applies the NotIn predicate on the "tokenpki_key_pem" field.
+func TokenpkiKeyPemNotIn(vs ...string) predicate.DEPToken {
+	return predicate.DEPToken(sql.FieldNotIn(FieldTokenpkiKeyPem, vs...))
+}
+
+// TokenpkiKeyPemGT applies the GT predicate on the "tokenpki_key_pem" field.
+func TokenpkiKeyPemGT(v string) predicate.DEPToken {
+	return predicate.DEPToken(sql.FieldGT(FieldTokenpkiKeyPem, v))
+}
+
+// TokenpkiKeyPemGTE applies the GTE predicate on the "tokenpki_key_pem" field.
+func TokenpkiKeyPemGTE(v string) predicate.DEPToken {
+	return predicate.DEPToken(sql.FieldGTE(FieldTokenpkiKeyPem, v))
+}
+
+// TokenpkiKeyPemLT applies the LT predicate on the "tokenpki_key_pem" field.
+func TokenpkiKeyPemLT(v string) predicate.DEPToken {
+	return predicate.DEPToken(sql.FieldLT(FieldTokenpkiKeyPem, v))
+}
+
+// TokenpkiKeyPemLTE applies the LTE predicate on the "tokenpki_key_pem" field.
+func TokenpkiKeyPemLTE(v string) predicate.DEPToken {
+	return predicate.DEPToken(sql.FieldLTE(FieldTokenpkiKeyPem, v))
+}
+
+// TokenpkiKeyPemContains applies the Contains predicate on the "tokenpki_key_pem" field.
+func TokenpkiKeyPemContains(v string) predicate.DEPToken {
+	return predicate.DEPToken(sql.FieldContains(FieldTokenpkiKeyPem, v))
+}
+
+// TokenpkiKeyPemHasPrefix applies the HasPrefix predicate on the "tokenpki_key_pem" field.
+func TokenpkiKeyPemHasPrefix(v string) predicate.DEPToken {
+	return predicate.DEPToken(sql.FieldHasPrefix(FieldTokenpkiKeyPem, v))
+}
+
+// TokenpkiKeyPemHasSuffix applies the HasSuffix predicate on the "tokenpki_key_pem" field.
+func TokenpkiKeyPemHasSuffix(v string) predicate.DEPToken {
+	return predicate.DEPToken(sql.FieldHasSuffix(FieldTokenpkiKeyPem, v))
+}
+
+// TokenpkiKeyPemIsNil applies the IsNil predicate on the "tokenpki_key_pem" field.
+func TokenpkiKeyPemIsNil() predicate.DEPToken {
+	return predicate.DEPToken(sql.FieldIsNull(FieldTokenpkiKeyPem))
+}
+
+// TokenpkiKeyPemNotNil applies the NotNil predicate on the "tokenpki_key_pem" field.
+func TokenpkiKeyPemNotNil() predicate.DEPToken {
+	return predicate.DEPToken(sql.FieldNotNull(FieldTokenpkiKeyPem))
+}
+
+// TokenpkiKeyPemEqualFold applies the EqualFold predicate on the "tokenpki_key_pem" field.
+func TokenpkiKeyPemEqualFold(v string) predicate.DEPToken {
+	return predicate.DEPToken(sql.FieldEqualFold(FieldTokenpkiKeyPem, v))
+}
+
+// TokenpkiKeyPemContainsFold applies the ContainsFold predicate on the "tokenpki_key_pem" field.
+func TokenpkiKeyPemContainsFold(v string) predicate.DEPToken {
+	return predicate.DEPToken(sql.FieldContainsFold(FieldTokenpkiKeyPem, v))
+}
+
+// SyncerCursorEQ applies the EQ predicate on the "syncer_cursor" field.
+func SyncerCursorEQ(v string) predicate.DEPToken {
+	return predicate.DEPToken(sql.FieldEQ(FieldSyncerCursor, v))
+}
+
+// SyncerCursorNEQ applies the NEQ predicate on the "syncer_cursor" field.
+func SyncerCursorNEQ(v string) predicate.DEPToken {
+	return predicate.DEPToken(sql.FieldNEQ(FieldSyncerCursor, v))
+}
+
+// SyncerCursorIn applies the In predicate on the "syncer_cursor" field.
+func SyncerCursorIn(vs ...string) predicate.DEPToken {
+	return predicate.DEPToken(sql.FieldIn(FieldSyncerCursor, vs...))
+}
+
+// SyncerCursorNotIn applies the NotIn predicate on the "syncer_cursor" field.
+func SyncerCursorNotIn(vs ...string) predicate.DEPToken {
+	return predicate.DEPToken(sql.FieldNotIn(FieldSyncerCursor, vs...))
+}
+
+// SyncerCursorGT applies the GT predicate on the "syncer_cursor" field.
+func SyncerCursorGT(v string) predicate.DEPToken {
+	return predicate.DEPToken(sql.FieldGT(FieldSyncerCursor, v))
+}
+
+// SyncerCursorGTE applies the GTE predicate on the "syncer_cursor" field.
+func SyncerCursorGTE(v string) predicate.DEPToken {
+	return predicate.DEPToken(sql.FieldGTE(FieldSyncerCursor, v))
+}
+
+// SyncerCursorLT applies the LT predicate on the "syncer_cursor" field.
+func SyncerCursorLT(v string) predicate.DEPToken {
+	return predicate.DEPToken(sql.FieldLT(FieldSyncerCursor, v))
+}
+
+// SyncerCursorLTE applies the LTE predicate on the "syncer_cursor" field.
+func SyncerCursorLTE(v string) predicate.DEPToken {
+	return predicate.DEPToken(sql.FieldLTE(FieldSyncerCursor, v))
+}
+
+// SyncerCursorContains applies the Contains predicate on the "syncer_cursor" field.
+func SyncerCursorContains(v string) predicate.DEPToken {
+	return predicate.DEPToken(sql.FieldContains(FieldSyncerCursor, v))
+}
+
+// SyncerCursorHasPrefix applies the HasPrefix predicate on the "syncer_cursor" field.
+func SyncerCursorHasPrefix(v string) predicate.DEPToken {
+	return predicate.DEPToken(sql.FieldHasPrefix(FieldSyncerCursor, v))
+}
+
+// SyncerCursorHasSuffix applies the HasSuffix predicate on the "syncer_cursor" field.
+func SyncerCursorHasSuffix(v string) predicate.DEPToken {
+	return predicate.DEPToken(sql.FieldHasSuffix(FieldSyncerCursor, v))
+}
+
+// SyncerCursorIsNil applies the IsNil predicate on the "syncer_cursor" field.
+func SyncerCursorIsNil() predicate.DEPToken {
+	return predicate.DEPToken(sql.FieldIsNull(FieldSyncerCursor))
+}
+
+// SyncerCursorNotNil applies the NotNil predicate on the "syncer_cursor" field.
+func SyncerCursorNotNil() predicate.DEPToken {
+	return predicate.DEPToken(sql.FieldNotNull(FieldSyncerCursor))
+}
+
+// SyncerCursorEqualFold applies the EqualFold predicate on the "syncer_cursor" field.
+func SyncerCursorEqualFold(v string) predicate.DEPToken {
+	return predicate.DEPToken(sql.FieldEqualFold(FieldSyncerCursor, v))
+}
+
+// SyncerCursorContainsFold applies the ContainsFold predicate on the "syncer_cursor" field.
+func SyncerCursorContainsFold(v string) predicate.DEPToken {
+	return predicate.DEPToken(sql.FieldContainsFold(FieldSyncerCursor, v))
+}
+
+// AssignerProfileUUIDEQ applies the EQ predicate on the "assigner_profile_uuid" field.
+func AssignerProfileUUIDEQ(v string) predicate.DEPToken {
+	return predicate.DEPToken(sql.FieldEQ(FieldAssignerProfileUUID, v))
+}
+
+// AssignerProfileUUIDNEQ applies the NEQ predicate on the "assigner_profile_uuid" field.
+func AssignerProfileUUIDNEQ(v string) predicate.DEPToken {
+	return predicate.DEPToken(sql.FieldNEQ(FieldAssignerProfileUUID, v))
+}
+
+// AssignerProfileUUIDIn applies the In predicate on the "assigner_profile_uuid" field.
+func AssignerProfileUUIDIn(vs ...string) predicate.DEPToken {
+	return predicate.DEPToken(sql.FieldIn(FieldAssignerProfileUUID, vs...))
+}
+
+// AssignerProfileUUIDNotIn applies the NotIn predicate on the "assigner_profile_uuid" field.
+func AssignerProfileUUIDNotIn(vs ...string) predicate.DEPToken {
+	return predicate.DEPToken(sql.FieldNotIn(FieldAssignerProfileUUID, vs...))
+}
+
+// AssignerProfileUUIDGT applies the GT predicate on the "assigner_profile_uuid" field.
+func AssignerProfileUUIDGT(v string) predicate.DEPToken {
+	return predicate.DEPToken(sql.FieldGT(FieldAssignerProfileUUID, v))
+}
+
+// AssignerProfileUUIDGTE applies the GTE predicate on the "assigner_profile_uuid" field.
+func AssignerProfileUUIDGTE(v string) predicate.DEPToken {
+	return predicate.DEPToken(sql.FieldGTE(FieldAssignerProfileUUID, v))
+}
+
+// AssignerProfileUUIDLT applies the LT predicate on the "assigner_profile_uuid" field.
+func AssignerProfileUUIDLT(v string) predicate.DEPToken {
+	return predicate.DEPToken(sql.FieldLT(FieldAssignerProfileUUID, v))
+}
+
+// AssignerProfileUUIDLTE applies the LTE predicate on the "assigner_profile_uuid" field.
+func AssignerProfileUUIDLTE(v string) predicate.DEPToken {
+	return predicate.DEPToken(sql.FieldLTE(FieldAssignerProfileUUID, v))
+}
+
+// AssignerProfileUUIDContains applies the Contains predicate on the "assigner_profile_uuid" field.
+func AssignerProfileUUIDContains(v string) predicate.DEPToken {
+	return predicate.DEPToken(sql.FieldContains(FieldAssignerProfileUUID, v))
+}
+
+// AssignerProfileUUIDHasPrefix applies the HasPrefix predicate on the "assigner_profile_uuid" field.
+func AssignerProfileUUIDHasPrefix(v string) predicate.DEPToken {
+	return predicate.DEPToken(sql.FieldHasPrefix(FieldAssignerProfileUUID, v))
+}
+
+// AssignerProfileUUIDHasSuffix applies the HasSuffix predicate on the "assigner_profile_uuid" field.
+func AssignerProfileUUIDHasSuffix(v string) predicate.DEPToken {
+	return predicate.DEPToken(sql.FieldHasSuffix(FieldAssignerProfileUUID, v))
+}
+
+// AssignerProfileUUIDIsNil applies the IsNil predicate on the "assigner_profile_uuid" field.
+func AssignerProfileUUIDIsNil() predicate.DEPToken {
+	return predicate.DEPToken(sql.FieldIsNull(FieldAssignerProfileUUID))
+}
+
+// AssignerProfileUUIDNotNil applies the NotNil predicate on the "assigner_profile_uuid" field.
+func AssignerProfileUUIDNotNil() predicate.DEPToken {
+	return predicate.DEPToken(sql.FieldNotNull(FieldAssignerProfileUUID))
+}
+
+// AssignerProfileUUIDEqualFold applies the EqualFold predicate on the "assigner_profile_uuid" field.
+func AssignerProfileUUIDEqualFold(v string) predicate.DEPToken {
+	return predicate.DEPToken(sql.FieldEqualFold(FieldAssignerProfileUUID, v))
+}
+
+// AssignerProfileUUIDContainsFold applies the ContainsFold predicate on the "assigner_profile_uuid" field.
+func AssignerProfileUUIDContainsFold(v string) predicate.DEPToken {
+	return predicate.DEPToken(sql.FieldContainsFold(FieldAssignerProfileUUID, v))
 }
 
 // CreatedAtEQ applies the EQ predicate on the "created_at" field.

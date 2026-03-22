@@ -12,30 +12,27 @@ const (
 	// Label holds the string label denoting the apnsconfig type in the database.
 	Label = "apns_config"
 	// FieldID holds the string denoting the id field in the database.
-	FieldID = "id"
-	// FieldTopic holds the string denoting the topic field in the database.
-	FieldTopic = "topic"
-	// FieldCertFilePath holds the string denoting the cert_file_path field in the database.
-	FieldCertFilePath = "cert_file_path"
-	// FieldKeyFilePath holds the string denoting the key_file_path field in the database.
-	FieldKeyFilePath = "key_file_path"
-	// FieldExpiry holds the string denoting the expiry field in the database.
-	FieldExpiry = "expiry"
+	FieldID = "topic"
+	// FieldCertPem holds the string denoting the cert_pem field in the database.
+	FieldCertPem = "cert_pem"
+	// FieldKeyPem holds the string denoting the key_pem field in the database.
+	FieldKeyPem = "key_pem"
+	// FieldStaleToken holds the string denoting the stale_token field in the database.
+	FieldStaleToken = "stale_token"
 	// FieldCreatedAt holds the string denoting the created_at field in the database.
 	FieldCreatedAt = "created_at"
 	// FieldUpdatedAt holds the string denoting the updated_at field in the database.
 	FieldUpdatedAt = "updated_at"
 	// Table holds the table name of the apnsconfig in the database.
-	Table = "apns_configs"
+	Table = "push_certs"
 )
 
 // Columns holds all SQL columns for apnsconfig fields.
 var Columns = []string{
 	FieldID,
-	FieldTopic,
-	FieldCertFilePath,
-	FieldKeyFilePath,
-	FieldExpiry,
+	FieldCertPem,
+	FieldKeyPem,
+	FieldStaleToken,
 	FieldCreatedAt,
 	FieldUpdatedAt,
 }
@@ -51,18 +48,20 @@ func ValidColumn(column string) bool {
 }
 
 var (
-	// TopicValidator is a validator for the "topic" field. It is called by the builders before save.
-	TopicValidator func(string) error
-	// CertFilePathValidator is a validator for the "cert_file_path" field. It is called by the builders before save.
-	CertFilePathValidator func(string) error
-	// KeyFilePathValidator is a validator for the "key_file_path" field. It is called by the builders before save.
-	KeyFilePathValidator func(string) error
+	// CertPemValidator is a validator for the "cert_pem" field. It is called by the builders before save.
+	CertPemValidator func(string) error
+	// KeyPemValidator is a validator for the "key_pem" field. It is called by the builders before save.
+	KeyPemValidator func(string) error
+	// DefaultStaleToken holds the default value on creation for the "stale_token" field.
+	DefaultStaleToken int
 	// DefaultCreatedAt holds the default value on creation for the "created_at" field.
 	DefaultCreatedAt func() time.Time
 	// DefaultUpdatedAt holds the default value on creation for the "updated_at" field.
 	DefaultUpdatedAt func() time.Time
 	// UpdateDefaultUpdatedAt holds the default value on update for the "updated_at" field.
 	UpdateDefaultUpdatedAt func() time.Time
+	// IDValidator is a validator for the "id" field. It is called by the builders before save.
+	IDValidator func(string) error
 )
 
 // OrderOption defines the ordering options for the APNSConfig queries.
@@ -73,24 +72,19 @@ func ByID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldID, opts...).ToFunc()
 }
 
-// ByTopic orders the results by the topic field.
-func ByTopic(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldTopic, opts...).ToFunc()
+// ByCertPem orders the results by the cert_pem field.
+func ByCertPem(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldCertPem, opts...).ToFunc()
 }
 
-// ByCertFilePath orders the results by the cert_file_path field.
-func ByCertFilePath(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldCertFilePath, opts...).ToFunc()
+// ByKeyPem orders the results by the key_pem field.
+func ByKeyPem(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldKeyPem, opts...).ToFunc()
 }
 
-// ByKeyFilePath orders the results by the key_file_path field.
-func ByKeyFilePath(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldKeyFilePath, opts...).ToFunc()
-}
-
-// ByExpiry orders the results by the expiry field.
-func ByExpiry(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldExpiry, opts...).ToFunc()
+// ByStaleToken orders the results by the stale_token field.
+func ByStaleToken(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldStaleToken, opts...).ToFunc()
 }
 
 // ByCreatedAt orders the results by the created_at field.

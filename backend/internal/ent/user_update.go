@@ -112,14 +112,14 @@ func (_u *UserUpdate) ClearDeletedAt() *UserUpdate {
 }
 
 // AddDeviceIDs adds the "devices" edge to the Device entity by IDs.
-func (_u *UserUpdate) AddDeviceIDs(ids ...uint) *UserUpdate {
+func (_u *UserUpdate) AddDeviceIDs(ids ...string) *UserUpdate {
 	_u.mutation.AddDeviceIDs(ids...)
 	return _u
 }
 
 // AddDevices adds the "devices" edges to the Device entity.
 func (_u *UserUpdate) AddDevices(v ...*Device) *UserUpdate {
-	ids := make([]uint, len(v))
+	ids := make([]string, len(v))
 	for i := range v {
 		ids[i] = v[i].ID
 	}
@@ -138,14 +138,14 @@ func (_u *UserUpdate) ClearDevices() *UserUpdate {
 }
 
 // RemoveDeviceIDs removes the "devices" edge to Device entities by IDs.
-func (_u *UserUpdate) RemoveDeviceIDs(ids ...uint) *UserUpdate {
+func (_u *UserUpdate) RemoveDeviceIDs(ids ...string) *UserUpdate {
 	_u.mutation.RemoveDeviceIDs(ids...)
 	return _u
 }
 
 // RemoveDevices removes "devices" edges to Device entities.
 func (_u *UserUpdate) RemoveDevices(v ...*Device) *UserUpdate {
-	ids := make([]uint, len(v))
+	ids := make([]string, len(v))
 	for i := range v {
 		ids[i] = v[i].ID
 	}
@@ -254,7 +254,7 @@ func (_u *UserUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 			Columns: []string{user.DevicesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(device.FieldID, field.TypeUint),
+				IDSpec: sqlgraph.NewFieldSpec(device.FieldID, field.TypeString),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -267,7 +267,7 @@ func (_u *UserUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 			Columns: []string{user.DevicesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(device.FieldID, field.TypeUint),
+				IDSpec: sqlgraph.NewFieldSpec(device.FieldID, field.TypeString),
 			},
 		}
 		for _, k := range nodes {
@@ -283,7 +283,7 @@ func (_u *UserUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 			Columns: []string{user.DevicesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(device.FieldID, field.TypeUint),
+				IDSpec: sqlgraph.NewFieldSpec(device.FieldID, field.TypeString),
 			},
 		}
 		for _, k := range nodes {
@@ -394,14 +394,14 @@ func (_u *UserUpdateOne) ClearDeletedAt() *UserUpdateOne {
 }
 
 // AddDeviceIDs adds the "devices" edge to the Device entity by IDs.
-func (_u *UserUpdateOne) AddDeviceIDs(ids ...uint) *UserUpdateOne {
+func (_u *UserUpdateOne) AddDeviceIDs(ids ...string) *UserUpdateOne {
 	_u.mutation.AddDeviceIDs(ids...)
 	return _u
 }
 
 // AddDevices adds the "devices" edges to the Device entity.
 func (_u *UserUpdateOne) AddDevices(v ...*Device) *UserUpdateOne {
-	ids := make([]uint, len(v))
+	ids := make([]string, len(v))
 	for i := range v {
 		ids[i] = v[i].ID
 	}
@@ -420,14 +420,14 @@ func (_u *UserUpdateOne) ClearDevices() *UserUpdateOne {
 }
 
 // RemoveDeviceIDs removes the "devices" edge to Device entities by IDs.
-func (_u *UserUpdateOne) RemoveDeviceIDs(ids ...uint) *UserUpdateOne {
+func (_u *UserUpdateOne) RemoveDeviceIDs(ids ...string) *UserUpdateOne {
 	_u.mutation.RemoveDeviceIDs(ids...)
 	return _u
 }
 
 // RemoveDevices removes "devices" edges to Device entities.
 func (_u *UserUpdateOne) RemoveDevices(v ...*Device) *UserUpdateOne {
-	ids := make([]uint, len(v))
+	ids := make([]string, len(v))
 	for i := range v {
 		ids[i] = v[i].ID
 	}
@@ -566,7 +566,7 @@ func (_u *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) {
 			Columns: []string{user.DevicesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(device.FieldID, field.TypeUint),
+				IDSpec: sqlgraph.NewFieldSpec(device.FieldID, field.TypeString),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -579,7 +579,7 @@ func (_u *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) {
 			Columns: []string{user.DevicesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(device.FieldID, field.TypeUint),
+				IDSpec: sqlgraph.NewFieldSpec(device.FieldID, field.TypeString),
 			},
 		}
 		for _, k := range nodes {
@@ -595,7 +595,7 @@ func (_u *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) {
 			Columns: []string{user.DevicesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(device.FieldID, field.TypeUint),
+				IDSpec: sqlgraph.NewFieldSpec(device.FieldID, field.TypeString),
 			},
 		}
 		for _, k := range nodes {

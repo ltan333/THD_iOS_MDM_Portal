@@ -48,11 +48,11 @@ type APNSConfigMutation struct {
 	config
 	op             Op
 	typ            string
-	id             *uint
-	topic          *string
-	cert_file_path *string
-	key_file_path  *string
-	expiry         *time.Time
+	id             *string
+	cert_pem       *string
+	key_pem        *string
+	stale_token    *int
+	addstale_token *int
 	created_at     *time.Time
 	updated_at     *time.Time
 	clearedFields  map[string]struct{}
@@ -81,7 +81,7 @@ func newAPNSConfigMutation(c config, op Op, opts ...apnsconfigOption) *APNSConfi
 }
 
 // withAPNSConfigID sets the ID field of the mutation.
-func withAPNSConfigID(id uint) apnsconfigOption {
+func withAPNSConfigID(id string) apnsconfigOption {
 	return func(m *APNSConfigMutation) {
 		var (
 			err   error
@@ -133,13 +133,13 @@ func (m APNSConfigMutation) Tx() (*Tx, error) {
 
 // SetID sets the value of the id field. Note that this
 // operation is only accepted on creation of APNSConfig entities.
-func (m *APNSConfigMutation) SetID(id uint) {
+func (m *APNSConfigMutation) SetID(id string) {
 	m.id = &id
 }
 
 // ID returns the ID value in the mutation. Note that the ID is only available
 // if it was provided to the builder or after it was returned from the database.
-func (m *APNSConfigMutation) ID() (id uint, exists bool) {
+func (m *APNSConfigMutation) ID() (id string, exists bool) {
 	if m.id == nil {
 		return
 	}
@@ -150,12 +150,12 @@ func (m *APNSConfigMutation) ID() (id uint, exists bool) {
 // That means, if the mutation is applied within a transaction with an isolation level such
 // as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
 // or updated by the mutation.
-func (m *APNSConfigMutation) IDs(ctx context.Context) ([]uint, error) {
+func (m *APNSConfigMutation) IDs(ctx context.Context) ([]string, error) {
 	switch {
 	case m.op.Is(OpUpdateOne | OpDeleteOne):
 		id, exists := m.ID()
 		if exists {
-			return []uint{id}, nil
+			return []string{id}, nil
 		}
 		fallthrough
 	case m.op.Is(OpUpdate | OpDelete):
@@ -165,161 +165,132 @@ func (m *APNSConfigMutation) IDs(ctx context.Context) ([]uint, error) {
 	}
 }
 
-// SetTopic sets the "topic" field.
-func (m *APNSConfigMutation) SetTopic(s string) {
-	m.topic = &s
+// SetCertPem sets the "cert_pem" field.
+func (m *APNSConfigMutation) SetCertPem(s string) {
+	m.cert_pem = &s
 }
 
-// Topic returns the value of the "topic" field in the mutation.
-func (m *APNSConfigMutation) Topic() (r string, exists bool) {
-	v := m.topic
+// CertPem returns the value of the "cert_pem" field in the mutation.
+func (m *APNSConfigMutation) CertPem() (r string, exists bool) {
+	v := m.cert_pem
 	if v == nil {
 		return
 	}
 	return *v, true
 }
 
-// OldTopic returns the old "topic" field's value of the APNSConfig entity.
+// OldCertPem returns the old "cert_pem" field's value of the APNSConfig entity.
 // If the APNSConfig object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *APNSConfigMutation) OldTopic(ctx context.Context) (v string, err error) {
+func (m *APNSConfigMutation) OldCertPem(ctx context.Context) (v string, err error) {
 	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldTopic is only allowed on UpdateOne operations")
+		return v, errors.New("OldCertPem is only allowed on UpdateOne operations")
 	}
 	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldTopic requires an ID field in the mutation")
+		return v, errors.New("OldCertPem requires an ID field in the mutation")
 	}
 	oldValue, err := m.oldValue(ctx)
 	if err != nil {
-		return v, fmt.Errorf("querying old value for OldTopic: %w", err)
+		return v, fmt.Errorf("querying old value for OldCertPem: %w", err)
 	}
-	return oldValue.Topic, nil
+	return oldValue.CertPem, nil
 }
 
-// ResetTopic resets all changes to the "topic" field.
-func (m *APNSConfigMutation) ResetTopic() {
-	m.topic = nil
+// ResetCertPem resets all changes to the "cert_pem" field.
+func (m *APNSConfigMutation) ResetCertPem() {
+	m.cert_pem = nil
 }
 
-// SetCertFilePath sets the "cert_file_path" field.
-func (m *APNSConfigMutation) SetCertFilePath(s string) {
-	m.cert_file_path = &s
+// SetKeyPem sets the "key_pem" field.
+func (m *APNSConfigMutation) SetKeyPem(s string) {
+	m.key_pem = &s
 }
 
-// CertFilePath returns the value of the "cert_file_path" field in the mutation.
-func (m *APNSConfigMutation) CertFilePath() (r string, exists bool) {
-	v := m.cert_file_path
+// KeyPem returns the value of the "key_pem" field in the mutation.
+func (m *APNSConfigMutation) KeyPem() (r string, exists bool) {
+	v := m.key_pem
 	if v == nil {
 		return
 	}
 	return *v, true
 }
 
-// OldCertFilePath returns the old "cert_file_path" field's value of the APNSConfig entity.
+// OldKeyPem returns the old "key_pem" field's value of the APNSConfig entity.
 // If the APNSConfig object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *APNSConfigMutation) OldCertFilePath(ctx context.Context) (v string, err error) {
+func (m *APNSConfigMutation) OldKeyPem(ctx context.Context) (v string, err error) {
 	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldCertFilePath is only allowed on UpdateOne operations")
+		return v, errors.New("OldKeyPem is only allowed on UpdateOne operations")
 	}
 	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldCertFilePath requires an ID field in the mutation")
+		return v, errors.New("OldKeyPem requires an ID field in the mutation")
 	}
 	oldValue, err := m.oldValue(ctx)
 	if err != nil {
-		return v, fmt.Errorf("querying old value for OldCertFilePath: %w", err)
+		return v, fmt.Errorf("querying old value for OldKeyPem: %w", err)
 	}
-	return oldValue.CertFilePath, nil
+	return oldValue.KeyPem, nil
 }
 
-// ResetCertFilePath resets all changes to the "cert_file_path" field.
-func (m *APNSConfigMutation) ResetCertFilePath() {
-	m.cert_file_path = nil
+// ResetKeyPem resets all changes to the "key_pem" field.
+func (m *APNSConfigMutation) ResetKeyPem() {
+	m.key_pem = nil
 }
 
-// SetKeyFilePath sets the "key_file_path" field.
-func (m *APNSConfigMutation) SetKeyFilePath(s string) {
-	m.key_file_path = &s
+// SetStaleToken sets the "stale_token" field.
+func (m *APNSConfigMutation) SetStaleToken(i int) {
+	m.stale_token = &i
+	m.addstale_token = nil
 }
 
-// KeyFilePath returns the value of the "key_file_path" field in the mutation.
-func (m *APNSConfigMutation) KeyFilePath() (r string, exists bool) {
-	v := m.key_file_path
+// StaleToken returns the value of the "stale_token" field in the mutation.
+func (m *APNSConfigMutation) StaleToken() (r int, exists bool) {
+	v := m.stale_token
 	if v == nil {
 		return
 	}
 	return *v, true
 }
 
-// OldKeyFilePath returns the old "key_file_path" field's value of the APNSConfig entity.
+// OldStaleToken returns the old "stale_token" field's value of the APNSConfig entity.
 // If the APNSConfig object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *APNSConfigMutation) OldKeyFilePath(ctx context.Context) (v string, err error) {
+func (m *APNSConfigMutation) OldStaleToken(ctx context.Context) (v int, err error) {
 	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldKeyFilePath is only allowed on UpdateOne operations")
+		return v, errors.New("OldStaleToken is only allowed on UpdateOne operations")
 	}
 	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldKeyFilePath requires an ID field in the mutation")
+		return v, errors.New("OldStaleToken requires an ID field in the mutation")
 	}
 	oldValue, err := m.oldValue(ctx)
 	if err != nil {
-		return v, fmt.Errorf("querying old value for OldKeyFilePath: %w", err)
+		return v, fmt.Errorf("querying old value for OldStaleToken: %w", err)
 	}
-	return oldValue.KeyFilePath, nil
+	return oldValue.StaleToken, nil
 }
 
-// ResetKeyFilePath resets all changes to the "key_file_path" field.
-func (m *APNSConfigMutation) ResetKeyFilePath() {
-	m.key_file_path = nil
+// AddStaleToken adds i to the "stale_token" field.
+func (m *APNSConfigMutation) AddStaleToken(i int) {
+	if m.addstale_token != nil {
+		*m.addstale_token += i
+	} else {
+		m.addstale_token = &i
+	}
 }
 
-// SetExpiry sets the "expiry" field.
-func (m *APNSConfigMutation) SetExpiry(t time.Time) {
-	m.expiry = &t
-}
-
-// Expiry returns the value of the "expiry" field in the mutation.
-func (m *APNSConfigMutation) Expiry() (r time.Time, exists bool) {
-	v := m.expiry
+// AddedStaleToken returns the value that was added to the "stale_token" field in this mutation.
+func (m *APNSConfigMutation) AddedStaleToken() (r int, exists bool) {
+	v := m.addstale_token
 	if v == nil {
 		return
 	}
 	return *v, true
 }
 
-// OldExpiry returns the old "expiry" field's value of the APNSConfig entity.
-// If the APNSConfig object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *APNSConfigMutation) OldExpiry(ctx context.Context) (v time.Time, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldExpiry is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldExpiry requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldExpiry: %w", err)
-	}
-	return oldValue.Expiry, nil
-}
-
-// ClearExpiry clears the value of the "expiry" field.
-func (m *APNSConfigMutation) ClearExpiry() {
-	m.expiry = nil
-	m.clearedFields[apnsconfig.FieldExpiry] = struct{}{}
-}
-
-// ExpiryCleared returns if the "expiry" field was cleared in this mutation.
-func (m *APNSConfigMutation) ExpiryCleared() bool {
-	_, ok := m.clearedFields[apnsconfig.FieldExpiry]
-	return ok
-}
-
-// ResetExpiry resets all changes to the "expiry" field.
-func (m *APNSConfigMutation) ResetExpiry() {
-	m.expiry = nil
-	delete(m.clearedFields, apnsconfig.FieldExpiry)
+// ResetStaleToken resets all changes to the "stale_token" field.
+func (m *APNSConfigMutation) ResetStaleToken() {
+	m.stale_token = nil
+	m.addstale_token = nil
 }
 
 // SetCreatedAt sets the "created_at" field.
@@ -428,18 +399,15 @@ func (m *APNSConfigMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *APNSConfigMutation) Fields() []string {
-	fields := make([]string, 0, 6)
-	if m.topic != nil {
-		fields = append(fields, apnsconfig.FieldTopic)
+	fields := make([]string, 0, 5)
+	if m.cert_pem != nil {
+		fields = append(fields, apnsconfig.FieldCertPem)
 	}
-	if m.cert_file_path != nil {
-		fields = append(fields, apnsconfig.FieldCertFilePath)
+	if m.key_pem != nil {
+		fields = append(fields, apnsconfig.FieldKeyPem)
 	}
-	if m.key_file_path != nil {
-		fields = append(fields, apnsconfig.FieldKeyFilePath)
-	}
-	if m.expiry != nil {
-		fields = append(fields, apnsconfig.FieldExpiry)
+	if m.stale_token != nil {
+		fields = append(fields, apnsconfig.FieldStaleToken)
 	}
 	if m.created_at != nil {
 		fields = append(fields, apnsconfig.FieldCreatedAt)
@@ -455,14 +423,12 @@ func (m *APNSConfigMutation) Fields() []string {
 // schema.
 func (m *APNSConfigMutation) Field(name string) (ent.Value, bool) {
 	switch name {
-	case apnsconfig.FieldTopic:
-		return m.Topic()
-	case apnsconfig.FieldCertFilePath:
-		return m.CertFilePath()
-	case apnsconfig.FieldKeyFilePath:
-		return m.KeyFilePath()
-	case apnsconfig.FieldExpiry:
-		return m.Expiry()
+	case apnsconfig.FieldCertPem:
+		return m.CertPem()
+	case apnsconfig.FieldKeyPem:
+		return m.KeyPem()
+	case apnsconfig.FieldStaleToken:
+		return m.StaleToken()
 	case apnsconfig.FieldCreatedAt:
 		return m.CreatedAt()
 	case apnsconfig.FieldUpdatedAt:
@@ -476,14 +442,12 @@ func (m *APNSConfigMutation) Field(name string) (ent.Value, bool) {
 // database failed.
 func (m *APNSConfigMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
 	switch name {
-	case apnsconfig.FieldTopic:
-		return m.OldTopic(ctx)
-	case apnsconfig.FieldCertFilePath:
-		return m.OldCertFilePath(ctx)
-	case apnsconfig.FieldKeyFilePath:
-		return m.OldKeyFilePath(ctx)
-	case apnsconfig.FieldExpiry:
-		return m.OldExpiry(ctx)
+	case apnsconfig.FieldCertPem:
+		return m.OldCertPem(ctx)
+	case apnsconfig.FieldKeyPem:
+		return m.OldKeyPem(ctx)
+	case apnsconfig.FieldStaleToken:
+		return m.OldStaleToken(ctx)
 	case apnsconfig.FieldCreatedAt:
 		return m.OldCreatedAt(ctx)
 	case apnsconfig.FieldUpdatedAt:
@@ -497,33 +461,26 @@ func (m *APNSConfigMutation) OldField(ctx context.Context, name string) (ent.Val
 // type.
 func (m *APNSConfigMutation) SetField(name string, value ent.Value) error {
 	switch name {
-	case apnsconfig.FieldTopic:
+	case apnsconfig.FieldCertPem:
 		v, ok := value.(string)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
-		m.SetTopic(v)
+		m.SetCertPem(v)
 		return nil
-	case apnsconfig.FieldCertFilePath:
+	case apnsconfig.FieldKeyPem:
 		v, ok := value.(string)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
-		m.SetCertFilePath(v)
+		m.SetKeyPem(v)
 		return nil
-	case apnsconfig.FieldKeyFilePath:
-		v, ok := value.(string)
+	case apnsconfig.FieldStaleToken:
+		v, ok := value.(int)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
-		m.SetKeyFilePath(v)
-		return nil
-	case apnsconfig.FieldExpiry:
-		v, ok := value.(time.Time)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetExpiry(v)
+		m.SetStaleToken(v)
 		return nil
 	case apnsconfig.FieldCreatedAt:
 		v, ok := value.(time.Time)
@@ -546,13 +503,21 @@ func (m *APNSConfigMutation) SetField(name string, value ent.Value) error {
 // AddedFields returns all numeric fields that were incremented/decremented during
 // this mutation.
 func (m *APNSConfigMutation) AddedFields() []string {
-	return nil
+	var fields []string
+	if m.addstale_token != nil {
+		fields = append(fields, apnsconfig.FieldStaleToken)
+	}
+	return fields
 }
 
 // AddedField returns the numeric value that was incremented/decremented on a field
 // with the given name. The second boolean return value indicates that this field
 // was not set, or was not defined in the schema.
 func (m *APNSConfigMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case apnsconfig.FieldStaleToken:
+		return m.AddedStaleToken()
+	}
 	return nil, false
 }
 
@@ -561,6 +526,13 @@ func (m *APNSConfigMutation) AddedField(name string) (ent.Value, bool) {
 // type.
 func (m *APNSConfigMutation) AddField(name string, value ent.Value) error {
 	switch name {
+	case apnsconfig.FieldStaleToken:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddStaleToken(v)
+		return nil
 	}
 	return fmt.Errorf("unknown APNSConfig numeric field %s", name)
 }
@@ -568,11 +540,7 @@ func (m *APNSConfigMutation) AddField(name string, value ent.Value) error {
 // ClearedFields returns all nullable fields that were cleared during this
 // mutation.
 func (m *APNSConfigMutation) ClearedFields() []string {
-	var fields []string
-	if m.FieldCleared(apnsconfig.FieldExpiry) {
-		fields = append(fields, apnsconfig.FieldExpiry)
-	}
-	return fields
+	return nil
 }
 
 // FieldCleared returns a boolean indicating if a field with the given name was
@@ -585,11 +553,6 @@ func (m *APNSConfigMutation) FieldCleared(name string) bool {
 // ClearField clears the value of the field with the given name. It returns an
 // error if the field is not defined in the schema.
 func (m *APNSConfigMutation) ClearField(name string) error {
-	switch name {
-	case apnsconfig.FieldExpiry:
-		m.ClearExpiry()
-		return nil
-	}
 	return fmt.Errorf("unknown APNSConfig nullable field %s", name)
 }
 
@@ -597,17 +560,14 @@ func (m *APNSConfigMutation) ClearField(name string) error {
 // It returns an error if the field is not defined in the schema.
 func (m *APNSConfigMutation) ResetField(name string) error {
 	switch name {
-	case apnsconfig.FieldTopic:
-		m.ResetTopic()
+	case apnsconfig.FieldCertPem:
+		m.ResetCertPem()
 		return nil
-	case apnsconfig.FieldCertFilePath:
-		m.ResetCertFilePath()
+	case apnsconfig.FieldKeyPem:
+		m.ResetKeyPem()
 		return nil
-	case apnsconfig.FieldKeyFilePath:
-		m.ResetKeyFilePath()
-		return nil
-	case apnsconfig.FieldExpiry:
-		m.ResetExpiry()
+	case apnsconfig.FieldStaleToken:
+		m.ResetStaleToken()
 		return nil
 	case apnsconfig.FieldCreatedAt:
 		m.ResetCreatedAt()
@@ -670,19 +630,25 @@ func (m *APNSConfigMutation) ResetEdge(name string) error {
 // DEPTokenMutation represents an operation that mutates the DEPToken nodes in the graph.
 type DEPTokenMutation struct {
 	config
-	op            Op
-	typ           string
-	id            *uint
-	name          *string
-	p7m_file_path *string
-	expiry        *time.Time
-	last_used     *time.Time
-	created_at    *time.Time
-	updated_at    *time.Time
-	clearedFields map[string]struct{}
-	done          bool
-	oldValue      func(context.Context) (*DEPToken, error)
-	predicates    []predicate.DEPToken
+	op                    Op
+	typ                   string
+	id                    *string
+	consumer_key          *string
+	consumer_secret       *string
+	access_token          *string
+	access_secret         *string
+	access_token_expiry   *time.Time
+	config_base_url       *string
+	tokenpki_cert_pem     *string
+	tokenpki_key_pem      *string
+	syncer_cursor         *string
+	assigner_profile_uuid *string
+	created_at            *time.Time
+	updated_at            *time.Time
+	clearedFields         map[string]struct{}
+	done                  bool
+	oldValue              func(context.Context) (*DEPToken, error)
+	predicates            []predicate.DEPToken
 }
 
 var _ ent.Mutation = (*DEPTokenMutation)(nil)
@@ -705,7 +671,7 @@ func newDEPTokenMutation(c config, op Op, opts ...deptokenOption) *DEPTokenMutat
 }
 
 // withDEPTokenID sets the ID field of the mutation.
-func withDEPTokenID(id uint) deptokenOption {
+func withDEPTokenID(id string) deptokenOption {
 	return func(m *DEPTokenMutation) {
 		var (
 			err   error
@@ -757,13 +723,13 @@ func (m DEPTokenMutation) Tx() (*Tx, error) {
 
 // SetID sets the value of the id field. Note that this
 // operation is only accepted on creation of DEPToken entities.
-func (m *DEPTokenMutation) SetID(id uint) {
+func (m *DEPTokenMutation) SetID(id string) {
 	m.id = &id
 }
 
 // ID returns the ID value in the mutation. Note that the ID is only available
 // if it was provided to the builder or after it was returned from the database.
-func (m *DEPTokenMutation) ID() (id uint, exists bool) {
+func (m *DEPTokenMutation) ID() (id string, exists bool) {
 	if m.id == nil {
 		return
 	}
@@ -774,12 +740,12 @@ func (m *DEPTokenMutation) ID() (id uint, exists bool) {
 // That means, if the mutation is applied within a transaction with an isolation level such
 // as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
 // or updated by the mutation.
-func (m *DEPTokenMutation) IDs(ctx context.Context) ([]uint, error) {
+func (m *DEPTokenMutation) IDs(ctx context.Context) ([]string, error) {
 	switch {
 	case m.op.Is(OpUpdateOne | OpDeleteOne):
 		id, exists := m.ID()
 		if exists {
-			return []uint{id}, nil
+			return []string{id}, nil
 		}
 		fallthrough
 	case m.op.Is(OpUpdate | OpDelete):
@@ -789,174 +755,494 @@ func (m *DEPTokenMutation) IDs(ctx context.Context) ([]uint, error) {
 	}
 }
 
-// SetName sets the "name" field.
-func (m *DEPTokenMutation) SetName(s string) {
-	m.name = &s
+// SetConsumerKey sets the "consumer_key" field.
+func (m *DEPTokenMutation) SetConsumerKey(s string) {
+	m.consumer_key = &s
 }
 
-// Name returns the value of the "name" field in the mutation.
-func (m *DEPTokenMutation) Name() (r string, exists bool) {
-	v := m.name
+// ConsumerKey returns the value of the "consumer_key" field in the mutation.
+func (m *DEPTokenMutation) ConsumerKey() (r string, exists bool) {
+	v := m.consumer_key
 	if v == nil {
 		return
 	}
 	return *v, true
 }
 
-// OldName returns the old "name" field's value of the DEPToken entity.
+// OldConsumerKey returns the old "consumer_key" field's value of the DEPToken entity.
 // If the DEPToken object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *DEPTokenMutation) OldName(ctx context.Context) (v string, err error) {
+func (m *DEPTokenMutation) OldConsumerKey(ctx context.Context) (v string, err error) {
 	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldName is only allowed on UpdateOne operations")
+		return v, errors.New("OldConsumerKey is only allowed on UpdateOne operations")
 	}
 	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldName requires an ID field in the mutation")
+		return v, errors.New("OldConsumerKey requires an ID field in the mutation")
 	}
 	oldValue, err := m.oldValue(ctx)
 	if err != nil {
-		return v, fmt.Errorf("querying old value for OldName: %w", err)
+		return v, fmt.Errorf("querying old value for OldConsumerKey: %w", err)
 	}
-	return oldValue.Name, nil
+	return oldValue.ConsumerKey, nil
 }
 
-// ResetName resets all changes to the "name" field.
-func (m *DEPTokenMutation) ResetName() {
-	m.name = nil
+// ClearConsumerKey clears the value of the "consumer_key" field.
+func (m *DEPTokenMutation) ClearConsumerKey() {
+	m.consumer_key = nil
+	m.clearedFields[deptoken.FieldConsumerKey] = struct{}{}
 }
 
-// SetP7mFilePath sets the "p7m_file_path" field.
-func (m *DEPTokenMutation) SetP7mFilePath(s string) {
-	m.p7m_file_path = &s
-}
-
-// P7mFilePath returns the value of the "p7m_file_path" field in the mutation.
-func (m *DEPTokenMutation) P7mFilePath() (r string, exists bool) {
-	v := m.p7m_file_path
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldP7mFilePath returns the old "p7m_file_path" field's value of the DEPToken entity.
-// If the DEPToken object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *DEPTokenMutation) OldP7mFilePath(ctx context.Context) (v string, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldP7mFilePath is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldP7mFilePath requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldP7mFilePath: %w", err)
-	}
-	return oldValue.P7mFilePath, nil
-}
-
-// ResetP7mFilePath resets all changes to the "p7m_file_path" field.
-func (m *DEPTokenMutation) ResetP7mFilePath() {
-	m.p7m_file_path = nil
-}
-
-// SetExpiry sets the "expiry" field.
-func (m *DEPTokenMutation) SetExpiry(t time.Time) {
-	m.expiry = &t
-}
-
-// Expiry returns the value of the "expiry" field in the mutation.
-func (m *DEPTokenMutation) Expiry() (r time.Time, exists bool) {
-	v := m.expiry
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldExpiry returns the old "expiry" field's value of the DEPToken entity.
-// If the DEPToken object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *DEPTokenMutation) OldExpiry(ctx context.Context) (v time.Time, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldExpiry is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldExpiry requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldExpiry: %w", err)
-	}
-	return oldValue.Expiry, nil
-}
-
-// ClearExpiry clears the value of the "expiry" field.
-func (m *DEPTokenMutation) ClearExpiry() {
-	m.expiry = nil
-	m.clearedFields[deptoken.FieldExpiry] = struct{}{}
-}
-
-// ExpiryCleared returns if the "expiry" field was cleared in this mutation.
-func (m *DEPTokenMutation) ExpiryCleared() bool {
-	_, ok := m.clearedFields[deptoken.FieldExpiry]
+// ConsumerKeyCleared returns if the "consumer_key" field was cleared in this mutation.
+func (m *DEPTokenMutation) ConsumerKeyCleared() bool {
+	_, ok := m.clearedFields[deptoken.FieldConsumerKey]
 	return ok
 }
 
-// ResetExpiry resets all changes to the "expiry" field.
-func (m *DEPTokenMutation) ResetExpiry() {
-	m.expiry = nil
-	delete(m.clearedFields, deptoken.FieldExpiry)
+// ResetConsumerKey resets all changes to the "consumer_key" field.
+func (m *DEPTokenMutation) ResetConsumerKey() {
+	m.consumer_key = nil
+	delete(m.clearedFields, deptoken.FieldConsumerKey)
 }
 
-// SetLastUsed sets the "last_used" field.
-func (m *DEPTokenMutation) SetLastUsed(t time.Time) {
-	m.last_used = &t
+// SetConsumerSecret sets the "consumer_secret" field.
+func (m *DEPTokenMutation) SetConsumerSecret(s string) {
+	m.consumer_secret = &s
 }
 
-// LastUsed returns the value of the "last_used" field in the mutation.
-func (m *DEPTokenMutation) LastUsed() (r time.Time, exists bool) {
-	v := m.last_used
+// ConsumerSecret returns the value of the "consumer_secret" field in the mutation.
+func (m *DEPTokenMutation) ConsumerSecret() (r string, exists bool) {
+	v := m.consumer_secret
 	if v == nil {
 		return
 	}
 	return *v, true
 }
 
-// OldLastUsed returns the old "last_used" field's value of the DEPToken entity.
+// OldConsumerSecret returns the old "consumer_secret" field's value of the DEPToken entity.
 // If the DEPToken object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *DEPTokenMutation) OldLastUsed(ctx context.Context) (v time.Time, err error) {
+func (m *DEPTokenMutation) OldConsumerSecret(ctx context.Context) (v string, err error) {
 	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldLastUsed is only allowed on UpdateOne operations")
+		return v, errors.New("OldConsumerSecret is only allowed on UpdateOne operations")
 	}
 	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldLastUsed requires an ID field in the mutation")
+		return v, errors.New("OldConsumerSecret requires an ID field in the mutation")
 	}
 	oldValue, err := m.oldValue(ctx)
 	if err != nil {
-		return v, fmt.Errorf("querying old value for OldLastUsed: %w", err)
+		return v, fmt.Errorf("querying old value for OldConsumerSecret: %w", err)
 	}
-	return oldValue.LastUsed, nil
+	return oldValue.ConsumerSecret, nil
 }
 
-// ClearLastUsed clears the value of the "last_used" field.
-func (m *DEPTokenMutation) ClearLastUsed() {
-	m.last_used = nil
-	m.clearedFields[deptoken.FieldLastUsed] = struct{}{}
+// ClearConsumerSecret clears the value of the "consumer_secret" field.
+func (m *DEPTokenMutation) ClearConsumerSecret() {
+	m.consumer_secret = nil
+	m.clearedFields[deptoken.FieldConsumerSecret] = struct{}{}
 }
 
-// LastUsedCleared returns if the "last_used" field was cleared in this mutation.
-func (m *DEPTokenMutation) LastUsedCleared() bool {
-	_, ok := m.clearedFields[deptoken.FieldLastUsed]
+// ConsumerSecretCleared returns if the "consumer_secret" field was cleared in this mutation.
+func (m *DEPTokenMutation) ConsumerSecretCleared() bool {
+	_, ok := m.clearedFields[deptoken.FieldConsumerSecret]
 	return ok
 }
 
-// ResetLastUsed resets all changes to the "last_used" field.
-func (m *DEPTokenMutation) ResetLastUsed() {
-	m.last_used = nil
-	delete(m.clearedFields, deptoken.FieldLastUsed)
+// ResetConsumerSecret resets all changes to the "consumer_secret" field.
+func (m *DEPTokenMutation) ResetConsumerSecret() {
+	m.consumer_secret = nil
+	delete(m.clearedFields, deptoken.FieldConsumerSecret)
+}
+
+// SetAccessToken sets the "access_token" field.
+func (m *DEPTokenMutation) SetAccessToken(s string) {
+	m.access_token = &s
+}
+
+// AccessToken returns the value of the "access_token" field in the mutation.
+func (m *DEPTokenMutation) AccessToken() (r string, exists bool) {
+	v := m.access_token
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldAccessToken returns the old "access_token" field's value of the DEPToken entity.
+// If the DEPToken object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *DEPTokenMutation) OldAccessToken(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldAccessToken is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldAccessToken requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldAccessToken: %w", err)
+	}
+	return oldValue.AccessToken, nil
+}
+
+// ClearAccessToken clears the value of the "access_token" field.
+func (m *DEPTokenMutation) ClearAccessToken() {
+	m.access_token = nil
+	m.clearedFields[deptoken.FieldAccessToken] = struct{}{}
+}
+
+// AccessTokenCleared returns if the "access_token" field was cleared in this mutation.
+func (m *DEPTokenMutation) AccessTokenCleared() bool {
+	_, ok := m.clearedFields[deptoken.FieldAccessToken]
+	return ok
+}
+
+// ResetAccessToken resets all changes to the "access_token" field.
+func (m *DEPTokenMutation) ResetAccessToken() {
+	m.access_token = nil
+	delete(m.clearedFields, deptoken.FieldAccessToken)
+}
+
+// SetAccessSecret sets the "access_secret" field.
+func (m *DEPTokenMutation) SetAccessSecret(s string) {
+	m.access_secret = &s
+}
+
+// AccessSecret returns the value of the "access_secret" field in the mutation.
+func (m *DEPTokenMutation) AccessSecret() (r string, exists bool) {
+	v := m.access_secret
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldAccessSecret returns the old "access_secret" field's value of the DEPToken entity.
+// If the DEPToken object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *DEPTokenMutation) OldAccessSecret(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldAccessSecret is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldAccessSecret requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldAccessSecret: %w", err)
+	}
+	return oldValue.AccessSecret, nil
+}
+
+// ClearAccessSecret clears the value of the "access_secret" field.
+func (m *DEPTokenMutation) ClearAccessSecret() {
+	m.access_secret = nil
+	m.clearedFields[deptoken.FieldAccessSecret] = struct{}{}
+}
+
+// AccessSecretCleared returns if the "access_secret" field was cleared in this mutation.
+func (m *DEPTokenMutation) AccessSecretCleared() bool {
+	_, ok := m.clearedFields[deptoken.FieldAccessSecret]
+	return ok
+}
+
+// ResetAccessSecret resets all changes to the "access_secret" field.
+func (m *DEPTokenMutation) ResetAccessSecret() {
+	m.access_secret = nil
+	delete(m.clearedFields, deptoken.FieldAccessSecret)
+}
+
+// SetAccessTokenExpiry sets the "access_token_expiry" field.
+func (m *DEPTokenMutation) SetAccessTokenExpiry(t time.Time) {
+	m.access_token_expiry = &t
+}
+
+// AccessTokenExpiry returns the value of the "access_token_expiry" field in the mutation.
+func (m *DEPTokenMutation) AccessTokenExpiry() (r time.Time, exists bool) {
+	v := m.access_token_expiry
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldAccessTokenExpiry returns the old "access_token_expiry" field's value of the DEPToken entity.
+// If the DEPToken object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *DEPTokenMutation) OldAccessTokenExpiry(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldAccessTokenExpiry is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldAccessTokenExpiry requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldAccessTokenExpiry: %w", err)
+	}
+	return oldValue.AccessTokenExpiry, nil
+}
+
+// ClearAccessTokenExpiry clears the value of the "access_token_expiry" field.
+func (m *DEPTokenMutation) ClearAccessTokenExpiry() {
+	m.access_token_expiry = nil
+	m.clearedFields[deptoken.FieldAccessTokenExpiry] = struct{}{}
+}
+
+// AccessTokenExpiryCleared returns if the "access_token_expiry" field was cleared in this mutation.
+func (m *DEPTokenMutation) AccessTokenExpiryCleared() bool {
+	_, ok := m.clearedFields[deptoken.FieldAccessTokenExpiry]
+	return ok
+}
+
+// ResetAccessTokenExpiry resets all changes to the "access_token_expiry" field.
+func (m *DEPTokenMutation) ResetAccessTokenExpiry() {
+	m.access_token_expiry = nil
+	delete(m.clearedFields, deptoken.FieldAccessTokenExpiry)
+}
+
+// SetConfigBaseURL sets the "config_base_url" field.
+func (m *DEPTokenMutation) SetConfigBaseURL(s string) {
+	m.config_base_url = &s
+}
+
+// ConfigBaseURL returns the value of the "config_base_url" field in the mutation.
+func (m *DEPTokenMutation) ConfigBaseURL() (r string, exists bool) {
+	v := m.config_base_url
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldConfigBaseURL returns the old "config_base_url" field's value of the DEPToken entity.
+// If the DEPToken object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *DEPTokenMutation) OldConfigBaseURL(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldConfigBaseURL is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldConfigBaseURL requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldConfigBaseURL: %w", err)
+	}
+	return oldValue.ConfigBaseURL, nil
+}
+
+// ClearConfigBaseURL clears the value of the "config_base_url" field.
+func (m *DEPTokenMutation) ClearConfigBaseURL() {
+	m.config_base_url = nil
+	m.clearedFields[deptoken.FieldConfigBaseURL] = struct{}{}
+}
+
+// ConfigBaseURLCleared returns if the "config_base_url" field was cleared in this mutation.
+func (m *DEPTokenMutation) ConfigBaseURLCleared() bool {
+	_, ok := m.clearedFields[deptoken.FieldConfigBaseURL]
+	return ok
+}
+
+// ResetConfigBaseURL resets all changes to the "config_base_url" field.
+func (m *DEPTokenMutation) ResetConfigBaseURL() {
+	m.config_base_url = nil
+	delete(m.clearedFields, deptoken.FieldConfigBaseURL)
+}
+
+// SetTokenpkiCertPem sets the "tokenpki_cert_pem" field.
+func (m *DEPTokenMutation) SetTokenpkiCertPem(s string) {
+	m.tokenpki_cert_pem = &s
+}
+
+// TokenpkiCertPem returns the value of the "tokenpki_cert_pem" field in the mutation.
+func (m *DEPTokenMutation) TokenpkiCertPem() (r string, exists bool) {
+	v := m.tokenpki_cert_pem
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldTokenpkiCertPem returns the old "tokenpki_cert_pem" field's value of the DEPToken entity.
+// If the DEPToken object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *DEPTokenMutation) OldTokenpkiCertPem(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldTokenpkiCertPem is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldTokenpkiCertPem requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldTokenpkiCertPem: %w", err)
+	}
+	return oldValue.TokenpkiCertPem, nil
+}
+
+// ClearTokenpkiCertPem clears the value of the "tokenpki_cert_pem" field.
+func (m *DEPTokenMutation) ClearTokenpkiCertPem() {
+	m.tokenpki_cert_pem = nil
+	m.clearedFields[deptoken.FieldTokenpkiCertPem] = struct{}{}
+}
+
+// TokenpkiCertPemCleared returns if the "tokenpki_cert_pem" field was cleared in this mutation.
+func (m *DEPTokenMutation) TokenpkiCertPemCleared() bool {
+	_, ok := m.clearedFields[deptoken.FieldTokenpkiCertPem]
+	return ok
+}
+
+// ResetTokenpkiCertPem resets all changes to the "tokenpki_cert_pem" field.
+func (m *DEPTokenMutation) ResetTokenpkiCertPem() {
+	m.tokenpki_cert_pem = nil
+	delete(m.clearedFields, deptoken.FieldTokenpkiCertPem)
+}
+
+// SetTokenpkiKeyPem sets the "tokenpki_key_pem" field.
+func (m *DEPTokenMutation) SetTokenpkiKeyPem(s string) {
+	m.tokenpki_key_pem = &s
+}
+
+// TokenpkiKeyPem returns the value of the "tokenpki_key_pem" field in the mutation.
+func (m *DEPTokenMutation) TokenpkiKeyPem() (r string, exists bool) {
+	v := m.tokenpki_key_pem
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldTokenpkiKeyPem returns the old "tokenpki_key_pem" field's value of the DEPToken entity.
+// If the DEPToken object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *DEPTokenMutation) OldTokenpkiKeyPem(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldTokenpkiKeyPem is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldTokenpkiKeyPem requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldTokenpkiKeyPem: %w", err)
+	}
+	return oldValue.TokenpkiKeyPem, nil
+}
+
+// ClearTokenpkiKeyPem clears the value of the "tokenpki_key_pem" field.
+func (m *DEPTokenMutation) ClearTokenpkiKeyPem() {
+	m.tokenpki_key_pem = nil
+	m.clearedFields[deptoken.FieldTokenpkiKeyPem] = struct{}{}
+}
+
+// TokenpkiKeyPemCleared returns if the "tokenpki_key_pem" field was cleared in this mutation.
+func (m *DEPTokenMutation) TokenpkiKeyPemCleared() bool {
+	_, ok := m.clearedFields[deptoken.FieldTokenpkiKeyPem]
+	return ok
+}
+
+// ResetTokenpkiKeyPem resets all changes to the "tokenpki_key_pem" field.
+func (m *DEPTokenMutation) ResetTokenpkiKeyPem() {
+	m.tokenpki_key_pem = nil
+	delete(m.clearedFields, deptoken.FieldTokenpkiKeyPem)
+}
+
+// SetSyncerCursor sets the "syncer_cursor" field.
+func (m *DEPTokenMutation) SetSyncerCursor(s string) {
+	m.syncer_cursor = &s
+}
+
+// SyncerCursor returns the value of the "syncer_cursor" field in the mutation.
+func (m *DEPTokenMutation) SyncerCursor() (r string, exists bool) {
+	v := m.syncer_cursor
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSyncerCursor returns the old "syncer_cursor" field's value of the DEPToken entity.
+// If the DEPToken object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *DEPTokenMutation) OldSyncerCursor(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSyncerCursor is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSyncerCursor requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSyncerCursor: %w", err)
+	}
+	return oldValue.SyncerCursor, nil
+}
+
+// ClearSyncerCursor clears the value of the "syncer_cursor" field.
+func (m *DEPTokenMutation) ClearSyncerCursor() {
+	m.syncer_cursor = nil
+	m.clearedFields[deptoken.FieldSyncerCursor] = struct{}{}
+}
+
+// SyncerCursorCleared returns if the "syncer_cursor" field was cleared in this mutation.
+func (m *DEPTokenMutation) SyncerCursorCleared() bool {
+	_, ok := m.clearedFields[deptoken.FieldSyncerCursor]
+	return ok
+}
+
+// ResetSyncerCursor resets all changes to the "syncer_cursor" field.
+func (m *DEPTokenMutation) ResetSyncerCursor() {
+	m.syncer_cursor = nil
+	delete(m.clearedFields, deptoken.FieldSyncerCursor)
+}
+
+// SetAssignerProfileUUID sets the "assigner_profile_uuid" field.
+func (m *DEPTokenMutation) SetAssignerProfileUUID(s string) {
+	m.assigner_profile_uuid = &s
+}
+
+// AssignerProfileUUID returns the value of the "assigner_profile_uuid" field in the mutation.
+func (m *DEPTokenMutation) AssignerProfileUUID() (r string, exists bool) {
+	v := m.assigner_profile_uuid
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldAssignerProfileUUID returns the old "assigner_profile_uuid" field's value of the DEPToken entity.
+// If the DEPToken object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *DEPTokenMutation) OldAssignerProfileUUID(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldAssignerProfileUUID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldAssignerProfileUUID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldAssignerProfileUUID: %w", err)
+	}
+	return oldValue.AssignerProfileUUID, nil
+}
+
+// ClearAssignerProfileUUID clears the value of the "assigner_profile_uuid" field.
+func (m *DEPTokenMutation) ClearAssignerProfileUUID() {
+	m.assigner_profile_uuid = nil
+	m.clearedFields[deptoken.FieldAssignerProfileUUID] = struct{}{}
+}
+
+// AssignerProfileUUIDCleared returns if the "assigner_profile_uuid" field was cleared in this mutation.
+func (m *DEPTokenMutation) AssignerProfileUUIDCleared() bool {
+	_, ok := m.clearedFields[deptoken.FieldAssignerProfileUUID]
+	return ok
+}
+
+// ResetAssignerProfileUUID resets all changes to the "assigner_profile_uuid" field.
+func (m *DEPTokenMutation) ResetAssignerProfileUUID() {
+	m.assigner_profile_uuid = nil
+	delete(m.clearedFields, deptoken.FieldAssignerProfileUUID)
 }
 
 // SetCreatedAt sets the "created_at" field.
@@ -1065,18 +1351,36 @@ func (m *DEPTokenMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *DEPTokenMutation) Fields() []string {
-	fields := make([]string, 0, 6)
-	if m.name != nil {
-		fields = append(fields, deptoken.FieldName)
+	fields := make([]string, 0, 12)
+	if m.consumer_key != nil {
+		fields = append(fields, deptoken.FieldConsumerKey)
 	}
-	if m.p7m_file_path != nil {
-		fields = append(fields, deptoken.FieldP7mFilePath)
+	if m.consumer_secret != nil {
+		fields = append(fields, deptoken.FieldConsumerSecret)
 	}
-	if m.expiry != nil {
-		fields = append(fields, deptoken.FieldExpiry)
+	if m.access_token != nil {
+		fields = append(fields, deptoken.FieldAccessToken)
 	}
-	if m.last_used != nil {
-		fields = append(fields, deptoken.FieldLastUsed)
+	if m.access_secret != nil {
+		fields = append(fields, deptoken.FieldAccessSecret)
+	}
+	if m.access_token_expiry != nil {
+		fields = append(fields, deptoken.FieldAccessTokenExpiry)
+	}
+	if m.config_base_url != nil {
+		fields = append(fields, deptoken.FieldConfigBaseURL)
+	}
+	if m.tokenpki_cert_pem != nil {
+		fields = append(fields, deptoken.FieldTokenpkiCertPem)
+	}
+	if m.tokenpki_key_pem != nil {
+		fields = append(fields, deptoken.FieldTokenpkiKeyPem)
+	}
+	if m.syncer_cursor != nil {
+		fields = append(fields, deptoken.FieldSyncerCursor)
+	}
+	if m.assigner_profile_uuid != nil {
+		fields = append(fields, deptoken.FieldAssignerProfileUUID)
 	}
 	if m.created_at != nil {
 		fields = append(fields, deptoken.FieldCreatedAt)
@@ -1092,14 +1396,26 @@ func (m *DEPTokenMutation) Fields() []string {
 // schema.
 func (m *DEPTokenMutation) Field(name string) (ent.Value, bool) {
 	switch name {
-	case deptoken.FieldName:
-		return m.Name()
-	case deptoken.FieldP7mFilePath:
-		return m.P7mFilePath()
-	case deptoken.FieldExpiry:
-		return m.Expiry()
-	case deptoken.FieldLastUsed:
-		return m.LastUsed()
+	case deptoken.FieldConsumerKey:
+		return m.ConsumerKey()
+	case deptoken.FieldConsumerSecret:
+		return m.ConsumerSecret()
+	case deptoken.FieldAccessToken:
+		return m.AccessToken()
+	case deptoken.FieldAccessSecret:
+		return m.AccessSecret()
+	case deptoken.FieldAccessTokenExpiry:
+		return m.AccessTokenExpiry()
+	case deptoken.FieldConfigBaseURL:
+		return m.ConfigBaseURL()
+	case deptoken.FieldTokenpkiCertPem:
+		return m.TokenpkiCertPem()
+	case deptoken.FieldTokenpkiKeyPem:
+		return m.TokenpkiKeyPem()
+	case deptoken.FieldSyncerCursor:
+		return m.SyncerCursor()
+	case deptoken.FieldAssignerProfileUUID:
+		return m.AssignerProfileUUID()
 	case deptoken.FieldCreatedAt:
 		return m.CreatedAt()
 	case deptoken.FieldUpdatedAt:
@@ -1113,14 +1429,26 @@ func (m *DEPTokenMutation) Field(name string) (ent.Value, bool) {
 // database failed.
 func (m *DEPTokenMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
 	switch name {
-	case deptoken.FieldName:
-		return m.OldName(ctx)
-	case deptoken.FieldP7mFilePath:
-		return m.OldP7mFilePath(ctx)
-	case deptoken.FieldExpiry:
-		return m.OldExpiry(ctx)
-	case deptoken.FieldLastUsed:
-		return m.OldLastUsed(ctx)
+	case deptoken.FieldConsumerKey:
+		return m.OldConsumerKey(ctx)
+	case deptoken.FieldConsumerSecret:
+		return m.OldConsumerSecret(ctx)
+	case deptoken.FieldAccessToken:
+		return m.OldAccessToken(ctx)
+	case deptoken.FieldAccessSecret:
+		return m.OldAccessSecret(ctx)
+	case deptoken.FieldAccessTokenExpiry:
+		return m.OldAccessTokenExpiry(ctx)
+	case deptoken.FieldConfigBaseURL:
+		return m.OldConfigBaseURL(ctx)
+	case deptoken.FieldTokenpkiCertPem:
+		return m.OldTokenpkiCertPem(ctx)
+	case deptoken.FieldTokenpkiKeyPem:
+		return m.OldTokenpkiKeyPem(ctx)
+	case deptoken.FieldSyncerCursor:
+		return m.OldSyncerCursor(ctx)
+	case deptoken.FieldAssignerProfileUUID:
+		return m.OldAssignerProfileUUID(ctx)
 	case deptoken.FieldCreatedAt:
 		return m.OldCreatedAt(ctx)
 	case deptoken.FieldUpdatedAt:
@@ -1134,33 +1462,75 @@ func (m *DEPTokenMutation) OldField(ctx context.Context, name string) (ent.Value
 // type.
 func (m *DEPTokenMutation) SetField(name string, value ent.Value) error {
 	switch name {
-	case deptoken.FieldName:
+	case deptoken.FieldConsumerKey:
 		v, ok := value.(string)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
-		m.SetName(v)
+		m.SetConsumerKey(v)
 		return nil
-	case deptoken.FieldP7mFilePath:
+	case deptoken.FieldConsumerSecret:
 		v, ok := value.(string)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
-		m.SetP7mFilePath(v)
+		m.SetConsumerSecret(v)
 		return nil
-	case deptoken.FieldExpiry:
+	case deptoken.FieldAccessToken:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetAccessToken(v)
+		return nil
+	case deptoken.FieldAccessSecret:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetAccessSecret(v)
+		return nil
+	case deptoken.FieldAccessTokenExpiry:
 		v, ok := value.(time.Time)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
-		m.SetExpiry(v)
+		m.SetAccessTokenExpiry(v)
 		return nil
-	case deptoken.FieldLastUsed:
-		v, ok := value.(time.Time)
+	case deptoken.FieldConfigBaseURL:
+		v, ok := value.(string)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
-		m.SetLastUsed(v)
+		m.SetConfigBaseURL(v)
+		return nil
+	case deptoken.FieldTokenpkiCertPem:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetTokenpkiCertPem(v)
+		return nil
+	case deptoken.FieldTokenpkiKeyPem:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetTokenpkiKeyPem(v)
+		return nil
+	case deptoken.FieldSyncerCursor:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSyncerCursor(v)
+		return nil
+	case deptoken.FieldAssignerProfileUUID:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetAssignerProfileUUID(v)
 		return nil
 	case deptoken.FieldCreatedAt:
 		v, ok := value.(time.Time)
@@ -1206,11 +1576,35 @@ func (m *DEPTokenMutation) AddField(name string, value ent.Value) error {
 // mutation.
 func (m *DEPTokenMutation) ClearedFields() []string {
 	var fields []string
-	if m.FieldCleared(deptoken.FieldExpiry) {
-		fields = append(fields, deptoken.FieldExpiry)
+	if m.FieldCleared(deptoken.FieldConsumerKey) {
+		fields = append(fields, deptoken.FieldConsumerKey)
 	}
-	if m.FieldCleared(deptoken.FieldLastUsed) {
-		fields = append(fields, deptoken.FieldLastUsed)
+	if m.FieldCleared(deptoken.FieldConsumerSecret) {
+		fields = append(fields, deptoken.FieldConsumerSecret)
+	}
+	if m.FieldCleared(deptoken.FieldAccessToken) {
+		fields = append(fields, deptoken.FieldAccessToken)
+	}
+	if m.FieldCleared(deptoken.FieldAccessSecret) {
+		fields = append(fields, deptoken.FieldAccessSecret)
+	}
+	if m.FieldCleared(deptoken.FieldAccessTokenExpiry) {
+		fields = append(fields, deptoken.FieldAccessTokenExpiry)
+	}
+	if m.FieldCleared(deptoken.FieldConfigBaseURL) {
+		fields = append(fields, deptoken.FieldConfigBaseURL)
+	}
+	if m.FieldCleared(deptoken.FieldTokenpkiCertPem) {
+		fields = append(fields, deptoken.FieldTokenpkiCertPem)
+	}
+	if m.FieldCleared(deptoken.FieldTokenpkiKeyPem) {
+		fields = append(fields, deptoken.FieldTokenpkiKeyPem)
+	}
+	if m.FieldCleared(deptoken.FieldSyncerCursor) {
+		fields = append(fields, deptoken.FieldSyncerCursor)
+	}
+	if m.FieldCleared(deptoken.FieldAssignerProfileUUID) {
+		fields = append(fields, deptoken.FieldAssignerProfileUUID)
 	}
 	return fields
 }
@@ -1226,11 +1620,35 @@ func (m *DEPTokenMutation) FieldCleared(name string) bool {
 // error if the field is not defined in the schema.
 func (m *DEPTokenMutation) ClearField(name string) error {
 	switch name {
-	case deptoken.FieldExpiry:
-		m.ClearExpiry()
+	case deptoken.FieldConsumerKey:
+		m.ClearConsumerKey()
 		return nil
-	case deptoken.FieldLastUsed:
-		m.ClearLastUsed()
+	case deptoken.FieldConsumerSecret:
+		m.ClearConsumerSecret()
+		return nil
+	case deptoken.FieldAccessToken:
+		m.ClearAccessToken()
+		return nil
+	case deptoken.FieldAccessSecret:
+		m.ClearAccessSecret()
+		return nil
+	case deptoken.FieldAccessTokenExpiry:
+		m.ClearAccessTokenExpiry()
+		return nil
+	case deptoken.FieldConfigBaseURL:
+		m.ClearConfigBaseURL()
+		return nil
+	case deptoken.FieldTokenpkiCertPem:
+		m.ClearTokenpkiCertPem()
+		return nil
+	case deptoken.FieldTokenpkiKeyPem:
+		m.ClearTokenpkiKeyPem()
+		return nil
+	case deptoken.FieldSyncerCursor:
+		m.ClearSyncerCursor()
+		return nil
+	case deptoken.FieldAssignerProfileUUID:
+		m.ClearAssignerProfileUUID()
 		return nil
 	}
 	return fmt.Errorf("unknown DEPToken nullable field %s", name)
@@ -1240,17 +1658,35 @@ func (m *DEPTokenMutation) ClearField(name string) error {
 // It returns an error if the field is not defined in the schema.
 func (m *DEPTokenMutation) ResetField(name string) error {
 	switch name {
-	case deptoken.FieldName:
-		m.ResetName()
+	case deptoken.FieldConsumerKey:
+		m.ResetConsumerKey()
 		return nil
-	case deptoken.FieldP7mFilePath:
-		m.ResetP7mFilePath()
+	case deptoken.FieldConsumerSecret:
+		m.ResetConsumerSecret()
 		return nil
-	case deptoken.FieldExpiry:
-		m.ResetExpiry()
+	case deptoken.FieldAccessToken:
+		m.ResetAccessToken()
 		return nil
-	case deptoken.FieldLastUsed:
-		m.ResetLastUsed()
+	case deptoken.FieldAccessSecret:
+		m.ResetAccessSecret()
+		return nil
+	case deptoken.FieldAccessTokenExpiry:
+		m.ResetAccessTokenExpiry()
+		return nil
+	case deptoken.FieldConfigBaseURL:
+		m.ResetConfigBaseURL()
+		return nil
+	case deptoken.FieldTokenpkiCertPem:
+		m.ResetTokenpkiCertPem()
+		return nil
+	case deptoken.FieldTokenpkiKeyPem:
+		m.ResetTokenpkiKeyPem()
+		return nil
+	case deptoken.FieldSyncerCursor:
+		m.ResetSyncerCursor()
+		return nil
+	case deptoken.FieldAssignerProfileUUID:
+		m.ResetAssignerProfileUUID()
 		return nil
 	case deptoken.FieldCreatedAt:
 		m.ResetCreatedAt()
@@ -3334,7 +3770,7 @@ type DeviceMutation struct {
 	config
 	op            Op
 	typ           string
-	id            *uint
+	id            *string
 	serial_number *string
 	model         *string
 	is_enrolled   *bool
@@ -3370,7 +3806,7 @@ func newDeviceMutation(c config, op Op, opts ...deviceOption) *DeviceMutation {
 }
 
 // withDeviceID sets the ID field of the mutation.
-func withDeviceID(id uint) deviceOption {
+func withDeviceID(id string) deviceOption {
 	return func(m *DeviceMutation) {
 		var (
 			err   error
@@ -3422,13 +3858,13 @@ func (m DeviceMutation) Tx() (*Tx, error) {
 
 // SetID sets the value of the id field. Note that this
 // operation is only accepted on creation of Device entities.
-func (m *DeviceMutation) SetID(id uint) {
+func (m *DeviceMutation) SetID(id string) {
 	m.id = &id
 }
 
 // ID returns the ID value in the mutation. Note that the ID is only available
 // if it was provided to the builder or after it was returned from the database.
-func (m *DeviceMutation) ID() (id uint, exists bool) {
+func (m *DeviceMutation) ID() (id string, exists bool) {
 	if m.id == nil {
 		return
 	}
@@ -3439,12 +3875,12 @@ func (m *DeviceMutation) ID() (id uint, exists bool) {
 // That means, if the mutation is applied within a transaction with an isolation level such
 // as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
 // or updated by the mutation.
-func (m *DeviceMutation) IDs(ctx context.Context) ([]uint, error) {
+func (m *DeviceMutation) IDs(ctx context.Context) ([]string, error) {
 	switch {
 	case m.op.Is(OpUpdateOne | OpDeleteOne):
 		id, exists := m.ID()
 		if exists {
-			return []uint{id}, nil
+			return []string{id}, nil
 		}
 		fallthrough
 	case m.op.Is(OpUpdate | OpDelete):
@@ -3485,9 +3921,22 @@ func (m *DeviceMutation) OldSerialNumber(ctx context.Context) (v string, err err
 	return oldValue.SerialNumber, nil
 }
 
+// ClearSerialNumber clears the value of the "serial_number" field.
+func (m *DeviceMutation) ClearSerialNumber() {
+	m.serial_number = nil
+	m.clearedFields[device.FieldSerialNumber] = struct{}{}
+}
+
+// SerialNumberCleared returns if the "serial_number" field was cleared in this mutation.
+func (m *DeviceMutation) SerialNumberCleared() bool {
+	_, ok := m.clearedFields[device.FieldSerialNumber]
+	return ok
+}
+
 // ResetSerialNumber resets all changes to the "serial_number" field.
 func (m *DeviceMutation) ResetSerialNumber() {
 	m.serial_number = nil
+	delete(m.clearedFields, device.FieldSerialNumber)
 }
 
 // SetModel sets the "model" field.
@@ -3521,9 +3970,22 @@ func (m *DeviceMutation) OldModel(ctx context.Context) (v string, err error) {
 	return oldValue.Model, nil
 }
 
+// ClearModel clears the value of the "model" field.
+func (m *DeviceMutation) ClearModel() {
+	m.model = nil
+	m.clearedFields[device.FieldModel] = struct{}{}
+}
+
+// ModelCleared returns if the "model" field was cleared in this mutation.
+func (m *DeviceMutation) ModelCleared() bool {
+	_, ok := m.clearedFields[device.FieldModel]
+	return ok
+}
+
 // ResetModel resets all changes to the "model" field.
 func (m *DeviceMutation) ResetModel() {
 	m.model = nil
+	delete(m.clearedFields, device.FieldModel)
 }
 
 // SetOwnerID sets the "owner_id" field.
@@ -4014,6 +4476,12 @@ func (m *DeviceMutation) AddField(name string, value ent.Value) error {
 // mutation.
 func (m *DeviceMutation) ClearedFields() []string {
 	var fields []string
+	if m.FieldCleared(device.FieldSerialNumber) {
+		fields = append(fields, device.FieldSerialNumber)
+	}
+	if m.FieldCleared(device.FieldModel) {
+		fields = append(fields, device.FieldModel)
+	}
 	if m.FieldCleared(device.FieldOwnerID) {
 		fields = append(fields, device.FieldOwnerID)
 	}
@@ -4037,6 +4505,12 @@ func (m *DeviceMutation) FieldCleared(name string) bool {
 // error if the field is not defined in the schema.
 func (m *DeviceMutation) ClearField(name string) error {
 	switch name {
+	case device.FieldSerialNumber:
+		m.ClearSerialNumber()
+		return nil
+	case device.FieldModel:
+		m.ClearModel()
+		return nil
 	case device.FieldOwnerID:
 		m.ClearOwnerID()
 		return nil
@@ -7959,8 +8433,8 @@ type UserMutation struct {
 	updated_at     *time.Time
 	deleted_at     *time.Time
 	clearedFields  map[string]struct{}
-	devices        map[uint]struct{}
-	removeddevices map[uint]struct{}
+	devices        map[string]struct{}
+	removeddevices map[string]struct{}
 	cleareddevices bool
 	done           bool
 	oldValue       func(context.Context) (*User, error)
@@ -8337,9 +8811,9 @@ func (m *UserMutation) ResetDeletedAt() {
 }
 
 // AddDeviceIDs adds the "devices" edge to the Device entity by ids.
-func (m *UserMutation) AddDeviceIDs(ids ...uint) {
+func (m *UserMutation) AddDeviceIDs(ids ...string) {
 	if m.devices == nil {
-		m.devices = make(map[uint]struct{})
+		m.devices = make(map[string]struct{})
 	}
 	for i := range ids {
 		m.devices[ids[i]] = struct{}{}
@@ -8357,9 +8831,9 @@ func (m *UserMutation) DevicesCleared() bool {
 }
 
 // RemoveDeviceIDs removes the "devices" edge to the Device entity by IDs.
-func (m *UserMutation) RemoveDeviceIDs(ids ...uint) {
+func (m *UserMutation) RemoveDeviceIDs(ids ...string) {
 	if m.removeddevices == nil {
-		m.removeddevices = make(map[uint]struct{})
+		m.removeddevices = make(map[string]struct{})
 	}
 	for i := range ids {
 		delete(m.devices, ids[i])
@@ -8368,7 +8842,7 @@ func (m *UserMutation) RemoveDeviceIDs(ids ...uint) {
 }
 
 // RemovedDevices returns the removed IDs of the "devices" edge to the Device entity.
-func (m *UserMutation) RemovedDevicesIDs() (ids []uint) {
+func (m *UserMutation) RemovedDevicesIDs() (ids []string) {
 	for id := range m.removeddevices {
 		ids = append(ids, id)
 	}
@@ -8376,7 +8850,7 @@ func (m *UserMutation) RemovedDevicesIDs() (ids []uint) {
 }
 
 // DevicesIDs returns the "devices" edge IDs in the mutation.
-func (m *UserMutation) DevicesIDs() (ids []uint) {
+func (m *UserMutation) DevicesIDs() (ids []string) {
 	for id := range m.devices {
 		ids = append(ids, id)
 	}

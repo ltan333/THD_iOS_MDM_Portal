@@ -11,48 +11,58 @@ import (
 )
 
 // ID filters vertices based on their ID field.
-func ID(id uint) predicate.Device {
+func ID(id string) predicate.Device {
 	return predicate.Device(sql.FieldEQ(FieldID, id))
 }
 
 // IDEQ applies the EQ predicate on the ID field.
-func IDEQ(id uint) predicate.Device {
+func IDEQ(id string) predicate.Device {
 	return predicate.Device(sql.FieldEQ(FieldID, id))
 }
 
 // IDNEQ applies the NEQ predicate on the ID field.
-func IDNEQ(id uint) predicate.Device {
+func IDNEQ(id string) predicate.Device {
 	return predicate.Device(sql.FieldNEQ(FieldID, id))
 }
 
 // IDIn applies the In predicate on the ID field.
-func IDIn(ids ...uint) predicate.Device {
+func IDIn(ids ...string) predicate.Device {
 	return predicate.Device(sql.FieldIn(FieldID, ids...))
 }
 
 // IDNotIn applies the NotIn predicate on the ID field.
-func IDNotIn(ids ...uint) predicate.Device {
+func IDNotIn(ids ...string) predicate.Device {
 	return predicate.Device(sql.FieldNotIn(FieldID, ids...))
 }
 
 // IDGT applies the GT predicate on the ID field.
-func IDGT(id uint) predicate.Device {
+func IDGT(id string) predicate.Device {
 	return predicate.Device(sql.FieldGT(FieldID, id))
 }
 
 // IDGTE applies the GTE predicate on the ID field.
-func IDGTE(id uint) predicate.Device {
+func IDGTE(id string) predicate.Device {
 	return predicate.Device(sql.FieldGTE(FieldID, id))
 }
 
 // IDLT applies the LT predicate on the ID field.
-func IDLT(id uint) predicate.Device {
+func IDLT(id string) predicate.Device {
 	return predicate.Device(sql.FieldLT(FieldID, id))
 }
 
 // IDLTE applies the LTE predicate on the ID field.
-func IDLTE(id uint) predicate.Device {
+func IDLTE(id string) predicate.Device {
 	return predicate.Device(sql.FieldLTE(FieldID, id))
+}
+
+// IDEqualFold applies the EqualFold predicate on the ID field.
+func IDEqualFold(id string) predicate.Device {
+	return predicate.Device(sql.FieldEqualFold(FieldID, id))
+}
+
+// IDContainsFold applies the ContainsFold predicate on the ID field.
+func IDContainsFold(id string) predicate.Device {
+	return predicate.Device(sql.FieldContainsFold(FieldID, id))
 }
 
 // SerialNumber applies equality check predicate on the "serial_number" field. It's identical to SerialNumberEQ.
@@ -150,6 +160,16 @@ func SerialNumberHasSuffix(v string) predicate.Device {
 	return predicate.Device(sql.FieldHasSuffix(FieldSerialNumber, v))
 }
 
+// SerialNumberIsNil applies the IsNil predicate on the "serial_number" field.
+func SerialNumberIsNil() predicate.Device {
+	return predicate.Device(sql.FieldIsNull(FieldSerialNumber))
+}
+
+// SerialNumberNotNil applies the NotNil predicate on the "serial_number" field.
+func SerialNumberNotNil() predicate.Device {
+	return predicate.Device(sql.FieldNotNull(FieldSerialNumber))
+}
+
 // SerialNumberEqualFold applies the EqualFold predicate on the "serial_number" field.
 func SerialNumberEqualFold(v string) predicate.Device {
 	return predicate.Device(sql.FieldEqualFold(FieldSerialNumber, v))
@@ -213,6 +233,16 @@ func ModelHasPrefix(v string) predicate.Device {
 // ModelHasSuffix applies the HasSuffix predicate on the "model" field.
 func ModelHasSuffix(v string) predicate.Device {
 	return predicate.Device(sql.FieldHasSuffix(FieldModel, v))
+}
+
+// ModelIsNil applies the IsNil predicate on the "model" field.
+func ModelIsNil() predicate.Device {
+	return predicate.Device(sql.FieldIsNull(FieldModel))
+}
+
+// ModelNotNil applies the NotNil predicate on the "model" field.
+func ModelNotNil() predicate.Device {
+	return predicate.Device(sql.FieldNotNull(FieldModel))
 }
 
 // ModelEqualFold applies the EqualFold predicate on the "model" field.
