@@ -44,6 +44,140 @@ definitions:
     - password
     - username
     type: object
+  github_com_thienel_go-backend-template_internal_interface_api_dto.DEPAssignerResponse:
+    properties:
+      profile_uuid:
+        type: string
+    type: object
+  github_com_thienel_go-backend-template_internal_interface_api_dto.DEPDevicesRequest:
+    properties:
+      devices:
+        example:
+        - G0NXR2GUKPFQ
+        items:
+          type: string
+        type: array
+    type: object
+  github_com_thienel_go-backend-template_internal_interface_api_dto.DEPProfileRequest:
+    properties:
+      allow_pairing:
+        type: boolean
+      anchor_certs:
+        items:
+          type: string
+        type: array
+      auto_advance_setup:
+        type: boolean
+      await_device_configured:
+        type: boolean
+      configuration_web_url:
+        type: string
+      department:
+        type: string
+      devices:
+        items:
+          type: string
+        type: array
+      do_not_use_profile_from_backup:
+        type: boolean
+      is_mandatory:
+        type: boolean
+      is_mdm_removable:
+        type: boolean
+      is_multi_user:
+        type: boolean
+      is_return_to_service:
+        type: boolean
+      is_supervised:
+        type: boolean
+      language:
+        type: string
+      org_magic:
+        type: string
+      profile_data:
+        additionalProperties: true
+        description: ProfileData remains for any additional fields not explicitly
+          mapped
+        type: object
+      profile_name:
+        type: string
+      region:
+        type: string
+      skip_setup_items:
+        items:
+          type: string
+        type: array
+      supervising_host_certs:
+        items:
+          type: string
+        type: array
+      support_email_address:
+        type: string
+      support_phone_number:
+        type: string
+      url:
+        type: string
+    type: object
+  github_com_thienel_go-backend-template_internal_interface_api_dto.DEPProfileResponse:
+    properties:
+      allow_pairing:
+        type: boolean
+      anchor_certs:
+        items:
+          type: string
+        type: array
+      auto_advance_setup:
+        type: boolean
+      await_device_configured:
+        type: boolean
+      configuration_web_url:
+        type: string
+      department:
+        type: string
+      devices:
+        items:
+          type: string
+        type: array
+      do_not_use_profile_from_backup:
+        type: boolean
+      is_mandatory:
+        type: boolean
+      is_mdm_removable:
+        type: boolean
+      is_multi_user:
+        type: boolean
+      is_return_to_service:
+        type: boolean
+      is_supervised:
+        type: boolean
+      language:
+        type: string
+      name:
+        type: string
+      org_magic:
+        type: string
+      profile_data:
+        additionalProperties: true
+        type: object
+      profile_uuid:
+        type: string
+      region:
+        type: string
+      skip_setup_items:
+        items:
+          type: string
+        type: array
+      supervising_host_certs:
+        items:
+          type: string
+        type: array
+      support_email_address:
+        type: string
+      support_phone_number:
+        type: string
+      url:
+        type: string
+    type: object
   github_com_thienel_go-backend-template_internal_interface_api_dto.DEPTokenResponse:
     properties:
       access_secret:
@@ -271,6 +405,28 @@ definitions:
   : properties:
       data:
         $ref: '#/definitions/github_com_thienel_go-backend-template_internal_interface_api_dto.CMDPlan'
+      error:
+        $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.Error'
+      is_success:
+        type: boolean
+      message:
+        type: string
+    type: object
+  ? github_com_thienel_go-backend-template_pkg_response.APIResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_DEPAssignerResponse
+  : properties:
+      data:
+        $ref: '#/definitions/github_com_thienel_go-backend-template_internal_interface_api_dto.DEPAssignerResponse'
+      error:
+        $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.Error'
+      is_success:
+        type: boolean
+      message:
+        type: string
+    type: object
+  ? github_com_thienel_go-backend-template_pkg_response.APIResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_DEPProfileResponse
+  : properties:
+      data:
+        $ref: '#/definitions/github_com_thienel_go-backend-template_internal_interface_api_dto.DEPProfileResponse'
       error:
         $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.Error'
       is_success:
@@ -506,18 +662,29 @@ paths:
       tags:
       - DEP
     put:
-      consumes:
-      - application/json
-      description: Set or update assigner for a DEP name
+      description: Set or update automatic profile assignment for a DEP name
       parameters:
       - description: DEP name
         in: path
         name: name
         required: true
         type: string
+      - description: Profile UUID to assign
+        in: query
+        name: profile_uuid
+        required: true
+        type: string
       produces:
       - application/json
-      responses: {}
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_DEPAssignerResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
       security:
       - BearerAuth: []
       summary: Set DEP assigner
@@ -589,13 +756,21 @@ paths:
       - DEP
   /v1/dep/proxy/{name}/devices:
     post:
-      description: Fetch device list or details from Apple via proxy
+      consumes:
+      - application/json
+      description: Fetch device list or details from Apple via proxy. If devices array
+        is provided in body, fetches details for those serial numbers.
       parameters:
       - description: DEP name
         in: path
         name: name
         required: true
         type: string
+      - description: Devices list
+        in: body
+        name: request
+        schema:
+          $ref: '#/definitions/github_com_thienel_go-backend-template_internal_interface_api_dto.DEPDevicesRequest'
       - description: Pagination cursor
         in: query
         name: cursor
@@ -610,27 +785,24 @@ paths:
       - DEP
   /v1/dep/proxy/{name}/devices/disown:
     post:
+      consumes:
+      - application/json
       description: Remove a device from DEP management via proxy
       parameters:
-      - description: 'DEP name (default: ''default'')'
+      - description: DEP name
         in: path
         name: name
+        required: true
         type: string
+      - description: Devices list to disown
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_thienel_go-backend-template_internal_interface_api_dto.DEPDevicesRequest'
       produces:
       - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
-        "403":
-          description: Forbidden
-          schema:
-            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+      responses: {}
       security:
       - BearerAuth: []
       summary: Disown DEP device
@@ -645,17 +817,13 @@ paths:
         in: path
         name: name
         type: string
+      - description: Sync cursor
+        in: query
+        name: cursor
+        type: string
       produces:
       - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+      responses: {}
       security:
       - BearerAuth: []
       summary: Sync DEP devices
@@ -699,13 +867,19 @@ paths:
         in: path
         name: name
         type: string
+      - description: Profile details
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_thienel_go-backend-template_internal_interface_api_dto.DEPProfileRequest'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_DEPProfileResponse'
         "401":
           description: Unauthorized
           schema:

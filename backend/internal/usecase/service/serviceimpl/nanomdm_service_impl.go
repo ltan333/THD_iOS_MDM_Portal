@@ -57,6 +57,8 @@ func (s *nanomdmServiceImpl) doRequest(ctx context.Context, method, baseURL, pat
 			}
 			bodyReader = bytes.NewReader(b)
 		}
+	} else if method == http.MethodPost || method == http.MethodPut {
+		bodyReader = bytes.NewReader([]byte("{}"))
 	}
 
 	req, err := http.NewRequestWithContext(ctx, method, u.String(), bodyReader)
@@ -65,10 +67,13 @@ func (s *nanomdmServiceImpl) doRequest(ctx context.Context, method, baseURL, pat
 	}
 
 	req.SetBasicAuth(username, password)
+	req.Header.Set("User-Agent", "MDM-Portal/1.0")
 	if body != nil {
 		if _, ok := body.([]byte); !ok {
 			req.Header.Set("Content-Type", "application/json")
 		}
+	} else if method == http.MethodPost || method == http.MethodPut {
+		req.Header.Set("Content-Type", "application/json")
 	}
 
 	return s.client.Do(req)
@@ -94,8 +99,11 @@ func (s *nanomdmServiceImpl) handleResponse(resp *http.Response, target interfac
 	if resp.StatusCode == http.StatusBadRequest {
 		return apperror.ErrBadRequest.WithMessage(errMsg)
 	}
+	if resp.StatusCode >= 500 {
+		return apperror.ErrInternalServerError.WithMessage(errMsg)
+	}
 
-	return fmt.Errorf("%s", errMsg)
+	return apperror.ErrBadRequest.WithMessage(errMsg)
 }
 
 func (s *nanomdmServiceImpl) DefineDEPProfile(ctx context.Context, depName string, profile interface{}) (string, error) {
@@ -114,7 +122,9 @@ func (s *nanomdmServiceImpl) DefineDEPProfile(ctx context.Context, depName strin
 }
 
 func (s *nanomdmServiceImpl) GetDEPProfile(ctx context.Context, depName, profileUUID string) (interface{}, error) {
-	resp, err := s.doRequest(ctx, http.MethodGet, s.depBaseURL, fmt.Sprintf("/v1/dep/profiles/%s", profileUUID), nil, nil, s.depUsername, s.depPassword)
+	query := url.Values{}
+	query.Set("profile_uuid", profileUUID)
+	resp, err := s.doRequest(ctx, http.MethodGet, s.depBaseURL, fmt.Sprintf("/proxy/%s/profile", depName), nil, query, s.depUsername, s.depPassword)
 	if err != nil {
 		return nil, err
 	}
@@ -139,8 +149,13 @@ func (s *nanomdmServiceImpl) ListDEPProfiles(ctx context.Context, depName string
 	return result, nil
 }
 
-func (s *nanomdmServiceImpl) SyncDEPDevices(ctx context.Context, depName string) (interface{}, error) {
-	resp, err := s.doRequest(ctx, http.MethodPost, s.depBaseURL, fmt.Sprintf("/proxy/%s/devices/sync", depName), nil, nil, s.depUsername, s.depPassword)
+func (s *nanomdmServiceImpl) SyncDEPDevices(ctx context.Context, depName string, cursor string) (interface{}, error) {
+	var query url.Values
+	if cursor != "" {
+		query = url.Values{}
+		query.Set("cursor", cursor)
+	}
+	resp, err := s.doRequest(ctx, http.MethodPost, s.depBaseURL, fmt.Sprintf("/proxy/%s/devices/sync", depName), nil, query, s.depUsername, s.depPassword)
 	if err != nil {
 		return nil, err
 	}
@@ -247,7 +262,13 @@ func (s *nanomdmServiceImpl) GetDEPAssigner(ctx context.Context, depName string)
 }
 
 func (s *nanomdmServiceImpl) SetDEPAssigner(ctx context.Context, depName string, assigner interface{}) (interface{}, error) {
-	resp, err := s.doRequest(ctx, http.MethodPut, s.depBaseURL, fmt.Sprintf("/v1/assigner/%s", depName), assigner, nil, s.depUsername, s.depPassword)
+	var query url.Values
+	if uuid, ok := assigner.(string); ok && uuid != "" {
+		query = url.Values{}
+		query.Set("profile_uuid", uuid)
+	}
+
+	resp, err := s.doRequest(ctx, http.MethodPut, s.depBaseURL, fmt.Sprintf("/v1/assigner/%s", depName), nil, query, s.depUsername, s.depPassword)
 	if err != nil {
 		return nil, err
 	}
@@ -272,13 +293,23 @@ func (s *nanomdmServiceImpl) GetDEPAccount(ctx context.Context, depName string) 
 	return result, nil
 }
 
-func (s *nanomdmServiceImpl) GetDEPDevices(ctx context.Context, depName string, cursor string) (interface{}, error) {
+func (s *nanomdmServiceImpl) GetDEPDevices(ctx context.Context, depName string, devices []string, cursor string) (interface{}, error) {
 	var query url.Values
 	if cursor != "" {
 		query = url.Values{}
 		query.Set("cursor", cursor)
 	}
-	resp, err := s.doRequest(ctx, http.MethodPost, s.depBaseURL, fmt.Sprintf("/proxy/%s/devices", depName), nil, query, s.depUsername, s.depPassword)
+
+	method := http.MethodPost
+	var body interface{}
+	if len(devices) > 0 {
+		body = map[string][]string{"devices": devices}
+	} else {
+		// If no devices, use GET to list all devices from Apple
+		method = http.MethodGet
+	}
+
+	resp, err := s.doRequest(ctx, method, s.depBaseURL, fmt.Sprintf("/proxy/%s/devices", depName), body, query, s.depUsername, s.depPassword)
 	if err != nil {
 		return nil, err
 	}

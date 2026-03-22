@@ -60,6 +60,7 @@ func (s *nanocmdServiceImpl) doRequest(ctx context.Context, method, path string,
 	}
 
 	req.SetBasicAuth(s.username, s.password)
+	req.Header.Set("User-Agent", "MDM-Portal/1.0")
 	if body != nil {
 		if _, ok := body.([]byte); !ok {
 			req.Header.Set("Content-Type", "application/json")
@@ -195,6 +196,7 @@ func (s *nanocmdServiceImpl) PutProfile(ctx context.Context, name string, profil
 	}
 
 	req.SetBasicAuth(s.username, s.password)
+	req.Header.Set("User-Agent", "MDM-Portal/1.0")
 	req.Header.Set("Content-Type", "application/x-apple-aspen-config")
 
 	resp, err := s.client.Do(req)
