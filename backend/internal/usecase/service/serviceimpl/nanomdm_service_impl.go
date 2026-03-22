@@ -44,11 +44,15 @@ func (s *nanomdmServiceImpl) doRequest(ctx context.Context, method, baseURL, pat
 
 	var bodyReader io.Reader
 	if body != nil {
-		b, err := json.Marshal(body)
-		if err != nil {
-			return nil, err
+		if b, ok := body.([]byte); ok {
+			bodyReader = bytes.NewReader(b)
+		} else {
+			b, err := json.Marshal(body)
+			if err != nil {
+				return nil, err
+			}
+			bodyReader = bytes.NewReader(b)
 		}
-		bodyReader = bytes.NewReader(b)
 	}
 
 	req, err := http.NewRequestWithContext(ctx, method, u.String(), bodyReader)
@@ -58,11 +62,31 @@ func (s *nanomdmServiceImpl) doRequest(ctx context.Context, method, baseURL, pat
 
 	req.SetBasicAuth(username, password)
 	if body != nil {
-		req.Header.Set("Content-Type", "application/json")
+		if _, ok := body.([]byte); !ok {
+			req.Header.Set("Content-Type", "application/json")
+		}
 	}
 
 	client := &http.Client{}
 	return client.Do(req)
+}
+
+func (s *nanomdmServiceImpl) handleResponse(resp *http.Response, target interface{}) error {
+	defer func() { _ = resp.Body.Close() }()
+
+	if resp.StatusCode >= 200 && resp.StatusCode < 300 {
+		if target == nil {
+			return nil
+		}
+		return json.NewDecoder(resp.Body).Decode(target)
+	}
+
+	// Handle specific 400/404 cases as "not found" or "empty"
+	if resp.StatusCode == http.StatusBadRequest || resp.StatusCode == http.StatusNotFound {
+		return nil // Return nil error, target remains zero-valued or nil
+	}
+
+	return fmt.Errorf("nanomdm error: status %d", resp.StatusCode)
 }
 
 func (s *nanomdmServiceImpl) DefineDEPProfile(ctx context.Context, depName string, profile interface{}) (string, error) {
@@ -70,16 +94,11 @@ func (s *nanomdmServiceImpl) DefineDEPProfile(ctx context.Context, depName strin
 	if err != nil {
 		return "", err
 	}
-	defer func() { _ = resp.Body.Close() }()
-
-	if resp.StatusCode != http.StatusOK && resp.StatusCode != http.StatusCreated {
-		return "", fmt.Errorf("nanomdm error: status %d", resp.StatusCode)
-	}
 
 	var result struct {
 		ProfileUUID string `json:"profile_uuid"`
 	}
-	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+	if err := s.handleResponse(resp, &result); err != nil {
 		return "", err
 	}
 	return result.ProfileUUID, nil
@@ -90,14 +109,9 @@ func (s *nanomdmServiceImpl) GetDEPProfile(ctx context.Context, depName, profile
 	if err != nil {
 		return nil, err
 	}
-	defer func() { _ = resp.Body.Close() }()
-
-	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("nanomdm error: status %d", resp.StatusCode)
-	}
 
 	var result interface{}
-	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+	if err := s.handleResponse(resp, &result); err != nil {
 		return nil, err
 	}
 	return result, nil
@@ -108,14 +122,9 @@ func (s *nanomdmServiceImpl) ListDEPProfiles(ctx context.Context, depName string
 	if err != nil {
 		return nil, err
 	}
-	defer func() { _ = resp.Body.Close() }()
-
-	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("nanomdm error: status %d", resp.StatusCode)
-	}
 
 	var result interface{}
-	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+	if err := s.handleResponse(resp, &result); err != nil {
 		return nil, err
 	}
 	return result, nil
@@ -126,14 +135,9 @@ func (s *nanomdmServiceImpl) SyncDEPDevices(ctx context.Context, depName string)
 	if err != nil {
 		return nil, err
 	}
-	defer func() { _ = resp.Body.Close() }()
-
-	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("nanomdm error: status %d", resp.StatusCode)
-	}
 
 	var result interface{}
-	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+	if err := s.handleResponse(resp, &result); err != nil {
 		return nil, err
 	}
 	return result, nil
@@ -149,46 +153,25 @@ func (s *nanomdmServiceImpl) DisownDEPDevices(ctx context.Context, depName strin
 	if err != nil {
 		return nil, err
 	}
-	defer func() { _ = resp.Body.Close() }()
-
-	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("nanomdm error: status %d", resp.StatusCode)
-	}
 
 	var result interface{}
-	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+	if err := s.handleResponse(resp, &result); err != nil {
 		return nil, err
 	}
 	return result, nil
 }
 
 func (s *nanomdmServiceImpl) UploadDEPToken(ctx context.Context, depName string, tokenData []byte) (interface{}, error) {
-	u, err := url.Parse(fmt.Sprintf("%s/v1/tokenpki/%s", s.depBaseURL, depName))
+	resp, err := s.doRequest(ctx, http.MethodPut, s.depBaseURL, fmt.Sprintf("/v1/tokenpki/%s", depName), tokenData, nil, s.depUsername, s.depPassword)
 	if err != nil {
 		return nil, err
 	}
 
-	req, err := http.NewRequestWithContext(ctx, http.MethodPut, u.String(), bytes.NewReader(tokenData))
-	if err != nil {
-		return nil, err
-	}
-
-	req.SetBasicAuth(s.depUsername, s.depPassword)
-	req.Header.Set("Content-Type", "application/x-apple-aspen-config")
-
-	client := &http.Client{}
-	resp, err := client.Do(req)
-	if err != nil {
-		return nil, err
-	}
-	defer func() { _ = resp.Body.Close() }()
-
-	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("nanomdm error: status %d", resp.StatusCode)
-	}
-
+	// For token upload, NanoDEP might set Content-Type header manually in doRequest, 
+	// but I updated doRequest to handle []byte body correctly.
+	
 	var result interface{}
-	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+	if err := s.handleResponse(resp, &result); err != nil {
 		return nil, err
 	}
 	return result, nil
@@ -199,12 +182,7 @@ func (s *nanomdmServiceImpl) UploadPushCert(ctx context.Context, certData []byte
 	if err != nil {
 		return err
 	}
-	defer func() { _ = resp.Body.Close() }()
-
-	if resp.StatusCode != http.StatusOK && resp.StatusCode != http.StatusNoContent {
-		return fmt.Errorf("nanomdm error: status %d", resp.StatusCode)
-	}
-	return nil
+	return s.handleResponse(resp, nil)
 }
 
 func (s *nanomdmServiceImpl) GetPushCert(ctx context.Context) (interface{}, error) {
@@ -212,14 +190,9 @@ func (s *nanomdmServiceImpl) GetPushCert(ctx context.Context) (interface{}, erro
 	if err != nil {
 		return nil, err
 	}
-	defer func() { _ = resp.Body.Close() }()
-
-	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("nanomdm error: status %d", resp.StatusCode)
-	}
 
 	var result interface{}
-	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+	if err := s.handleResponse(resp, &result); err != nil {
 		return nil, err
 	}
 	return result, nil
@@ -230,14 +203,9 @@ func (s *nanomdmServiceImpl) ListDEPNames(ctx context.Context) (interface{}, err
 	if err != nil {
 		return nil, err
 	}
-	defer func() { _ = resp.Body.Close() }()
-
-	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("nanomdm error: status %d", resp.StatusCode)
-	}
 
 	var result interface{}
-	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+	if err := s.handleResponse(resp, &result); err != nil {
 		return nil, err
 	}
 	return result, nil
@@ -248,14 +216,9 @@ func (s *nanomdmServiceImpl) GetDEPConfig(ctx context.Context, depName string) (
 	if err != nil {
 		return nil, err
 	}
-	defer func() { _ = resp.Body.Close() }()
-
-	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("nanomdm error: status %d", resp.StatusCode)
-	}
 
 	var result interface{}
-	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+	if err := s.handleResponse(resp, &result); err != nil {
 		return nil, err
 	}
 	return result, nil
@@ -266,14 +229,9 @@ func (s *nanomdmServiceImpl) GetDEPAssigner(ctx context.Context, depName string)
 	if err != nil {
 		return nil, err
 	}
-	defer func() { _ = resp.Body.Close() }()
-
-	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("nanomdm error: status %d", resp.StatusCode)
-	}
 
 	var result interface{}
-	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+	if err := s.handleResponse(resp, &result); err != nil {
 		return nil, err
 	}
 	return result, nil
@@ -284,14 +242,9 @@ func (s *nanomdmServiceImpl) SetDEPAssigner(ctx context.Context, depName string,
 	if err != nil {
 		return nil, err
 	}
-	defer func() { _ = resp.Body.Close() }()
-
-	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("nanomdm error: status %d", resp.StatusCode)
-	}
 
 	var result interface{}
-	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+	if err := s.handleResponse(resp, &result); err != nil {
 		return nil, err
 	}
 	return result, nil
@@ -302,14 +255,9 @@ func (s *nanomdmServiceImpl) GetDEPAccount(ctx context.Context, depName string) 
 	if err != nil {
 		return nil, err
 	}
-	defer func() { _ = resp.Body.Close() }()
-
-	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("nanomdm error: status %d", resp.StatusCode)
-	}
 
 	var result interface{}
-	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+	if err := s.handleResponse(resp, &result); err != nil {
 		return nil, err
 	}
 	return result, nil
@@ -325,14 +273,9 @@ func (s *nanomdmServiceImpl) GetDEPDevices(ctx context.Context, depName string, 
 	if err != nil {
 		return nil, err
 	}
-	defer func() { _ = resp.Body.Close() }()
-
-	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("nanomdm error: status %d", resp.StatusCode)
-	}
 
 	var result interface{}
-	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+	if err := s.handleResponse(resp, &result); err != nil {
 		return nil, err
 	}
 	return result, nil
@@ -343,46 +286,22 @@ func (s *nanomdmServiceImpl) GetDEPTokens(ctx context.Context, depName string) (
 	if err != nil {
 		return nil, err
 	}
-	defer func() { _ = resp.Body.Close() }()
-
-	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("nanomdm error: status %d", resp.StatusCode)
-	}
 
 	var result interface{}
-	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+	if err := s.handleResponse(resp, &result); err != nil {
 		return nil, err
 	}
 	return result, nil
 }
 
 func (s *nanomdmServiceImpl) EnqueueCommand(ctx context.Context, udid string, cmdData []byte) (interface{}, error) {
-	u, err := url.Parse(fmt.Sprintf("%s/v1/enqueue/%s", s.mdmBaseURL, udid))
+	resp, err := s.doRequest(ctx, http.MethodPut, s.mdmBaseURL, fmt.Sprintf("/v1/enqueue/%s", udid), cmdData, nil, s.mdmUsername, s.mdmPassword)
 	if err != nil {
 		return nil, err
-	}
-
-	req, err := http.NewRequestWithContext(ctx, http.MethodPut, u.String(), bytes.NewReader(cmdData))
-	if err != nil {
-		return nil, err
-	}
-
-	req.SetBasicAuth(s.mdmUsername, s.mdmPassword)
-	req.Header.Set("Content-Type", "application/xml")
-
-	client := &http.Client{}
-	resp, err := client.Do(req)
-	if err != nil {
-		return nil, err
-	}
-	defer func() { _ = resp.Body.Close() }()
-
-	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("nanomdm error: status %d", resp.StatusCode)
 	}
 
 	var result interface{}
-	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+	if err := s.handleResponse(resp, &result); err != nil {
 		return nil, err
 	}
 	return result, nil
