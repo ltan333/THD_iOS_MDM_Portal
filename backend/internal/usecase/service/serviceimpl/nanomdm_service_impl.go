@@ -11,6 +11,7 @@ import (
 	"strings"
 
 	"github.com/thienel/go-backend-template/internal/usecase/service"
+	"github.com/thienel/go-backend-template/internal/interface/api/dto"
 	apperror "github.com/thienel/go-backend-template/pkg/error"
 	"github.com/thienel/go-backend-template/pkg/httpclient"
 )
@@ -129,11 +130,11 @@ func (s *nanomdmServiceImpl) GetDEPProfile(ctx context.Context, depName, profile
 		return nil, err
 	}
 
-	var result interface{}
+	var result dto.DEPProfileResponse
 	if err := s.handleResponse(resp, &result); err != nil {
 		return nil, err
 	}
-	return result, nil
+	return &result, nil
 }
 
 func (s *nanomdmServiceImpl) ListDEPProfiles(ctx context.Context, depName string) (interface{}, error) {
@@ -150,12 +151,11 @@ func (s *nanomdmServiceImpl) ListDEPProfiles(ctx context.Context, depName string
 }
 
 func (s *nanomdmServiceImpl) SyncDEPDevices(ctx context.Context, depName string, cursor string) (interface{}, error) {
-	var query url.Values
+	var body interface{}
 	if cursor != "" {
-		query = url.Values{}
-		query.Set("cursor", cursor)
+		body = map[string]string{"cursor": cursor}
 	}
-	resp, err := s.doRequest(ctx, http.MethodPost, s.depBaseURL, fmt.Sprintf("/proxy/%s/devices/sync", depName), nil, query, s.depUsername, s.depPassword)
+	resp, err := s.doRequest(ctx, http.MethodPost, s.depBaseURL, fmt.Sprintf("/proxy/%s/devices/sync", depName), body, nil, s.depUsername, s.depPassword)
 	if err != nil {
 		return nil, err
 	}
