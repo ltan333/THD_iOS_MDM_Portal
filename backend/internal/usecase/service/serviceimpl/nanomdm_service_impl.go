@@ -11,9 +11,12 @@ import (
 	"strings"
 
 	"github.com/thienel/go-backend-template/internal/usecase/service"
+	apperror "github.com/thienel/go-backend-template/pkg/error"
+	"github.com/thienel/go-backend-template/pkg/httpclient"
 )
 
 type nanomdmServiceImpl struct {
+	client      *http.Client
 	mdmBaseURL  string
 	depBaseURL  string
 	mdmUsername string
@@ -24,6 +27,7 @@ type nanomdmServiceImpl struct {
 
 func NewNanoMDMService(mdmBaseURL, depBaseURL, mdmUser, mdmPass, depUser, depPass string) service.NanoMDMService {
 	return &nanomdmServiceImpl{
+		client:      httpclient.DefaultClient(),
 		mdmBaseURL:  strings.TrimSuffix(mdmBaseURL, "/"),
 		depBaseURL:  strings.TrimSuffix(depBaseURL, "/"),
 		mdmUsername: mdmUser,
@@ -67,8 +71,7 @@ func (s *nanomdmServiceImpl) doRequest(ctx context.Context, method, baseURL, pat
 		}
 	}
 
-	client := &http.Client{}
-	return client.Do(req)
+	return s.client.Do(req)
 }
 
 func (s *nanomdmServiceImpl) handleResponse(resp *http.Response, target interface{}) error {
@@ -81,12 +84,18 @@ func (s *nanomdmServiceImpl) handleResponse(resp *http.Response, target interfac
 		return json.NewDecoder(resp.Body).Decode(target)
 	}
 
-	// Handle specific 400/404 cases as "not found" or "empty"
-	if resp.StatusCode == http.StatusBadRequest || resp.StatusCode == http.StatusNotFound {
-		return nil // Return nil error, target remains zero-valued or nil
+	// Capture response body for better error logging
+	body, _ := io.ReadAll(resp.Body)
+	errMsg := fmt.Sprintf("nanomdm error: status %d, body: %s", resp.StatusCode, string(body))
+
+	if resp.StatusCode == http.StatusNotFound {
+		return apperror.ErrNotFound.WithMessage(errMsg)
+	}
+	if resp.StatusCode == http.StatusBadRequest {
+		return apperror.ErrBadRequest.WithMessage(errMsg)
 	}
 
-	return fmt.Errorf("nanomdm error: status %d", resp.StatusCode)
+	return fmt.Errorf("%s", errMsg)
 }
 
 func (s *nanomdmServiceImpl) DefineDEPProfile(ctx context.Context, depName string, profile interface{}) (string, error) {
