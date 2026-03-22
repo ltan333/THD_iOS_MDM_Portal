@@ -1953,19 +1953,16 @@ const docTemplate = `{
         "github_com_thienel_go-backend-template_internal_interface_api_dto.APNSConfigResponse": {
             "type": "object",
             "properties": {
-                "cert_file_path": {
+                "cert_pem": {
                     "type": "string"
                 },
                 "created_at": {
                     "type": "string"
                 },
-                "expiry": {
+                "id": {
                     "type": "string"
                 },
-                "id": {
-                    "type": "integer"
-                },
-                "topic": {
+                "key_pem": {
                     "type": "string"
                 },
                 "updated_at": {
@@ -2021,22 +2018,37 @@ const docTemplate = `{
         "github_com_thienel_go-backend-template_internal_interface_api_dto.DEPTokenResponse": {
             "type": "object",
             "properties": {
+                "access_secret": {
+                    "type": "string"
+                },
+                "access_token": {
+                    "type": "string"
+                },
+                "access_token_expiry": {
+                    "type": "string"
+                },
+                "config_base_url": {
+                    "type": "string"
+                },
+                "consumer_key": {
+                    "type": "string"
+                },
+                "consumer_secret": {
+                    "type": "string"
+                },
                 "created_at": {
                     "type": "string"
                 },
-                "expiry": {
-                    "type": "string"
-                },
                 "id": {
-                    "type": "integer"
-                },
-                "last_used": {
                     "type": "string"
                 },
-                "name": {
+                "syncer_cursor": {
                     "type": "string"
                 },
-                "p7m_file_path": {
+                "tokenpki_cert_pem": {
+                    "type": "string"
+                },
+                "tokenpki_key_pem": {
                     "type": "string"
                 },
                 "updated_at": {
