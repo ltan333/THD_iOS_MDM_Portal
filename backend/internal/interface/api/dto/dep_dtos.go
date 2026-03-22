@@ -82,3 +82,15 @@ type DeviceResponse struct {
 	CreatedAt    time.Time `json:"created_at"`
 	UpdatedAt    time.Time `json:"updated_at"`
 }
+
+type DEPAssignerRequest struct {
+	ProfileUUID string `json:"profile_uuid" binding:"required" example:"E8E16093-B9E4-477F-9EDC-C4C204F2E74B"`
+}
+
+type DEPAssignerResponse struct {
+	ProfileUUID string `json:"profile_uuid"`
+}
+
+type DEPDevicesRequest struct {
+	Devices []string `json:"devices" example:"G0NXR2GUKPFQ"`
+}

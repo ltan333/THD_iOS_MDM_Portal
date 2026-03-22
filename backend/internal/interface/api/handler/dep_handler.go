@@ -71,6 +71,10 @@ func NewDEPHandler(
 // @Router /v1/dep/token/{name} [put]
 func (h *depHandler) PutToken(c *gin.Context) {
 	name := c.Param("name")
+	if name == "" {
+		response.WriteErrorResponse(c, apperror.ErrBadRequest.WithMessage("Tham số name là bắt buộc"))
+		return
+	}
 	file, err := c.FormFile("token")
 	if err != nil {
 		response.WriteErrorResponse(c, apperror.ErrBadRequest.WithMessage("Token file is required"))
@@ -140,6 +144,10 @@ func (h *depHandler) PutToken(c *gin.Context) {
 // @Router /v1/dep/token/{name} [get]
 func (h *depHandler) GetToken(c *gin.Context) {
 	name := c.Param("name")
+	if name == "" {
+		response.WriteErrorResponse(c, apperror.ErrBadRequest.WithMessage("Tham số name là bắt buộc"))
+		return
+	}
 	// For compat with apidog, we might want to return the PEM info from NanoMDM instead of local DB
 	// But let's check local DB first
 	token, _ := h.client.DEPToken.
@@ -169,8 +177,7 @@ func (h *depHandler) GetToken(c *gin.Context) {
 // @Tags DEP
 // @Produce json
 // @Param name path string false "DEP name (default: 'default')"
-// @Success 200 {object} response.APIResponse[any]
-// @Failure 401 {object} response.APIResponse[any]
+// @Param cursor query string false "Sync cursor"
 // @Security BearerAuth
 // @Router /v1/dep/proxy/{name}/devices/sync [post]
 func (h *depHandler) SyncDevices(c *gin.Context) {
@@ -179,7 +186,8 @@ func (h *depHandler) SyncDevices(c *gin.Context) {
 		depName = "default"
 	}
 
-	result, err := h.mdmService.SyncDEPDevices(c.Request.Context(), depName)
+	cursor := c.Query("cursor")
+	result, err := h.mdmService.SyncDEPDevices(c.Request.Context(), depName, cursor)
 	if err != nil {
 		response.WriteErrorResponse(c, err)
 		return
@@ -195,7 +203,8 @@ func (h *depHandler) SyncDevices(c *gin.Context) {
 // @Accept json
 // @Produce json
 // @Param name path string false "DEP name (default: 'default')"
-// @Success 200 {object} response.APIResponse[any]
+// @Param request body dto.DEPProfileRequest true "Profile details"
+// @Success 200 {object} response.APIResponse[dto.DEPProfileResponse]
 // @Failure 401 {object} response.APIResponse[any]
 // @Security BearerAuth
 // @Router /v1/dep/proxy/{name}/profile [post]
@@ -271,11 +280,10 @@ func (h *depHandler) ListProfiles(c *gin.Context) {
 // @Summary Disown DEP device
 // @Description Remove a device from DEP management via proxy
 // @Tags DEP
+// @Accept json
 // @Produce json
-// @Param name path string false "DEP name (default: 'default')"
-// @Success 200 {object} response.APIResponse[any]
-// @Failure 401 {object} response.APIResponse[any]
-// @Failure 403 {object} response.APIResponse[any]
+// @Param name path string true "DEP name"
+// @Param request body dto.DEPDevicesRequest true "Devices list to disown"
 // @Security BearerAuth
 // @Router /v1/dep/proxy/{name}/devices/disown [post]
 func (h *depHandler) DisownDevice(c *gin.Context) {
@@ -284,10 +292,7 @@ func (h *depHandler) DisownDevice(c *gin.Context) {
 		depName = "default"
 	}
 
-	// Serial numbers from request
-	var req struct {
-		Devices []string `json:"devices"`
-	}
+	var req dto.DEPDevicesRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		response.WriteErrorResponse(c, err)
 		return
@@ -328,6 +333,10 @@ func (h *depHandler) ListNames(c *gin.Context) {
 // @Router /v1/dep/config/{name} [get]
 func (h *depHandler) GetConfig(c *gin.Context) {
 	name := c.Param("name")
+	if name == "" {
+		response.WriteErrorResponse(c, apperror.ErrBadRequest.WithMessage("Tham số name là bắt buộc"))
+		return
+	}
 	result, err := h.mdmService.GetDEPConfig(c.Request.Context(), name)
 	if err != nil {
 		response.WriteErrorResponse(c, err)
@@ -346,6 +355,10 @@ func (h *depHandler) GetConfig(c *gin.Context) {
 // @Router /v1/dep/assigner/{name} [get]
 func (h *depHandler) GetAssigner(c *gin.Context) {
 	name := c.Param("name")
+	if name == "" {
+		response.WriteErrorResponse(c, apperror.ErrBadRequest.WithMessage("Tham số name là bắt buộc"))
+		return
+	}
 	result, err := h.mdmService.GetDEPAssigner(c.Request.Context(), name)
 	if err != nil {
 		response.WriteErrorResponse(c, err)
@@ -356,21 +369,23 @@ func (h *depHandler) GetAssigner(c *gin.Context) {
 
 // SetAssigner godoc
 // @Summary Set DEP assigner
-// @Description Set or update assigner for a DEP name
+// @Description Set or update automatic profile assignment for a DEP name
 // @Tags DEP
-// @Accept json
 // @Produce json
 // @Param name path string true "DEP name"
+// @Param profile_uuid query string true "Profile UUID to assign"
+// @Success 200 {object} response.APIResponse[dto.DEPAssignerResponse]
+// @Failure 400 {object} response.APIResponse[any]
 // @Security BearerAuth
 // @Router /v1/dep/assigner/{name} [put]
 func (h *depHandler) SetAssigner(c *gin.Context) {
 	name := c.Param("name")
-	var req interface{}
-	if err := c.ShouldBindJSON(&req); err != nil {
-		response.WriteErrorResponse(c, err)
+	uuid := c.Query("profile_uuid")
+	if uuid == "" {
+		response.WriteErrorResponse(c, apperror.ErrBadRequest.WithMessage("Tham số profile_uuid là bắt buộc"))
 		return
 	}
-	result, err := h.mdmService.SetDEPAssigner(c.Request.Context(), name, req)
+	result, err := h.mdmService.SetDEPAssigner(c.Request.Context(), name, uuid)
 	if err != nil {
 		response.WriteErrorResponse(c, err)
 		return
@@ -388,6 +403,10 @@ func (h *depHandler) SetAssigner(c *gin.Context) {
 // @Router /v1/dep/proxy/{name}/account [get]
 func (h *depHandler) GetAccount(c *gin.Context) {
 	name := c.Param("name")
+	if name == "" {
+		response.WriteErrorResponse(c, apperror.ErrBadRequest.WithMessage("Tham số name là bắt buộc"))
+		return
+	}
 	result, err := h.mdmService.GetDEPAccount(c.Request.Context(), name)
 	if err != nil {
 		response.WriteErrorResponse(c, err)
@@ -398,17 +417,29 @@ func (h *depHandler) GetAccount(c *gin.Context) {
 
 // GetDevices godoc
 // @Summary Get DEP devices
-// @Description Fetch device list or details from Apple via proxy
+// @Description Fetch device list or details from Apple via proxy. If devices array is provided in body, fetches details for those serial numbers.
 // @Tags DEP
+// @Accept json
 // @Produce json
 // @Param name path string true "DEP name"
+// @Param request body dto.DEPDevicesRequest false "Devices list"
 // @Param cursor query string false "Pagination cursor"
 // @Security BearerAuth
 // @Router /v1/dep/proxy/{name}/devices [post]
 func (h *depHandler) GetDevices(c *gin.Context) {
 	name := c.Param("name")
+	if name == "" {
+		response.WriteErrorResponse(c, apperror.ErrBadRequest.WithMessage("Tham số name là bắt buộc"))
+		return
+	}
+
+	var req dto.DEPDevicesRequest
+	if c.Request.ContentLength > 0 {
+		_ = c.ShouldBindJSON(&req)
+	}
+
 	cursor := c.Query("cursor")
-	result, err := h.mdmService.GetDEPDevices(c.Request.Context(), name, cursor)
+	result, err := h.mdmService.GetDEPDevices(c.Request.Context(), name, req.Devices, cursor)
 	if err != nil {
 		response.WriteErrorResponse(c, err)
 		return
@@ -426,6 +457,10 @@ func (h *depHandler) GetDevices(c *gin.Context) {
 // @Router /v1/dep/tokens/{name} [get]
 func (h *depHandler) GetTokens(c *gin.Context) {
 	name := c.Param("name")
+	if name == "" {
+		response.WriteErrorResponse(c, apperror.ErrBadRequest.WithMessage("Tham số name là bắt buộc"))
+		return
+	}
 	result, err := h.mdmService.GetDEPTokens(c.Request.Context(), name)
 	if err != nil {
 		response.WriteErrorResponse(c, err)

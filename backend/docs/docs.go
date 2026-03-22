@@ -164,10 +164,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Set or update assigner for a DEP name",
-                "consumes": [
-                    "application/json"
-                ],
+                "description": "Set or update automatic profile assignment for a DEP name",
                 "produces": [
                     "application/json"
                 ],
@@ -182,9 +179,29 @@ const docTemplate = `{
                         "name": "name",
                         "in": "path",
                         "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Profile UUID to assign",
+                        "name": "profile_uuid",
+                        "in": "query",
+                        "required": true
                     }
                 ],
-                "responses": {}
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_DEPAssignerResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any"
+                        }
+                    }
+                }
             }
         },
         "/v1/dep/config/{name}": {
@@ -297,7 +314,10 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Fetch device list or details from Apple via proxy",
+                "description": "Fetch device list or details from Apple via proxy. If devices array is provided in body, fetches details for those serial numbers.",
+                "consumes": [
+                    "application/json"
+                ],
                 "produces": [
                     "application/json"
                 ],
@@ -312,6 +332,14 @@ const docTemplate = `{
                         "name": "name",
                         "in": "path",
                         "required": true
+                    },
+                    {
+                        "description": "Devices list",
+                        "name": "request",
+                        "in": "body",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_internal_interface_api_dto.DEPDevicesRequest"
+                        }
                     },
                     {
                         "type": "string",
@@ -331,6 +359,9 @@ const docTemplate = `{
                     }
                 ],
                 "description": "Remove a device from DEP management via proxy",
+                "consumes": [
+                    "application/json"
+                ],
                 "produces": [
                     "application/json"
                 ],
@@ -341,31 +372,22 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "DEP name (default: 'default')",
+                        "description": "DEP name",
                         "name": "name",
-                        "in": "path"
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Devices list to disown",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_internal_interface_api_dto.DEPDevicesRequest"
+                        }
                     }
                 ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any"
-                        }
-                    },
-                    "403": {
-                        "description": "Forbidden",
-                        "schema": {
-                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any"
-                        }
-                    }
-                }
+                "responses": {}
             }
         },
         "/v1/dep/proxy/{name}/devices/sync": {
@@ -389,22 +411,15 @@ const docTemplate = `{
                         "description": "DEP name (default: 'default')",
                         "name": "name",
                         "in": "path"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Sync cursor",
+                        "name": "cursor",
+                        "in": "query"
                     }
                 ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any"
-                        }
-                    }
-                }
+                "responses": {}
             }
         },
         "/v1/dep/proxy/{name}/profile": {
@@ -475,13 +490,22 @@ const docTemplate = `{
                         "description": "DEP name (default: 'default')",
                         "name": "name",
                         "in": "path"
+                    },
+                    {
+                        "description": "Profile details",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_internal_interface_api_dto.DEPProfileRequest"
+                        }
                     }
                 ],
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any"
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_DEPProfileResponse"
                         }
                     },
                     "401": {
@@ -2015,6 +2039,206 @@ const docTemplate = `{
                 }
             }
         },
+        "github_com_thienel_go-backend-template_internal_interface_api_dto.DEPAssignerResponse": {
+            "type": "object",
+            "properties": {
+                "profile_uuid": {
+                    "type": "string"
+                }
+            }
+        },
+        "github_com_thienel_go-backend-template_internal_interface_api_dto.DEPDevicesRequest": {
+            "type": "object",
+            "properties": {
+                "devices": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "example": [
+                        "G0NXR2GUKPFQ"
+                    ]
+                }
+            }
+        },
+        "github_com_thienel_go-backend-template_internal_interface_api_dto.DEPProfileRequest": {
+            "type": "object",
+            "properties": {
+                "allow_pairing": {
+                    "type": "boolean"
+                },
+                "anchor_certs": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "auto_advance_setup": {
+                    "type": "boolean"
+                },
+                "await_device_configured": {
+                    "type": "boolean"
+                },
+                "configuration_web_url": {
+                    "type": "string"
+                },
+                "department": {
+                    "type": "string"
+                },
+                "devices": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "do_not_use_profile_from_backup": {
+                    "type": "boolean"
+                },
+                "is_mandatory": {
+                    "type": "boolean"
+                },
+                "is_mdm_removable": {
+                    "type": "boolean"
+                },
+                "is_multi_user": {
+                    "type": "boolean"
+                },
+                "is_return_to_service": {
+                    "type": "boolean"
+                },
+                "is_supervised": {
+                    "type": "boolean"
+                },
+                "language": {
+                    "type": "string"
+                },
+                "org_magic": {
+                    "type": "string"
+                },
+                "profile_data": {
+                    "description": "ProfileData remains for any additional fields not explicitly mapped",
+                    "type": "object",
+                    "additionalProperties": true
+                },
+                "profile_name": {
+                    "type": "string"
+                },
+                "region": {
+                    "type": "string"
+                },
+                "skip_setup_items": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "supervising_host_certs": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "support_email_address": {
+                    "type": "string"
+                },
+                "support_phone_number": {
+                    "type": "string"
+                },
+                "url": {
+                    "type": "string"
+                }
+            }
+        },
+        "github_com_thienel_go-backend-template_internal_interface_api_dto.DEPProfileResponse": {
+            "type": "object",
+            "properties": {
+                "allow_pairing": {
+                    "type": "boolean"
+                },
+                "anchor_certs": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "auto_advance_setup": {
+                    "type": "boolean"
+                },
+                "await_device_configured": {
+                    "type": "boolean"
+                },
+                "configuration_web_url": {
+                    "type": "string"
+                },
+                "department": {
+                    "type": "string"
+                },
+                "devices": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "do_not_use_profile_from_backup": {
+                    "type": "boolean"
+                },
+                "is_mandatory": {
+                    "type": "boolean"
+                },
+                "is_mdm_removable": {
+                    "type": "boolean"
+                },
+                "is_multi_user": {
+                    "type": "boolean"
+                },
+                "is_return_to_service": {
+                    "type": "boolean"
+                },
+                "is_supervised": {
+                    "type": "boolean"
+                },
+                "language": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "org_magic": {
+                    "type": "string"
+                },
+                "profile_data": {
+                    "type": "object",
+                    "additionalProperties": true
+                },
+                "profile_uuid": {
+                    "type": "string"
+                },
+                "region": {
+                    "type": "string"
+                },
+                "skip_setup_items": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "supervising_host_certs": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "support_email_address": {
+                    "type": "string"
+                },
+                "support_phone_number": {
+                    "type": "string"
+                },
+                "url": {
+                    "type": "string"
+                }
+            }
+        },
         "github_com_thienel_go-backend-template_internal_interface_api_dto.DEPTokenResponse": {
             "type": "object",
             "properties": {
@@ -2361,6 +2585,40 @@ const docTemplate = `{
             "properties": {
                 "data": {
                     "$ref": "#/definitions/github_com_thienel_go-backend-template_internal_interface_api_dto.CMDPlan"
+                },
+                "error": {
+                    "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.Error"
+                },
+                "is_success": {
+                    "type": "boolean"
+                },
+                "message": {
+                    "type": "string"
+                }
+            }
+        },
+        "github_com_thienel_go-backend-template_pkg_response.APIResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_DEPAssignerResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/github_com_thienel_go-backend-template_internal_interface_api_dto.DEPAssignerResponse"
+                },
+                "error": {
+                    "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.Error"
+                },
+                "is_success": {
+                    "type": "boolean"
+                },
+                "message": {
+                    "type": "string"
+                }
+            }
+        },
+        "github_com_thienel_go-backend-template_pkg_response.APIResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_DEPProfileResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/github_com_thienel_go-backend-template_internal_interface_api_dto.DEPProfileResponse"
                 },
                 "error": {
                     "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.Error"
