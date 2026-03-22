@@ -16,6 +16,8 @@ type Tx struct {
 	APNSConfig *APNSConfigClient
 	// DEPToken is the client for interacting with the DEPToken builders.
 	DEPToken *DEPTokenClient
+	// DepProfile is the client for interacting with the DepProfile builders.
+	DepProfile *DepProfileClient
 	// Device is the client for interacting with the Device builders.
 	Device *DeviceClient
 	// MobileConfig is the client for interacting with the MobileConfig builders.
@@ -161,6 +163,7 @@ func (tx *Tx) Client() *Client {
 func (tx *Tx) init() {
 	tx.APNSConfig = NewAPNSConfigClient(tx.config)
 	tx.DEPToken = NewDEPTokenClient(tx.config)
+	tx.DepProfile = NewDepProfileClient(tx.config)
 	tx.Device = NewDeviceClient(tx.config)
 	tx.MobileConfig = NewMobileConfigClient(tx.config)
 	tx.Payload = NewPayloadClient(tx.config)

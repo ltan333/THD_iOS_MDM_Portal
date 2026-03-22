@@ -40,6 +40,42 @@ var (
 		Columns:    DepTokensColumns,
 		PrimaryKey: []*schema.Column{DepTokensColumns[0]},
 	}
+	// DepProfilesColumns holds the columns for the "dep_profiles" table.
+	DepProfilesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUint, Increment: true},
+		{Name: "profile_name", Type: field.TypeString, Unique: true},
+		{Name: "profile_uuid", Type: field.TypeString, Unique: true, Nullable: true},
+		{Name: "allow_pairing", Type: field.TypeBool, Default: true},
+		{Name: "anchor_certs", Type: field.TypeJSON, Nullable: true},
+		{Name: "auto_advance_setup", Type: field.TypeBool, Default: false},
+		{Name: "await_device_configured", Type: field.TypeBool, Default: false},
+		{Name: "configuration_web_url", Type: field.TypeString, Nullable: true},
+		{Name: "department", Type: field.TypeString, Nullable: true},
+		{Name: "devices", Type: field.TypeJSON, Nullable: true},
+		{Name: "do_not_use_profile_from_backup", Type: field.TypeBool, Default: false},
+		{Name: "is_return_to_service", Type: field.TypeBool, Default: false},
+		{Name: "is_mandatory", Type: field.TypeBool, Default: false},
+		{Name: "is_mdm_removable", Type: field.TypeBool, Default: true},
+		{Name: "is_multi_user", Type: field.TypeBool, Default: false},
+		{Name: "is_supervised", Type: field.TypeBool, Default: false},
+		{Name: "language", Type: field.TypeString, Nullable: true},
+		{Name: "org_magic", Type: field.TypeString, Nullable: true},
+		{Name: "region", Type: field.TypeString, Nullable: true},
+		{Name: "skip_setup_items", Type: field.TypeJSON, Nullable: true},
+		{Name: "supervising_host_certs", Type: field.TypeJSON, Nullable: true},
+		{Name: "support_email_address", Type: field.TypeString, Nullable: true},
+		{Name: "support_phone_number", Type: field.TypeString, Nullable: true},
+		{Name: "url", Type: field.TypeString, Nullable: true},
+		{Name: "profile_data", Type: field.TypeJSON, Nullable: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+	}
+	// DepProfilesTable holds the schema information for the "dep_profiles" table.
+	DepProfilesTable = &schema.Table{
+		Name:       "dep_profiles",
+		Columns:    DepProfilesColumns,
+		PrimaryKey: []*schema.Column{DepProfilesColumns[0]},
+	}
 	// DevicesColumns holds the columns for the "devices" table.
 	DevicesColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUint, Increment: true},
@@ -201,6 +237,7 @@ var (
 	Tables = []*schema.Table{
 		ApnsConfigsTable,
 		DepTokensTable,
+		DepProfilesTable,
 		DevicesTable,
 		MobileConfigsTable,
 		PayloadsTable,

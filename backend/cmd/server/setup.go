@@ -22,6 +22,7 @@ func setupDependencies(cfg *config.Config) *gin.Engine {
 	// Repositories
 	client := database.GetClient()
 	userRepo := persistence.NewUserRepository(client)
+	depProfileRepo := persistence.NewDepProfileRepository(client)
 
 	// Casbin Enforcer
 	enforcer, err := authorization.NewEnforcer(cfg.Casbin.ModelPath, database.GetDB())
@@ -47,6 +48,7 @@ func setupDependencies(cfg *config.Config) *gin.Engine {
 		cfg.NanoMDM.DEPUsername,
 		cfg.NanoMDM.DEPPassword,
 	)
+	depProfileService := serviceimpl.NewDepProfileService(depProfileRepo, nanomdmService)
 
 	// Middleware
 	origins := strings.Join(cfg.CORSAllowedOrigins, ",")
@@ -57,7 +59,7 @@ func setupDependencies(cfg *config.Config) *gin.Engine {
 	userHandler := handler. NewUserHandler(userService, authzService)
 	policyHandler := handler.NewPolicyHandler(authzService)
 	mdmHandler := handler.NewMDMHandler(client, nanomdmService)
-	depHandler := handler.NewDEPHandler(client, authzService, nanomdmService)
+	depHandler := handler.NewDEPHandler(client, authzService, nanomdmService, depProfileService)
 	nanocmdHandler := handler.NewNanoCMDHandler(nanocmdService)
 
 	// Build router
