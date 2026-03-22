@@ -12,30 +12,48 @@ const (
 	// Label holds the string label denoting the deptoken type in the database.
 	Label = "dep_token"
 	// FieldID holds the string denoting the id field in the database.
-	FieldID = "id"
-	// FieldName holds the string denoting the name field in the database.
-	FieldName = "name"
-	// FieldP7mFilePath holds the string denoting the p7m_file_path field in the database.
-	FieldP7mFilePath = "p7m_file_path"
-	// FieldExpiry holds the string denoting the expiry field in the database.
-	FieldExpiry = "expiry"
-	// FieldLastUsed holds the string denoting the last_used field in the database.
-	FieldLastUsed = "last_used"
+	FieldID = "name"
+	// FieldConsumerKey holds the string denoting the consumer_key field in the database.
+	FieldConsumerKey = "consumer_key"
+	// FieldConsumerSecret holds the string denoting the consumer_secret field in the database.
+	FieldConsumerSecret = "consumer_secret"
+	// FieldAccessToken holds the string denoting the access_token field in the database.
+	FieldAccessToken = "access_token"
+	// FieldAccessSecret holds the string denoting the access_secret field in the database.
+	FieldAccessSecret = "access_secret"
+	// FieldAccessTokenExpiry holds the string denoting the access_token_expiry field in the database.
+	FieldAccessTokenExpiry = "access_token_expiry"
+	// FieldConfigBaseURL holds the string denoting the config_base_url field in the database.
+	FieldConfigBaseURL = "config_base_url"
+	// FieldTokenpkiCertPem holds the string denoting the tokenpki_cert_pem field in the database.
+	FieldTokenpkiCertPem = "tokenpki_cert_pem"
+	// FieldTokenpkiKeyPem holds the string denoting the tokenpki_key_pem field in the database.
+	FieldTokenpkiKeyPem = "tokenpki_key_pem"
+	// FieldSyncerCursor holds the string denoting the syncer_cursor field in the database.
+	FieldSyncerCursor = "syncer_cursor"
+	// FieldAssignerProfileUUID holds the string denoting the assigner_profile_uuid field in the database.
+	FieldAssignerProfileUUID = "assigner_profile_uuid"
 	// FieldCreatedAt holds the string denoting the created_at field in the database.
 	FieldCreatedAt = "created_at"
 	// FieldUpdatedAt holds the string denoting the updated_at field in the database.
 	FieldUpdatedAt = "updated_at"
 	// Table holds the table name of the deptoken in the database.
-	Table = "dep_tokens"
+	Table = "dep_names"
 )
 
 // Columns holds all SQL columns for deptoken fields.
 var Columns = []string{
 	FieldID,
-	FieldName,
-	FieldP7mFilePath,
-	FieldExpiry,
-	FieldLastUsed,
+	FieldConsumerKey,
+	FieldConsumerSecret,
+	FieldAccessToken,
+	FieldAccessSecret,
+	FieldAccessTokenExpiry,
+	FieldConfigBaseURL,
+	FieldTokenpkiCertPem,
+	FieldTokenpkiKeyPem,
+	FieldSyncerCursor,
+	FieldAssignerProfileUUID,
 	FieldCreatedAt,
 	FieldUpdatedAt,
 }
@@ -51,16 +69,14 @@ func ValidColumn(column string) bool {
 }
 
 var (
-	// NameValidator is a validator for the "name" field. It is called by the builders before save.
-	NameValidator func(string) error
-	// P7mFilePathValidator is a validator for the "p7m_file_path" field. It is called by the builders before save.
-	P7mFilePathValidator func(string) error
 	// DefaultCreatedAt holds the default value on creation for the "created_at" field.
 	DefaultCreatedAt func() time.Time
 	// DefaultUpdatedAt holds the default value on creation for the "updated_at" field.
 	DefaultUpdatedAt func() time.Time
 	// UpdateDefaultUpdatedAt holds the default value on update for the "updated_at" field.
 	UpdateDefaultUpdatedAt func() time.Time
+	// IDValidator is a validator for the "id" field. It is called by the builders before save.
+	IDValidator func(string) error
 )
 
 // OrderOption defines the ordering options for the DEPToken queries.
@@ -71,24 +87,54 @@ func ByID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldID, opts...).ToFunc()
 }
 
-// ByName orders the results by the name field.
-func ByName(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldName, opts...).ToFunc()
+// ByConsumerKey orders the results by the consumer_key field.
+func ByConsumerKey(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldConsumerKey, opts...).ToFunc()
 }
 
-// ByP7mFilePath orders the results by the p7m_file_path field.
-func ByP7mFilePath(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldP7mFilePath, opts...).ToFunc()
+// ByConsumerSecret orders the results by the consumer_secret field.
+func ByConsumerSecret(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldConsumerSecret, opts...).ToFunc()
 }
 
-// ByExpiry orders the results by the expiry field.
-func ByExpiry(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldExpiry, opts...).ToFunc()
+// ByAccessToken orders the results by the access_token field.
+func ByAccessToken(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldAccessToken, opts...).ToFunc()
 }
 
-// ByLastUsed orders the results by the last_used field.
-func ByLastUsed(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldLastUsed, opts...).ToFunc()
+// ByAccessSecret orders the results by the access_secret field.
+func ByAccessSecret(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldAccessSecret, opts...).ToFunc()
+}
+
+// ByAccessTokenExpiry orders the results by the access_token_expiry field.
+func ByAccessTokenExpiry(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldAccessTokenExpiry, opts...).ToFunc()
+}
+
+// ByConfigBaseURL orders the results by the config_base_url field.
+func ByConfigBaseURL(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldConfigBaseURL, opts...).ToFunc()
+}
+
+// ByTokenpkiCertPem orders the results by the tokenpki_cert_pem field.
+func ByTokenpkiCertPem(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldTokenpkiCertPem, opts...).ToFunc()
+}
+
+// ByTokenpkiKeyPem orders the results by the tokenpki_key_pem field.
+func ByTokenpkiKeyPem(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldTokenpkiKeyPem, opts...).ToFunc()
+}
+
+// BySyncerCursor orders the results by the syncer_cursor field.
+func BySyncerCursor(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldSyncerCursor, opts...).ToFunc()
+}
+
+// ByAssignerProfileUUID orders the results by the assigner_profile_uuid field.
+func ByAssignerProfileUUID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldAssignerProfileUUID, opts...).ToFunc()
 }
 
 // ByCreatedAt orders the results by the created_at field.

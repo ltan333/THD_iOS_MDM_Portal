@@ -16,15 +16,27 @@ import (
 type DEPToken struct {
 	config `json:"-"`
 	// ID of the ent.
-	ID uint `json:"id,omitempty"`
-	// Name holds the value of the "name" field.
-	Name string `json:"name,omitempty"`
-	// P7mFilePath holds the value of the "p7m_file_path" field.
-	P7mFilePath string `json:"p7m_file_path,omitempty"`
-	// Expiry holds the value of the "expiry" field.
-	Expiry time.Time `json:"expiry,omitempty"`
-	// LastUsed holds the value of the "last_used" field.
-	LastUsed time.Time `json:"last_used,omitempty"`
+	ID string `json:"id,omitempty"`
+	// ConsumerKey holds the value of the "consumer_key" field.
+	ConsumerKey string `json:"consumer_key,omitempty"`
+	// ConsumerSecret holds the value of the "consumer_secret" field.
+	ConsumerSecret string `json:"consumer_secret,omitempty"`
+	// AccessToken holds the value of the "access_token" field.
+	AccessToken string `json:"access_token,omitempty"`
+	// AccessSecret holds the value of the "access_secret" field.
+	AccessSecret string `json:"access_secret,omitempty"`
+	// AccessTokenExpiry holds the value of the "access_token_expiry" field.
+	AccessTokenExpiry time.Time `json:"access_token_expiry,omitempty"`
+	// ConfigBaseURL holds the value of the "config_base_url" field.
+	ConfigBaseURL string `json:"config_base_url,omitempty"`
+	// TokenpkiCertPem holds the value of the "tokenpki_cert_pem" field.
+	TokenpkiCertPem string `json:"tokenpki_cert_pem,omitempty"`
+	// TokenpkiKeyPem holds the value of the "tokenpki_key_pem" field.
+	TokenpkiKeyPem string `json:"tokenpki_key_pem,omitempty"`
+	// SyncerCursor holds the value of the "syncer_cursor" field.
+	SyncerCursor string `json:"syncer_cursor,omitempty"`
+	// AssignerProfileUUID holds the value of the "assigner_profile_uuid" field.
+	AssignerProfileUUID string `json:"assigner_profile_uuid,omitempty"`
 	// CreatedAt holds the value of the "created_at" field.
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	// UpdatedAt holds the value of the "updated_at" field.
@@ -37,11 +49,9 @@ func (*DEPToken) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case deptoken.FieldID:
-			values[i] = new(sql.NullInt64)
-		case deptoken.FieldName, deptoken.FieldP7mFilePath:
+		case deptoken.FieldID, deptoken.FieldConsumerKey, deptoken.FieldConsumerSecret, deptoken.FieldAccessToken, deptoken.FieldAccessSecret, deptoken.FieldConfigBaseURL, deptoken.FieldTokenpkiCertPem, deptoken.FieldTokenpkiKeyPem, deptoken.FieldSyncerCursor, deptoken.FieldAssignerProfileUUID:
 			values[i] = new(sql.NullString)
-		case deptoken.FieldExpiry, deptoken.FieldLastUsed, deptoken.FieldCreatedAt, deptoken.FieldUpdatedAt:
+		case deptoken.FieldAccessTokenExpiry, deptoken.FieldCreatedAt, deptoken.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
 		default:
 			values[i] = new(sql.UnknownType)
@@ -59,34 +69,70 @@ func (_m *DEPToken) assignValues(columns []string, values []any) error {
 	for i := range columns {
 		switch columns[i] {
 		case deptoken.FieldID:
-			value, ok := values[i].(*sql.NullInt64)
-			if !ok {
-				return fmt.Errorf("unexpected type %T for field id", value)
-			}
-			_m.ID = uint(value.Int64)
-		case deptoken.FieldName:
 			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field name", values[i])
+				return fmt.Errorf("unexpected type %T for field id", values[i])
 			} else if value.Valid {
-				_m.Name = value.String
+				_m.ID = value.String
 			}
-		case deptoken.FieldP7mFilePath:
+		case deptoken.FieldConsumerKey:
 			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field p7m_file_path", values[i])
+				return fmt.Errorf("unexpected type %T for field consumer_key", values[i])
 			} else if value.Valid {
-				_m.P7mFilePath = value.String
+				_m.ConsumerKey = value.String
 			}
-		case deptoken.FieldExpiry:
-			if value, ok := values[i].(*sql.NullTime); !ok {
-				return fmt.Errorf("unexpected type %T for field expiry", values[i])
+		case deptoken.FieldConsumerSecret:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field consumer_secret", values[i])
 			} else if value.Valid {
-				_m.Expiry = value.Time
+				_m.ConsumerSecret = value.String
 			}
-		case deptoken.FieldLastUsed:
-			if value, ok := values[i].(*sql.NullTime); !ok {
-				return fmt.Errorf("unexpected type %T for field last_used", values[i])
+		case deptoken.FieldAccessToken:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field access_token", values[i])
 			} else if value.Valid {
-				_m.LastUsed = value.Time
+				_m.AccessToken = value.String
+			}
+		case deptoken.FieldAccessSecret:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field access_secret", values[i])
+			} else if value.Valid {
+				_m.AccessSecret = value.String
+			}
+		case deptoken.FieldAccessTokenExpiry:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field access_token_expiry", values[i])
+			} else if value.Valid {
+				_m.AccessTokenExpiry = value.Time
+			}
+		case deptoken.FieldConfigBaseURL:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field config_base_url", values[i])
+			} else if value.Valid {
+				_m.ConfigBaseURL = value.String
+			}
+		case deptoken.FieldTokenpkiCertPem:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field tokenpki_cert_pem", values[i])
+			} else if value.Valid {
+				_m.TokenpkiCertPem = value.String
+			}
+		case deptoken.FieldTokenpkiKeyPem:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field tokenpki_key_pem", values[i])
+			} else if value.Valid {
+				_m.TokenpkiKeyPem = value.String
+			}
+		case deptoken.FieldSyncerCursor:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field syncer_cursor", values[i])
+			} else if value.Valid {
+				_m.SyncerCursor = value.String
+			}
+		case deptoken.FieldAssignerProfileUUID:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field assigner_profile_uuid", values[i])
+			} else if value.Valid {
+				_m.AssignerProfileUUID = value.String
 			}
 		case deptoken.FieldCreatedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
@@ -136,17 +182,35 @@ func (_m *DEPToken) String() string {
 	var builder strings.Builder
 	builder.WriteString("DEPToken(")
 	builder.WriteString(fmt.Sprintf("id=%v, ", _m.ID))
-	builder.WriteString("name=")
-	builder.WriteString(_m.Name)
+	builder.WriteString("consumer_key=")
+	builder.WriteString(_m.ConsumerKey)
 	builder.WriteString(", ")
-	builder.WriteString("p7m_file_path=")
-	builder.WriteString(_m.P7mFilePath)
+	builder.WriteString("consumer_secret=")
+	builder.WriteString(_m.ConsumerSecret)
 	builder.WriteString(", ")
-	builder.WriteString("expiry=")
-	builder.WriteString(_m.Expiry.Format(time.ANSIC))
+	builder.WriteString("access_token=")
+	builder.WriteString(_m.AccessToken)
 	builder.WriteString(", ")
-	builder.WriteString("last_used=")
-	builder.WriteString(_m.LastUsed.Format(time.ANSIC))
+	builder.WriteString("access_secret=")
+	builder.WriteString(_m.AccessSecret)
+	builder.WriteString(", ")
+	builder.WriteString("access_token_expiry=")
+	builder.WriteString(_m.AccessTokenExpiry.Format(time.ANSIC))
+	builder.WriteString(", ")
+	builder.WriteString("config_base_url=")
+	builder.WriteString(_m.ConfigBaseURL)
+	builder.WriteString(", ")
+	builder.WriteString("tokenpki_cert_pem=")
+	builder.WriteString(_m.TokenpkiCertPem)
+	builder.WriteString(", ")
+	builder.WriteString("tokenpki_key_pem=")
+	builder.WriteString(_m.TokenpkiKeyPem)
+	builder.WriteString(", ")
+	builder.WriteString("syncer_cursor=")
+	builder.WriteString(_m.SyncerCursor)
+	builder.WriteString(", ")
+	builder.WriteString("assigner_profile_uuid=")
+	builder.WriteString(_m.AssignerProfileUUID)
 	builder.WriteString(", ")
 	builder.WriteString("created_at=")
 	builder.WriteString(_m.CreatedAt.Format(time.ANSIC))

@@ -84,19 +84,17 @@ func (h *depHandler) PutToken(c *gin.Context) {
 	}
 
 	// Check if exists
-	existing, _ := h.client.DEPToken.Query().Where(deptoken.NameEQ(name)).Only(context.Background())
+	existing, _ := h.client.DEPToken.Query().Where(deptoken.IDEQ(name)).Only(context.Background())
 
 	var token *ent.DEPToken
 	if existing != nil {
 		token, err = h.client.DEPToken.
 			UpdateOne(existing).
-			SetP7mFilePath(dst).
 			Save(context.Background())
 	} else {
 		token, err = h.client.DEPToken.
 			Create().
-			SetName(name).
-			SetP7mFilePath(dst).
+			SetID(name).
 			Save(context.Background())
 	}
 
@@ -120,13 +118,12 @@ func (h *depHandler) PutToken(c *gin.Context) {
 	}
 
 	response.OK(c, dto.DEPTokenResponse{
-		ID:          token.ID,
-		Name:        token.Name,
-		P7mFilePath: token.P7mFilePath,
-		Expiry:      token.Expiry,
-		LastUsed:    token.LastUsed,
-		CreatedAt:   token.CreatedAt,
-		UpdatedAt:   token.UpdatedAt,
+		ID:                token.ID,
+		TokenpkiCertPem:   token.TokenpkiCertPem,
+		TokenpkiKey_pem:   token.TokenpkiKeyPem,
+		AccessTokenExpiry: &token.AccessTokenExpiry,
+		CreatedAt:         token.CreatedAt,
+		UpdatedAt:         token.UpdatedAt,
 	}, "Token saved and uploaded to MDM successfully")
 }
 
@@ -147,7 +144,7 @@ func (h *depHandler) GetToken(c *gin.Context) {
 	// But let's check local DB first
 	token, _ := h.client.DEPToken.
 		Query().
-		Where(deptoken.NameEQ(name)).
+		Where(deptoken.IDEQ(name)).
 		Only(context.Background())
 
 	if token == nil {
@@ -157,13 +154,12 @@ func (h *depHandler) GetToken(c *gin.Context) {
 
 	// Maybe call mdmService.GetDEPTokens if we want exactly what apidog shows
 	response.OK(c, dto.DEPTokenResponse{
-		ID:          token.ID,
-		Name:        token.Name,
-		P7mFilePath: token.P7mFilePath,
-		Expiry:      token.Expiry,
-		LastUsed:    token.LastUsed,
-		CreatedAt:   token.CreatedAt,
-		UpdatedAt:   token.UpdatedAt,
+		ID:                token.ID,
+		TokenpkiCertPem:   token.TokenpkiCertPem,
+		TokenpkiKey_pem:   token.TokenpkiKeyPem,
+		AccessTokenExpiry: &token.AccessTokenExpiry,
+		CreatedAt:         token.CreatedAt,
+		UpdatedAt:         token.UpdatedAt,
 	}, "Token retrieved successfully")
 }
 

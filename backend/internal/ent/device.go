@@ -17,7 +17,7 @@ import (
 type Device struct {
 	config `json:"-"`
 	// ID of the ent.
-	ID uint `json:"id,omitempty"`
+	ID string `json:"id,omitempty"`
 	// SerialNumber holds the value of the "serial_number" field.
 	SerialNumber string `json:"serial_number,omitempty"`
 	// Model holds the value of the "model" field.
@@ -67,9 +67,9 @@ func (*Device) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case device.FieldIsEnrolled:
 			values[i] = new(sql.NullBool)
-		case device.FieldID, device.FieldOwnerID:
+		case device.FieldOwnerID:
 			values[i] = new(sql.NullInt64)
-		case device.FieldSerialNumber, device.FieldModel, device.FieldName:
+		case device.FieldID, device.FieldSerialNumber, device.FieldModel, device.FieldName:
 			values[i] = new(sql.NullString)
 		case device.FieldLastSync, device.FieldCreatedAt, device.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
@@ -89,11 +89,11 @@ func (_m *Device) assignValues(columns []string, values []any) error {
 	for i := range columns {
 		switch columns[i] {
 		case device.FieldID:
-			value, ok := values[i].(*sql.NullInt64)
-			if !ok {
-				return fmt.Errorf("unexpected type %T for field id", value)
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field id", values[i])
+			} else if value.Valid {
+				_m.ID = value.String
 			}
-			_m.ID = uint(value.Int64)
 		case device.FieldSerialNumber:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field serial_number", values[i])

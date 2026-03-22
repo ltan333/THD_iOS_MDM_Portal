@@ -39,3 +39,4 @@ MDM.apidog.json
 /logs
 */.log
 /cert
+schema.sql

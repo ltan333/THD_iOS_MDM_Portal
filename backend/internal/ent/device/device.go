@@ -38,7 +38,7 @@ const (
 	OwnerTable = "devices"
 	// OwnerInverseTable is the table name for the User entity.
 	// It exists in this package in order to avoid circular dependency with the "user" package.
-	OwnerInverseTable = "users"
+	OwnerInverseTable = "portal_users"
 	// OwnerColumn is the table column denoting the owner relation/edge.
 	OwnerColumn = "owner_id"
 )
@@ -67,10 +67,6 @@ func ValidColumn(column string) bool {
 }
 
 var (
-	// SerialNumberValidator is a validator for the "serial_number" field. It is called by the builders before save.
-	SerialNumberValidator func(string) error
-	// ModelValidator is a validator for the "model" field. It is called by the builders before save.
-	ModelValidator func(string) error
 	// DefaultIsEnrolled holds the default value on creation for the "is_enrolled" field.
 	DefaultIsEnrolled bool
 	// DefaultCreatedAt holds the default value on creation for the "created_at" field.
@@ -79,6 +75,8 @@ var (
 	DefaultUpdatedAt func() time.Time
 	// UpdateDefaultUpdatedAt holds the default value on update for the "updated_at" field.
 	UpdateDefaultUpdatedAt func() time.Time
+	// IDValidator is a validator for the "id" field. It is called by the builders before save.
+	IDValidator func(string) error
 )
 
 // OrderOption defines the ordering options for the Device queries.

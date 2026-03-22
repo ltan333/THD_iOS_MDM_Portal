@@ -102,14 +102,14 @@ func (_c *UserCreate) SetID(v uint) *UserCreate {
 }
 
 // AddDeviceIDs adds the "devices" edge to the Device entity by IDs.
-func (_c *UserCreate) AddDeviceIDs(ids ...uint) *UserCreate {
+func (_c *UserCreate) AddDeviceIDs(ids ...string) *UserCreate {
 	_c.mutation.AddDeviceIDs(ids...)
 	return _c
 }
 
 // AddDevices adds the "devices" edges to the Device entity.
 func (_c *UserCreate) AddDevices(v ...*Device) *UserCreate {
-	ids := make([]uint, len(v))
+	ids := make([]string, len(v))
 	for i := range v {
 		ids[i] = v[i].ID
 	}
@@ -273,7 +273,7 @@ func (_c *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 			Columns: []string{user.DevicesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(device.FieldID, field.TypeUint),
+				IDSpec: sqlgraph.NewFieldSpec(device.FieldID, field.TypeString),
 			},
 		}
 		for _, k := range nodes {

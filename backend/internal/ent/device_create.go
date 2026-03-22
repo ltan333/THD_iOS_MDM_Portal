@@ -27,9 +27,25 @@ func (_c *DeviceCreate) SetSerialNumber(v string) *DeviceCreate {
 	return _c
 }
 
+// SetNillableSerialNumber sets the "serial_number" field if the given value is not nil.
+func (_c *DeviceCreate) SetNillableSerialNumber(v *string) *DeviceCreate {
+	if v != nil {
+		_c.SetSerialNumber(*v)
+	}
+	return _c
+}
+
 // SetModel sets the "model" field.
 func (_c *DeviceCreate) SetModel(v string) *DeviceCreate {
 	_c.mutation.SetModel(v)
+	return _c
+}
+
+// SetNillableModel sets the "model" field if the given value is not nil.
+func (_c *DeviceCreate) SetNillableModel(v *string) *DeviceCreate {
+	if v != nil {
+		_c.SetModel(*v)
+	}
 	return _c
 }
 
@@ -118,7 +134,7 @@ func (_c *DeviceCreate) SetNillableUpdatedAt(v *time.Time) *DeviceCreate {
 }
 
 // SetID sets the "id" field.
-func (_c *DeviceCreate) SetID(v uint) *DeviceCreate {
+func (_c *DeviceCreate) SetID(v string) *DeviceCreate {
 	_c.mutation.SetID(v)
 	return _c
 }
@@ -179,22 +195,6 @@ func (_c *DeviceCreate) defaults() {
 
 // check runs all checks and user-defined validators on the builder.
 func (_c *DeviceCreate) check() error {
-	if _, ok := _c.mutation.SerialNumber(); !ok {
-		return &ValidationError{Name: "serial_number", err: errors.New(`ent: missing required field "Device.serial_number"`)}
-	}
-	if v, ok := _c.mutation.SerialNumber(); ok {
-		if err := device.SerialNumberValidator(v); err != nil {
-			return &ValidationError{Name: "serial_number", err: fmt.Errorf(`ent: validator failed for field "Device.serial_number": %w`, err)}
-		}
-	}
-	if _, ok := _c.mutation.Model(); !ok {
-		return &ValidationError{Name: "model", err: errors.New(`ent: missing required field "Device.model"`)}
-	}
-	if v, ok := _c.mutation.Model(); ok {
-		if err := device.ModelValidator(v); err != nil {
-			return &ValidationError{Name: "model", err: fmt.Errorf(`ent: validator failed for field "Device.model": %w`, err)}
-		}
-	}
 	if _, ok := _c.mutation.IsEnrolled(); !ok {
 		return &ValidationError{Name: "is_enrolled", err: errors.New(`ent: missing required field "Device.is_enrolled"`)}
 	}
@@ -203,6 +203,11 @@ func (_c *DeviceCreate) check() error {
 	}
 	if _, ok := _c.mutation.UpdatedAt(); !ok {
 		return &ValidationError{Name: "updated_at", err: errors.New(`ent: missing required field "Device.updated_at"`)}
+	}
+	if v, ok := _c.mutation.ID(); ok {
+		if err := device.IDValidator(v); err != nil {
+			return &ValidationError{Name: "id", err: fmt.Errorf(`ent: validator failed for field "Device.id": %w`, err)}
+		}
 	}
 	return nil
 }
@@ -218,9 +223,12 @@ func (_c *DeviceCreate) sqlSave(ctx context.Context) (*Device, error) {
 		}
 		return nil, err
 	}
-	if _spec.ID.Value != _node.ID {
-		id := _spec.ID.Value.(int64)
-		_node.ID = uint(id)
+	if _spec.ID.Value != nil {
+		if id, ok := _spec.ID.Value.(string); ok {
+			_node.ID = id
+		} else {
+			return nil, fmt.Errorf("unexpected Device.ID type: %T", _spec.ID.Value)
+		}
 	}
 	_c.mutation.id = &_node.ID
 	_c.mutation.done = true
@@ -230,7 +238,7 @@ func (_c *DeviceCreate) sqlSave(ctx context.Context) (*Device, error) {
 func (_c *DeviceCreate) createSpec() (*Device, *sqlgraph.CreateSpec) {
 	var (
 		_node = &Device{config: _c.config}
-		_spec = sqlgraph.NewCreateSpec(device.Table, sqlgraph.NewFieldSpec(device.FieldID, field.TypeUint))
+		_spec = sqlgraph.NewCreateSpec(device.Table, sqlgraph.NewFieldSpec(device.FieldID, field.TypeString))
 	)
 	if id, ok := _c.mutation.ID(); ok {
 		_node.ID = id
@@ -329,10 +337,6 @@ func (_c *DeviceCreateBulk) Save(ctx context.Context) ([]*Device, error) {
 					return nil, err
 				}
 				mutation.id = &nodes[i].ID
-				if specs[i].ID.Value != nil && nodes[i].ID == 0 {
-					id := specs[i].ID.Value.(int64)
-					nodes[i].ID = uint(id)
-				}
 				mutation.done = true
 				return nodes[i], nil
 			})
