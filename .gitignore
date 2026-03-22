@@ -36,3 +36,5 @@ go.work.sum
 Thumbs.db
 
 MDM.apidog.json
+/logs
+*/.log

@@ -17,6 +17,8 @@ services:
         condition: service_completed_successfully
     networks:
       - mdm-network
+    volumes:
+      - ./logs:/app/logs
 
   migration:
     image: arigaio/atlas
