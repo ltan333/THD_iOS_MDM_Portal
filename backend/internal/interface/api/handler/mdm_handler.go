@@ -116,4 +116,3 @@ func (h *mdmHandler) EnqueueCommand(c *gin.Context) {
 	}
 	response.OK(c, result, "Command enqueued successfully")
 }
-

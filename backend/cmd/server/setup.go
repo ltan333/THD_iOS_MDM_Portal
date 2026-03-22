@@ -56,7 +56,7 @@ func setupDependencies(cfg *config.Config) *gin.Engine {
 
 	// Handlers
 	authHandler := handler.NewAuthHandler(authService, userService, authzService)
-	userHandler := handler. NewUserHandler(userService, authzService)
+	userHandler := handler.NewUserHandler(userService, authzService)
 	policyHandler := handler.NewPolicyHandler(authzService)
 	mdmHandler := handler.NewMDMHandler(client, nanomdmService)
 	depHandler := handler.NewDEPHandler(client, authzService, nanomdmService, depProfileService)

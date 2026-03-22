@@ -176,9 +176,9 @@ func (s *nanomdmServiceImpl) UploadDEPToken(ctx context.Context, depName string,
 		return nil, err
 	}
 
-	// For token upload, NanoDEP might set Content-Type header manually in doRequest, 
+	// For token upload, NanoDEP might set Content-Type header manually in doRequest,
 	// but I updated doRequest to handle []byte body correctly.
-	
+
 	var result interface{}
 	if err := s.handleResponse(resp, &result); err != nil {
 		return nil, err

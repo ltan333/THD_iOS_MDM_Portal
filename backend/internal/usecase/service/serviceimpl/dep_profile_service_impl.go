@@ -103,27 +103,69 @@ func (s *depProfileServiceImpl) ListProfiles(ctx context.Context, offset, limit 
 // Helper mappings
 
 func mapRequestToEntity(req *dto.DEPProfileRequest, e *ent.DepProfile) {
-	if req.AllowPairing != nil { e.AllowPairing = *req.AllowPairing }
-	if req.AnchorCerts != nil { e.AnchorCerts = req.AnchorCerts }
-	if req.AutoAdvanceSetup != nil { e.AutoAdvanceSetup = *req.AutoAdvanceSetup }
-	if req.AwaitDeviceConfigured != nil { e.AwaitDeviceConfigured = *req.AwaitDeviceConfigured }
-	if req.ConfigurationWebURL != "" { e.ConfigurationWebURL = req.ConfigurationWebURL }
-	if req.Department != "" { e.Department = req.Department }
-	if req.Devices != nil { e.Devices = req.Devices }
-	if req.DoNotUseProfileFromBackup != nil { e.DoNotUseProfileFromBackup = *req.DoNotUseProfileFromBackup }
-	if req.IsReturnToService != nil { e.IsReturnToService = *req.IsReturnToService }
-	if req.IsMandatory != nil { e.IsMandatory = *req.IsMandatory }
-	if req.IsMDMRemovable != nil { e.IsMdmRemovable = *req.IsMDMRemovable }
-	if req.IsMultiUser != nil { e.IsMultiUser = *req.IsMultiUser }
-	if req.IsSupervised != nil { e.IsSupervised = *req.IsSupervised }
-	if req.Language != "" { e.Language = req.Language }
-	if req.OrgMagic != "" { e.OrgMagic = req.OrgMagic }
-	if req.Region != "" { e.Region = req.Region }
-	if req.SkipSetupItems != nil { e.SkipSetupItems = req.SkipSetupItems }
-	if req.SupervisingHostCerts != nil { e.SupervisingHostCerts = req.SupervisingHostCerts }
-	if req.SupportEmailAddress != "" { e.SupportEmailAddress = req.SupportEmailAddress }
-	if req.SupportPhoneNumber != "" { e.SupportPhoneNumber = req.SupportPhoneNumber }
-	if req.URL != "" { e.URL = req.URL }
+	if req.AllowPairing != nil {
+		e.AllowPairing = *req.AllowPairing
+	}
+	if req.AnchorCerts != nil {
+		e.AnchorCerts = req.AnchorCerts
+	}
+	if req.AutoAdvanceSetup != nil {
+		e.AutoAdvanceSetup = *req.AutoAdvanceSetup
+	}
+	if req.AwaitDeviceConfigured != nil {
+		e.AwaitDeviceConfigured = *req.AwaitDeviceConfigured
+	}
+	if req.ConfigurationWebURL != "" {
+		e.ConfigurationWebURL = req.ConfigurationWebURL
+	}
+	if req.Department != "" {
+		e.Department = req.Department
+	}
+	if req.Devices != nil {
+		e.Devices = req.Devices
+	}
+	if req.DoNotUseProfileFromBackup != nil {
+		e.DoNotUseProfileFromBackup = *req.DoNotUseProfileFromBackup
+	}
+	if req.IsReturnToService != nil {
+		e.IsReturnToService = *req.IsReturnToService
+	}
+	if req.IsMandatory != nil {
+		e.IsMandatory = *req.IsMandatory
+	}
+	if req.IsMDMRemovable != nil {
+		e.IsMdmRemovable = *req.IsMDMRemovable
+	}
+	if req.IsMultiUser != nil {
+		e.IsMultiUser = *req.IsMultiUser
+	}
+	if req.IsSupervised != nil {
+		e.IsSupervised = *req.IsSupervised
+	}
+	if req.Language != "" {
+		e.Language = req.Language
+	}
+	if req.OrgMagic != "" {
+		e.OrgMagic = req.OrgMagic
+	}
+	if req.Region != "" {
+		e.Region = req.Region
+	}
+	if req.SkipSetupItems != nil {
+		e.SkipSetupItems = req.SkipSetupItems
+	}
+	if req.SupervisingHostCerts != nil {
+		e.SupervisingHostCerts = req.SupervisingHostCerts
+	}
+	if req.SupportEmailAddress != "" {
+		e.SupportEmailAddress = req.SupportEmailAddress
+	}
+	if req.SupportPhoneNumber != "" {
+		e.SupportPhoneNumber = req.SupportPhoneNumber
+	}
+	if req.URL != "" {
+		e.URL = req.URL
+	}
 }
 
 func mapEntityToResponse(p *ent.DepProfile) *dto.DEPProfileResponse {

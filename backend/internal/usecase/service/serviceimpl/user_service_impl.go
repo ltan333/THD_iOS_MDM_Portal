@@ -118,14 +118,14 @@ func (s *userServiceImpl) Update(ctx context.Context, cmd service.UpdateUserComm
 		if !entity.IsValidUserRole(cmd.Role) {
 			return nil, apperror.ErrValidation.WithMessage("Role không hợp lệ")
 		}
-		
+
 		// Remove existing role links
 		sub := fmt.Sprintf("user:%d", user.ID)
 		roles, _ := s.authzService.GetRolesForUser(user.ID)
 		for _, r := range roles {
 			_, _ = s.authzService.RemoveRoleLink(sub, r)
 		}
-		
+
 		// Add new role link
 		if _, err := s.authzService.AddRoleLink(sub, cmd.Role); err != nil {
 			tlog.Error("Failed to update role link in Casbin", zap.Uint("user_id", user.ID), zap.String("role", cmd.Role), zap.Error(err))

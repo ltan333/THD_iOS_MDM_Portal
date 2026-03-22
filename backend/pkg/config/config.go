@@ -86,15 +86,15 @@ type SeedConfig struct {
 
 // Config holds all application configuration
 type Config struct {
-	Server    ServerConfig
-	Database  DatabaseConfig
-	JWT       JWTConfig
-	Log       LogConfig
-	Cookie    CookieConfig
-	Casbin    CasbinConfig
-	NanoCMD   NanoCMDConfig
-	NanoMDM   NanoMDMConfig
-	Seed      SeedConfig
+	Server   ServerConfig
+	Database DatabaseConfig
+	JWT      JWTConfig
+	Log      LogConfig
+	Cookie   CookieConfig
+	Casbin   CasbinConfig
+	NanoCMD  NanoCMDConfig
+	NanoMDM  NanoMDMConfig
+	Seed     SeedConfig
 
 	CORSAllowedOrigins []string `env:"CORS_ALLOWED_ORIGINS"`
 }
