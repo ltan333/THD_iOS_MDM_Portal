@@ -351,19 +351,6 @@ definitions:
       message:
         type: string
     type: object
-  ? github_com_thienel_go-backend-template_pkg_response.APIResponse-array_github_com_thienel_go-backend-template_internal_interface_api_dto_NanoCMDProfile
-  : properties:
-      data:
-        items:
-          $ref: '#/definitions/github_com_thienel_go-backend-template_internal_interface_api_dto.NanoCMDProfile'
-        type: array
-      error:
-        $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.Error'
-      is_success:
-        type: boolean
-      message:
-        type: string
-    type: object
   ? github_com_thienel_go-backend-template_pkg_response.APIResponse-array_github_com_thienel_go-backend-template_internal_usecase_service_PolicyRule
   : properties:
       data:
@@ -544,6 +531,17 @@ definitions:
       message:
         type: string
     type: object
+  ? github_com_thienel_go-backend-template_pkg_response.APIResponse-map_string_github_com_thienel_go-backend-template_internal_interface_api_dto_NanoCMDProfile
+  : properties:
+      data:
+        $ref: '#/definitions/map_string_github_com_thienel_go-backend-template_internal_interface_api_dto.NanoCMDProfile'
+      error:
+        $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.Error'
+      is_success:
+        type: boolean
+      message:
+        type: string
+    type: object
   github_com_thienel_go-backend-template_pkg_response.Error:
     properties:
       code:
@@ -561,6 +559,10 @@ definitions:
         type: string
       message:
         type: string
+    type: object
+  map_string_github_com_thienel_go-backend-template_internal_interface_api_dto.NanoCMDProfile:
+    additionalProperties:
+      $ref: '#/definitions/github_com_thienel_go-backend-template_internal_interface_api_dto.NanoCMDProfile'
     type: object
 host: localhost:8000
 info:
@@ -1058,9 +1060,9 @@ paths:
       - MDM
   /v1/nanocmd/cmdplan/{name}:
     get:
-      description: Fetch detailed command plan for a device from NanoCMD
+      description: Retrieve and return a named command plan as JSON.
       parameters:
-      - description: Device ID
+      - description: User-defined name of Command Plan.
         in: path
         name: name
         required: true
@@ -1072,6 +1074,10 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_CMDPlan'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
         "401":
           description: Unauthorized
           schema:
@@ -1080,22 +1086,26 @@ paths:
           description: Not Found
           schema:
             $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
       security:
       - BearerAuth: []
-      summary: Get command plan
+      summary: Retrieve and return a named command plan
       tags:
       - NanoCMD
     put:
       consumes:
       - application/json
-      description: Update command plan for a device
+      description: Upload a named JSON command plan.
       parameters:
-      - description: Device ID
+      - description: User-defined name of Command Plan.
         in: path
         name: name
         required: true
         type: string
-      - description: Command plan details
+      - description: Command plan.
         in: body
         name: plan
         required: true
@@ -1114,16 +1124,20 @@ paths:
           description: Unauthorized
           schema:
             $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
       security:
       - BearerAuth: []
-      summary: Update command plan
+      summary: Upload a named command plan
       tags:
       - NanoCMD
   /v1/nanocmd/event/{name}:
     get:
-      description: Get details of an event subscription by name
+      description: Retrieve the event subscription.
       parameters:
-      - description: Event name
+      - description: User-defined name of Event Subscription.
         in: path
         name: name
         required: true
@@ -1135,6 +1149,10 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_EventSubscription'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
         "401":
           description: Unauthorized
           schema:
@@ -1143,22 +1161,26 @@ paths:
           description: Not Found
           schema:
             $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
       security:
       - BearerAuth: []
-      summary: Get event subscription
+      summary: Retrieve the event subscription
       tags:
       - NanoCMD
     put:
       consumes:
       - application/json
-      description: Create or update an event subscription
+      description: Store the event subscription provided in the request body.
       parameters:
-      - description: Event name
+      - description: User-defined name of Event Subscription.
         in: path
         name: name
         required: true
         type: string
-      - description: Subscription details
+      - description: Event Subscription.
         in: body
         name: subscription
         required: true
@@ -1177,14 +1199,18 @@ paths:
           description: Unauthorized
           schema:
             $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
       security:
       - BearerAuth: []
-      summary: Update event subscription
+      summary: Store the event subscription
       tags:
       - NanoCMD
   /v1/nanocmd/fvenable/profiletemplate:
     get:
-      description: Get the Apple Configuration Profile template for enabling FileVault
+      description: Returns the FileVault enable Configuration Profile template.
       produces:
       - application/x-apple-aspen-config
       responses:
@@ -1198,19 +1224,21 @@ paths:
             $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
       security:
       - BearerAuth: []
-      summary: Get FileVault enable profile template
+      summary: Returns the FileVault enable Configuration Profile template
       tags:
       - NanoCMD
   /v1/nanocmd/inventory:
     get:
-      description: Fetch inventory metadata for specific devices
+      description: Retrieve inventory data for enrollment IDs.
       parameters:
       - collectionFormat: csv
-        description: Device IDs
+        description: Enrollment ID. Unique identifier of MDM enrollment. Often a device
+          UDID or a user channel UUID.
         in: query
         items:
           type: string
         name: id
+        required: true
         type: array
       produces:
       - application/json
@@ -1219,20 +1247,28 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_NanoCMDInventoryResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
         "401":
           description: Unauthorized
           schema:
             $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
       security:
       - BearerAuth: []
-      summary: Get device inventory
+      summary: Retrieve inventory data for enrollment IDs
       tags:
       - NanoCMD
   /v1/nanocmd/profile/{name}:
     delete:
-      description: Remove a profile from NanoCMD
+      description: Deletes the named profile.
       parameters:
-      - description: Profile name
+      - description: User-defined name of Profile.
         in: path
         name: name
         required: true
@@ -1240,6 +1276,10 @@ paths:
       responses:
         "204":
           description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
         "401":
           description: Unauthorized
           schema:
@@ -1248,15 +1288,19 @@ paths:
           description: Not Found
           schema:
             $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
       security:
       - BearerAuth: []
-      summary: Delete profile
+      summary: Deletes the named profile
       tags:
       - NanoCMD
     get:
-      description: Fetch an Apple Configuration Profile from NanoCMD
+      description: Fetches the named raw profile.
       parameters:
-      - description: Profile name
+      - description: User-defined name of Profile.
         in: path
         name: name
         required: true
@@ -1268,6 +1312,10 @@ paths:
           description: Apple Configuration Profile
           schema:
             type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
         "401":
           description: Unauthorized
           schema:
@@ -1276,22 +1324,26 @@ paths:
           description: Not Found
           schema:
             $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
       security:
       - BearerAuth: []
-      summary: Get profile by name
+      summary: Fetches the named raw profile
       tags:
       - NanoCMD
     put:
       consumes:
       - application/x-apple-aspen-config
-      description: Upload an Apple Configuration Profile to NanoCMD
+      description: Uploads a raw profile. Signed profiles also supported.
       parameters:
-      - description: Profile name
+      - description: User-defined name of Profile.
         in: path
         name: name
         required: true
         type: string
-      - description: Profile XML data
+      - description: Raw profile mobileconfig.
         in: body
         name: data
         required: true
@@ -1308,17 +1360,21 @@ paths:
           description: Unauthorized
           schema:
             $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
       security:
       - BearerAuth: []
-      summary: Create or update profile
+      summary: Uploads a raw profile
       tags:
       - NanoCMD
   /v1/nanocmd/profiles:
     get:
-      description: Get a list of profiles by name
+      description: Retrieve profile metadata.
       parameters:
       - collectionFormat: csv
-        description: Profile names
+        description: User-defined name of profile.
         in: query
         items:
           type: string
@@ -1330,14 +1386,18 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-array_github_com_thienel_go-backend-template_internal_interface_api_dto_NanoCMDProfile'
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-map_string_github_com_thienel_go-backend-template_internal_interface_api_dto_NanoCMDProfile'
         "401":
           description: Unauthorized
           schema:
             $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
       security:
       - BearerAuth: []
-      summary: List profiles
+      summary: Retrieve profile metadata
       tags:
       - NanoCMD
   /v1/nanocmd/version:
@@ -1356,14 +1416,14 @@ paths:
             $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
       security:
       - BearerAuth: []
-      summary: Get NanoCMD version
+      summary: Returns the running NanoCMD server version
       tags:
       - NanoCMD
   /v1/nanocmd/webhook:
     post:
       consumes:
       - application/json
-      description: Endpoint for NanoCMD to send event notifications
+      description: Handler for MicroMDM-compatible webhook callback.
       parameters:
       - description: Webhook payload
         in: body
@@ -1382,26 +1442,32 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
       summary: NanoCMD Webhook
       tags:
       - NanoCMD
   /v1/nanocmd/workflow/{name}/start:
     post:
-      description: Initiate a NanoCMD workflow on specific devices
+      description: Start a workflow.
       parameters:
-      - description: Workflow name
+      - description: Name of NanoCMD workflow.
         in: path
         name: name
         required: true
         type: string
       - collectionFormat: csv
-        description: Device IDs
+        description: Enrollment ID. Unique identifier of MDM enrollment. Often a device
+          UDID or a user channel UUID.
         in: query
         items:
           type: string
         name: id
+        required: true
         type: array
-      - description: Workflow context
+      - description: Workflow-dependent context.
         in: query
         name: context
         type: string
@@ -1412,8 +1478,16 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_NanoCMDWorkflowStartResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
         "401":
           description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+        "500":
+          description: Internal Server Error
           schema:
             $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
       security:

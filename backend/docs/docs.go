@@ -787,18 +787,18 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Fetch detailed command plan for a device from NanoCMD",
+                "description": "Retrieve and return a named command plan as JSON.",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "NanoCMD"
                 ],
-                "summary": "Get command plan",
+                "summary": "Retrieve and return a named command plan",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Device ID",
+                        "description": "User-defined name of Command Plan.",
                         "name": "name",
                         "in": "path",
                         "required": true
@@ -809,6 +809,12 @@ const docTemplate = `{
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_CMDPlan"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any"
                         }
                     },
                     "401": {
@@ -822,6 +828,12 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any"
                         }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any"
+                        }
                     }
                 }
             },
@@ -831,7 +843,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Update command plan for a device",
+                "description": "Upload a named JSON command plan.",
                 "consumes": [
                     "application/json"
                 ],
@@ -841,17 +853,17 @@ const docTemplate = `{
                 "tags": [
                     "NanoCMD"
                 ],
-                "summary": "Update command plan",
+                "summary": "Upload a named command plan",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Device ID",
+                        "description": "User-defined name of Command Plan.",
                         "name": "name",
                         "in": "path",
                         "required": true
                     },
                     {
-                        "description": "Command plan details",
+                        "description": "Command plan.",
                         "name": "plan",
                         "in": "body",
                         "required": true,
@@ -875,6 +887,12 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any"
                         }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any"
+                        }
                     }
                 }
             }
@@ -886,18 +904,18 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Get details of an event subscription by name",
+                "description": "Retrieve the event subscription.",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "NanoCMD"
                 ],
-                "summary": "Get event subscription",
+                "summary": "Retrieve the event subscription",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Event name",
+                        "description": "User-defined name of Event Subscription.",
                         "name": "name",
                         "in": "path",
                         "required": true
@@ -908,6 +926,12 @@ const docTemplate = `{
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_EventSubscription"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any"
                         }
                     },
                     "401": {
@@ -921,6 +945,12 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any"
                         }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any"
+                        }
                     }
                 }
             },
@@ -930,7 +960,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Create or update an event subscription",
+                "description": "Store the event subscription provided in the request body.",
                 "consumes": [
                     "application/json"
                 ],
@@ -940,17 +970,17 @@ const docTemplate = `{
                 "tags": [
                     "NanoCMD"
                 ],
-                "summary": "Update event subscription",
+                "summary": "Store the event subscription",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Event name",
+                        "description": "User-defined name of Event Subscription.",
                         "name": "name",
                         "in": "path",
                         "required": true
                     },
                     {
-                        "description": "Subscription details",
+                        "description": "Event Subscription.",
                         "name": "subscription",
                         "in": "body",
                         "required": true,
@@ -974,6 +1004,12 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any"
                         }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any"
+                        }
                     }
                 }
             }
@@ -985,14 +1021,14 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Get the Apple Configuration Profile template for enabling FileVault",
+                "description": "Returns the FileVault enable Configuration Profile template.",
                 "produces": [
                     "application/x-apple-aspen-config"
                 ],
                 "tags": [
                     "NanoCMD"
                 ],
-                "summary": "Get FileVault enable profile template",
+                "summary": "Returns the FileVault enable Configuration Profile template",
                 "responses": {
                     "200": {
                         "description": "Apple Configuration Profile",
@@ -1016,14 +1052,14 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Fetch inventory metadata for specific devices",
+                "description": "Retrieve inventory data for enrollment IDs.",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "NanoCMD"
                 ],
-                "summary": "Get device inventory",
+                "summary": "Retrieve inventory data for enrollment IDs",
                 "parameters": [
                     {
                         "type": "array",
@@ -1031,9 +1067,10 @@ const docTemplate = `{
                             "type": "string"
                         },
                         "collectionFormat": "csv",
-                        "description": "Device IDs",
+                        "description": "Enrollment ID. Unique identifier of MDM enrollment. Often a device UDID or a user channel UUID.",
                         "name": "id",
-                        "in": "query"
+                        "in": "query",
+                        "required": true
                     }
                 ],
                 "responses": {
@@ -1043,8 +1080,20 @@ const docTemplate = `{
                             "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_NanoCMDInventoryResponse"
                         }
                     },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any"
+                        }
+                    },
                     "401": {
                         "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
                         "schema": {
                             "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any"
                         }
@@ -1059,18 +1108,18 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Fetch an Apple Configuration Profile from NanoCMD",
+                "description": "Fetches the named raw profile.",
                 "produces": [
                     "application/x-apple-aspen-config"
                 ],
                 "tags": [
                     "NanoCMD"
                 ],
-                "summary": "Get profile by name",
+                "summary": "Fetches the named raw profile",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Profile name",
+                        "description": "User-defined name of Profile.",
                         "name": "name",
                         "in": "path",
                         "required": true
@@ -1081,6 +1130,12 @@ const docTemplate = `{
                         "description": "Apple Configuration Profile",
                         "schema": {
                             "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any"
                         }
                     },
                     "401": {
@@ -1094,6 +1149,12 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any"
                         }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any"
+                        }
                     }
                 }
             },
@@ -1103,24 +1164,24 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Upload an Apple Configuration Profile to NanoCMD",
+                "description": "Uploads a raw profile. Signed profiles also supported.",
                 "consumes": [
                     "application/x-apple-aspen-config"
                 ],
                 "tags": [
                     "NanoCMD"
                 ],
-                "summary": "Create or update profile",
+                "summary": "Uploads a raw profile",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Profile name",
+                        "description": "User-defined name of Profile.",
                         "name": "name",
                         "in": "path",
                         "required": true
                     },
                     {
-                        "description": "Profile XML data",
+                        "description": "Raw profile mobileconfig.",
                         "name": "data",
                         "in": "body",
                         "required": true,
@@ -1144,6 +1205,12 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any"
                         }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any"
+                        }
                     }
                 }
             },
@@ -1153,15 +1220,15 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Remove a profile from NanoCMD",
+                "description": "Deletes the named profile.",
                 "tags": [
                     "NanoCMD"
                 ],
-                "summary": "Delete profile",
+                "summary": "Deletes the named profile",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Profile name",
+                        "description": "User-defined name of Profile.",
                         "name": "name",
                         "in": "path",
                         "required": true
@@ -1171,6 +1238,12 @@ const docTemplate = `{
                     "204": {
                         "description": "No Content"
                     },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any"
+                        }
+                    },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
@@ -1179,6 +1252,12 @@ const docTemplate = `{
                     },
                     "404": {
                         "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
                         "schema": {
                             "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any"
                         }
@@ -1193,14 +1272,14 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Get a list of profiles by name",
+                "description": "Retrieve profile metadata.",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "NanoCMD"
                 ],
-                "summary": "List profiles",
+                "summary": "Retrieve profile metadata",
                 "parameters": [
                     {
                         "type": "array",
@@ -1208,7 +1287,7 @@ const docTemplate = `{
                             "type": "string"
                         },
                         "collectionFormat": "csv",
-                        "description": "Profile names",
+                        "description": "User-defined name of profile.",
                         "name": "name",
                         "in": "query"
                     }
@@ -1217,11 +1296,17 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-array_github_com_thienel_go-backend-template_internal_interface_api_dto_NanoCMDProfile"
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-map_string_github_com_thienel_go-backend-template_internal_interface_api_dto_NanoCMDProfile"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
                         "schema": {
                             "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any"
                         }
@@ -1243,7 +1328,7 @@ const docTemplate = `{
                 "tags": [
                     "NanoCMD"
                 ],
-                "summary": "Get NanoCMD version",
+                "summary": "Returns the running NanoCMD server version",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -1262,7 +1347,7 @@ const docTemplate = `{
         },
         "/v1/nanocmd/webhook": {
             "post": {
-                "description": "Endpoint for NanoCMD to send event notifications",
+                "description": "Handler for MicroMDM-compatible webhook callback.",
                 "consumes": [
                     "application/json"
                 ],
@@ -1296,6 +1381,12 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any"
                         }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any"
+                        }
                     }
                 }
             }
@@ -1307,7 +1398,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Initiate a NanoCMD workflow on specific devices",
+                "description": "Start a workflow.",
                 "produces": [
                     "application/json"
                 ],
@@ -1318,7 +1409,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Workflow name",
+                        "description": "Name of NanoCMD workflow.",
                         "name": "name",
                         "in": "path",
                         "required": true
@@ -1329,13 +1420,14 @@ const docTemplate = `{
                             "type": "string"
                         },
                         "collectionFormat": "csv",
-                        "description": "Device IDs",
+                        "description": "Enrollment ID. Unique identifier of MDM enrollment. Often a device UDID or a user channel UUID.",
                         "name": "id",
-                        "in": "query"
+                        "in": "query",
+                        "required": true
                     },
                     {
                         "type": "string",
-                        "description": "Workflow context",
+                        "description": "Workflow-dependent context.",
                         "name": "context",
                         "in": "query"
                     }
@@ -1347,8 +1439,20 @@ const docTemplate = `{
                             "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_NanoCMDWorkflowStartResponse"
                         }
                     },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any"
+                        }
+                    },
                     "401": {
                         "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
                         "schema": {
                             "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any"
                         }
@@ -2503,26 +2607,6 @@ const docTemplate = `{
                 }
             }
         },
-        "github_com_thienel_go-backend-template_pkg_response.APIResponse-array_github_com_thienel_go-backend-template_internal_interface_api_dto_NanoCMDProfile": {
-            "type": "object",
-            "properties": {
-                "data": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/github_com_thienel_go-backend-template_internal_interface_api_dto.NanoCMDProfile"
-                    }
-                },
-                "error": {
-                    "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.Error"
-                },
-                "is_success": {
-                    "type": "boolean"
-                },
-                "message": {
-                    "type": "string"
-                }
-            }
-        },
         "github_com_thienel_go-backend-template_pkg_response.APIResponse-array_github_com_thienel_go-backend-template_internal_usecase_service_PolicyRule": {
             "type": "object",
             "properties": {
@@ -2801,6 +2885,23 @@ const docTemplate = `{
                 }
             }
         },
+        "github_com_thienel_go-backend-template_pkg_response.APIResponse-map_string_github_com_thienel_go-backend-template_internal_interface_api_dto_NanoCMDProfile": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/map_string_github_com_thienel_go-backend-template_internal_interface_api_dto.NanoCMDProfile"
+                },
+                "error": {
+                    "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.Error"
+                },
+                "is_success": {
+                    "type": "boolean"
+                },
+                "message": {
+                    "type": "string"
+                }
+            }
+        },
         "github_com_thienel_go-backend-template_pkg_response.Error": {
             "type": "object",
             "properties": {
@@ -2827,6 +2928,12 @@ const docTemplate = `{
                 "message": {
                     "type": "string"
                 }
+            }
+        },
+        "map_string_github_com_thienel_go-backend-template_internal_interface_api_dto.NanoCMDProfile": {
+            "type": "object",
+            "additionalProperties": {
+                "$ref": "#/definitions/github_com_thienel_go-backend-template_internal_interface_api_dto.NanoCMDProfile"
             }
         }
     },
