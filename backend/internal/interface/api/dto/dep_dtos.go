@@ -94,3 +94,45 @@ type DEPAssignerResponse struct {
 type DEPDevicesRequest struct {
 	Devices []string `json:"devices" example:"G0NXR2GUKPFQ"`
 }
+
+// DEPNamesQueryResponse matches NanoDEP /v1/dep_names response
+type DEPNamesQueryResponse struct {
+	DEPNames   []string `json:"dep_names"`
+	NextCursor string   `json:"next_cursor,omitempty"`
+}
+
+// OAuth1Tokens matches NanoDEP /v1/tokens/{name}
+type OAuth1Tokens struct {
+	ConsumerKey       string    `json:"consumer_key"`
+	ConsumerSecret    string    `json:"consumer_secret"`
+	AccessToken       string    `json:"access_token"`
+	AccessSecret      string    `json:"access_secret"`
+	AccessTokenExpiry time.Time `json:"access_token_expiry"`
+}
+
+// BypassCodeResponse matches NanoDEP /v1/bypasscode
+type BypassCodeResponse struct {
+	Raw  string `json:"raw"`
+	Code string `json:"code"`
+	Hash string `json:"hash"`
+}
+
+// DEPConfig matches NanoDEP /v1/config/{name}
+type DEPConfig struct {
+	BaseURL string `json:"base_url"`
+}
+
+// AssignerProfileUUID matches NanoDEP /v1/assigner/{name}
+type AssignerProfileUUID struct {
+	ProfileUUID string `json:"profile_uuid"`
+}
+
+// NanoDEPVersionResponse matches NanoDEP /version
+type NanoDEPVersionResponse struct {
+	Version string `json:"version"`
+}
+
+// NanoDEPErrorResponse matches NanoDEP error response
+type NanoDEPErrorResponse struct {
+	Error string `json:"error"`
+}

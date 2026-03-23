@@ -230,62 +230,99 @@ func (s *nanomdmServiceImpl) GetPushCert(ctx context.Context, topic string) (*dt
 	return &result, nil
 }
 
-func (s *nanomdmServiceImpl) ListDEPNames(ctx context.Context) (interface{}, error) {
-	resp, err := s.doRequest(ctx, http.MethodGet, s.depBaseURL, "/v1/dep_names", nil, nil, s.depUsername, s.depPassword)
+func (s *nanomdmServiceImpl) ListDEPNames(ctx context.Context, depNames []string, limit, offset int, cursor string) (*dto.DEPNamesQueryResponse, error) {
+	query := url.Values{}
+	for _, name := range depNames {
+		query.Add("dep_name", name)
+	}
+	if limit > 0 {
+		query.Set("limit", fmt.Sprintf("%d", limit))
+	}
+	if offset > 0 {
+		query.Set("offset", fmt.Sprintf("%d", offset))
+	}
+	if cursor != "" {
+		query.Set("cursor", cursor)
+	}
+
+	resp, err := s.doRequest(ctx, http.MethodGet, s.depBaseURL, "/v1/dep_names", nil, query, s.depUsername, s.depPassword)
 	if err != nil {
 		return nil, err
 	}
 
-	var result interface{}
+	var result dto.DEPNamesQueryResponse
 	if err := s.handleResponse(resp, &result); err != nil {
 		return nil, err
 	}
-	return result, nil
+	return &result, nil
 }
 
-func (s *nanomdmServiceImpl) GetDEPConfig(ctx context.Context, depName string) (interface{}, error) {
+func (s *nanomdmServiceImpl) GetDEPVersion(ctx context.Context) (*dto.NanoDEPVersionResponse, error) {
+	resp, err := s.doRequest(ctx, http.MethodGet, s.depBaseURL, "/version", nil, nil, s.depUsername, s.depPassword)
+	if err != nil {
+		return nil, err
+	}
+
+	var result dto.NanoDEPVersionResponse
+	if err := s.handleResponse(resp, &result); err != nil {
+		return nil, err
+	}
+	return &result, nil
+}
+
+func (s *nanomdmServiceImpl) GetDEPConfig(ctx context.Context, depName string) (*dto.DEPConfig, error) {
 	resp, err := s.doRequest(ctx, http.MethodGet, s.depBaseURL, fmt.Sprintf("/v1/config/%s", depName), nil, nil, s.depUsername, s.depPassword)
 	if err != nil {
 		return nil, err
 	}
 
-	var result interface{}
+	var result dto.DEPConfig
 	if err := s.handleResponse(resp, &result); err != nil {
 		return nil, err
 	}
-	return result, nil
+	return &result, nil
 }
 
-func (s *nanomdmServiceImpl) GetDEPAssigner(ctx context.Context, depName string) (interface{}, error) {
+func (s *nanomdmServiceImpl) SetDEPConfig(ctx context.Context, depName string, config *dto.DEPConfig) (*dto.DEPConfig, error) {
+	resp, err := s.doRequest(ctx, http.MethodPut, s.depBaseURL, fmt.Sprintf("/v1/config/%s", depName), config, nil, s.depUsername, s.depPassword)
+	if err != nil {
+		return nil, err
+	}
+
+	var result dto.DEPConfig
+	if err := s.handleResponse(resp, &result); err != nil {
+		return nil, err
+	}
+	return &result, nil
+}
+
+func (s *nanomdmServiceImpl) GetDEPAssigner(ctx context.Context, depName string) (*dto.AssignerProfileUUID, error) {
 	resp, err := s.doRequest(ctx, http.MethodGet, s.depBaseURL, fmt.Sprintf("/v1/assigner/%s", depName), nil, nil, s.depUsername, s.depPassword)
 	if err != nil {
 		return nil, err
 	}
 
-	var result interface{}
+	var result dto.AssignerProfileUUID
 	if err := s.handleResponse(resp, &result); err != nil {
 		return nil, err
 	}
-	return result, nil
+	return &result, nil
 }
 
-func (s *nanomdmServiceImpl) SetDEPAssigner(ctx context.Context, depName string, assigner interface{}) (interface{}, error) {
-	var query url.Values
-	if uuid, ok := assigner.(string); ok && uuid != "" {
-		query = url.Values{}
-		query.Set("profile_uuid", uuid)
-	}
+func (s *nanomdmServiceImpl) SetDEPAssigner(ctx context.Context, depName string, profileUUID string) (*dto.AssignerProfileUUID, error) {
+	query := url.Values{}
+	query.Set("profile_uuid", profileUUID)
 
 	resp, err := s.doRequest(ctx, http.MethodPut, s.depBaseURL, fmt.Sprintf("/v1/assigner/%s", depName), nil, query, s.depUsername, s.depPassword)
 	if err != nil {
 		return nil, err
 	}
 
-	var result interface{}
+	var result dto.AssignerProfileUUID
 	if err := s.handleResponse(resp, &result); err != nil {
 		return nil, err
 	}
-	return result, nil
+	return &result, nil
 }
 
 func (s *nanomdmServiceImpl) GetDEPAccount(ctx context.Context, depName string) (interface{}, error) {
@@ -329,17 +366,104 @@ func (s *nanomdmServiceImpl) GetDEPDevices(ctx context.Context, depName string, 
 	return result, nil
 }
 
-func (s *nanomdmServiceImpl) GetDEPTokens(ctx context.Context, depName string) (interface{}, error) {
+func (s *nanomdmServiceImpl) GetDEPTokens(ctx context.Context, depName string) (*dto.OAuth1Tokens, error) {
 	resp, err := s.doRequest(ctx, http.MethodGet, s.depBaseURL, fmt.Sprintf("/v1/tokens/%s", depName), nil, nil, s.depUsername, s.depPassword)
 	if err != nil {
 		return nil, err
 	}
 
-	var result interface{}
+	var result dto.OAuth1Tokens
 	if err := s.handleResponse(resp, &result); err != nil {
 		return nil, err
 	}
-	return result, nil
+	return &result, nil
+}
+
+func (s *nanomdmServiceImpl) UpdateDEPTokens(ctx context.Context, depName string, tokens *dto.OAuth1Tokens) (*dto.OAuth1Tokens, error) {
+	resp, err := s.doRequest(ctx, http.MethodPut, s.depBaseURL, fmt.Sprintf("/v1/tokens/%s", depName), tokens, nil, s.depUsername, s.depPassword)
+	if err != nil {
+		return nil, err
+	}
+
+	var result dto.OAuth1Tokens
+	if err := s.handleResponse(resp, &result); err != nil {
+		return nil, err
+	}
+	return &result, nil
+}
+
+func (s *nanomdmServiceImpl) GetDEPTokenPKI(ctx context.Context, depName string, cn string, validityDays int) ([]byte, string, error) {
+	query := url.Values{}
+	if cn != "" {
+		query.Set("cn", cn)
+	}
+	if validityDays > 0 {
+		query.Set("validity_days", fmt.Sprintf("%d", validityDays))
+	}
+
+	resp, err := s.doRequest(ctx, http.MethodGet, s.depBaseURL, fmt.Sprintf("/v1/tokenpki/%s", depName), nil, query, s.depUsername, s.depPassword)
+	if err != nil {
+		return nil, "", err
+	}
+	defer func() { _ = resp.Body.Close() }()
+
+	if resp.StatusCode != http.StatusOK {
+		body, _ := io.ReadAll(resp.Body)
+		return nil, "", fmt.Errorf("nanodep error: status %d, body: %s", resp.StatusCode, string(body))
+	}
+
+	contentDisp := resp.Header.Get("Content-Disposition")
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, "", err
+	}
+
+	return body, contentDisp, nil
+}
+
+func (s *nanomdmServiceImpl) GetMAIDJWT(ctx context.Context, depName string, serverUUID string) (string, string, string, error) {
+	query := url.Values{}
+	if serverUUID != "" {
+		query.Set("server_uuid", serverUUID)
+	}
+
+	resp, err := s.doRequest(ctx, http.MethodGet, s.depBaseURL, fmt.Sprintf("/v1/maidjwt/%s", depName), nil, query, s.depUsername, s.depPassword)
+	if err != nil {
+		return "", "", "", err
+	}
+	defer func() { _ = resp.Body.Close() }()
+
+	if resp.StatusCode != http.StatusOK {
+		body, _ := io.ReadAll(resp.Body)
+		return "", "", "", fmt.Errorf("nanodep error: status %d, body: %s", resp.StatusCode, string(body))
+	}
+
+	jwt, _ := io.ReadAll(resp.Body)
+	serverUuidHeader := resp.Header.Get("X-Server-Uuid")
+	jtiHeader := resp.Header.Get("X-Jwt-Jti")
+
+	return string(jwt), serverUuidHeader, jtiHeader, nil
+}
+
+func (s *nanomdmServiceImpl) GetBypassCode(ctx context.Context, code, raw string) (*dto.BypassCodeResponse, error) {
+	query := url.Values{}
+	if code != "" {
+		query.Set("code", code)
+	}
+	if raw != "" {
+		query.Set("raw", raw)
+	}
+
+	resp, err := s.doRequest(ctx, http.MethodGet, s.depBaseURL, "/v1/bypasscode", nil, query, s.depUsername, s.depPassword)
+	if err != nil {
+		return nil, err
+	}
+
+	var result dto.BypassCodeResponse
+	if err := s.handleResponse(resp, &result); err != nil {
+		return nil, err
+	}
+	return &result, nil
 }
 
 func (s *nanomdmServiceImpl) EnqueueCommand(ctx context.Context, udid string, cmdData []byte) (*dto.APIResult, error) {

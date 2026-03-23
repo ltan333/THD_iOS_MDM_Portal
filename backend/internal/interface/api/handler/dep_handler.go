@@ -1,9 +1,8 @@
 package handler
 
 import (
-	"context"
-	"os"
-	"path/filepath"
+	"fmt"
+	"io"
 
 	"github.com/gin-gonic/gin"
 
@@ -17,7 +16,8 @@ import (
 )
 
 type DEPHandler interface {
-	PutToken(c *gin.Context)
+	PutTokenPKI(c *gin.Context)
+	GetTokenPKI(c *gin.Context)
 	GetToken(c *gin.Context)
 	SyncDevices(c *gin.Context)
 	DefineProfile(c *gin.Context)
@@ -25,14 +25,19 @@ type DEPHandler interface {
 	ListProfiles(c *gin.Context)
 	DisownDevice(c *gin.Context)
 
-	// New methods from apidog
+	// New methods from apidog / NanoDEP spec
 	ListNames(c *gin.Context)
 	GetConfig(c *gin.Context)
+	PutConfig(c *gin.Context)
 	GetAssigner(c *gin.Context)
 	SetAssigner(c *gin.Context)
 	GetAccount(c *gin.Context)
 	GetDevices(c *gin.Context)
 	GetTokens(c *gin.Context)
+	UpdateTokens(c *gin.Context)
+	GetMAIDJWT(c *gin.Context)
+	GetBypassCode(c *gin.Context)
+	GetVersion(c *gin.Context)
 }
 
 type depHandler struct {
@@ -56,79 +61,76 @@ func NewDEPHandler(
 	}
 }
 
-// PutToken godoc
-// @Summary Upload DEP token
-// @Description Upload or update a DEP token (.p7m file) for a specific name
+// PutTokenPKI godoc
+// @Summary Upload and decrypt DEP OAuth1 tokens
+// @Description Decrypt the OAuth1 tokens from the Apple ABM/ASM/BE portal and store them.
 // @Tags DEP
-// @Accept multipart/form-data
+// @Accept application/pkcs7-mime
 // @Produce json
-// @Param name path string true "Token name"
-// @Param token formData file true "DEP Token file (.p7m)"
-// @Success 200 {object} response.APIResponse[dto.DEPTokenResponse]
+// @Param name path string true "Name of DEP server instance"
+// @Param force query string false "Bypass the Consumer Key mismatch check (1 to enable)"
+// @Param token body string true "Contents of the .p7m file from Apple"
+// @Success 200 {object} response.APIResponse[dto.OAuth1Tokens]
 // @Failure 400 {object} response.APIResponse[any]
 // @Failure 401 {object} response.APIResponse[any]
+// @Failure 500 {object} response.APIResponse[any]
 // @Security BearerAuth
-// @Router /v1/dep/token/{name} [put]
-func (h *depHandler) PutToken(c *gin.Context) {
+// @Router /v1/dep/tokenpki/{name} [put]
+func (h *depHandler) PutTokenPKI(c *gin.Context) {
 	name := c.Param("name")
 	if name == "" {
 		response.WriteErrorResponse(c, apperror.ErrBadRequest.WithMessage("Tham số name là bắt buộc"))
 		return
 	}
-	file, err := c.FormFile("token")
-	if err != nil {
-		response.WriteErrorResponse(c, apperror.ErrBadRequest.WithMessage("Token file is required"))
-		return
-	}
 
-	dst := filepath.Join("storage", "certs", name+"_token.p7m")
-	if err := c.SaveUploadedFile(file, dst); err != nil {
-		response.WriteErrorResponse(c, apperror.ErrInternalServerError.WithError(err))
-		return
-	}
-
-	// Check if exists
-	existing, _ := h.client.DEPToken.Query().Where(deptoken.IDEQ(name)).Only(context.Background())
-
-	var token *ent.DEPToken
-	if existing != nil {
-		token, err = h.client.DEPToken.
-			UpdateOne(existing).
-			Save(context.Background())
-	} else {
-		token, err = h.client.DEPToken.
-			Create().
-			SetID(name).
-			Save(context.Background())
-	}
-
-	if err != nil {
-		response.WriteErrorResponse(c, apperror.ErrInternalServerError.WithError(err))
-		return
-	}
-
-	// Read file for NanoMDM upload
-	tokenData, err := os.ReadFile(dst)
-	if err != nil {
-		response.WriteErrorResponse(c, apperror.ErrInternalServerError.WithError(err))
-		return
-	}
-
-	// Upload to NanoMDM
-	_, err = h.mdmService.UploadDEPToken(c.Request.Context(), name, tokenData)
+	data, err := io.ReadAll(c.Request.Body)
 	if err != nil {
 		response.WriteErrorResponse(c, err)
 		return
 	}
 
-	response.OK(c, dto.DEPTokenResponse{
-		ID:                token.ID,
-		TokenpkiCertPem:   token.TokenpkiCertPem,
-		TokenpkiKey_pem:   token.TokenpkiKeyPem,
-		AccessTokenExpiry: &token.AccessTokenExpiry,
-		CreatedAt:         token.CreatedAt,
-		UpdatedAt:         token.UpdatedAt,
-	}, "Token saved and uploaded to MDM successfully")
+	result, err := h.mdmService.UploadDEPToken(c.Request.Context(), name, data)
+	if err != nil {
+		response.WriteErrorResponse(c, err)
+		return
+	}
+
+	response.OK(c, result, "Token decrypted and saved successfully")
+}
+
+// GetTokenPKI godoc
+// @Summary Generate and retrieve DEP token PKI certificate
+// @Description Generate and store a new X.509 certificate and RSA private key for exchanging encrypted DEP OAuth1 tokens.
+// @Tags DEP
+// @Produce application/x-pem-file
+// @Param name path string true "Name of DEP server instance"
+// @Param cn query string false "Common Name"
+// @Param validity_days query int false "Validity days"
+// @Success 200 {string} string "X.509 certificate PEM"
+// @Failure 400 {object} response.APIResponse[any]
+// @Failure 401 {object} response.APIResponse[any]
+// @Failure 500 {object} response.APIResponse[any]
+// @Security BearerAuth
+// @Router /v1/dep/tokenpki/{name} [get]
+func (h *depHandler) GetTokenPKI(c *gin.Context) {
+	name := c.Param("name")
+	cn := c.Query("cn")
+	valDaysStr := c.Query("validity_days")
+	var valDays int
+	if valDaysStr != "" {
+		fmt.Sscanf(valDaysStr, "%d", &valDays)
+	}
+
+	cert, contentDisp, err := h.mdmService.GetDEPTokenPKI(c.Request.Context(), name, cn, valDays)
+	if err != nil {
+		response.WriteErrorResponse(c, err)
+		return
+	}
+
+	if contentDisp != "" {
+		c.Header("Content-Disposition", contentDisp)
+	}
+	c.Data(200, "application/x-pem-file", cert)
 }
 
 // GetToken godoc
@@ -150,10 +152,10 @@ func (h *depHandler) GetToken(c *gin.Context) {
 	}
 	// For compat with apidog, we might want to return the PEM info from NanoMDM instead of local DB
 	// But let's check local DB first
-	token, _ := h.client.DEPToken.
+	token := h.client.DEPToken.
 		Query().
 		Where(deptoken.IDEQ(name)).
-		Only(context.Background())
+		OnlyX(c.Request.Context())
 
 	if token == nil {
 		response.WriteErrorResponse(c, apperror.ErrNotFound.WithMessage("Token not found"))
@@ -308,14 +310,30 @@ func (h *depHandler) DisownDevice(c *gin.Context) {
 }
 
 // ListNames godoc
-// @Summary List DEP names
-// @Description List all configured DEP names in NanoDEP
+// @Summary Query DEP names
+// @Description Query DEP names with optional filters and pagination.
 // @Tags DEP
 // @Produce json
+// @Param dep_name query []string false "Filter by DEP names"
+// @Param limit query int false "Limits number of results" default(100)
+// @Param offset query int false "Offset results"
+// @Param cursor query string false "Pagination cursor"
+// @Success 200 {object} response.APIResponse[dto.DEPNamesQueryResponse]
+// @Failure 400 {object} response.APIResponse[any]
+// @Failure 500 {object} response.APIResponse[any]
 // @Security BearerAuth
-// @Router /v1/dep/names [get]
+// @Router /v1/dep/dep_names [get]
 func (h *depHandler) ListNames(c *gin.Context) {
-	result, err := h.mdmService.ListDEPNames(c.Request.Context())
+	depNames := c.QueryArray("dep_name")
+	limitStr := c.DefaultQuery("limit", "100")
+	offsetStr := c.DefaultQuery("offset", "0")
+	cursor := c.Query("cursor")
+
+	var limit, offset int
+	fmt.Sscanf(limitStr, "%d", &limit)
+	fmt.Sscanf(offsetStr, "%d", &offset)
+
+	result, err := h.mdmService.ListDEPNames(c.Request.Context(), depNames, limit, offset, cursor)
 	if err != nil {
 		response.WriteErrorResponse(c, err)
 		return
@@ -324,19 +342,17 @@ func (h *depHandler) ListNames(c *gin.Context) {
 }
 
 // GetConfig godoc
-// @Summary Get DEP config
-// @Description Get configuration for a specific DEP name
+// @Summary Return the config for the given DEP name
+// @Description Return the config for the given DEP name.
 // @Tags DEP
 // @Produce json
-// @Param name path string true "DEP name"
+// @Param name path string true "Name of DEP server instance"
+// @Success 200 {object} response.APIResponse[dto.DEPConfig]
+// @Failure 401 {object} response.APIResponse[any]
 // @Security BearerAuth
 // @Router /v1/dep/config/{name} [get]
 func (h *depHandler) GetConfig(c *gin.Context) {
 	name := c.Param("name")
-	if name == "" {
-		response.WriteErrorResponse(c, apperror.ErrBadRequest.WithMessage("Tham số name là bắt buộc"))
-		return
-	}
 	result, err := h.mdmService.GetDEPConfig(c.Request.Context(), name)
 	if err != nil {
 		response.WriteErrorResponse(c, err)
@@ -345,20 +361,46 @@ func (h *depHandler) GetConfig(c *gin.Context) {
 	response.OK(c, result, "Config retrieved successfully")
 }
 
+// PutConfig godoc
+// @Summary Set the config for the given DEP name
+// @Description Set the config for the given DEP name.
+// @Tags DEP
+// @Accept json
+// @Produce json
+// @Param name path string true "Name of DEP server instance"
+// @Param request body dto.DEPConfig true "Config details"
+// @Success 200 {object} response.APIResponse[dto.DEPConfig]
+// @Failure 401 {object} response.APIResponse[any]
+// @Security BearerAuth
+// @Router /v1/dep/config/{name} [put]
+func (h *depHandler) PutConfig(c *gin.Context) {
+	name := c.Param("name")
+	var req dto.DEPConfig
+	if err := c.ShouldBindJSON(&req); err != nil {
+		response.WriteErrorResponse(c, err)
+		return
+	}
+
+	result, err := h.mdmService.SetDEPConfig(c.Request.Context(), name, &req)
+	if err != nil {
+		response.WriteErrorResponse(c, err)
+		return
+	}
+	response.OK(c, result, "Config updated successfully")
+}
+
 // GetAssigner godoc
-// @Summary Get DEP assigner
-// @Description Get assigner for a specific DEP name
+// @Summary Return the assigner profile UUID
+// @Description Return the assigner profile UUID for the given DEP name.
 // @Tags DEP
 // @Produce json
-// @Param name path string true "DEP name"
+// @Param name path string true "Name of DEP server instance"
+// @Success 200 {object} response.APIResponse[dto.AssignerProfileUUID]
+// @Failure 401 {object} response.APIResponse[any]
 // @Security BearerAuth
 // @Router /v1/dep/assigner/{name} [get]
 func (h *depHandler) GetAssigner(c *gin.Context) {
 	name := c.Param("name")
-	if name == "" {
-		response.WriteErrorResponse(c, apperror.ErrBadRequest.WithMessage("Tham số name là bắt buộc"))
-		return
-	}
 	result, err := h.mdmService.GetDEPAssigner(c.Request.Context(), name)
 	if err != nil {
 		response.WriteErrorResponse(c, err)
@@ -368,14 +410,15 @@ func (h *depHandler) GetAssigner(c *gin.Context) {
 }
 
 // SetAssigner godoc
-// @Summary Set DEP assigner
-// @Description Set or update automatic profile assignment for a DEP name
+// @Summary Assign a profile UUID for assignment
+// @Description Assign a profile UUID for assignment for the given DEP name.
 // @Tags DEP
 // @Produce json
-// @Param name path string true "DEP name"
+// @Param name path string true "Name of DEP server instance"
 // @Param profile_uuid query string true "Profile UUID to assign"
-// @Success 200 {object} response.APIResponse[dto.DEPAssignerResponse]
+// @Success 200 {object} response.APIResponse[dto.AssignerProfileUUID]
 // @Failure 400 {object} response.APIResponse[any]
+// @Failure 401 {object} response.APIResponse[any]
 // @Security BearerAuth
 // @Router /v1/dep/assigner/{name} [put]
 func (h *depHandler) SetAssigner(c *gin.Context) {
@@ -448,23 +491,112 @@ func (h *depHandler) GetDevices(c *gin.Context) {
 }
 
 // GetTokens godoc
-// @Summary Get DEP tokens info
-// @Description Get current token information from NanoDEP for a name
+// @Summary Return the DEP OAuth1 tokens
+// @Description Return the DEP OAuth1 tokens for the given DEP name.
 // @Tags DEP
 // @Produce json
-// @Param name path string true "DEP name"
+// @Param name path string true "Name of DEP server instance"
+// @Success 200 {object} response.APIResponse[dto.OAuth1Tokens]
+// @Failure 401 {object} response.APIResponse[any]
 // @Security BearerAuth
 // @Router /v1/dep/tokens/{name} [get]
 func (h *depHandler) GetTokens(c *gin.Context) {
 	name := c.Param("name")
-	if name == "" {
-		response.WriteErrorResponse(c, apperror.ErrBadRequest.WithMessage("Tham số name là bắt buộc"))
-		return
-	}
 	result, err := h.mdmService.GetDEPTokens(c.Request.Context(), name)
 	if err != nil {
 		response.WriteErrorResponse(c, err)
 		return
 	}
 	response.OK(c, result, "Tokens info retrieved successfully")
+}
+
+// UpdateTokens godoc
+// @Summary Upload and store DEP OAuth1 tokens
+// @Description Upload and store DEP OAuth1 tokens for the given DEP Name.
+// @Tags DEP
+// @Accept json
+// @Produce json
+// @Param name path string true "Name of DEP server instance"
+// @Param tokens body dto.OAuth1Tokens true "OAuth1 tokens"
+// @Success 200 {object} response.APIResponse[dto.OAuth1Tokens]
+// @Failure 401 {object} response.APIResponse[any]
+// @Security BearerAuth
+// @Router /v1/dep/tokens/{name} [put]
+func (h *depHandler) UpdateTokens(c *gin.Context) {
+	name := c.Param("name")
+	var tokens dto.OAuth1Tokens
+	if err := c.ShouldBindJSON(&tokens); err != nil {
+		response.WriteErrorResponse(c, err)
+		return
+	}
+
+	result, err := h.mdmService.UpdateDEPTokens(c.Request.Context(), name, &tokens)
+	if err != nil {
+		response.WriteErrorResponse(c, err)
+		return
+	}
+	response.OK(c, result, "Tokens updated successfully")
+}
+
+// GetMAIDJWT godoc
+// @Summary Generate Managed Apple ID Managed Access JWT
+// @Description Generate Managed Apple ID Managed Access JWT.
+// @Tags DEP
+// @Produce application/jwt
+// @Param name path string true "Name of DEP server instance"
+// @Param server_uuid query string false "MDM server UUID"
+// @Success 200 {string} string "JWT"
+// @Security BearerAuth
+// @Router /v1/dep/maidjwt/{name} [get]
+func (h *depHandler) GetMAIDJWT(c *gin.Context) {
+	name := c.Param("name")
+	serverUUID := c.Query("server_uuid")
+
+	jwt, serverUuidHeader, jtiHeader, err := h.mdmService.GetMAIDJWT(c.Request.Context(), name, serverUUID)
+	if err != nil {
+		response.WriteErrorResponse(c, err)
+		return
+	}
+
+	c.Header("X-Server-Uuid", serverUuidHeader)
+	c.Header("X-Jwt-Jti", jtiHeader)
+	c.Data(200, "application/jwt", []byte(jwt))
+}
+
+// GetBypassCode godoc
+// @Summary Generates or decodes an Activation Lock Bypass Code
+// @Description Generates (or decodes) an Activation Lock Bypass Code and returns different forms of it.
+// @Tags DEP
+// @Produce json
+// @Param code query string false "Hex-encoded raw form of bypass code"
+// @Param raw query string false "Dash-separated human readable form"
+// @Success 200 {object} response.APIResponse[dto.BypassCodeResponse]
+// @Security BearerAuth
+// @Router /v1/dep/bypasscode [get]
+func (h *depHandler) GetBypassCode(c *gin.Context) {
+	code := c.Query("code")
+	raw := c.Query("raw")
+
+	result, err := h.mdmService.GetBypassCode(c.Request.Context(), code, raw)
+	if err != nil {
+		response.WriteErrorResponse(c, err)
+		return
+	}
+	response.OK(c, result, "Bypass code generated/decoded successfully")
+}
+
+// GetVersion godoc
+// @Summary Returns the running NanoDEP version
+// @Description Returns the running NanoDEP version.
+// @Tags DEP
+// @Produce json
+// @Success 200 {object} response.APIResponse[dto.NanoDEPVersionResponse]
+// @Router /v1/dep/version [get]
+func (h *depHandler) GetVersion(c *gin.Context) {
+	resp, err := h.mdmService.GetDEPVersion(c.Request.Context())
+	if err != nil {
+		response.WriteErrorResponse(c, err)
+		return
+	}
+	response.OK(c, resp, "Version retrieved successfully")
 }
