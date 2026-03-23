@@ -1,17 +1,21 @@
 basePath: /api
 definitions:
-  github_com_thienel_go-backend-template_internal_interface_api_dto.APNSConfigResponse:
+  github_com_thienel_go-backend-template_internal_interface_api_dto.APIResult:
     properties:
-      cert_pem:
+      command_error:
         type: string
-      created_at:
+      command_uuid:
         type: string
-      id:
+      no_push:
+        type: boolean
+      push_error:
         type: string
-      key_pem:
+      request_type:
         type: string
-      updated_at:
-        type: string
+      status:
+        additionalProperties:
+          $ref: '#/definitions/github_com_thienel_go-backend-template_internal_interface_api_dto.PushStatus'
+        type: object
     type: object
   github_com_thienel_go-backend-template_internal_interface_api_dto.CMDPlan:
     properties:
@@ -293,6 +297,27 @@ definitions:
       instance_id:
         type: string
     type: object
+  github_com_thienel_go-backend-template_internal_interface_api_dto.NanoMDMVersionResponse:
+    properties:
+      version:
+        type: string
+    type: object
+  github_com_thienel_go-backend-template_internal_interface_api_dto.PushCertResponse:
+    properties:
+      not_after:
+        type: string
+      topic:
+        type: string
+    type: object
+  github_com_thienel_go-backend-template_internal_interface_api_dto.PushStatus:
+    properties:
+      command_error:
+        type: string
+      push_error:
+        type: string
+      push_result:
+        type: string
+    type: object
   github_com_thienel_go-backend-template_internal_interface_api_dto.UpdateUserRequest:
     properties:
       email:
@@ -377,10 +402,10 @@ definitions:
       message:
         type: string
     type: object
-  ? github_com_thienel_go-backend-template_pkg_response.APIResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_APNSConfigResponse
+  ? github_com_thienel_go-backend-template_pkg_response.APIResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_APIResult
   : properties:
       data:
-        $ref: '#/definitions/github_com_thienel_go-backend-template_internal_interface_api_dto.APNSConfigResponse'
+        $ref: '#/definitions/github_com_thienel_go-backend-template_internal_interface_api_dto.APIResult'
       error:
         $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.Error'
       is_success:
@@ -491,6 +516,28 @@ definitions:
   : properties:
       data:
         $ref: '#/definitions/github_com_thienel_go-backend-template_internal_interface_api_dto.NanoCMDWorkflowStartResponse'
+      error:
+        $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.Error'
+      is_success:
+        type: boolean
+      message:
+        type: string
+    type: object
+  ? github_com_thienel_go-backend-template_pkg_response.APIResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_NanoMDMVersionResponse
+  : properties:
+      data:
+        $ref: '#/definitions/github_com_thienel_go-backend-template_internal_interface_api_dto.NanoMDMVersionResponse'
+      error:
+        $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.Error'
+      is_success:
+        type: boolean
+      message:
+        type: string
+    type: object
+  ? github_com_thienel_go-backend-template_pkg_response.APIResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_PushCertResponse
+  : properties:
+      data:
+        $ref: '#/definitions/github_com_thienel_go-backend-template_internal_interface_api_dto.PushCertResponse'
       error:
         $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.Error'
       is_success:
@@ -975,15 +1022,20 @@ paths:
   /v1/mdm/enqueue/{id}:
     put:
       consumes:
-      - application/xml
-      description: Enqueue a raw Apple MDM command (XML) for a specific device UDID
+      - text/plain
+      description: Enqueue MDM commands to MDM enrollments and (optionally) send APNs
+        push notifications.
       parameters:
-      - description: Device UDID
+      - description: Enrollment ID
         in: path
         name: id
         required: true
         type: string
-      - description: Command XML data
+      - description: Do not send push (1 to enable)
+        in: query
+        name: nopush
+        type: string
+      - description: XML-encoded MDM command plist
         in: body
         name: command
         required: true
@@ -995,56 +1047,67 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_APIResult'
+        "207":
+          description: Multi-Status
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_APIResult'
         "401":
           description: Unauthorized
           schema:
             $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_APIResult'
       security:
       - BearerAuth: []
-      summary: Enqueue MDM command
+      summary: Enqueue MDM commands
       tags:
       - MDM
-  /v1/mdm/pushcert:
-    get:
-      description: Get the current APNs certificate configuration and topic
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_APNSConfigResponse'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
-        "404":
-          description: Not Found
-          schema:
-            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
-      security:
-      - BearerAuth: []
-      summary: Get APNs configuration
-      tags:
-      - MDM
+  /v1/mdm/escrowkeyunlock:
     post:
       consumes:
-      - multipart/form-data
-      description: Upload or update an APNs certificate for a specific topic
+      - application/x-www-form-urlencoded
+      description: Perform an Escrow Key Unlock against Apple's API.
       parameters:
-      - description: APNs Certificate file
+      - description: APNs Push topic
         in: formData
-        name: cert
+        name: topic
         required: true
-        type: file
+        type: string
+      - description: Device serial number
+        in: formData
+        name: serial
+        required: true
+        type: string
+      - description: Apple product type
+        in: formData
+        name: productType
+        required: true
+        type: string
+      - description: Bypass Code
+        in: formData
+        name: escrowKey
+        required: true
+        type: string
+      - description: Organization name
+        in: formData
+        name: orgName
+        required: true
+        type: string
+      - description: Requester identifier
+        in: formData
+        name: guid
+        required: true
+        type: string
       produces:
       - application/json
       responses:
         "200":
-          description: OK
+          description: Success
           schema:
-            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_APNSConfigResponse'
+            type: string
         "400":
           description: Bad Request
           schema:
@@ -1053,9 +1116,125 @@ paths:
           description: Unauthorized
           schema:
             $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+      summary: Perform an Escrow Key Unlock
+      tags:
+      - MDM
+  /v1/mdm/push/{id}:
+    get:
+      description: Send APNs push notifications to MDM enrollments.
+      parameters:
+      - description: Enrollment ID(s) comma-separated
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_APIResult'
+        "207":
+          description: Multi-Status
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_APIResult'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_APIResult'
       security:
       - BearerAuth: []
-      summary: Upload APNs certificate
+      summary: Send APNs push notifications
+      tags:
+      - MDM
+  /v1/mdm/pushcert:
+    get:
+      description: Retrieve the topic and expiry of the stored APNs push certificate.
+      parameters:
+      - description: APNs topic
+        in: query
+        name: topic
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_PushCertResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+      security:
+      - BearerAuth: []
+      summary: Retrieve APNs push certificate info
+      tags:
+      - MDM
+    put:
+      consumes:
+      - text/plain
+      description: Upload APNs certificate and private key. Concatenated PEM format.
+      parameters:
+      - description: PEM-encoded certificate and private key
+        in: body
+        name: data
+        required: true
+        schema:
+          type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_PushCertResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+      security:
+      - BearerAuth: []
+      summary: Upload APNs certificate and private key
+      tags:
+      - MDM
+  /v1/mdm/version:
+    get:
+      description: Returns the running NanoMDM version.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_NanoMDMVersionResponse'
+      summary: Returns the running NanoMDM version
       tags:
       - MDM
   /v1/nanocmd/cmdplan/{name}:

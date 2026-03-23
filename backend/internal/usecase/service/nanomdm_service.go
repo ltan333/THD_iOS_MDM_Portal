@@ -2,6 +2,9 @@ package service
 
 import (
 	"context"
+	"net/http"
+
+	"github.com/thienel/go-backend-template/internal/interface/api/dto"
 )
 
 type NanoMDMService interface {
@@ -21,9 +24,12 @@ type NanoMDMService interface {
 	GetDEPAccount(ctx context.Context, depName string) (interface{}, error)
 	GetDEPDevices(ctx context.Context, depName string, devices []string, cursor string) (interface{}, error)
 	GetDEPTokens(ctx context.Context, depName string) (interface{}, error)
-	EnqueueCommand(ctx context.Context, udid string, cmdData []byte) (interface{}, error)
+	EnqueueCommand(ctx context.Context, udid string, cmdData []byte) (*dto.APIResult, error)
+	Push(ctx context.Context, enrollments []string) (*dto.APIResult, error)
+	EscrowKeyUnlock(ctx context.Context, req *dto.EscrowKeyUnlockRequest) ([]byte, http.Header, int, error)
+	GetVersion(ctx context.Context) (*dto.NanoMDMVersionResponse, error)
 
 	// Push Certificate related
-	UploadPushCert(ctx context.Context, certData []byte) error
-	GetPushCert(ctx context.Context) (interface{}, error)
+	UploadPushCert(ctx context.Context, certData []byte) (*dto.PushCertResponse, error)
+	GetPushCert(ctx context.Context, topic string) (*dto.PushCertResponse, error)
 }

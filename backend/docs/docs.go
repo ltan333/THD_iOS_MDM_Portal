@@ -651,9 +651,9 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Enqueue a raw Apple MDM command (XML) for a specific device UDID",
+                "description": "Enqueue MDM commands to MDM enrollments and (optionally) send APNs push notifications.",
                 "consumes": [
-                    "application/xml"
+                    "text/plain"
                 ],
                 "produces": [
                     "application/json"
@@ -661,17 +661,23 @@ const docTemplate = `{
                 "tags": [
                     "MDM"
                 ],
-                "summary": "Enqueue MDM command",
+                "summary": "Enqueue MDM commands",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Device UDID",
+                        "description": "Enrollment ID",
                         "name": "id",
                         "in": "path",
                         "required": true
                     },
                     {
-                        "description": "Command XML data",
+                        "type": "string",
+                        "description": "Do not send push (1 to enable)",
+                        "name": "nopush",
+                        "in": "query"
+                    },
+                    {
+                        "description": "XML-encoded MDM command plist",
                         "name": "command",
                         "in": "body",
                         "required": true,
@@ -683,6 +689,97 @@ const docTemplate = `{
                 "responses": {
                     "200": {
                         "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_APIResult"
+                        }
+                    },
+                    "207": {
+                        "description": "Multi-Status",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_APIResult"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_APIResult"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/mdm/escrowkeyunlock": {
+            "post": {
+                "description": "Perform an Escrow Key Unlock against Apple's API.",
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "MDM"
+                ],
+                "summary": "Perform an Escrow Key Unlock",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "APNs Push topic",
+                        "name": "topic",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Device serial number",
+                        "name": "serial",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Apple product type",
+                        "name": "productType",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Bypass Code",
+                        "name": "escrowKey",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Organization name",
+                        "name": "orgName",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Requester identifier",
+                        "name": "guid",
+                        "in": "formData",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
                         "schema": {
                             "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any"
                         }
@@ -696,6 +793,58 @@ const docTemplate = `{
                 }
             }
         },
+        "/v1/mdm/push/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Send APNs push notifications to MDM enrollments.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "MDM"
+                ],
+                "summary": "Send APNs push notifications",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Enrollment ID(s) comma-separated",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_APIResult"
+                        }
+                    },
+                    "207": {
+                        "description": "Multi-Status",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_APIResult"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_APIResult"
+                        }
+                    }
+                }
+            }
+        },
         "/v1/mdm/pushcert": {
             "get": {
                 "security": [
@@ -703,19 +852,34 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Get the current APNs certificate configuration and topic",
+                "description": "Retrieve the topic and expiry of the stored APNs push certificate.",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "MDM"
                 ],
-                "summary": "Get APNs configuration",
+                "summary": "Retrieve APNs push certificate info",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "APNs topic",
+                        "name": "topic",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_APNSConfigResponse"
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_PushCertResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any"
                         }
                     },
                     "401": {
@@ -729,18 +893,24 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any"
                         }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any"
+                        }
                     }
                 }
             },
-            "post": {
+            "put": {
                 "security": [
                     {
                         "BearerAuth": []
                     }
                 ],
-                "description": "Upload or update an APNs certificate for a specific topic",
+                "description": "Upload APNs certificate and private key. Concatenated PEM format.",
                 "consumes": [
-                    "multipart/form-data"
+                    "text/plain"
                 ],
                 "produces": [
                     "application/json"
@@ -748,21 +918,23 @@ const docTemplate = `{
                 "tags": [
                     "MDM"
                 ],
-                "summary": "Upload APNs certificate",
+                "summary": "Upload APNs certificate and private key",
                 "parameters": [
                     {
-                        "type": "file",
-                        "description": "APNs Certificate file",
-                        "name": "cert",
-                        "in": "formData",
-                        "required": true
+                        "description": "PEM-encoded certificate and private key",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
                     }
                 ],
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_APNSConfigResponse"
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_PushCertResponse"
                         }
                     },
                     "400": {
@@ -775,6 +947,32 @@ const docTemplate = `{
                         "description": "Unauthorized",
                         "schema": {
                             "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/mdm/version": {
+            "get": {
+                "description": "Returns the running NanoMDM version.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "MDM"
+                ],
+                "summary": "Returns the running NanoMDM version",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_NanoMDMVersionResponse"
                         }
                     }
                 }
@@ -2078,23 +2276,29 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "github_com_thienel_go-backend-template_internal_interface_api_dto.APNSConfigResponse": {
+        "github_com_thienel_go-backend-template_internal_interface_api_dto.APIResult": {
             "type": "object",
             "properties": {
-                "cert_pem": {
+                "command_error": {
                     "type": "string"
                 },
-                "created_at": {
+                "command_uuid": {
                     "type": "string"
                 },
-                "id": {
+                "no_push": {
+                    "type": "boolean"
+                },
+                "push_error": {
                     "type": "string"
                 },
-                "key_pem": {
+                "request_type": {
                     "type": "string"
                 },
-                "updated_at": {
-                    "type": "string"
+                "status": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "$ref": "#/definitions/github_com_thienel_go-backend-template_internal_interface_api_dto.PushStatus"
+                    }
                 }
             }
         },
@@ -2519,6 +2723,39 @@ const docTemplate = `{
                 }
             }
         },
+        "github_com_thienel_go-backend-template_internal_interface_api_dto.NanoMDMVersionResponse": {
+            "type": "object",
+            "properties": {
+                "version": {
+                    "type": "string"
+                }
+            }
+        },
+        "github_com_thienel_go-backend-template_internal_interface_api_dto.PushCertResponse": {
+            "type": "object",
+            "properties": {
+                "not_after": {
+                    "type": "string"
+                },
+                "topic": {
+                    "type": "string"
+                }
+            }
+        },
+        "github_com_thienel_go-backend-template_internal_interface_api_dto.PushStatus": {
+            "type": "object",
+            "properties": {
+                "command_error": {
+                    "type": "string"
+                },
+                "push_error": {
+                    "type": "string"
+                },
+                "push_result": {
+                    "type": "string"
+                }
+            }
+        },
         "github_com_thienel_go-backend-template_internal_interface_api_dto.UpdateUserRequest": {
             "type": "object",
             "properties": {
@@ -2647,11 +2884,11 @@ const docTemplate = `{
                 }
             }
         },
-        "github_com_thienel_go-backend-template_pkg_response.APIResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_APNSConfigResponse": {
+        "github_com_thienel_go-backend-template_pkg_response.APIResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_APIResult": {
             "type": "object",
             "properties": {
                 "data": {
-                    "$ref": "#/definitions/github_com_thienel_go-backend-template_internal_interface_api_dto.APNSConfigResponse"
+                    "$ref": "#/definitions/github_com_thienel_go-backend-template_internal_interface_api_dto.APIResult"
                 },
                 "error": {
                     "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.Error"
@@ -2822,6 +3059,40 @@ const docTemplate = `{
             "properties": {
                 "data": {
                     "$ref": "#/definitions/github_com_thienel_go-backend-template_internal_interface_api_dto.NanoCMDWorkflowStartResponse"
+                },
+                "error": {
+                    "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.Error"
+                },
+                "is_success": {
+                    "type": "boolean"
+                },
+                "message": {
+                    "type": "string"
+                }
+            }
+        },
+        "github_com_thienel_go-backend-template_pkg_response.APIResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_NanoMDMVersionResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/github_com_thienel_go-backend-template_internal_interface_api_dto.NanoMDMVersionResponse"
+                },
+                "error": {
+                    "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.Error"
+                },
+                "is_success": {
+                    "type": "boolean"
+                },
+                "message": {
+                    "type": "string"
+                }
+            }
+        },
+        "github_com_thienel_go-backend-template_pkg_response.APIResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_PushCertResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/github_com_thienel_go-backend-template_internal_interface_api_dto.PushCertResponse"
                 },
                 "error": {
                     "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.Error"

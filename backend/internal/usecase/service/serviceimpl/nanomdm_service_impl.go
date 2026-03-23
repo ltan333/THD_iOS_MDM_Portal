@@ -201,25 +201,33 @@ func (s *nanomdmServiceImpl) UploadDEPToken(ctx context.Context, depName string,
 	return result, nil
 }
 
-func (s *nanomdmServiceImpl) UploadPushCert(ctx context.Context, certData []byte) error {
-	resp, err := s.doRequest(ctx, http.MethodPost, s.mdmBaseURL, "/v1/pushcert", certData, nil, s.mdmUsername, s.mdmPassword)
-	if err != nil {
-		return err
-	}
-	return s.handleResponse(resp, nil)
-}
-
-func (s *nanomdmServiceImpl) GetPushCert(ctx context.Context) (interface{}, error) {
-	resp, err := s.doRequest(ctx, http.MethodGet, s.mdmBaseURL, "/v1/pushcert", nil, nil, s.mdmUsername, s.mdmPassword)
+func (s *nanomdmServiceImpl) UploadPushCert(ctx context.Context, certData []byte) (*dto.PushCertResponse, error) {
+	// NanoMDM PUT /v1/pushcert expects text/plain concatenated PEM
+	resp, err := s.doRequest(ctx, http.MethodPut, s.mdmBaseURL, "/v1/pushcert", certData, nil, s.mdmUsername, s.mdmPassword)
 	if err != nil {
 		return nil, err
 	}
 
-	var result interface{}
+	var result dto.PushCertResponse
 	if err := s.handleResponse(resp, &result); err != nil {
 		return nil, err
 	}
-	return result, nil
+	return &result, nil
+}
+
+func (s *nanomdmServiceImpl) GetPushCert(ctx context.Context, topic string) (*dto.PushCertResponse, error) {
+	query := url.Values{}
+	query.Set("topic", topic)
+	resp, err := s.doRequest(ctx, http.MethodGet, s.mdmBaseURL, "/v1/pushcert", nil, query, s.mdmUsername, s.mdmPassword)
+	if err != nil {
+		return nil, err
+	}
+
+	var result dto.PushCertResponse
+	if err := s.handleResponse(resp, &result); err != nil {
+		return nil, err
+	}
+	return &result, nil
 }
 
 func (s *nanomdmServiceImpl) ListDEPNames(ctx context.Context) (interface{}, error) {
@@ -334,15 +342,88 @@ func (s *nanomdmServiceImpl) GetDEPTokens(ctx context.Context, depName string) (
 	return result, nil
 }
 
-func (s *nanomdmServiceImpl) EnqueueCommand(ctx context.Context, udid string, cmdData []byte) (interface{}, error) {
+func (s *nanomdmServiceImpl) EnqueueCommand(ctx context.Context, udid string, cmdData []byte) (*dto.APIResult, error) {
 	resp, err := s.doRequest(ctx, http.MethodPut, s.mdmBaseURL, fmt.Sprintf("/v1/enqueue/%s", udid), cmdData, nil, s.mdmUsername, s.mdmPassword)
 	if err != nil {
 		return nil, err
 	}
 
-	var result interface{}
+	var result dto.APIResult
 	if err := s.handleResponse(resp, &result); err != nil {
 		return nil, err
 	}
-	return result, nil
+	return &result, nil
+}
+
+func (s *nanomdmServiceImpl) Push(ctx context.Context, enrollments []string) (*dto.APIResult, error) {
+	path := fmt.Sprintf("/v1/push/%s", strings.Join(enrollments, ","))
+	resp, err := s.doRequest(ctx, http.MethodGet, s.mdmBaseURL, path, nil, nil, s.mdmUsername, s.mdmPassword)
+	if err != nil {
+		return nil, err
+	}
+
+	var result dto.APIResult
+	if err := s.handleResponse(resp, &result); err != nil {
+		return nil, err
+	}
+	return &result, nil
+}
+
+func (s *nanomdmServiceImpl) EscrowKeyUnlock(ctx context.Context, req *dto.EscrowKeyUnlockRequest) ([]byte, http.Header, int, error) {
+	form := url.Values{}
+	form.Set("topic", req.Topic)
+	form.Set("serial", req.Serial)
+	form.Set("productType", req.ProductType)
+	form.Set("escrowKey", req.EscrowKey)
+	form.Set("orgName", req.OrgName)
+	form.Set("guid", req.Guid)
+	if req.IMEI != "" {
+		form.Set("imei", req.IMEI)
+	}
+	if req.IMEI2 != "" {
+		form.Set("imei2", req.IMEI2)
+	}
+	if req.MEID != "" {
+		form.Set("meid", req.MEID)
+	}
+
+	u, err := url.Parse(fmt.Sprintf("%s/v1/escrowkeyunlock", s.mdmBaseURL))
+	if err != nil {
+		return nil, nil, 0, err
+	}
+
+	httpReq, err := http.NewRequestWithContext(ctx, http.MethodPost, u.String(), strings.NewReader(form.Encode()))
+	if err != nil {
+		return nil, nil, 0, err
+	}
+
+	httpReq.SetBasicAuth(s.mdmUsername, s.mdmPassword)
+	httpReq.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	httpReq.Header.Set("User-Agent", "MDM-Portal/1.0")
+
+	resp, err := s.client.Do(httpReq)
+	if err != nil {
+		return nil, nil, 0, err
+	}
+	defer func() { _ = resp.Body.Close() }()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, nil, 0, err
+	}
+
+	return body, resp.Header, resp.StatusCode, nil
+}
+
+func (s *nanomdmServiceImpl) GetVersion(ctx context.Context) (*dto.NanoMDMVersionResponse, error) {
+	resp, err := s.doRequest(ctx, http.MethodGet, s.mdmBaseURL, "/version", nil, nil, s.mdmUsername, s.mdmPassword)
+	if err != nil {
+		return nil, err
+	}
+
+	var result dto.NanoMDMVersionResponse
+	if err := s.handleResponse(resp, &result); err != nil {
+		return nil, err
+	}
+	return &result, nil
 }
