@@ -120,27 +120,31 @@ func (r *routeRegister) registerPolicyRoutes(rg *gin.RouterGroup) {
 func (r *routeRegister) registerMDMRoutes(rg *gin.RouterGroup) {
 	mdm := rg.Group("/mdm")
 	{
-		mdm.POST("/pushcert", r.mdm.PushCert)
+		mdm.PUT("/pushcert", r.mdm.PushCert)
 		mdm.GET("/pushcert", r.mdm.GetCert)
+		mdm.GET("/push/:id", r.mdm.Push)
 		mdm.PUT("/enqueue/:id", r.mdm.EnqueueCommand)
+		mdm.POST("/escrowkeyunlock", r.mdm.EscrowKeyUnlock)
+		mdm.GET("/version", r.mdm.GetVersion)
 	}
 }
 
 func (r *routeRegister) registerDEPRoutes(rg *gin.RouterGroup) {
 	dep := rg.Group("/dep")
 	{
-		dep.GET("/names", r.dep.ListNames)
-		dep.PUT("/token/:name", r.dep.PutToken)
-		dep.GET("/token/:name", r.dep.GetToken)
+		dep.GET("/dep_names", r.dep.ListNames)
+		dep.GET("/tokenpki/:name", r.dep.GetTokenPKI)
+		dep.PUT("/tokenpki/:name", r.dep.PutTokenPKI)
+		dep.GET("/token/:name", r.dep.GetToken) // Local PEM (deprecated?)
 		dep.GET("/tokens/:name", r.dep.GetTokens)
+		dep.PUT("/tokens/:name", r.dep.UpdateTokens)
 		dep.GET("/config/:name", r.dep.GetConfig)
+		dep.PUT("/config/:name", r.dep.PutConfig)
 		dep.GET("/assigner/:name", r.dep.GetAssigner)
 		dep.PUT("/assigner/:name", r.dep.SetAssigner)
-		dep.POST("/sync", r.dep.SyncDevices)
-		dep.POST("/profile", r.dep.DefineProfile)
-		dep.GET("/profiles", r.dep.ListProfiles)
-		dep.GET("/profile/:uuid", r.dep.GetProfile)
-		dep.POST("/disown", r.dep.DisownDevice)
+		dep.GET("/maidjwt/:name", r.dep.GetMAIDJWT)
+		dep.GET("/bypasscode", r.dep.GetBypassCode)
+		dep.GET("/version", r.dep.GetVersion)
 
 		proxy := dep.Group("/proxy/:name")
 		{
@@ -151,6 +155,10 @@ func (r *routeRegister) registerDEPRoutes(rg *gin.RouterGroup) {
 			proxy.POST("/devices/sync", r.dep.SyncDevices)
 			proxy.POST("/devices/disown", r.dep.DisownDevice)
 		}
+
+		// Keep old paths for compatibility if needed, but spec says dep_names
+		dep.GET("/names", r.dep.ListNames)
+		dep.GET("/profiles", r.dep.ListProfiles)
 	}
 }
 

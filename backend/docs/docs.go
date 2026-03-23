@@ -139,24 +139,37 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Get assigner for a specific DEP name",
+                "description": "Return the assigner profile UUID for the given DEP name.",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "DEP"
                 ],
-                "summary": "Get DEP assigner",
+                "summary": "Return the assigner profile UUID",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "DEP name",
+                        "description": "Name of DEP server instance",
                         "name": "name",
                         "in": "path",
                         "required": true
                     }
                 ],
-                "responses": {}
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_AssignerProfileUUID"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any"
+                        }
+                    }
+                }
             },
             "put": {
                 "security": [
@@ -164,18 +177,18 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Set or update automatic profile assignment for a DEP name",
+                "description": "Assign a profile UUID for assignment for the given DEP name.",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "DEP"
                 ],
-                "summary": "Set DEP assigner",
+                "summary": "Assign a profile UUID for assignment",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "DEP name",
+                        "description": "Name of DEP server instance",
                         "name": "name",
                         "in": "path",
                         "required": true
@@ -192,13 +205,58 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_DEPAssignerResponse"
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_AssignerProfileUUID"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
                             "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/dep/bypasscode": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Generates (or decodes) an Activation Lock Bypass Code and returns different forms of it.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "DEP"
+                ],
+                "summary": "Generates or decodes an Activation Lock Bypass Code",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Hex-encoded raw form of bypass code",
+                        "name": "code",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Dash-separated human readable form",
+                        "name": "raw",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_BypassCodeResponse"
                         }
                     }
                 }
@@ -211,42 +269,195 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Get configuration for a specific DEP name",
+                "description": "Return the config for the given DEP name.",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "DEP"
                 ],
-                "summary": "Get DEP config",
+                "summary": "Return the config for the given DEP name",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "DEP name",
+                        "description": "Name of DEP server instance",
                         "name": "name",
                         "in": "path",
                         "required": true
                     }
                 ],
-                "responses": {}
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_DEPConfig"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Set the config for the given DEP name.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "DEP"
+                ],
+                "summary": "Set the config for the given DEP name",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Name of DEP server instance",
+                        "name": "name",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Config details",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_internal_interface_api_dto.DEPConfig"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_DEPConfig"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any"
+                        }
+                    }
+                }
             }
         },
-        "/v1/dep/names": {
+        "/v1/dep/dep_names": {
             "get": {
                 "security": [
                     {
                         "BearerAuth": []
                     }
                 ],
-                "description": "List all configured DEP names in NanoDEP",
+                "description": "Query DEP names with optional filters and pagination.",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "DEP"
                 ],
-                "summary": "List DEP names",
-                "responses": {}
+                "summary": "Query DEP names",
+                "parameters": [
+                    {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "collectionFormat": "csv",
+                        "description": "Filter by DEP names",
+                        "name": "dep_name",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "default": 100,
+                        "description": "Limits number of results",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Offset results",
+                        "name": "offset",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Pagination cursor",
+                        "name": "cursor",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_DEPNamesQueryResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/dep/maidjwt/{name}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Generate Managed Apple ID Managed Access JWT.",
+                "produces": [
+                    "application/jwt"
+                ],
+                "tags": [
+                    "DEP"
+                ],
+                "summary": "Generate Managed Apple ID Managed Access JWT",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Name of DEP server instance",
+                        "name": "name",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "MDM server UUID",
+                        "name": "server_uuid",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "JWT",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
             }
         },
         "/v1/dep/profiles": {
@@ -561,45 +772,49 @@ const docTemplate = `{
                         }
                     }
                 }
-            },
-            "put": {
+            }
+        },
+        "/v1/dep/tokenpki/{name}": {
+            "get": {
                 "security": [
                     {
                         "BearerAuth": []
                     }
                 ],
-                "description": "Upload or update a DEP token (.p7m file) for a specific name",
-                "consumes": [
-                    "multipart/form-data"
-                ],
+                "description": "Generate and store a new X.509 certificate and RSA private key for exchanging encrypted DEP OAuth1 tokens.",
                 "produces": [
-                    "application/json"
+                    "application/x-pem-file"
                 ],
                 "tags": [
                     "DEP"
                 ],
-                "summary": "Upload DEP token",
+                "summary": "Generate and retrieve DEP token PKI certificate",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Token name",
+                        "description": "Name of DEP server instance",
                         "name": "name",
                         "in": "path",
                         "required": true
                     },
                     {
-                        "type": "file",
-                        "description": "DEP Token file (.p7m)",
-                        "name": "token",
-                        "in": "formData",
-                        "required": true
+                        "type": "string",
+                        "description": "Common Name",
+                        "name": "cn",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Validity days",
+                        "name": "validity_days",
+                        "in": "query"
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "X.509 certificate PEM",
                         "schema": {
-                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_DEPTokenResponse"
+                            "type": "string"
                         }
                     },
                     "400": {
@@ -610,6 +825,80 @@ const docTemplate = `{
                     },
                     "401": {
                         "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Decrypt the OAuth1 tokens from the Apple ABM/ASM/BE portal and store them.",
+                "consumes": [
+                    "application/pkcs7-mime"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "DEP"
+                ],
+                "summary": "Upload and decrypt DEP OAuth1 tokens",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Name of DEP server instance",
+                        "name": "name",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Bypass the Consumer Key mismatch check (1 to enable)",
+                        "name": "force",
+                        "in": "query"
+                    },
+                    {
+                        "description": "Contents of the .p7m file from Apple",
+                        "name": "token",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_OAuth1Tokens"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
                         "schema": {
                             "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any"
                         }
@@ -624,24 +913,107 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Get current token information from NanoDEP for a name",
+                "description": "Return the DEP OAuth1 tokens for the given DEP name.",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "DEP"
                 ],
-                "summary": "Get DEP tokens info",
+                "summary": "Return the DEP OAuth1 tokens",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "DEP name",
+                        "description": "Name of DEP server instance",
                         "name": "name",
                         "in": "path",
                         "required": true
                     }
                 ],
-                "responses": {}
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_OAuth1Tokens"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Upload and store DEP OAuth1 tokens for the given DEP Name.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "DEP"
+                ],
+                "summary": "Upload and store DEP OAuth1 tokens",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Name of DEP server instance",
+                        "name": "name",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "OAuth1 tokens",
+                        "name": "tokens",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_internal_interface_api_dto.OAuth1Tokens"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_OAuth1Tokens"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/dep/version": {
+            "get": {
+                "description": "Returns the running NanoDEP version.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "DEP"
+                ],
+                "summary": "Returns the running NanoDEP version",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_NanoDEPVersionResponse"
+                        }
+                    }
+                }
             }
         },
         "/v1/mdm/enqueue/{id}": {
@@ -2302,6 +2674,28 @@ const docTemplate = `{
                 }
             }
         },
+        "github_com_thienel_go-backend-template_internal_interface_api_dto.AssignerProfileUUID": {
+            "type": "object",
+            "properties": {
+                "profile_uuid": {
+                    "type": "string"
+                }
+            }
+        },
+        "github_com_thienel_go-backend-template_internal_interface_api_dto.BypassCodeResponse": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "string"
+                },
+                "hash": {
+                    "type": "string"
+                },
+                "raw": {
+                    "type": "string"
+                }
+            }
+        },
         "github_com_thienel_go-backend-template_internal_interface_api_dto.CMDPlan": {
             "type": "object",
             "properties": {
@@ -2347,10 +2741,10 @@ const docTemplate = `{
                 }
             }
         },
-        "github_com_thienel_go-backend-template_internal_interface_api_dto.DEPAssignerResponse": {
+        "github_com_thienel_go-backend-template_internal_interface_api_dto.DEPConfig": {
             "type": "object",
             "properties": {
-                "profile_uuid": {
+                "base_url": {
                     "type": "string"
                 }
             }
@@ -2366,6 +2760,20 @@ const docTemplate = `{
                     "example": [
                         "G0NXR2GUKPFQ"
                     ]
+                }
+            }
+        },
+        "github_com_thienel_go-backend-template_internal_interface_api_dto.DEPNamesQueryResponse": {
+            "type": "object",
+            "properties": {
+                "dep_names": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "next_cursor": {
+                    "type": "string"
                 }
             }
         },
@@ -2547,47 +2955,6 @@ const docTemplate = `{
                 }
             }
         },
-        "github_com_thienel_go-backend-template_internal_interface_api_dto.DEPTokenResponse": {
-            "type": "object",
-            "properties": {
-                "access_secret": {
-                    "type": "string"
-                },
-                "access_token": {
-                    "type": "string"
-                },
-                "access_token_expiry": {
-                    "type": "string"
-                },
-                "config_base_url": {
-                    "type": "string"
-                },
-                "consumer_key": {
-                    "type": "string"
-                },
-                "consumer_secret": {
-                    "type": "string"
-                },
-                "created_at": {
-                    "type": "string"
-                },
-                "id": {
-                    "type": "string"
-                },
-                "syncer_cursor": {
-                    "type": "string"
-                },
-                "tokenpki_cert_pem": {
-                    "type": "string"
-                },
-                "tokenpki_key_pem": {
-                    "type": "string"
-                },
-                "updated_at": {
-                    "type": "string"
-                }
-            }
-        },
         "github_com_thienel_go-backend-template_internal_interface_api_dto.EventSubscription": {
             "type": "object",
             "properties": {
@@ -2723,10 +3090,38 @@ const docTemplate = `{
                 }
             }
         },
+        "github_com_thienel_go-backend-template_internal_interface_api_dto.NanoDEPVersionResponse": {
+            "type": "object",
+            "properties": {
+                "version": {
+                    "type": "string"
+                }
+            }
+        },
         "github_com_thienel_go-backend-template_internal_interface_api_dto.NanoMDMVersionResponse": {
             "type": "object",
             "properties": {
                 "version": {
+                    "type": "string"
+                }
+            }
+        },
+        "github_com_thienel_go-backend-template_internal_interface_api_dto.OAuth1Tokens": {
+            "type": "object",
+            "properties": {
+                "access_secret": {
+                    "type": "string"
+                },
+                "access_token": {
+                    "type": "string"
+                },
+                "access_token_expiry": {
+                    "type": "string"
+                },
+                "consumer_key": {
+                    "type": "string"
+                },
+                "consumer_secret": {
                     "type": "string"
                 }
             }
@@ -2901,6 +3296,40 @@ const docTemplate = `{
                 }
             }
         },
+        "github_com_thienel_go-backend-template_pkg_response.APIResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_AssignerProfileUUID": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/github_com_thienel_go-backend-template_internal_interface_api_dto.AssignerProfileUUID"
+                },
+                "error": {
+                    "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.Error"
+                },
+                "is_success": {
+                    "type": "boolean"
+                },
+                "message": {
+                    "type": "string"
+                }
+            }
+        },
+        "github_com_thienel_go-backend-template_pkg_response.APIResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_BypassCodeResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/github_com_thienel_go-backend-template_internal_interface_api_dto.BypassCodeResponse"
+                },
+                "error": {
+                    "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.Error"
+                },
+                "is_success": {
+                    "type": "boolean"
+                },
+                "message": {
+                    "type": "string"
+                }
+            }
+        },
         "github_com_thienel_go-backend-template_pkg_response.APIResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_CMDPlan": {
             "type": "object",
             "properties": {
@@ -2918,11 +3347,28 @@ const docTemplate = `{
                 }
             }
         },
-        "github_com_thienel_go-backend-template_pkg_response.APIResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_DEPAssignerResponse": {
+        "github_com_thienel_go-backend-template_pkg_response.APIResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_DEPConfig": {
             "type": "object",
             "properties": {
                 "data": {
-                    "$ref": "#/definitions/github_com_thienel_go-backend-template_internal_interface_api_dto.DEPAssignerResponse"
+                    "$ref": "#/definitions/github_com_thienel_go-backend-template_internal_interface_api_dto.DEPConfig"
+                },
+                "error": {
+                    "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.Error"
+                },
+                "is_success": {
+                    "type": "boolean"
+                },
+                "message": {
+                    "type": "string"
+                }
+            }
+        },
+        "github_com_thienel_go-backend-template_pkg_response.APIResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_DEPNamesQueryResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/github_com_thienel_go-backend-template_internal_interface_api_dto.DEPNamesQueryResponse"
                 },
                 "error": {
                     "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.Error"
@@ -2940,23 +3386,6 @@ const docTemplate = `{
             "properties": {
                 "data": {
                     "$ref": "#/definitions/github_com_thienel_go-backend-template_internal_interface_api_dto.DEPProfileResponse"
-                },
-                "error": {
-                    "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.Error"
-                },
-                "is_success": {
-                    "type": "boolean"
-                },
-                "message": {
-                    "type": "string"
-                }
-            }
-        },
-        "github_com_thienel_go-backend-template_pkg_response.APIResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_DEPTokenResponse": {
-            "type": "object",
-            "properties": {
-                "data": {
-                    "$ref": "#/definitions/github_com_thienel_go-backend-template_internal_interface_api_dto.DEPTokenResponse"
                 },
                 "error": {
                     "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.Error"
@@ -3071,11 +3500,45 @@ const docTemplate = `{
                 }
             }
         },
+        "github_com_thienel_go-backend-template_pkg_response.APIResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_NanoDEPVersionResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/github_com_thienel_go-backend-template_internal_interface_api_dto.NanoDEPVersionResponse"
+                },
+                "error": {
+                    "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.Error"
+                },
+                "is_success": {
+                    "type": "boolean"
+                },
+                "message": {
+                    "type": "string"
+                }
+            }
+        },
         "github_com_thienel_go-backend-template_pkg_response.APIResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_NanoMDMVersionResponse": {
             "type": "object",
             "properties": {
                 "data": {
                     "$ref": "#/definitions/github_com_thienel_go-backend-template_internal_interface_api_dto.NanoMDMVersionResponse"
+                },
+                "error": {
+                    "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.Error"
+                },
+                "is_success": {
+                    "type": "boolean"
+                },
+                "message": {
+                    "type": "string"
+                }
+            }
+        },
+        "github_com_thienel_go-backend-template_pkg_response.APIResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_OAuth1Tokens": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/github_com_thienel_go-backend-template_internal_interface_api_dto.OAuth1Tokens"
                 },
                 "error": {
                     "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.Error"
