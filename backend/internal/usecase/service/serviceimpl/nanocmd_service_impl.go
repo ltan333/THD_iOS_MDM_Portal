@@ -92,7 +92,7 @@ func (s *nanocmdServiceImpl) handleResponse(resp *http.Response, target interfac
 	body, _ := io.ReadAll(resp.Body)
 	errMsg := fmt.Sprintf("nanocmd error: status %d, body: %s", resp.StatusCode, string(body))
 
-	if resp.StatusCode == http.StatusNotFound {
+	if resp.StatusCode == http.StatusNotFound || strings.Contains(string(body), "key not found") {
 		return apperror.ErrNotFound.WithMessage(errMsg)
 	}
 	if resp.StatusCode == http.StatusBadRequest {
