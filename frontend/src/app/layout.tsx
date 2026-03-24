@@ -5,6 +5,7 @@ import { Montserrat } from "next/font/google";
 
 import { AppProvider } from "@providers/app-provider";
 import "@styles/globals.css";
+import { LayoutWrapper } from "@/components/layout-wrapper";
 
 const montserrat = Montserrat({
   subsets: ["latin", "vietnamese"],
@@ -33,7 +34,9 @@ export default async function RootLayout({
     <html lang="vi" className={`${defaultMode} ${montserrat.variable}`}>
       <body className={montserrat.className}>
         <AppProvider defaultColorMode={defaultMode}>
-          {children}
+          <LayoutWrapper>
+            {children}
+          </LayoutWrapper>
         </AppProvider>
       </body>
     </html>
