@@ -1,15 +1,49 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { Mail, Lock, ArrowRight, Smartphone, Globe, Languages } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { Mail, Lock, ArrowRight, Smartphone, Globe } from 'lucide-react';
+import { useLanguageStore } from '@/stores/languageStore';
 
 export default function LoginPage() {
-  const [language, setLanguage] = useState<'vi' | 'en'>('vi');
+  const { language, toggleLanguage } = useLanguageStore();
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const [mounted, setMounted] = useState(false);
+  const router = useRouter();
 
-  const toggleLanguage = () => {
-    setLanguage(prev => prev === 'vi' ? 'en' : 'vi');
+  // Prevent hydration mismatch
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  const handleLogin = (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+
+    // Check if mock login is enabled in env
+    const isMockEnabled = process.env.NEXT_PUBLIC_MOCK_LOGIN_ENABLED === 'true';
+    const mockEmail = process.env.NEXT_PUBLIC_MOCK_USERNAME || 'admin@thd.com';
+    const mockPassword = process.env.NEXT_PUBLIC_MOCK_PASSWORD || 'password123';
+
+    if (isMockEnabled) {
+      if (email === mockEmail && password === mockPassword) {
+        // Set a mock token to localStorage to simulate successful auth
+        localStorage.setItem('auth_token', 'mock-jwt-token-12345');
+        router.push('/dashboard');
+      } else {
+        setError(language === 'vi' ? 'Email hoặc mật khẩu không chính xác.' : 'Invalid email or password.');
+      }
+    } else {
+      // Temporary fallback if env is not loaded properly
+      if (email && password) {
+        localStorage.setItem('auth_token', 'mock-jwt-token-12345');
+        router.push('/dashboard');
+      }
+    }
   };
 
   const t = {
@@ -65,7 +99,7 @@ export default function LoginPage() {
       </div>
 
       {/* Main Layout Container */}
-      <div className="relative z-10 w-full max-w-[1200px] h-[90vh] max-h-[850px] min-h-[600px] p-4 lg:p-8 flex items-center justify-center">
+      <div className="relative z-10 w-full max-w-[1200px] h-[90vh] max-h-[850px] min-h-[600px] p-4 lg:p-8 flex items-center justify-center opacity-0 transition-opacity duration-300" style={{ opacity: mounted ? 1 : 0 }}>
         
         {/* Unified Glass Container - Lighter Theme */}
         <div className="w-full h-full flex flex-col lg:flex-row bg-white/40 dark:bg-black/20 backdrop-blur-[40px] border border-white/60 shadow-[0_8px_32px_0_rgba(222,42,21,0.1)] rounded-[32px] overflow-hidden relative">
@@ -93,10 +127,10 @@ export default function LoginPage() {
               
               <div className="space-y-2">
                 <h1 className="text-3xl lg:text-4xl font-bold tracking-tight text-slate-800 drop-shadow-sm leading-tight">
-                  {t[language].heroTitle}
+                  {mounted ? t[language].heroTitle : t.vi.heroTitle}
                 </h1>
                 <p className="text-base text-slate-600 font-medium max-w-sm">
-                  {t[language].heroDesc}
+                  {mounted ? t[language].heroDesc : t.vi.heroDesc}
                 </p>
               </div>
             </div>
@@ -106,24 +140,24 @@ export default function LoginPage() {
                 <div className="p-2.5 rounded-full bg-rose-100 text-rose-600 shadow-inner">
                   <Smartphone className="w-4 h-4" />
                 </div>
-                <span className="text-sm font-semibold text-slate-700">{t[language].deviceControl}</span>
+                <span className="text-sm font-semibold text-slate-700">{mounted ? t[language].deviceControl : t.vi.deviceControl}</span>
               </div>
               <div className="flex items-center gap-4 p-3 rounded-2xl bg-white/40 backdrop-blur-md border border-white/50 shadow-sm hover:bg-white/60 transition-colors duration-300">
                 <div className="p-2.5 rounded-full bg-pink-100 text-pink-600 shadow-inner">
                   <Lock className="w-4 h-4" />
                 </div>
-                <span className="text-sm font-semibold text-slate-700">{t[language].securityPolicy}</span>
+                <span className="text-sm font-semibold text-slate-700">{mounted ? t[language].securityPolicy : t.vi.securityPolicy}</span>
               </div>
               <div className="flex items-center gap-4 p-3 rounded-2xl bg-white/40 backdrop-blur-md border border-white/50 shadow-sm hover:bg-white/60 transition-colors duration-300">
                 <div className="p-2.5 rounded-full bg-red-100 text-[#de2a15] shadow-inner">
                   <Globe className="w-4 h-4" />
                 </div>
-                <span className="text-sm font-semibold text-slate-700">{t[language].globalAccess}</span>
+                <span className="text-sm font-semibold text-slate-700">{mounted ? t[language].globalAccess : t.vi.globalAccess}</span>
               </div>
             </div>
             
             <div className="mt-8 text-xs text-slate-500 font-medium hidden lg:block">
-              {t[language].footer}
+              {mounted ? t[language].footer : t.vi.footer}
             </div>
           </div>
 
@@ -155,17 +189,22 @@ export default function LoginPage() {
 
             <div className="w-full max-w-sm mx-auto space-y-8 my-auto">
               <div className="text-center lg:text-left">
-                <h2 className="text-2xl lg:text-3xl font-bold tracking-tight text-slate-800">{t[language].title}</h2>
+                <h2 className="text-2xl lg:text-3xl font-bold tracking-tight text-slate-800">{mounted ? t[language].title : t.vi.title}</h2>
                 <p className="mt-2 text-sm text-slate-600 font-medium">
-                  {t[language].subtitle}
+                  {mounted ? t[language].subtitle : t.vi.subtitle}
                 </p>
               </div>
 
-              <form className="space-y-5">
+              <form className="space-y-5" onSubmit={handleLogin}>
                 <div className="space-y-4">
+                  {error && (
+                    <div className="p-3 bg-red-50 border border-red-200 text-red-600 text-sm rounded-xl">
+                      {error}
+                    </div>
+                  )}
                   <div className="space-y-1.5">
                     <label htmlFor="email" className="block text-sm font-semibold text-slate-700 ml-1">
-                      {t[language].email}
+                      {mounted ? t[language].email : t.vi.email}
                     </label>
                     <div className="relative group">
                       <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none transition-colors group-focus-within:text-[#de2a15] text-slate-400">
@@ -177,6 +216,8 @@ export default function LoginPage() {
                         type="email"
                         autoComplete="email"
                         required
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
                         className="block w-full pl-10 pr-4 py-3 bg-white/60 border border-white/80 rounded-xl text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#de2a15]/50 focus:bg-white/80 transition-all backdrop-blur-md shadow-[inset_0_2px_4px_rgba(0,0,0,0.02)]"
                         placeholder="admin@thd.com"
                       />
@@ -185,7 +226,7 @@ export default function LoginPage() {
 
                   <div className="space-y-1.5">
                     <label htmlFor="password" className="block text-sm font-semibold text-slate-700 ml-1">
-                      {t[language].password}
+                      {mounted ? t[language].password : t.vi.password}
                     </label>
                     <div className="relative group">
                       <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none transition-colors group-focus-within:text-[#de2a15] text-slate-400">
@@ -197,6 +238,8 @@ export default function LoginPage() {
                         type="password"
                         autoComplete="current-password"
                         required
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
                         className="block w-full pl-10 pr-4 py-3 bg-white/60 border border-white/80 rounded-xl text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#de2a15]/50 focus:bg-white/80 transition-all backdrop-blur-md shadow-[inset_0_2px_4px_rgba(0,0,0,0.02)]"
                         placeholder="••••••••"
                       />
@@ -213,13 +256,13 @@ export default function LoginPage() {
                       className="h-3.5 w-3.5 rounded border-slate-300 bg-white text-[#de2a15] focus:ring-[#de2a15]/50 cursor-pointer"
                     />
                     <label htmlFor="remember-me" className="ml-2 block text-xs font-medium text-slate-600 cursor-pointer select-none">
-                      {t[language].remember}
+                      {mounted ? t[language].remember : t.vi.remember}
                     </label>
                   </div>
 
                   <div className="text-xs">
                     <Link href="#" className="font-semibold text-[#de2a15] hover:text-red-700 transition-colors">
-                      {t[language].forgot}
+                      {mounted ? t[language].forgot : t.vi.forgot}
                     </Link>
                   </div>
                 </div>
@@ -233,7 +276,7 @@ export default function LoginPage() {
                     <span className="absolute left-0 inset-y-0 flex items-center pl-3.5">
                       <ArrowRight className="h-4 w-4 text-white/80 group-hover:text-white group-hover:translate-x-1 transition-all" />
                     </span>
-                    {t[language].submit}
+                    {mounted ? t[language].submit : t.vi.submit}
                   </button>
                 </div>
               </form>
@@ -241,7 +284,7 @@ export default function LoginPage() {
             
             {/* Mobile Footer */}
             <div className="mt-6 text-center text-xs text-slate-500 font-medium lg:hidden pb-4">
-              {t[language].footer}
+              {mounted ? t[language].footer : t.vi.footer}
             </div>
           </div>
         </div>
