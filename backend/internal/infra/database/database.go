@@ -96,19 +96,15 @@ func WithTx(ctx context.Context, fn func(tx *ent.Tx) error) error {
 		return err
 	}
 	defer func() {
-		if v := recover(); v != nil {
-			tx.Rollback()
-			panic(v)
+		if r := recover(); r != nil {
+			_ = tx.Rollback()
+			panic(r)
 		}
 	}()
+
 	if err := fn(tx); err != nil {
-		if rerr := tx.Rollback(); rerr != nil {
-			err = fmt.Errorf("%w: rolling back transaction: %v", err, rerr)
-		}
+		_ = tx.Rollback()
 		return err
 	}
-	if err := tx.Commit(); err != nil {
-		return fmt.Errorf("committing transaction: %w", err)
-	}
-	return nil
+	return tx.Commit()
 }

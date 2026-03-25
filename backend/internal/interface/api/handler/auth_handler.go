@@ -19,30 +19,31 @@ type AuthHandler interface {
 }
 
 type authHandlerImpl struct {
-	authService service.AuthService
-	userService service.UserService
+	authService  service.AuthService
+	userService  service.UserService
+	authzService service.AuthorizationService
 }
 
 // NewAuthHandler creates a new auth handler
-func NewAuthHandler(authService service.AuthService, userService service.UserService) AuthHandler {
+func NewAuthHandler(authService service.AuthService, userService service.UserService, authzService service.AuthorizationService) AuthHandler {
 	return &authHandlerImpl{
-		authService: authService,
-		userService: userService,
+		authService:  authService,
+		userService:  userService,
+		authzService: authzService,
 	}
 }
 
 // Login godoc
-// @Summary Login
-// @Description Authenticate user and return access token information
-// @Tags Auth
+// @Summary User login
+// @Description Authenticate user and return JWT tokens
+// @Tags Authentication
 // @Accept json
 // @Produce json
-// @Param request body dto.LoginRequest true "Login payload"
-// @Success 200 {object} LoginSuccessResponse
-// @Failure 400 {object} APIErrorResponse
-// @Failure 401 {object} APIErrorResponse
-// @Failure 500 {object} APIErrorResponse
-// @Router /api/auth/login [post]
+// @Param login body dto.LoginRequest true "Login credentials"
+// @Success 200 {object} response.APIResponse[dto.LoginResponse]
+// @Failure 400 {object} response.APIResponse[any]
+// @Failure 401 {object} response.APIResponse[any]
+// @Router /v1/auth/login [post]
 func (h *authHandlerImpl) Login(c *gin.Context) {
 	var req dto.LoginRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -60,13 +61,14 @@ func (h *authHandlerImpl) Login(c *gin.Context) {
 }
 
 // Logout godoc
-// @Summary Logout
-// @Description Logout current user session
-// @Tags Auth
+// @Summary User logout
+// @Description Invalidate the current session
+// @Tags Authentication
 // @Produce json
-// @Success 200 {object} EmptySuccessResponse
-// @Failure 500 {object} APIErrorResponse
-// @Router /api/auth/logout [post]
+// @Success 200 {object} response.APIResponse[any]
+// @Failure 401 {object} response.APIResponse[any]
+// @Security BearerAuth
+// @Router /v1/auth/logout [post]
 func (h *authHandlerImpl) Logout(c *gin.Context) {
 	if err := h.authService.Logout(c.Request.Context()); err != nil {
 		response.WriteErrorResponse(c, err)
@@ -76,16 +78,14 @@ func (h *authHandlerImpl) Logout(c *gin.Context) {
 }
 
 // GetMe godoc
-// @Summary Get current user
-// @Description Return profile of authenticated user
-// @Tags Auth
+// @Summary Get current user info
+// @Description Return the profile of the currently authenticated user
+// @Tags Authentication
 // @Produce json
+// @Success 200 {object} response.APIResponse[dto.UserResponse]
+// @Failure 401 {object} response.APIResponse[any]
 // @Security BearerAuth
-// @Success 200 {object} UserSuccessResponse
-// @Failure 401 {object} APIErrorResponse
-// @Failure 404 {object} APIErrorResponse
-// @Failure 500 {object} APIErrorResponse
-// @Router /api/auth/me [get]
+// @Router /v1/auth/me [get]
 func (h *authHandlerImpl) GetMe(c *gin.Context) {
 	userID := middleware.GetUserID(c)
 	user, err := h.userService.GetByID(c.Request.Context(), userID)
@@ -93,15 +93,22 @@ func (h *authHandlerImpl) GetMe(c *gin.Context) {
 		response.WriteErrorResponse(c, err)
 		return
 	}
-	response.OK(c, toAuthUserResponse(user), "")
+	response.OK(c, h.toAuthUserResponse(user), "")
 }
 
-func toAuthUserResponse(user *ent.User) dto.UserResponse {
+func (h *authHandlerImpl) toAuthUserResponse(user *ent.User) dto.UserResponse {
+	// Fetch role from Casbin
+	role := "USER"
+	roles, err := h.authzService.GetRolesForUser(user.ID)
+	if err == nil && len(roles) > 0 {
+		role = roles[0]
+	}
+
 	resp := dto.UserResponse{
 		ID:        user.ID,
 		Username:  user.Username,
 		Email:     user.Email,
-		Role:      user.Role,
+		Role:      role,
 		Status:    user.Status,
 		CreatedAt: user.CreatedAt,
 		UpdatedAt: user.UpdatedAt,

@@ -32,4 +32,3 @@ func New(jwtService service.JWTService, authzService service.AuthorizationServic
 		allowAll:       allowAll,
 	}
 }
-

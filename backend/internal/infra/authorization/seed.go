@@ -56,6 +56,12 @@ func seedDefaultPolicies(enforcer *casbin.Enforcer) error {
 		}
 	}
 
+	// Link initial admin user to SYSTEM_ADMIN role
+	// Note: We use "user:1" as the subject for the seeded admin
+	if _, err := enforcer.AddGroupingPolicy("user:1", "SYSTEM_ADMIN"); err != nil {
+		return err
+	}
+
 	tlog.Info("Default Casbin policies seeded",
 		zap.Int("policies", len(defaultPolicies)),
 		zap.Int("role_links", len(defaultRoleLinks)),

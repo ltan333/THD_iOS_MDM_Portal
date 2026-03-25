@@ -32,16 +32,14 @@ func NewPolicyHandler(authzService service.AuthorizationService) PolicyHandler {
 }
 
 // ListPolicies godoc
-// @Summary List policies
-// @Description Get all Casbin policy rules
-// @Tags Policies
+// @Summary List all policies
+// @Description Get a list of all Casbin policies (role, path, method)
+// @Tags Authorization
 // @Produce json
+// @Success 200 {object} response.APIResponse[[]service.PolicyRule]
+// @Failure 401 {object} response.APIResponse[any]
 // @Security BearerAuth
-// @Success 200 {object} PoliciesSuccessResponse
-// @Failure 401 {object} APIErrorResponse
-// @Failure 403 {object} APIErrorResponse
-// @Failure 500 {object} APIErrorResponse
-// @Router /api/policies [get]
+// @Router /v1/policies [get]
 func (h *policyHandlerImpl) ListPolicies(c *gin.Context) {
 	policies, err := h.authzService.GetAllPolicies()
 	if err != nil {
@@ -52,20 +50,18 @@ func (h *policyHandlerImpl) ListPolicies(c *gin.Context) {
 }
 
 // AddPolicy godoc
-// @Summary Add policy
-// @Description Add a new Casbin policy rule
-// @Tags Policies
+// @Summary Add a policy
+// @Description Add a new Casbin policy
+// @Tags Authorization
 // @Accept json
 // @Produce json
+// @Param policy body service.PolicyRule true "Policy rule details"
+// @Success 201 {object} response.APIResponse[service.PolicyRule]
+// @Failure 400 {object} response.APIResponse[any]
+// @Failure 401 {object} response.APIResponse[any]
+// @Failure 409 {object} response.APIResponse[any]
 // @Security BearerAuth
-// @Param request body service.PolicyRule true "Policy rule"
-// @Success 201 {object} PolicySuccessResponse
-// @Failure 400 {object} APIErrorResponse
-// @Failure 401 {object} APIErrorResponse
-// @Failure 403 {object} APIErrorResponse
-// @Failure 409 {object} APIErrorResponse
-// @Failure 500 {object} APIErrorResponse
-// @Router /api/policies [post]
+// @Router /v1/policies [post]
 func (h *policyHandlerImpl) AddPolicy(c *gin.Context) {
 	var req service.PolicyRule
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -93,20 +89,18 @@ func (h *policyHandlerImpl) AddPolicy(c *gin.Context) {
 }
 
 // RemovePolicy godoc
-// @Summary Remove policy
-// @Description Remove an existing Casbin policy rule
-// @Tags Policies
+// @Summary Remove a policy
+// @Description Remove an existing Casbin policy
+// @Tags Authorization
 // @Accept json
 // @Produce json
+// @Param policy body service.PolicyRule true "Policy rule details to remove"
+// @Success 200 {object} response.APIResponse[any]
+// @Failure 400 {object} response.APIResponse[any]
+// @Failure 401 {object} response.APIResponse[any]
+// @Failure 404 {object} response.APIResponse[any]
 // @Security BearerAuth
-// @Param request body service.PolicyRule true "Policy rule"
-// @Success 200 {object} EmptySuccessResponse
-// @Failure 400 {object} APIErrorResponse
-// @Failure 401 {object} APIErrorResponse
-// @Failure 403 {object} APIErrorResponse
-// @Failure 404 {object} APIErrorResponse
-// @Failure 500 {object} APIErrorResponse
-// @Router /api/policies [delete]
+// @Router /v1/policies [delete]
 func (h *policyHandlerImpl) RemovePolicy(c *gin.Context) {
 	var req service.PolicyRule
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -129,18 +123,16 @@ func (h *policyHandlerImpl) RemovePolicy(c *gin.Context) {
 }
 
 // GetPoliciesForRole godoc
-// @Summary Get policies for role
-// @Description Get all permissions assigned to a role
-// @Tags Policies
+// @Summary Get policies for a role
+// @Description Get all Casbin policies associated with a specific role
+// @Tags Authorization
 // @Produce json
+// @Param role path string true "Role name"
+// @Success 200 {object} response.APIResponse[[]service.PolicyRule]
+// @Failure 400 {object} response.APIResponse[any]
+// @Failure 401 {object} response.APIResponse[any]
 // @Security BearerAuth
-// @Param role path string true "Role"
-// @Success 200 {object} PoliciesSuccessResponse
-// @Failure 400 {object} APIErrorResponse
-// @Failure 401 {object} APIErrorResponse
-// @Failure 403 {object} APIErrorResponse
-// @Failure 500 {object} APIErrorResponse
-// @Router /api/policies/role/{role} [get]
+// @Router /v1/policies/role/{role} [get]
 func (h *policyHandlerImpl) GetPoliciesForRole(c *gin.Context) {
 	role := c.Param("role")
 	if role == "" {
@@ -158,16 +150,14 @@ func (h *policyHandlerImpl) GetPoliciesForRole(c *gin.Context) {
 }
 
 // ListRoles godoc
-// @Summary List role links
-// @Description Get all Casbin role hierarchy links
-// @Tags Roles
+// @Summary List all role links
+// @Description Get a list of all role hierarchy links (child, parent)
+// @Tags Authorization
 // @Produce json
+// @Success 200 {object} response.APIResponse[[]service.RoleLink]
+// @Failure 401 {object} response.APIResponse[any]
 // @Security BearerAuth
-// @Success 200 {object} RolesSuccessResponse
-// @Failure 401 {object} APIErrorResponse
-// @Failure 403 {object} APIErrorResponse
-// @Failure 500 {object} APIErrorResponse
-// @Router /api/roles [get]
+// @Router /v1/roles [get]
 func (h *policyHandlerImpl) ListRoles(c *gin.Context) {
 	roles, err := h.authzService.GetAllRoles()
 	if err != nil {
@@ -178,20 +168,18 @@ func (h *policyHandlerImpl) ListRoles(c *gin.Context) {
 }
 
 // AddRole godoc
-// @Summary Add role link
-// @Description Add parent-child relation in role hierarchy
-// @Tags Roles
+// @Summary Add a role link
+// @Description Add a new role hierarchy link
+// @Tags Authorization
 // @Accept json
 // @Produce json
+// @Param role body service.RoleLink true "Role link details"
+// @Success 201 {object} response.APIResponse[service.RoleLink]
+// @Failure 400 {object} response.APIResponse[any]
+// @Failure 401 {object} response.APIResponse[any]
+// @Failure 409 {object} response.APIResponse[any]
 // @Security BearerAuth
-// @Param request body service.RoleLink true "Role link"
-// @Success 201 {object} RoleLinkSuccessResponse
-// @Failure 400 {object} APIErrorResponse
-// @Failure 401 {object} APIErrorResponse
-// @Failure 403 {object} APIErrorResponse
-// @Failure 409 {object} APIErrorResponse
-// @Failure 500 {object} APIErrorResponse
-// @Router /api/roles [post]
+// @Router /v1/roles [post]
 func (h *policyHandlerImpl) AddRole(c *gin.Context) {
 	var req service.RoleLink
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -219,20 +207,18 @@ func (h *policyHandlerImpl) AddRole(c *gin.Context) {
 }
 
 // RemoveRole godoc
-// @Summary Remove role link
-// @Description Remove parent-child relation from role hierarchy
-// @Tags Roles
+// @Summary Remove a role link
+// @Description Remove an existing role hierarchy link
+// @Tags Authorization
 // @Accept json
 // @Produce json
+// @Param role body service.RoleLink true "Role link details to remove"
+// @Success 200 {object} response.APIResponse[any]
+// @Failure 400 {object} response.APIResponse[any]
+// @Failure 401 {object} response.APIResponse[any]
+// @Failure 404 {object} response.APIResponse[any]
 // @Security BearerAuth
-// @Param request body service.RoleLink true "Role link"
-// @Success 200 {object} EmptySuccessResponse
-// @Failure 400 {object} APIErrorResponse
-// @Failure 401 {object} APIErrorResponse
-// @Failure 403 {object} APIErrorResponse
-// @Failure 404 {object} APIErrorResponse
-// @Failure 500 {object} APIErrorResponse
-// @Router /api/roles [delete]
+// @Router /v1/roles [delete]
 func (h *policyHandlerImpl) RemoveRole(c *gin.Context) {
 	var req service.RoleLink
 	if err := c.ShouldBindJSON(&req); err != nil {

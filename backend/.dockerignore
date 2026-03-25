@@ -1,0 +1,22 @@
+# Build artifacts
+bin/
+main
+coverage.out
+coverage.html
+
+# Local environment
+.env
+
+# Logs
+logs/
+
+# IDE files
+.vscode/
+.idea/
+
+# Git
+.git
+.gitignore
+
+# Storage
+storage/
