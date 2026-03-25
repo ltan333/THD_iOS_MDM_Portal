@@ -26,6 +26,7 @@ type routeRegister struct {
 	profile      handler.ProfileHandler
 	application  handler.ApplicationHandler
 	alert        handler.AlertHandler
+	report       handler.ReportHandler
 	mw           *middleware.Middleware
 }
 
@@ -44,6 +45,7 @@ func SetupRouter(
 	profileHandler handler.ProfileHandler,
 	applicationHandler handler.ApplicationHandler,
 	alertHandler handler.AlertHandler,
+	reportHandler handler.ReportHandler,
 	mw *middleware.Middleware,
 ) *gin.Engine {
 
@@ -61,6 +63,7 @@ func SetupRouter(
 		profile:      profileHandler,
 		application:  applicationHandler,
 		alert:        alertHandler,
+		report:       reportHandler,
 		mw:           mw,
 	}
 
@@ -95,6 +98,7 @@ func SetupRouter(
 			routes.registerProfileRoutes(protected)
 			routes.registerApplicationRoutes(protected)
 			routes.registerAlertRoutes(protected)
+			routes.registerReportRoutes(protected)
 		}
 	}
 
@@ -342,5 +346,14 @@ func (r *routeRegister) registerAlertRoutes(rg *gin.RouterGroup) {
 			rules.DELETE("/:id", r.alert.DeleteRule)
 			rules.PUT("/:id/toggle", r.alert.ToggleRule)
 		}
+	}
+}
+
+func (r *routeRegister) registerReportRoutes(rg *gin.RouterGroup) {
+	reports := rg.Group("/reports")
+	{
+		reports.GET("/devices/export", r.report.ExportDevices)
+		reports.GET("/alerts/export", r.report.ExportAlerts)
+		reports.GET("/applications/export", r.report.ExportApplications)
 	}
 }
