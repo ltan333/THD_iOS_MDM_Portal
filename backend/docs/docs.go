@@ -2495,6 +2495,37 @@ const docTemplate = `{
                 }
             }
         },
+        "/v1/payload-property-definitions/payload-types": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Get all distinct payload types from payload property definitions",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Payload Property Definitions"
+                ],
+                "summary": "List payload types",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-array_string"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any"
+                        }
+                    }
+                }
+            }
+        },
         "/v1/payload-property-definitions/{id}": {
             "get": {
                 "security": [
@@ -3455,6 +3486,9 @@ const docTemplate = `{
                     "type": "object",
                     "additionalProperties": true
                 },
+                "deprecated": {
+                    "type": "boolean"
+                },
                 "description": {
                     "type": "string"
                 },
@@ -4013,6 +4047,9 @@ const docTemplate = `{
                     "type": "object",
                     "additionalProperties": true
                 },
+                "deprecated": {
+                    "type": "boolean"
+                },
                 "description": {
                     "type": "string"
                 },
@@ -4152,6 +4189,9 @@ const docTemplate = `{
                 "default_value": {
                     "type": "object",
                     "additionalProperties": true
+                },
+                "deprecated": {
+                    "type": "boolean"
                 },
                 "description": {
                     "type": "string"
@@ -4309,6 +4349,26 @@ const docTemplate = `{
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/github_com_thienel_go-backend-template_internal_usecase_service.RoleLink"
+                    }
+                },
+                "error": {
+                    "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.Error"
+                },
+                "is_success": {
+                    "type": "boolean"
+                },
+                "message": {
+                    "type": "string"
+                }
+            }
+        },
+        "github_com_thienel_go-backend-template_pkg_response.APIResponse-array_string": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
                     }
                 },
                 "error": {

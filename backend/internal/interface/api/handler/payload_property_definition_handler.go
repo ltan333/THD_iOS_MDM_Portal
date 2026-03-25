@@ -27,6 +27,7 @@ var payloadPropertyDefinitionAllowedQueryFields = map[string]bool{
 
 type PayloadPropertyDefinitionHandler interface {
 	List(c *gin.Context)
+	ListPayloadTypes(c *gin.Context)
 	GetByID(c *gin.Context)
 	Create(c *gin.Context)
 	Update(c *gin.Context)
@@ -90,6 +91,25 @@ func (h *payloadPropertyDefinitionHandlerImpl) List(c *gin.Context) {
 		Limit:      limit,
 		TotalPages: totalPages,
 	}, "")
+}
+
+// ListPayloadTypes godoc
+// @Summary List payload types
+// @Description Get all distinct payload types from payload property definitions
+// @Tags Payload Property Definitions
+// @Produce json
+// @Success 200 {object} response.APIResponse[[]string]
+// @Failure 401 {object} response.APIResponse[any]
+// @Security BearerAuth
+// @Router /v1/payload-property-definitions/payload-types [get]
+func (h *payloadPropertyDefinitionHandlerImpl) ListPayloadTypes(c *gin.Context) {
+	types, err := h.service.ListPayloadTypes(c.Request.Context())
+	if err != nil {
+		response.WriteErrorResponse(c, err)
+		return
+	}
+
+	response.OK(c, types, "")
 }
 
 // GetByID godoc
