@@ -17,6 +17,29 @@ definitions:
           $ref: '#/definitions/github_com_thienel_go-backend-template_internal_interface_api_dto.PushStatus'
         type: object
     type: object
+  github_com_thienel_go-backend-template_internal_interface_api_dto.AlertsSummaryResponse:
+    properties:
+      acknowledged:
+        type: integer
+      by_severity:
+        additionalProperties:
+          format: int64
+          type: integer
+        description: critical, high, medium, low
+        type: object
+      by_type:
+        additionalProperties:
+          format: int64
+          type: integer
+        description: security, compliance, connectivity, etc.
+        type: object
+      open:
+        type: integer
+      resolved:
+        type: integer
+      total:
+        type: integer
+    type: object
   github_com_thienel_go-backend-template_internal_interface_api_dto.AssignerProfileUUID:
     properties:
       profile_uuid:
@@ -43,6 +66,152 @@ definitions:
         items:
           type: string
         type: array
+    type: object
+  github_com_thienel_go-backend-template_internal_interface_api_dto.ChartDataResponse:
+    properties:
+      chart_type:
+        description: line, bar, pie, doughnut
+        type: string
+      datasets:
+        items:
+          $ref: '#/definitions/github_com_thienel_go-backend-template_internal_interface_api_dto.ChartDataset'
+        type: array
+      labels:
+        items:
+          type: string
+        type: array
+      title:
+        type: string
+    type: object
+  github_com_thienel_go-backend-template_internal_interface_api_dto.ChartDataset:
+    properties:
+      color:
+        type: string
+      data:
+        items: {}
+        type: array
+      label:
+        type: string
+    type: object
+  github_com_thienel_go-backend-template_internal_interface_api_dto.CreateDeviceGroupRequest:
+    properties:
+      description:
+        type: string
+      name:
+        type: string
+    required:
+    - name
+    type: object
+  github_com_thienel_go-backend-template_internal_interface_api_dto.CreateMobileConfigPayloadRequest:
+    properties:
+      payload_description:
+        type: string
+      payload_display_name:
+        type: string
+      payload_identifier:
+        type: string
+      payload_organization:
+        type: string
+      payload_type:
+        type: string
+      payload_version:
+        minimum: 1
+        type: integer
+      properties:
+        items:
+          $ref: '#/definitions/github_com_thienel_go-backend-template_internal_interface_api_dto.CreateMobileConfigPropertyRequest'
+        type: array
+    required:
+    - payload_display_name
+    - payload_identifier
+    - payload_type
+    type: object
+  github_com_thienel_go-backend-template_internal_interface_api_dto.CreateMobileConfigPropertyRequest:
+    properties:
+      key:
+        type: string
+      value_json:
+        additionalProperties: true
+        type: object
+    required:
+    - key
+    - value_json
+    type: object
+  github_com_thienel_go-backend-template_internal_interface_api_dto.CreateMobileConfigRequest:
+    properties:
+      name:
+        type: string
+      payload_description:
+        type: string
+      payload_display_name:
+        type: string
+      payload_identifier:
+        type: string
+      payload_organization:
+        type: string
+      payload_removal_disallowed:
+        type: boolean
+      payload_type:
+        type: string
+      payload_version:
+        minimum: 1
+        type: integer
+      payloads:
+        items:
+          $ref: '#/definitions/github_com_thienel_go-backend-template_internal_interface_api_dto.CreateMobileConfigPayloadRequest'
+        minItems: 1
+        type: array
+    required:
+    - name
+    - payload_display_name
+    - payload_identifier
+    - payload_type
+    - payloads
+    type: object
+  github_com_thienel_go-backend-template_internal_interface_api_dto.CreateProfileRequest:
+    properties:
+      compliance_rules:
+        additionalProperties: true
+        type: object
+      content_filter:
+        additionalProperties: true
+        type: object
+      name:
+        maxLength: 255
+        type: string
+      network_config:
+        additionalProperties: true
+        type: object
+      payloads:
+        additionalProperties: true
+        type: object
+      platform:
+        description: ios, android, windows, macos, all
+        type: string
+      restrictions:
+        additionalProperties: true
+        type: object
+      scope:
+        description: device, user, group
+        type: string
+      security_settings:
+        additionalProperties: true
+        type: object
+    required:
+    - name
+    type: object
+  github_com_thienel_go-backend-template_internal_interface_api_dto.CreateSettingRequest:
+    properties:
+      description:
+        type: string
+      key:
+        maxLength: 255
+        type: string
+      value:
+        type: string
+    required:
+    - key
+    - value
     type: object
   github_com_thienel_go-backend-template_internal_interface_api_dto.CreateUserRequest:
     properties:
@@ -205,6 +374,58 @@ definitions:
       url:
         type: string
     type: object
+  github_com_thienel_go-backend-template_internal_interface_api_dto.DashboardStatsResponse:
+    properties:
+      active_devices:
+        type: integer
+      active_users:
+        type: integer
+      compliance_rate:
+        description: percentage 0-100
+        type: integer
+      deployed_apps:
+        type: integer
+      non_compliant_rate:
+        description: percentage 0-100
+        type: integer
+      pending_alerts:
+        type: integer
+      total_alerts:
+        type: integer
+      total_apps:
+        type: integer
+      total_devices:
+        type: integer
+      total_users:
+        type: integer
+    type: object
+  github_com_thienel_go-backend-template_internal_interface_api_dto.DeviceStatsResponse:
+    properties:
+      active:
+        type: integer
+      by_platform:
+        additionalProperties:
+          format: int64
+          type: integer
+        description: ios, android, windows
+        type: object
+      by_status:
+        additionalProperties:
+          format: int64
+          type: integer
+        description: active, inactive, pending
+        type: object
+      compliant:
+        type: integer
+      enrolled:
+        type: integer
+      inactive:
+        type: integer
+      non_compliant:
+        type: integer
+      total:
+        type: integer
+    type: object
   github_com_thienel_go-backend-template_internal_interface_api_dto.EventSubscription:
     properties:
       context:
@@ -215,6 +436,21 @@ definitions:
         type: string
       workflow:
         type: string
+    type: object
+  ? github_com_thienel_go-backend-template_internal_interface_api_dto.ListResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_MobileConfigResponse
+  : properties:
+      items:
+        items:
+          $ref: '#/definitions/github_com_thienel_go-backend-template_internal_interface_api_dto.MobileConfigResponse'
+        type: array
+      limit:
+        type: integer
+      page:
+        type: integer
+      total:
+        type: integer
+      total_pages:
+        type: integer
     type: object
   ? github_com_thienel_go-backend-template_internal_interface_api_dto.ListResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_UserResponse
   : properties:
@@ -249,6 +485,80 @@ definitions:
         type: string
       user:
         $ref: '#/definitions/github_com_thienel_go-backend-template_internal_interface_api_dto.UserResponse'
+    type: object
+  github_com_thienel_go-backend-template_internal_interface_api_dto.ManageGroupDevicesRequest:
+    properties:
+      device_ids:
+        items:
+          type: string
+        minItems: 1
+        type: array
+    required:
+    - device_ids
+    type: object
+  github_com_thienel_go-backend-template_internal_interface_api_dto.MobileConfigPayloadResponse:
+    properties:
+      id:
+        type: integer
+      payload_description:
+        type: string
+      payload_display_name:
+        type: string
+      payload_identifier:
+        type: string
+      payload_organization:
+        type: string
+      payload_type:
+        type: string
+      payload_uuid:
+        type: string
+      payload_version:
+        type: integer
+      properties:
+        items:
+          $ref: '#/definitions/github_com_thienel_go-backend-template_internal_interface_api_dto.MobileConfigPropertyResponse'
+        type: array
+    type: object
+  github_com_thienel_go-backend-template_internal_interface_api_dto.MobileConfigPropertyResponse:
+    properties:
+      id:
+        type: integer
+      key:
+        type: string
+      value_json:
+        additionalProperties: true
+        type: object
+    type: object
+  github_com_thienel_go-backend-template_internal_interface_api_dto.MobileConfigResponse:
+    properties:
+      created_at:
+        type: string
+      id:
+        type: integer
+      name:
+        type: string
+      payload_description:
+        type: string
+      payload_display_name:
+        type: string
+      payload_identifier:
+        type: string
+      payload_organization:
+        type: string
+      payload_removal_disallowed:
+        type: boolean
+      payload_type:
+        type: string
+      payload_uuid:
+        type: string
+      payload_version:
+        type: integer
+      payloads:
+        items:
+          $ref: '#/definitions/github_com_thienel_go-backend-template_internal_interface_api_dto.MobileConfigPayloadResponse'
+        type: array
+      updated_at:
+        type: string
     type: object
   github_com_thienel_go-backend-template_internal_interface_api_dto.NanoCMDInventoryDevice:
     properties:
@@ -332,6 +642,118 @@ definitions:
       push_result:
         type: string
     type: object
+  github_com_thienel_go-backend-template_internal_interface_api_dto.SettingResponse:
+    properties:
+      created_at:
+        type: string
+      description:
+        type: string
+      id:
+        type: integer
+      key:
+        type: string
+      updated_at:
+        type: string
+      value:
+        type: string
+    type: object
+  github_com_thienel_go-backend-template_internal_interface_api_dto.UpdateDeviceGroupRequest:
+    properties:
+      description:
+        type: string
+      name:
+        type: string
+    type: object
+  github_com_thienel_go-backend-template_internal_interface_api_dto.UpdateMobileConfigPayloadRequest:
+    properties:
+      payload_description:
+        type: string
+      payload_display_name:
+        type: string
+      payload_identifier:
+        type: string
+      payload_organization:
+        type: string
+      payload_type:
+        type: string
+      payload_version:
+        minimum: 1
+        type: integer
+      properties:
+        items:
+          $ref: '#/definitions/github_com_thienel_go-backend-template_internal_interface_api_dto.CreateMobileConfigPropertyRequest'
+        type: array
+    required:
+    - payload_display_name
+    - payload_identifier
+    - payload_type
+    type: object
+  github_com_thienel_go-backend-template_internal_interface_api_dto.UpdateMobileConfigRequest:
+    properties:
+      name:
+        type: string
+      payload_description:
+        type: string
+      payload_display_name:
+        type: string
+      payload_identifier:
+        type: string
+      payload_organization:
+        type: string
+      payload_removal_disallowed:
+        type: boolean
+      payload_type:
+        type: string
+      payload_version:
+        minimum: 1
+        type: integer
+      payloads:
+        items:
+          $ref: '#/definitions/github_com_thienel_go-backend-template_internal_interface_api_dto.UpdateMobileConfigPayloadRequest'
+        minItems: 1
+        type: array
+    required:
+    - name
+    - payload_display_name
+    - payload_identifier
+    - payload_type
+    - payloads
+    type: object
+  github_com_thienel_go-backend-template_internal_interface_api_dto.UpdateProfileRequest:
+    properties:
+      compliance_rules:
+        additionalProperties: true
+        type: object
+      content_filter:
+        additionalProperties: true
+        type: object
+      name:
+        maxLength: 255
+        type: string
+      network_config:
+        additionalProperties: true
+        type: object
+      payloads:
+        additionalProperties: true
+        type: object
+      platform:
+        type: string
+      restrictions:
+        additionalProperties: true
+        type: object
+      scope:
+        type: string
+      security_settings:
+        additionalProperties: true
+        type: object
+    type: object
+  github_com_thienel_go-backend-template_internal_interface_api_dto.UpdateSettingRequest:
+    properties:
+      description:
+        type: string
+      value:
+        type: string
+    type: object
   github_com_thienel_go-backend-template_internal_interface_api_dto.UpdateUserRequest:
     properties:
       email:
@@ -390,6 +812,19 @@ definitions:
       message:
         type: string
     type: object
+  ? github_com_thienel_go-backend-template_pkg_response.APIResponse-array_github_com_thienel_go-backend-template_internal_interface_api_dto_SettingResponse
+  : properties:
+      data:
+        items:
+          $ref: '#/definitions/github_com_thienel_go-backend-template_internal_interface_api_dto.SettingResponse'
+        type: array
+      error:
+        $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.Error'
+      is_success:
+        type: boolean
+      message:
+        type: string
+    type: object
   ? github_com_thienel_go-backend-template_pkg_response.APIResponse-array_github_com_thienel_go-backend-template_internal_usecase_service_PolicyRule
   : properties:
       data:
@@ -420,6 +855,17 @@ definitions:
   : properties:
       data:
         $ref: '#/definitions/github_com_thienel_go-backend-template_internal_interface_api_dto.APIResult'
+      error:
+        $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.Error'
+      is_success:
+        type: boolean
+      message:
+        type: string
+    type: object
+  ? github_com_thienel_go-backend-template_pkg_response.APIResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_AlertsSummaryResponse
+  : properties:
+      data:
+        $ref: '#/definitions/github_com_thienel_go-backend-template_internal_interface_api_dto.AlertsSummaryResponse'
       error:
         $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.Error'
       is_success:
@@ -460,6 +906,17 @@ definitions:
       message:
         type: string
     type: object
+  ? github_com_thienel_go-backend-template_pkg_response.APIResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_ChartDataResponse
+  : properties:
+      data:
+        $ref: '#/definitions/github_com_thienel_go-backend-template_internal_interface_api_dto.ChartDataResponse'
+      error:
+        $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.Error'
+      is_success:
+        type: boolean
+      message:
+        type: string
+    type: object
   ? github_com_thienel_go-backend-template_pkg_response.APIResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_DEPConfig
   : properties:
       data:
@@ -493,10 +950,43 @@ definitions:
       message:
         type: string
     type: object
+  ? github_com_thienel_go-backend-template_pkg_response.APIResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_DashboardStatsResponse
+  : properties:
+      data:
+        $ref: '#/definitions/github_com_thienel_go-backend-template_internal_interface_api_dto.DashboardStatsResponse'
+      error:
+        $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.Error'
+      is_success:
+        type: boolean
+      message:
+        type: string
+    type: object
+  ? github_com_thienel_go-backend-template_pkg_response.APIResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_DeviceStatsResponse
+  : properties:
+      data:
+        $ref: '#/definitions/github_com_thienel_go-backend-template_internal_interface_api_dto.DeviceStatsResponse'
+      error:
+        $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.Error'
+      is_success:
+        type: boolean
+      message:
+        type: string
+    type: object
   ? github_com_thienel_go-backend-template_pkg_response.APIResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_EventSubscription
   : properties:
       data:
         $ref: '#/definitions/github_com_thienel_go-backend-template_internal_interface_api_dto.EventSubscription'
+      error:
+        $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.Error'
+      is_success:
+        type: boolean
+      message:
+        type: string
+    type: object
+  ? github_com_thienel_go-backend-template_pkg_response.APIResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_ListResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_MobileConfigResponse
+  : properties:
+      data:
+        $ref: '#/definitions/github_com_thienel_go-backend-template_internal_interface_api_dto.ListResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_MobileConfigResponse'
       error:
         $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.Error'
       is_success:
@@ -603,6 +1093,17 @@ definitions:
       message:
         type: string
     type: object
+  ? github_com_thienel_go-backend-template_pkg_response.APIResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_SettingResponse
+  : properties:
+      data:
+        $ref: '#/definitions/github_com_thienel_go-backend-template_internal_interface_api_dto.SettingResponse'
+      error:
+        $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.Error'
+      is_success:
+        type: boolean
+      message:
+        type: string
+    type: object
   ? github_com_thienel_go-backend-template_pkg_response.APIResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_UserResponse
   : properties:
       data:
@@ -665,6 +1166,34 @@ definitions:
       message:
         type: string
     type: object
+  internal_interface_api_handler.APIErrorResponse:
+    properties:
+      error:
+        $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.Error'
+      is_success:
+        type: boolean
+    type: object
+  internal_interface_api_handler.EmptySuccessResponse:
+    properties:
+      is_success:
+        type: boolean
+      message:
+        type: string
+    type: object
+  internal_interface_api_handler.HealthResponse:
+    properties:
+      status:
+        type: string
+    type: object
+  internal_interface_api_handler.MobileConfigSuccessResponse:
+    properties:
+      data:
+        $ref: '#/definitions/github_com_thienel_go-backend-template_internal_interface_api_dto.MobileConfigResponse'
+      is_success:
+        type: boolean
+      message:
+        type: string
+    type: object
   map_string_github_com_thienel_go-backend-template_internal_interface_api_dto.NanoCMDProfile:
     additionalProperties:
       $ref: '#/definitions/github_com_thienel_go-backend-template_internal_interface_api_dto.NanoCMDProfile'
@@ -683,6 +1212,1022 @@ info:
   title: THD iOS MDM Portal API
   version: "1.0"
 paths:
+  /alerts:
+    get:
+      description: Fetch tracked system alerts
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+      security:
+      - BearerAuth: []
+      summary: List alerts
+      tags:
+      - alerts
+    post:
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+      security:
+      - BearerAuth: []
+      summary: Create alert
+      tags:
+      - alerts
+  /alerts/{id}:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+      security:
+      - BearerAuth: []
+      summary: Get alert by ID
+      tags:
+      - alerts
+  /alerts/{id}/acknowledge:
+    put:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+      security:
+      - BearerAuth: []
+      summary: Acknowledge alert
+      tags:
+      - alerts
+  /alerts/{id}/actions/lock:
+    post:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+      security:
+      - BearerAuth: []
+      summary: Lock device from alert
+      tags:
+      - alerts
+  /alerts/{id}/actions/message:
+    post:
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+      security:
+      - BearerAuth: []
+      summary: Send message from alert
+      tags:
+      - alerts
+  /alerts/{id}/actions/push-policy:
+    post:
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+      security:
+      - BearerAuth: []
+      summary: Push policy from alert
+      tags:
+      - alerts
+  /alerts/{id}/actions/wipe:
+    post:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+      security:
+      - BearerAuth: []
+      summary: Wipe device from alert
+      tags:
+      - alerts
+  /alerts/{id}/resolve:
+    put:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+      security:
+      - BearerAuth: []
+      summary: Resolve alert
+      tags:
+      - alerts
+  /alerts/bulk-resolve:
+    post:
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+      security:
+      - BearerAuth: []
+      summary: Bulk resolve alerts
+      tags:
+      - alerts
+  /alerts/rules:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+      security:
+      - BearerAuth: []
+      summary: List alert rules
+      tags:
+      - alert-rules
+    post:
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+      security:
+      - BearerAuth: []
+      summary: Create alert rule
+      tags:
+      - alert-rules
+  /alerts/rules/{id}:
+    delete:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+      security:
+      - BearerAuth: []
+      summary: Delete alert rule
+      tags:
+      - alert-rules
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+      security:
+      - BearerAuth: []
+      summary: Get alert rule by ID
+      tags:
+      - alert-rules
+    put:
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+      security:
+      - BearerAuth: []
+      summary: Update alert rule
+      tags:
+      - alert-rules
+  /alerts/rules/{id}/toggle:
+    put:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+      security:
+      - BearerAuth: []
+      summary: Toggle alert rule active status
+      tags:
+      - alert-rules
+  /alerts/stats:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+      security:
+      - BearerAuth: []
+      summary: Get alert stats
+      tags:
+      - alerts
+  /api/mobile-configs:
+    post:
+      consumes:
+      - application/json
+      description: Create a new Apple mobileconfig with payloads and payload properties
+      parameters:
+      - description: Mobile config payload
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_thienel_go-backend-template_internal_interface_api_dto.CreateMobileConfigRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/internal_interface_api_handler.MobileConfigSuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/internal_interface_api_handler.APIErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/internal_interface_api_handler.APIErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/internal_interface_api_handler.APIErrorResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/internal_interface_api_handler.APIErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/internal_interface_api_handler.APIErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Create mobile config
+      tags:
+      - Mobile Config
+  /api/mobile-configs/{id}:
+    delete:
+      description: Delete an existing Apple mobileconfig by ID
+      parameters:
+      - description: Mobile config ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_interface_api_handler.EmptySuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/internal_interface_api_handler.APIErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/internal_interface_api_handler.APIErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/internal_interface_api_handler.APIErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/internal_interface_api_handler.APIErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/internal_interface_api_handler.APIErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Delete mobile config
+      tags:
+      - Mobile Config
+    put:
+      consumes:
+      - application/json
+      description: Update an existing Apple mobileconfig with payloads and payload
+        properties
+      parameters:
+      - description: Mobile config ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Mobile config payload
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_thienel_go-backend-template_internal_interface_api_dto.UpdateMobileConfigRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_interface_api_handler.MobileConfigSuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/internal_interface_api_handler.APIErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/internal_interface_api_handler.APIErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/internal_interface_api_handler.APIErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/internal_interface_api_handler.APIErrorResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/internal_interface_api_handler.APIErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/internal_interface_api_handler.APIErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Update mobile config
+      tags:
+      - Mobile Config
+  /api/mobile-configs/{id}/xml:
+    get:
+      description: Generate and return raw Apple mobileconfig XML content by ID
+      parameters:
+      - description: Mobile config ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - text/xml
+      responses:
+        "200":
+          description: Raw XML
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/internal_interface_api_handler.APIErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/internal_interface_api_handler.APIErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/internal_interface_api_handler.APIErrorResponse'
+      summary: Export mobile config XML
+      tags:
+      - Mobile Config
+  /api/v1/dashboard/alerts-summary:
+    get:
+      description: Get alerts summary including counts by severity and type
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_AlertsSummaryResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+      security:
+      - BearerAuth: []
+      summary: Get alerts summary
+      tags:
+      - Dashboard
+  /api/v1/dashboard/charts/{type}:
+    get:
+      description: Get chart data for dashboard visualization
+      parameters:
+      - description: Chart type (devices, compliance, alerts)
+        in: path
+        name: type
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_ChartDataResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+      security:
+      - BearerAuth: []
+      summary: Get chart data
+      tags:
+      - Dashboard
+  /api/v1/dashboard/device-stats:
+    get:
+      description: Get detailed device statistics including counts by platform and
+        status
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_DeviceStatsResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+      security:
+      - BearerAuth: []
+      summary: Get device statistics
+      tags:
+      - Dashboard
+  /api/v1/dashboard/stats:
+    get:
+      description: Get overall dashboard statistics including devices, users, alerts,
+        and apps
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_DashboardStatsResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+      security:
+      - BearerAuth: []
+      summary: Get dashboard statistics
+      tags:
+      - Dashboard
+  /api/v1/mobile-configs:
+    get:
+      description: Get a paginated list of Apple mobile configs with filtering and
+        sorting
+      parameters:
+      - description: Page number (default 1)
+        in: query
+        name: page
+        type: integer
+      - description: Items per page (default 20)
+        in: query
+        name: limit
+        type: integer
+      - description: Search by name, identifier or display name
+        in: query
+        name: search
+        type: string
+      - description: Filter by name
+        in: query
+        name: name
+        type: string
+      - description: Filter by payload type
+        in: query
+        name: payload_type
+        type: string
+      - description: Sort by field (e.g. id,name,created_at)
+        in: query
+        name: sort
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_ListResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_MobileConfigResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/internal_interface_api_handler.APIErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/internal_interface_api_handler.APIErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: List mobile configs
+      tags:
+      - Mobile Config
+  /api/v1/mobile-configs/{id}:
+    get:
+      description: Get details of a single mobile config by its ID including payloads
+      parameters:
+      - description: Mobile config ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_interface_api_handler.MobileConfigSuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/internal_interface_api_handler.APIErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/internal_interface_api_handler.APIErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/internal_interface_api_handler.APIErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/internal_interface_api_handler.APIErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get mobile config by ID
+      tags:
+      - Mobile Config
+  /applications:
+    get:
+      description: Fetch tracked applications with pagination
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+      security:
+      - BearerAuth: []
+      summary: List applications
+      tags:
+      - applications
+    post:
+      consumes:
+      - application/json
+      description: Create application
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+      security:
+      - BearerAuth: []
+      summary: Add a new application tracking record
+      tags:
+      - applications
+  /applications/{id}:
+    delete:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+      security:
+      - BearerAuth: []
+      summary: Delete application
+      tags:
+      - applications
+    get:
+      description: Fetch details of a specific app
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+      security:
+      - BearerAuth: []
+      summary: Get app block by ID
+      tags:
+      - applications
+    put:
+      consumes:
+      - application/json
+      description: Update application
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+      security:
+      - BearerAuth: []
+      summary: Update application metadata
+      tags:
+      - applications
+  /applications/{id}/versions:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+      security:
+      - BearerAuth: []
+      summary: List application versions
+      tags:
+      - applications
+    post:
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+      security:
+      - BearerAuth: []
+      summary: Upload and create a new version of an app
+      tags:
+      - applications
+  /applications/{id}/versions/{versionId}:
+    delete:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+      security:
+      - BearerAuth: []
+      summary: Delete app version
+      tags:
+      - applications
+  /applications/{id}/versions/{versionId}/deployments:
+    get:
+      description: Review installation statuses of pushed tools
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+      security:
+      - BearerAuth: []
+      summary: List deployment status
+      tags:
+      - applications
+  /applications/deployments:
+    post:
+      consumes:
+      - application/json
+      description: Command the MDM core to push app installations
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+      security:
+      - BearerAuth: []
+      summary: Push app to devices
+      tags:
+      - applications
+  /health:
+    get:
+      description: Check service liveness
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_interface_api_handler.HealthResponse'
+      summary: Health check
+      tags:
+      - System
+  /reports/alerts/export:
+    get:
+      description: Export a list of generated alerts to CSV format
+      parameters:
+      - description: Search Alerts
+        in: query
+        name: search
+        type: string
+      produces:
+      - text/csv
+      responses:
+        "200":
+          description: CSV Data
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+      security:
+      - BearerAuth: []
+      summary: Export Alerts
+      tags:
+      - reports
+  /reports/applications/export:
+    get:
+      description: Export a list of tracked applications to CSV format
+      parameters:
+      - description: Search by Bundle ID or App Name
+        in: query
+        name: search
+        type: string
+      produces:
+      - text/csv
+      responses:
+        "200":
+          description: CSV Data
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+      security:
+      - BearerAuth: []
+      summary: Export Applications
+      tags:
+      - reports
+  /reports/devices/export:
+    get:
+      description: Export a list of devices to CSV format
+      parameters:
+      - description: Search via Device Name, Serial or Model
+        in: query
+        name: search
+        type: string
+      produces:
+      - text/csv
+      responses:
+        "200":
+          description: CSV Data
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+      security:
+      - BearerAuth: []
+      summary: Export Devices
+      tags:
+      - reports
+  /settings:
+    get:
+      description: Fetch all backend configuration kv string settings
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-array_github_com_thienel_go-backend-template_internal_interface_api_dto_SettingResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+      security:
+      - BearerAuth: []
+      summary: List settings
+      tags:
+      - settings
+    post:
+      consumes:
+      - application/json
+      description: Create a new key-value system config record
+      parameters:
+      - description: Create Setting Body
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_thienel_go-backend-template_internal_interface_api_dto.CreateSettingRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_SettingResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+      security:
+      - BearerAuth: []
+      summary: Create setting
+      tags:
+      - settings
+  /settings/{key}:
+    delete:
+      description: Delete system setting forever
+      parameters:
+      - description: Setting Key String
+        in: path
+        name: key
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+      security:
+      - BearerAuth: []
+      summary: Delete setting
+      tags:
+      - settings
+    get:
+      description: Get a specifically named environment configuration value
+      parameters:
+      - description: Setting Key Identifier
+        in: path
+        name: key
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_SettingResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+      security:
+      - BearerAuth: []
+      summary: Get setting by key
+      tags:
+      - settings
+    put:
+      consumes:
+      - application/json
+      description: Overwrite value and description of a system setting
+      parameters:
+      - description: Setting Key Identifier
+        in: path
+        name: key
+        required: true
+        type: string
+      - description: Update Setting Body
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_thienel_go-backend-template_internal_interface_api_dto.UpdateSettingRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_SettingResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+      security:
+      - BearerAuth: []
+      summary: Update setting
+      tags:
+      - settings
   /v1/auth/login:
     post:
       consumes:
@@ -1317,6 +2862,218 @@ paths:
       summary: Returns the running NanoDEP version
       tags:
       - DEP
+  /v1/device-groups:
+    get:
+      description: Fetch device groups with pagination and filtering
+      produces:
+      - application/json
+      responses: {}
+      security:
+      - BearerAuth: []
+      summary: List device groups
+      tags:
+      - DeviceGroups
+    post:
+      consumes:
+      - application/json
+      description: Create a new device group
+      parameters:
+      - description: Group info
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_thienel_go-backend-template_internal_interface_api_dto.CreateDeviceGroupRequest'
+      produces:
+      - application/json
+      responses: {}
+      security:
+      - BearerAuth: []
+      summary: Create device group
+      tags:
+      - DeviceGroups
+  /v1/device-groups/{id}:
+    delete:
+      description: Delete an existing device group
+      parameters:
+      - description: Group ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses: {}
+      security:
+      - BearerAuth: []
+      summary: Delete device group
+      tags:
+      - DeviceGroups
+    get:
+      description: Fetch single device group
+      parameters:
+      - description: Group ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses: {}
+      security:
+      - BearerAuth: []
+      summary: Get device group by ID
+      tags:
+      - DeviceGroups
+    put:
+      consumes:
+      - application/json
+      description: Update an existing device group
+      parameters:
+      - description: Group ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Group info
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_thienel_go-backend-template_internal_interface_api_dto.UpdateDeviceGroupRequest'
+      produces:
+      - application/json
+      responses: {}
+      security:
+      - BearerAuth: []
+      summary: Update device group
+      tags:
+      - DeviceGroups
+  /v1/device-groups/{id}/devices:
+    post:
+      consumes:
+      - application/json
+      description: Assign one or more devices to a group
+      parameters:
+      - description: Group ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Device IDs
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_thienel_go-backend-template_internal_interface_api_dto.ManageGroupDevicesRequest'
+      produces:
+      - application/json
+      responses: {}
+      security:
+      - BearerAuth: []
+      summary: Add devices to group
+      tags:
+      - DeviceGroups
+  /v1/device-groups/{id}/devices/{deviceId}:
+    delete:
+      description: Unassign a single device from a group
+      parameters:
+      - description: Group ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Device ID
+        in: path
+        name: deviceId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses: {}
+      security:
+      - BearerAuth: []
+      summary: Remove device from group
+      tags:
+      - DeviceGroups
+  /v1/devices:
+    get:
+      description: Fetch devices with pagination, sorting and filtering
+      produces:
+      - application/json
+      responses: {}
+      security:
+      - BearerAuth: []
+      summary: List devices
+      tags:
+      - Devices
+  /v1/devices/{id}:
+    get:
+      description: Fetch single device details
+      parameters:
+      - description: Device ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses: {}
+      security:
+      - BearerAuth: []
+      summary: Get device by ID
+      tags:
+      - Devices
+  /v1/devices/{id}/lock:
+    post:
+      description: Queues MDM device lock command
+      parameters:
+      - description: Device ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses: {}
+      security:
+      - BearerAuth: []
+      summary: Lock device
+      tags:
+      - Devices
+  /v1/devices/{id}/wipe:
+    post:
+      description: Queues MDM erase device command
+      parameters:
+      - description: Device ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses: {}
+      security:
+      - BearerAuth: []
+      summary: Wipe device
+      tags:
+      - Devices
+  /v1/devices/export:
+    get:
+      description: Export devices to CSV or JSON
+      parameters:
+      - description: Format (csv or json)
+        in: query
+        name: format
+        type: string
+      produces:
+      - text/csv
+      responses: {}
+      security:
+      - BearerAuth: []
+      summary: Export devices
+      tags:
+      - Devices
   /v1/mdm/enqueue/{id}:
     put:
       consumes:
@@ -2090,6 +3847,93 @@ paths:
       summary: Get policies for a role
       tags:
       - Authorization
+  /v1/profiles:
+    get:
+      description: Fetch profiles with pagination and filtering
+      produces:
+      - application/json
+      responses: {}
+      security:
+      - BearerAuth: []
+      summary: List profiles
+      tags:
+      - Profiles
+    post:
+      consumes:
+      - application/json
+      description: Create a new configuration profile
+      parameters:
+      - description: Profile info
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_thienel_go-backend-template_internal_interface_api_dto.CreateProfileRequest'
+      produces:
+      - application/json
+      responses: {}
+      security:
+      - BearerAuth: []
+      summary: Create profile
+      tags:
+      - Profiles
+  /v1/profiles/{id}:
+    delete:
+      description: Delete an existing profile
+      parameters:
+      - description: Profile ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses: {}
+      security:
+      - BearerAuth: []
+      summary: Delete profile
+      tags:
+      - Profiles
+    get:
+      description: Fetch single profile
+      parameters:
+      - description: Profile ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses: {}
+      security:
+      - BearerAuth: []
+      summary: Get profile by ID
+      tags:
+      - Profiles
+    put:
+      consumes:
+      - application/json
+      description: Update an existing profile
+      parameters:
+      - description: Profile ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Profile info
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_thienel_go-backend-template_internal_interface_api_dto.UpdateProfileRequest'
+      produces:
+      - application/json
+      responses: {}
+      security:
+      - BearerAuth: []
+      summary: Update profile
+      tags:
+      - Profiles
   /v1/roles:
     delete:
       consumes:

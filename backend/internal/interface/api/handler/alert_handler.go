@@ -59,6 +59,14 @@ func NewAlertHandler(alertService service.AlertService, alertRuleService service
 	}
 }
 
+// List godoc
+// @Summary List alerts
+// @Description Fetch tracked system alerts
+// @Tags alerts
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} response.APIResponse[any]
+// @Router /alerts [get]
 func (h *alertHandlerImpl) List(c *gin.Context) {
 	params := make(map[string]string)
 	for k, v := range c.Request.URL.Query() {
@@ -92,6 +100,13 @@ func (h *alertHandlerImpl) List(c *gin.Context) {
 	}, "")
 }
 
+// GetByID godoc
+// @Summary Get alert by ID
+// @Tags alerts
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} response.APIResponse[any]
+// @Router /alerts/{id} [get]
 func (h *alertHandlerImpl) GetByID(c *gin.Context) {
 	idStr := c.Param("id")
 	id, err := strconv.ParseUint(idStr, 10, 32)
@@ -109,6 +124,14 @@ func (h *alertHandlerImpl) GetByID(c *gin.Context) {
 	response.OK(c, mapAlertToResponse(alert), "")
 }
 
+// Create godoc
+// @Summary Create alert
+// @Tags alerts
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Success 201 {object} response.APIResponse[any]
+// @Router /alerts [post]
 func (h *alertHandlerImpl) Create(c *gin.Context) {
 	var req dto.CreateAlertRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -132,6 +155,13 @@ func (h *alertHandlerImpl) Create(c *gin.Context) {
 	response.Created(c, mapAlertToResponse(alert), "Alert created successfully")
 }
 
+// Acknowledge godoc
+// @Summary Acknowledge alert
+// @Tags alerts
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} response.APIResponse[any]
+// @Router /alerts/{id}/acknowledge [put]
 func (h *alertHandlerImpl) Acknowledge(c *gin.Context) {
 	idStr := c.Param("id")
 	id, err := strconv.ParseUint(idStr, 10, 32)
@@ -148,6 +178,13 @@ func (h *alertHandlerImpl) Acknowledge(c *gin.Context) {
 	response.OK[any](c, nil, "Alert acknowledged")
 }
 
+// Resolve godoc
+// @Summary Resolve alert
+// @Tags alerts
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} response.APIResponse[any]
+// @Router /alerts/{id}/resolve [put]
 func (h *alertHandlerImpl) Resolve(c *gin.Context) {
 	idStr := c.Param("id")
 	id, err := strconv.ParseUint(idStr, 10, 32)
@@ -164,6 +201,14 @@ func (h *alertHandlerImpl) Resolve(c *gin.Context) {
 	response.OK[any](c, nil, "Alert resolved")
 }
 
+// BulkResolve godoc
+// @Summary Bulk resolve alerts
+// @Tags alerts
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} response.APIResponse[any]
+// @Router /alerts/bulk-resolve [post]
 func (h *alertHandlerImpl) BulkResolve(c *gin.Context) {
 	var req dto.BulkResolveAlertsRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -179,6 +224,13 @@ func (h *alertHandlerImpl) BulkResolve(c *gin.Context) {
 	response.OK[any](c, nil, "Alerts bulk resolved")
 }
 
+// GetStats godoc
+// @Summary Get alert stats
+// @Tags alerts
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} response.APIResponse[any]
+// @Router /alerts/stats [get]
 func (h *alertHandlerImpl) GetStats(c *gin.Context) {
 	stats, err := h.alertService.GetStats(c.Request.Context())
 	if err != nil {
@@ -189,6 +241,13 @@ func (h *alertHandlerImpl) GetStats(c *gin.Context) {
 	response.OK(c, stats, "")
 }
 
+// LockDevice godoc
+// @Summary Lock device from alert
+// @Tags alerts
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} response.APIResponse[any]
+// @Router /alerts/{id}/actions/lock [post]
 func (h *alertHandlerImpl) LockDevice(c *gin.Context) {
 	idStr := c.Param("id")
 	id, err := strconv.ParseUint(idStr, 10, 32)
@@ -204,6 +263,13 @@ func (h *alertHandlerImpl) LockDevice(c *gin.Context) {
 	response.OK[any](c, nil, "Device lock initiated")
 }
 
+// WipeDevice godoc
+// @Summary Wipe device from alert
+// @Tags alerts
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} response.APIResponse[any]
+// @Router /alerts/{id}/actions/wipe [post]
 func (h *alertHandlerImpl) WipeDevice(c *gin.Context) {
 	idStr := c.Param("id")
 	id, err := strconv.ParseUint(idStr, 10, 32)
@@ -219,6 +285,14 @@ func (h *alertHandlerImpl) WipeDevice(c *gin.Context) {
 	response.OK[any](c, nil, "Device wipe initiated")
 }
 
+// PushPolicy godoc
+// @Summary Push policy from alert
+// @Tags alerts
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} response.APIResponse[any]
+// @Router /alerts/{id}/actions/push-policy [post]
 func (h *alertHandlerImpl) PushPolicy(c *gin.Context) {
 	idStr := c.Param("id")
 	id, err := strconv.ParseUint(idStr, 10, 32)
@@ -240,6 +314,14 @@ func (h *alertHandlerImpl) PushPolicy(c *gin.Context) {
 	response.OK[any](c, nil, "Policy pushed")
 }
 
+// SendMessage godoc
+// @Summary Send message from alert
+// @Tags alerts
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} response.APIResponse[any]
+// @Router /alerts/{id}/actions/message [post]
 func (h *alertHandlerImpl) SendMessage(c *gin.Context) {
 	idStr := c.Param("id")
 	id, err := strconv.ParseUint(idStr, 10, 32)
@@ -263,6 +345,13 @@ func (h *alertHandlerImpl) SendMessage(c *gin.Context) {
 
 // ---- Rule Methods ----
 
+// ListRules godoc
+// @Summary List alert rules
+// @Tags alert-rules
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} response.APIResponse[any]
+// @Router /alerts/rules [get]
 func (h *alertHandlerImpl) ListRules(c *gin.Context) {
 	params := make(map[string]string)
 	for k, v := range c.Request.URL.Query() {
@@ -296,6 +385,13 @@ func (h *alertHandlerImpl) ListRules(c *gin.Context) {
 	}, "")
 }
 
+// GetRuleByID godoc
+// @Summary Get alert rule by ID
+// @Tags alert-rules
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} response.APIResponse[any]
+// @Router /alerts/rules/{id} [get]
 func (h *alertHandlerImpl) GetRuleByID(c *gin.Context) {
 	idStr := c.Param("id")
 	id, err := strconv.ParseUint(idStr, 10, 32)
@@ -313,6 +409,14 @@ func (h *alertHandlerImpl) GetRuleByID(c *gin.Context) {
 	response.OK(c, mapAlertRuleToResponse(r), "")
 }
 
+// CreateRule godoc
+// @Summary Create alert rule
+// @Tags alert-rules
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Success 201 {object} response.APIResponse[any]
+// @Router /alerts/rules [post]
 func (h *alertHandlerImpl) CreateRule(c *gin.Context) {
 	var req dto.CreateAlertRuleRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -340,6 +444,14 @@ func (h *alertHandlerImpl) CreateRule(c *gin.Context) {
 	response.Created(c, mapAlertRuleToResponse(r), "Rule created")
 }
 
+// UpdateRule godoc
+// @Summary Update alert rule
+// @Tags alert-rules
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} response.APIResponse[any]
+// @Router /alerts/rules/{id} [put]
 func (h *alertHandlerImpl) UpdateRule(c *gin.Context) {
 	idStr := c.Param("id")
 	id, err := strconv.ParseUint(idStr, 10, 32)
@@ -370,6 +482,13 @@ func (h *alertHandlerImpl) UpdateRule(c *gin.Context) {
 	response.OK(c, mapAlertRuleToResponse(r), "Rule updated")
 }
 
+// DeleteRule godoc
+// @Summary Delete alert rule
+// @Tags alert-rules
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} response.APIResponse[any]
+// @Router /alerts/rules/{id} [delete]
 func (h *alertHandlerImpl) DeleteRule(c *gin.Context) {
 	idStr := c.Param("id")
 	id, err := strconv.ParseUint(idStr, 10, 32)
@@ -386,6 +505,13 @@ func (h *alertHandlerImpl) DeleteRule(c *gin.Context) {
 	response.OK[any](c, nil, "Rule deleted")
 }
 
+// ToggleRule godoc
+// @Summary Toggle alert rule active status
+// @Tags alert-rules
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} response.APIResponse[any]
+// @Router /alerts/rules/{id}/toggle [put]
 func (h *alertHandlerImpl) ToggleRule(c *gin.Context) {
 	idStr := c.Param("id")
 	id, err := strconv.ParseUint(idStr, 10, 32)
