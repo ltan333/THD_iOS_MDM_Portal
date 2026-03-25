@@ -21,6 +21,9 @@ type routeRegister struct {
 	nanocmd      handler.NanoCMDHandler
 	mobileConfig handler.MobileConfigHandler
 	dashboard    handler.DashboardHandler
+	device       handler.DeviceHandler
+	deviceGroup  handler.DeviceGroupHandler
+	profile      handler.ProfileHandler
 	mw           *middleware.Middleware
 }
 
@@ -34,6 +37,9 @@ func SetupRouter(
 	nanocmdHandler handler.NanoCMDHandler,
 	mobileConfigHandler handler.MobileConfigHandler,
 	dashboardHandler handler.DashboardHandler,
+	deviceHandler handler.DeviceHandler,
+	deviceGroupHandler handler.DeviceGroupHandler,
+	profileHandler handler.ProfileHandler,
 	mw *middleware.Middleware,
 ) *gin.Engine {
 
@@ -46,6 +52,9 @@ func SetupRouter(
 		nanocmd:      nanocmdHandler,
 		mobileConfig: mobileConfigHandler,
 		dashboard:    dashboardHandler,
+		device:       deviceHandler,
+		deviceGroup:  deviceGroupHandler,
+		profile:      profileHandler,
 		mw:           mw,
 	}
 
@@ -75,6 +84,9 @@ func SetupRouter(
 			routes.registerNanoCMDRoutes(protected)
 			routes.registerMobileConfigRoutes(protected)
 			routes.registerDashboardRoutes(protected)
+			routes.registerDeviceRoutes(protected)
+			routes.registerDeviceGroupRoutes(protected)
+			routes.registerProfileRoutes(protected)
 		}
 	}
 
@@ -207,5 +219,67 @@ func (r *routeRegister) registerDashboardRoutes(rg *gin.RouterGroup) {
 		dashboard.GET("/device-stats", r.dashboard.GetDeviceStats)
 		dashboard.GET("/alerts-summary", r.dashboard.GetAlertsSummary)
 		dashboard.GET("/charts/:type", r.dashboard.GetChartData)
+	}
+}
+
+func (r *routeRegister) registerDeviceRoutes(rg *gin.RouterGroup) {
+	devices := rg.Group("/devices")
+	{
+		devices.GET("", r.device.List)
+		devices.GET("/export", r.device.Export)
+		devices.GET("/:id", r.device.GetByID)
+		devices.POST("/:id/lock", r.device.Lock)
+		devices.POST("/:id/wipe", r.device.Wipe)
+	}
+}
+
+func (r *routeRegister) registerDeviceGroupRoutes(rg *gin.RouterGroup) {
+	groups := rg.Group("/device-groups")
+	{
+		groups.GET("", r.deviceGroup.List)
+		groups.POST("", r.deviceGroup.Create)
+		groups.GET("/:id", r.deviceGroup.GetByID)
+		groups.PUT("/:id", r.deviceGroup.Update)
+		groups.DELETE("/:id", r.deviceGroup.Delete)
+		groups.POST("/:id/devices", r.deviceGroup.AddDevices)
+		groups.DELETE("/:id/devices/:deviceId", r.deviceGroup.RemoveDevice)
+	}
+}
+
+func (r *routeRegister) registerProfileRoutes(rg *gin.RouterGroup) {
+	profiles := rg.Group("/profiles")
+	{
+		profiles.GET("", r.profile.List)
+		profiles.POST("", r.profile.Create)
+		profiles.GET("/:id", r.profile.GetByID)
+		profiles.PUT("/:id", r.profile.Update)
+		profiles.DELETE("/:id", r.profile.Delete)
+		profiles.PUT("/:id/status", r.profile.UpdateStatus)
+
+		settings := profiles.Group("/:id/settings")
+		{
+			settings.PUT("/security", r.profile.UpdateSecuritySettings)
+			settings.PUT("/network", r.profile.UpdateNetworkConfig)
+			settings.PUT("/restrictions", r.profile.UpdateRestrictions)
+			settings.PUT("/content-filter", r.profile.UpdateContentFilter)
+			settings.PUT("/compliance", r.profile.UpdateComplianceRules)
+		}
+
+		assign := profiles.Group("/:id/assignments")
+		{
+			assign.GET("", r.profile.ListAssignments)
+			assign.POST("", r.profile.Assign)
+			assign.DELETE("/:assignmentId", r.profile.Unassign)
+		}
+
+		versions := profiles.Group("/:id/versions")
+		{
+			versions.GET("", r.profile.ListVersions)
+			versions.POST("/:versionId/rollback", r.profile.Rollback)
+		}
+
+		profiles.GET("/:id/deployment-status", r.profile.GetDeploymentStatus)
+		profiles.POST("/:id/repush", r.profile.Repush)
+		profiles.POST("/:id/duplicate", r.profile.Duplicate)
 	}
 }
