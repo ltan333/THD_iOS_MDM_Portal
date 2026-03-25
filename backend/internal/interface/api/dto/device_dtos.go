@@ -37,7 +37,15 @@ type DeviceResponse struct {
 	OwnerID          *uint      `json:"owner_id"`
 	OsVersion        string     `json:"os_version"`
 	DeviceType       string     `json:"device_type"`
+	MacAddress       string     `json:"mac_address,omitempty"`
+	IpAddress        string     `json:"ip_address,omitempty"`
+	BatteryLevel     float64    `json:"battery_level,omitempty"`
+	StorageCapacity  uint64     `json:"storage_capacity,omitempty"`
+	StorageUsed      uint64     `json:"storage_used,omitempty"`
+	IsJailbroken     bool       `json:"is_jailbroken"`
+	EnrollmentType   string     `json:"enrollment_type"`
 	LastSeen         *time.Time `json:"last_seen"`
+	EnrolledAt       *time.Time `json:"enrolled_at,omitempty"`
 	CreatedAt        time.Time  `json:"created_at"`
 	UpdatedAt        time.Time  `json:"updated_at"`
 }
@@ -61,4 +69,8 @@ type DeviceGroupResponse struct {
 	Devices     []DeviceResponse `json:"devices,omitempty"`
 	CreatedAt   time.Time        `json:"created_at"`
 	UpdatedAt   time.Time        `json:"updated_at"`
+}
+
+type ManageGroupDevicesRequest struct {
+	DeviceIDs []string `json:"device_ids" binding:"required,min=1"`
 }

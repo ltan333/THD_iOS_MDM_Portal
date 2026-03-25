@@ -10,14 +10,6 @@ import (
 	"github.com/thienel/go-backend-template/pkg/query"
 )
 
-var depProfileAllowedFields = map[string]bool{
-	"id":           true,
-	"profile_name": true,
-	"profile_uuid": true,
-	"created_at":   true,
-	"updated_at":   true,
-}
-
 type depProfileRepositoryImpl struct {
 	client *ent.Client
 }

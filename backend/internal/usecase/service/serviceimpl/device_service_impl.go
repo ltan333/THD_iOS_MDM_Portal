@@ -136,6 +136,27 @@ func (s *deviceServiceImpl) Create(ctx context.Context, cmd service.CreateDevice
 		SetNillableModel(&cmd.Model).
 		SetNillableName(&cmd.Name)
 
+	if cmd.MacAddress != "" {
+		create = create.SetMACAddress(cmd.MacAddress)
+	}
+	if cmd.IpAddress != "" {
+		create = create.SetIPAddress(cmd.IpAddress)
+	}
+	if cmd.BatteryLevel > 0 {
+		create = create.SetBatteryLevel(cmd.BatteryLevel)
+	}
+	if cmd.StorageCapacity > 0 {
+		create = create.SetStorageCapacity(cmd.StorageCapacity)
+	}
+	if cmd.StorageUsed > 0 {
+		create = create.SetStorageUsed(cmd.StorageUsed)
+	}
+	create = create.SetIsJailbroken(cmd.IsJailbroken)
+
+	if cmd.EnrollmentType != "" {
+		create = create.SetEnrollmentType(device.EnrollmentType(cmd.EnrollmentType))
+	}
+
 	if cmd.Platform != "" {
 		create = create.SetPlatform(device.Platform(cmd.Platform))
 	}
@@ -187,6 +208,27 @@ func (s *deviceServiceImpl) Update(ctx context.Context, cmd service.UpdateDevice
 	}
 	if cmd.DeviceType != nil {
 		update = update.SetDeviceType(*cmd.DeviceType)
+	}
+	if cmd.MacAddress != nil {
+		update = update.SetMACAddress(*cmd.MacAddress)
+	}
+	if cmd.IpAddress != nil {
+		update = update.SetIPAddress(*cmd.IpAddress)
+	}
+	if cmd.BatteryLevel != nil {
+		update = update.SetBatteryLevel(*cmd.BatteryLevel)
+	}
+	if cmd.StorageCapacity != nil {
+		update = update.SetStorageCapacity(*cmd.StorageCapacity)
+	}
+	if cmd.StorageUsed != nil {
+		update = update.SetStorageUsed(*cmd.StorageUsed)
+	}
+	if cmd.IsJailbroken != nil {
+		update = update.SetIsJailbroken(*cmd.IsJailbroken)
+	}
+	if cmd.EnrollmentType != nil {
+		update = update.SetEnrollmentType(device.EnrollmentType(*cmd.EnrollmentType))
 	}
 
 	d, err := update.Save(ctx)
@@ -272,9 +314,9 @@ func (s *deviceServiceImpl) Export(ctx context.Context, format string) ([]byte, 
 	case "csv":
 		var buf strings.Builder
 		writer := csv.NewWriter(&buf)
-		writer.Write([]string{"ID", "Serial Number", "Model", "Name", "Platform", "Status", "Is Enrolled"})
+		_ = writer.Write([]string{"ID", "Serial Number", "Model", "Name", "Platform", "Status", "Is Enrolled"})
 		for _, d := range devices {
-			writer.Write([]string{
+			_ = writer.Write([]string{
 				d.ID,
 				d.SerialNumber,
 				d.Model,
