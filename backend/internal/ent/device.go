@@ -30,6 +30,20 @@ type Device struct {
 	Name string `json:"name,omitempty"`
 	// LastSync holds the value of the "last_sync" field.
 	LastSync time.Time `json:"last_sync,omitempty"`
+	// Platform holds the value of the "platform" field.
+	Platform device.Platform `json:"platform,omitempty"`
+	// Status holds the value of the "status" field.
+	Status device.Status `json:"status,omitempty"`
+	// ComplianceStatus holds the value of the "compliance_status" field.
+	ComplianceStatus device.ComplianceStatus `json:"compliance_status,omitempty"`
+	// OsVersion holds the value of the "os_version" field.
+	OsVersion string `json:"os_version,omitempty"`
+	// DeviceType holds the value of the "device_type" field.
+	DeviceType string `json:"device_type,omitempty"`
+	// LastSeen holds the value of the "last_seen" field.
+	LastSeen time.Time `json:"last_seen,omitempty"`
+	// EnrolledAt holds the value of the "enrolled_at" field.
+	EnrolledAt time.Time `json:"enrolled_at,omitempty"`
 	// CreatedAt holds the value of the "created_at" field.
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	// UpdatedAt holds the value of the "updated_at" field.
@@ -44,9 +58,11 @@ type Device struct {
 type DeviceEdges struct {
 	// Owner holds the value of the owner edge.
 	Owner *User `json:"owner,omitempty"`
+	// Groups holds the value of the groups edge.
+	Groups []*DeviceGroup `json:"groups,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [1]bool
+	loadedTypes [2]bool
 }
 
 // OwnerOrErr returns the Owner value or an error if the edge
@@ -60,6 +76,15 @@ func (e DeviceEdges) OwnerOrErr() (*User, error) {
 	return nil, &NotLoadedError{edge: "owner"}
 }
 
+// GroupsOrErr returns the Groups value or an error if the edge
+// was not loaded in eager-loading.
+func (e DeviceEdges) GroupsOrErr() ([]*DeviceGroup, error) {
+	if e.loadedTypes[1] {
+		return e.Groups, nil
+	}
+	return nil, &NotLoadedError{edge: "groups"}
+}
+
 // scanValues returns the types for scanning values from sql.Rows.
 func (*Device) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
@@ -69,9 +94,9 @@ func (*Device) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullBool)
 		case device.FieldOwnerID:
 			values[i] = new(sql.NullInt64)
-		case device.FieldID, device.FieldSerialNumber, device.FieldModel, device.FieldName:
+		case device.FieldID, device.FieldSerialNumber, device.FieldModel, device.FieldName, device.FieldPlatform, device.FieldStatus, device.FieldComplianceStatus, device.FieldOsVersion, device.FieldDeviceType:
 			values[i] = new(sql.NullString)
-		case device.FieldLastSync, device.FieldCreatedAt, device.FieldUpdatedAt:
+		case device.FieldLastSync, device.FieldLastSeen, device.FieldEnrolledAt, device.FieldCreatedAt, device.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
 		default:
 			values[i] = new(sql.UnknownType)
@@ -130,6 +155,48 @@ func (_m *Device) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.LastSync = value.Time
 			}
+		case device.FieldPlatform:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field platform", values[i])
+			} else if value.Valid {
+				_m.Platform = device.Platform(value.String)
+			}
+		case device.FieldStatus:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field status", values[i])
+			} else if value.Valid {
+				_m.Status = device.Status(value.String)
+			}
+		case device.FieldComplianceStatus:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field compliance_status", values[i])
+			} else if value.Valid {
+				_m.ComplianceStatus = device.ComplianceStatus(value.String)
+			}
+		case device.FieldOsVersion:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field os_version", values[i])
+			} else if value.Valid {
+				_m.OsVersion = value.String
+			}
+		case device.FieldDeviceType:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field device_type", values[i])
+			} else if value.Valid {
+				_m.DeviceType = value.String
+			}
+		case device.FieldLastSeen:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field last_seen", values[i])
+			} else if value.Valid {
+				_m.LastSeen = value.Time
+			}
+		case device.FieldEnrolledAt:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field enrolled_at", values[i])
+			} else if value.Valid {
+				_m.EnrolledAt = value.Time
+			}
 		case device.FieldCreatedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
 				return fmt.Errorf("unexpected type %T for field created_at", values[i])
@@ -158,6 +225,11 @@ func (_m *Device) Value(name string) (ent.Value, error) {
 // QueryOwner queries the "owner" edge of the Device entity.
 func (_m *Device) QueryOwner() *UserQuery {
 	return NewDeviceClient(_m.config).QueryOwner(_m)
+}
+
+// QueryGroups queries the "groups" edge of the Device entity.
+func (_m *Device) QueryGroups() *DeviceGroupQuery {
+	return NewDeviceClient(_m.config).QueryGroups(_m)
 }
 
 // Update returns a builder for updating this Device.
@@ -200,6 +272,27 @@ func (_m *Device) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("last_sync=")
 	builder.WriteString(_m.LastSync.Format(time.ANSIC))
+	builder.WriteString(", ")
+	builder.WriteString("platform=")
+	builder.WriteString(fmt.Sprintf("%v", _m.Platform))
+	builder.WriteString(", ")
+	builder.WriteString("status=")
+	builder.WriteString(fmt.Sprintf("%v", _m.Status))
+	builder.WriteString(", ")
+	builder.WriteString("compliance_status=")
+	builder.WriteString(fmt.Sprintf("%v", _m.ComplianceStatus))
+	builder.WriteString(", ")
+	builder.WriteString("os_version=")
+	builder.WriteString(_m.OsVersion)
+	builder.WriteString(", ")
+	builder.WriteString("device_type=")
+	builder.WriteString(_m.DeviceType)
+	builder.WriteString(", ")
+	builder.WriteString("last_seen=")
+	builder.WriteString(_m.LastSeen.Format(time.ANSIC))
+	builder.WriteString(", ")
+	builder.WriteString("enrolled_at=")
+	builder.WriteString(_m.EnrolledAt.Format(time.ANSIC))
 	builder.WriteString(", ")
 	builder.WriteString("created_at=")
 	builder.WriteString(_m.CreatedAt.Format(time.ANSIC))

@@ -14,12 +14,18 @@ type Tx struct {
 	config
 	// APNSConfig is the client for interacting with the APNSConfig builders.
 	APNSConfig *APNSConfigClient
+	// Alert is the client for interacting with the Alert builders.
+	Alert *AlertClient
+	// AlertRule is the client for interacting with the AlertRule builders.
+	AlertRule *AlertRuleClient
 	// DEPToken is the client for interacting with the DEPToken builders.
 	DEPToken *DEPTokenClient
 	// DepProfile is the client for interacting with the DepProfile builders.
 	DepProfile *DepProfileClient
 	// Device is the client for interacting with the Device builders.
 	Device *DeviceClient
+	// DeviceGroup is the client for interacting with the DeviceGroup builders.
+	DeviceGroup *DeviceGroupClient
 	// MobileConfig is the client for interacting with the MobileConfig builders.
 	MobileConfig *MobileConfigClient
 	// Payload is the client for interacting with the Payload builders.
@@ -28,6 +34,14 @@ type Tx struct {
 	PayloadProperty *PayloadPropertyClient
 	// PayloadPropertyDefinition is the client for interacting with the PayloadPropertyDefinition builders.
 	PayloadPropertyDefinition *PayloadPropertyDefinitionClient
+	// Profile is the client for interacting with the Profile builders.
+	Profile *ProfileClient
+	// ProfileAssignment is the client for interacting with the ProfileAssignment builders.
+	ProfileAssignment *ProfileAssignmentClient
+	// ProfileDeploymentStatus is the client for interacting with the ProfileDeploymentStatus builders.
+	ProfileDeploymentStatus *ProfileDeploymentStatusClient
+	// ProfileVersion is the client for interacting with the ProfileVersion builders.
+	ProfileVersion *ProfileVersionClient
 	// User is the client for interacting with the User builders.
 	User *UserClient
 
@@ -162,13 +176,20 @@ func (tx *Tx) Client() *Client {
 
 func (tx *Tx) init() {
 	tx.APNSConfig = NewAPNSConfigClient(tx.config)
+	tx.Alert = NewAlertClient(tx.config)
+	tx.AlertRule = NewAlertRuleClient(tx.config)
 	tx.DEPToken = NewDEPTokenClient(tx.config)
 	tx.DepProfile = NewDepProfileClient(tx.config)
 	tx.Device = NewDeviceClient(tx.config)
+	tx.DeviceGroup = NewDeviceGroupClient(tx.config)
 	tx.MobileConfig = NewMobileConfigClient(tx.config)
 	tx.Payload = NewPayloadClient(tx.config)
 	tx.PayloadProperty = NewPayloadPropertyClient(tx.config)
 	tx.PayloadPropertyDefinition = NewPayloadPropertyDefinitionClient(tx.config)
+	tx.Profile = NewProfileClient(tx.config)
+	tx.ProfileAssignment = NewProfileAssignmentClient(tx.config)
+	tx.ProfileDeploymentStatus = NewProfileDeploymentStatusClient(tx.config)
+	tx.ProfileVersion = NewProfileVersionClient(tx.config)
 	tx.User = NewUserClient(tx.config)
 }
 

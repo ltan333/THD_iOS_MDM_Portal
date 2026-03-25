@@ -11,10 +11,22 @@ import (
 	"github.com/thienel/go-backend-template/internal/interface/api/dto"
 	"github.com/thienel/go-backend-template/internal/usecase/service"
 	apperror "github.com/thienel/go-backend-template/pkg/error"
+	"github.com/thienel/go-backend-template/pkg/query"
 	"github.com/thienel/go-backend-template/pkg/response"
 )
 
+var mobileConfigAllowedFields = map[string]bool{
+	"id":           true,
+	"name":         true,
+	"payload_type": true,
+	"search":       true,
+	"created_at":   true,
+	"updated_at":   true,
+}
+
 type MobileConfigHandler interface {
+	List(c *gin.Context)
+	GetByID(c *gin.Context)
 	Create(c *gin.Context)
 	Update(c *gin.Context)
 	Delete(c *gin.Context)
@@ -27,6 +39,103 @@ type mobileConfigHandlerImpl struct {
 
 func NewMobileConfigHandler(mobileConfigService service.MobileConfigService) MobileConfigHandler {
 	return &mobileConfigHandlerImpl{mobileConfigService: mobileConfigService}
+}
+
+// List godoc
+// @Summary List mobile configs
+// @Description Get a paginated list of Apple mobile configs with filtering and sorting
+// @Tags Mobile Config
+// @Produce json
+// @Security BearerAuth
+// @Param page query int false "Page number (default 1)"
+// @Param limit query int false "Items per page (default 20)"
+// @Param search query string false "Search by name, identifier or display name"
+// @Param name query string false "Filter by name"
+// @Param payload_type query string false "Filter by payload type"
+// @Param sort query string false "Sort by field (e.g. id,name,created_at)"
+// @Success 200 {object} response.APIResponse[dto.ListResponse[dto.MobileConfigResponse]]
+// @Failure 401 {object} APIErrorResponse
+// @Failure 500 {object} APIErrorResponse
+// @Router /api/v1/mobile-configs [get]
+func (m *mobileConfigHandlerImpl) List(c *gin.Context) {
+	params := make(map[string]string)
+	for key, values := range c.Request.URL.Query() {
+		if len(values) > 0 {
+			params[key] = values[0]
+		}
+	}
+
+	offset, limit := query.GetPagination(params, 20)
+	opts := query.ParseQueryParams(params, mobileConfigAllowedFields)
+
+	configs, total, err := m.mobileConfigService.List(c.Request.Context(), offset, limit, opts)
+	if err != nil {
+		response.WriteErrorResponse(c, err)
+		return
+	}
+
+	items := make([]dto.MobileConfigResponse, len(configs))
+	for i, mc := range configs {
+		items[i] = toMobileConfigListResponse(mc)
+	}
+
+	page := (offset / limit) + 1
+	totalPages := int((total + int64(limit) - 1) / int64(limit))
+
+	response.OK(c, dto.ListResponse[dto.MobileConfigResponse]{
+		Items:      items,
+		Total:      total,
+		Page:       page,
+		Limit:      limit,
+		TotalPages: totalPages,
+	}, "")
+}
+
+// GetByID godoc
+// @Summary Get mobile config by ID
+// @Description Get details of a single mobile config by its ID including payloads
+// @Tags Mobile Config
+// @Produce json
+// @Security BearerAuth
+// @Param id path int true "Mobile config ID"
+// @Success 200 {object} MobileConfigSuccessResponse
+// @Failure 400 {object} APIErrorResponse
+// @Failure 401 {object} APIErrorResponse
+// @Failure 404 {object} APIErrorResponse
+// @Failure 500 {object} APIErrorResponse
+// @Router /api/v1/mobile-configs/{id} [get]
+func (m *mobileConfigHandlerImpl) GetByID(c *gin.Context) {
+	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
+	if err != nil {
+		response.WriteErrorResponse(c, apperror.ErrBadRequest.WithMessage("ID không hợp lệ"))
+		return
+	}
+
+	mc, err := m.mobileConfigService.GetByID(c.Request.Context(), uint(id))
+	if err != nil {
+		response.WriteErrorResponse(c, err)
+		return
+	}
+
+	response.OK(c, toMobileConfigResponse(mc), "")
+}
+
+func toMobileConfigListResponse(mc *ent.MobileConfig) dto.MobileConfigResponse {
+	return dto.MobileConfigResponse{
+		ID:                       mc.ID,
+		Name:                     mc.Name,
+		PayloadIdentifier:        mc.PayloadIdentifier,
+		PayloadType:              mc.PayloadType,
+		PayloadDisplayName:       mc.PayloadDisplayName,
+		PayloadDescription:       mc.PayloadDescription,
+		PayloadOrganization:      mc.PayloadOrganization,
+		PayloadUUID:              mc.PayloadUUID,
+		PayloadVersion:           mc.PayloadVersion,
+		PayloadRemovalDisallowed: mc.PayloadRemovalDisallowed,
+		Payloads:                 []dto.MobileConfigPayloadResponse{},
+		CreatedAt:                mc.CreatedAt,
+		UpdatedAt:                mc.UpdatedAt,
+	}
 }
 
 // Create godoc

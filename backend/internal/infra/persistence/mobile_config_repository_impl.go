@@ -2,6 +2,7 @@ package persistence
 
 import (
 	"context"
+	"strings"
 
 	"github.com/thienel/go-backend-template/internal/domain/repository"
 	"github.com/thienel/go-backend-template/internal/ent"
@@ -10,6 +11,7 @@ import (
 	"github.com/thienel/go-backend-template/internal/ent/payloadproperty"
 	"github.com/thienel/go-backend-template/internal/ent/payloadpropertydefinition"
 	apperror "github.com/thienel/go-backend-template/pkg/error"
+	"github.com/thienel/go-backend-template/pkg/query"
 )
 
 type mobileConfigRepositoryImpl struct {
@@ -20,9 +22,111 @@ func NewMobileConfigRepository(client *ent.Client) repository.MobileConfigReposi
 	return &mobileConfigRepositoryImpl{client: client}
 }
 
+func (m *mobileConfigRepositoryImpl) List(ctx context.Context, offset, limit int, opts query.QueryOptions) ([]*ent.MobileConfig, int64, error) {
+	q := m.client.MobileConfig.Query().Where(mobileconfig.DeletedAtIsNil())
+
+	// Apply filters
+	for field, filter := range opts.Filters {
+		switch field {
+		case "search":
+			if searchVal, ok := filter.Value.(string); ok && searchVal != "" {
+				q = q.Where(
+					mobileconfig.Or(
+						mobileconfig.NameContainsFold(searchVal),
+						mobileconfig.PayloadIdentifierContainsFold(searchVal),
+						mobileconfig.PayloadDisplayNameContainsFold(searchVal),
+					),
+				)
+			}
+		case "name":
+			if nameVal, ok := filter.Value.(string); ok && nameVal != "" {
+				switch filter.Operator {
+				case "like":
+					q = q.Where(mobileconfig.NameContainsFold(nameVal))
+				default:
+					q = q.Where(mobileconfig.NameEQ(nameVal))
+				}
+			}
+		case "payload_type":
+			if typeVal, ok := filter.Value.(string); ok && typeVal != "" {
+				q = q.Where(mobileconfig.PayloadTypeEQ(typeVal))
+			}
+		}
+	}
+
+	// Count total before pagination
+	total, err := q.Clone().Count(ctx)
+	if err != nil {
+		return nil, 0, apperror.ErrInternalServerError.WithMessage("Lỗi khi đếm MobileConfig").WithError(err)
+	}
+
+	// Apply sorting
+	if len(opts.Sort) > 0 {
+		for _, sortField := range opts.Sort {
+			switch strings.ToLower(sortField.Field) {
+			case "id":
+				if sortField.Desc {
+					q = q.Order(ent.Desc(mobileconfig.FieldID))
+				} else {
+					q = q.Order(ent.Asc(mobileconfig.FieldID))
+				}
+			case "name":
+				if sortField.Desc {
+					q = q.Order(ent.Desc(mobileconfig.FieldName))
+				} else {
+					q = q.Order(ent.Asc(mobileconfig.FieldName))
+				}
+			case "created_at":
+				if sortField.Desc {
+					q = q.Order(ent.Desc(mobileconfig.FieldCreatedAt))
+				} else {
+					q = q.Order(ent.Asc(mobileconfig.FieldCreatedAt))
+				}
+			case "updated_at":
+				if sortField.Desc {
+					q = q.Order(ent.Desc(mobileconfig.FieldUpdatedAt))
+				} else {
+					q = q.Order(ent.Asc(mobileconfig.FieldUpdatedAt))
+				}
+			}
+		}
+	} else {
+		// Default sort by created_at desc
+		q = q.Order(ent.Desc(mobileconfig.FieldCreatedAt))
+	}
+
+	// Apply pagination
+	configs, err := q.Offset(offset).Limit(limit).All(ctx)
+	if err != nil {
+		return nil, 0, apperror.ErrInternalServerError.WithMessage("Lỗi khi truy xuất danh sách MobileConfig").WithError(err)
+	}
+
+	return configs, int64(total), nil
+}
+
 func (m *mobileConfigRepositoryImpl) GetByID(ctx context.Context, id uint) (*ent.MobileConfig, error) {
 	mc, err := m.client.MobileConfig.Query().
-		Where(mobileconfig.IDEQ(id)).
+		Where(mobileconfig.IDEQ(id), mobileconfig.DeletedAtIsNil()).
+		First(ctx)
+	if ent.IsNotFound(err) {
+		return nil, apperror.ErrNotFound.WithMessage("MobileConfig không tồn tại")
+	}
+	if err != nil {
+		return nil, apperror.ErrInternalServerError.WithMessage("Lỗi khi truy xuất MobileConfig").WithError(err)
+	}
+
+	return mc, nil
+}
+
+func (m *mobileConfigRepositoryImpl) GetByIDWithPayloads(ctx context.Context, id uint) (*ent.MobileConfig, error) {
+	mc, err := m.client.MobileConfig.Query().
+		Where(mobileconfig.IDEQ(id), mobileconfig.DeletedAtIsNil()).
+		WithPayloads(func(q *ent.PayloadQuery) {
+			q.Where(payload.DeletedAtIsNil()).
+				WithProperties(func(pq *ent.PayloadPropertyQuery) {
+					pq.Where(payloadproperty.DeletedAtIsNil()).WithDefinition()
+				})
+		}).
 		First(ctx)
 	if ent.IsNotFound(err) {
 		return nil, apperror.ErrNotFound.WithMessage("MobileConfig không tồn tại")

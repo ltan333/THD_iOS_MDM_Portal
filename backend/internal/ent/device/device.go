@@ -3,6 +3,7 @@
 package device
 
 import (
+	"fmt"
 	"time"
 
 	"entgo.io/ent/dialect/sql"
@@ -26,12 +27,28 @@ const (
 	FieldName = "name"
 	// FieldLastSync holds the string denoting the last_sync field in the database.
 	FieldLastSync = "last_sync"
+	// FieldPlatform holds the string denoting the platform field in the database.
+	FieldPlatform = "platform"
+	// FieldStatus holds the string denoting the status field in the database.
+	FieldStatus = "status"
+	// FieldComplianceStatus holds the string denoting the compliance_status field in the database.
+	FieldComplianceStatus = "compliance_status"
+	// FieldOsVersion holds the string denoting the os_version field in the database.
+	FieldOsVersion = "os_version"
+	// FieldDeviceType holds the string denoting the device_type field in the database.
+	FieldDeviceType = "device_type"
+	// FieldLastSeen holds the string denoting the last_seen field in the database.
+	FieldLastSeen = "last_seen"
+	// FieldEnrolledAt holds the string denoting the enrolled_at field in the database.
+	FieldEnrolledAt = "enrolled_at"
 	// FieldCreatedAt holds the string denoting the created_at field in the database.
 	FieldCreatedAt = "created_at"
 	// FieldUpdatedAt holds the string denoting the updated_at field in the database.
 	FieldUpdatedAt = "updated_at"
 	// EdgeOwner holds the string denoting the owner edge name in mutations.
 	EdgeOwner = "owner"
+	// EdgeGroups holds the string denoting the groups edge name in mutations.
+	EdgeGroups = "groups"
 	// Table holds the table name of the device in the database.
 	Table = "devices"
 	// OwnerTable is the table that holds the owner relation/edge.
@@ -41,6 +58,11 @@ const (
 	OwnerInverseTable = "portal_users"
 	// OwnerColumn is the table column denoting the owner relation/edge.
 	OwnerColumn = "owner_id"
+	// GroupsTable is the table that holds the groups relation/edge. The primary key declared below.
+	GroupsTable = "device_group_devices"
+	// GroupsInverseTable is the table name for the DeviceGroup entity.
+	// It exists in this package in order to avoid circular dependency with the "devicegroup" package.
+	GroupsInverseTable = "device_groups"
 )
 
 // Columns holds all SQL columns for device fields.
@@ -52,9 +74,22 @@ var Columns = []string{
 	FieldIsEnrolled,
 	FieldName,
 	FieldLastSync,
+	FieldPlatform,
+	FieldStatus,
+	FieldComplianceStatus,
+	FieldOsVersion,
+	FieldDeviceType,
+	FieldLastSeen,
+	FieldEnrolledAt,
 	FieldCreatedAt,
 	FieldUpdatedAt,
 }
+
+var (
+	// GroupsPrimaryKey and GroupsColumn2 are the table columns denoting the
+	// primary key for the groups relation (M2M).
+	GroupsPrimaryKey = []string{"device_group_id", "device_id"}
+)
 
 // ValidColumn reports if the column name is valid (part of the table columns).
 func ValidColumn(column string) bool {
@@ -78,6 +113,91 @@ var (
 	// IDValidator is a validator for the "id" field. It is called by the builders before save.
 	IDValidator func(string) error
 )
+
+// Platform defines the type for the "platform" enum field.
+type Platform string
+
+// PlatformOther is the default value of the Platform enum.
+const DefaultPlatform = PlatformOther
+
+// Platform values.
+const (
+	PlatformIos     Platform = "ios"
+	PlatformAndroid Platform = "android"
+	PlatformWindows Platform = "windows"
+	PlatformMacos   Platform = "macos"
+	PlatformOther   Platform = "other"
+)
+
+func (pl Platform) String() string {
+	return string(pl)
+}
+
+// PlatformValidator is a validator for the "platform" field enum values. It is called by the builders before save.
+func PlatformValidator(pl Platform) error {
+	switch pl {
+	case PlatformIos, PlatformAndroid, PlatformWindows, PlatformMacos, PlatformOther:
+		return nil
+	default:
+		return fmt.Errorf("device: invalid enum value for platform field: %q", pl)
+	}
+}
+
+// Status defines the type for the "status" enum field.
+type Status string
+
+// StatusPending is the default value of the Status enum.
+const DefaultStatus = StatusPending
+
+// Status values.
+const (
+	StatusActive   Status = "active"
+	StatusInactive Status = "inactive"
+	StatusPending  Status = "pending"
+	StatusLost     Status = "lost"
+	StatusWiped    Status = "wiped"
+)
+
+func (s Status) String() string {
+	return string(s)
+}
+
+// StatusValidator is a validator for the "status" field enum values. It is called by the builders before save.
+func StatusValidator(s Status) error {
+	switch s {
+	case StatusActive, StatusInactive, StatusPending, StatusLost, StatusWiped:
+		return nil
+	default:
+		return fmt.Errorf("device: invalid enum value for status field: %q", s)
+	}
+}
+
+// ComplianceStatus defines the type for the "compliance_status" enum field.
+type ComplianceStatus string
+
+// ComplianceStatusUnknown is the default value of the ComplianceStatus enum.
+const DefaultComplianceStatus = ComplianceStatusUnknown
+
+// ComplianceStatus values.
+const (
+	ComplianceStatusCompliant    ComplianceStatus = "compliant"
+	ComplianceStatusNonCompliant ComplianceStatus = "non_compliant"
+	ComplianceStatusUnknown      ComplianceStatus = "unknown"
+)
+
+func (cs ComplianceStatus) String() string {
+	return string(cs)
+}
+
+// ComplianceStatusValidator is a validator for the "compliance_status" field enum values. It is called by the builders before save.
+func ComplianceStatusValidator(cs ComplianceStatus) error {
+	switch cs {
+	case ComplianceStatusCompliant, ComplianceStatusNonCompliant, ComplianceStatusUnknown:
+		return nil
+	default:
+		return fmt.Errorf("device: invalid enum value for compliance_status field: %q", cs)
+	}
+}
 
 // OrderOption defines the ordering options for the Device queries.
 type OrderOption func(*sql.Selector)
@@ -117,6 +237,41 @@ func ByLastSync(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldLastSync, opts...).ToFunc()
 }
 
+// ByPlatform orders the results by the platform field.
+func ByPlatform(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldPlatform, opts...).ToFunc()
+}
+
+// ByStatus orders the results by the status field.
+func ByStatus(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldStatus, opts...).ToFunc()
+}
+
+// ByComplianceStatus orders the results by the compliance_status field.
+func ByComplianceStatus(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldComplianceStatus, opts...).ToFunc()
+}
+
+// ByOsVersion orders the results by the os_version field.
+func ByOsVersion(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldOsVersion, opts...).ToFunc()
+}
+
+// ByDeviceType orders the results by the device_type field.
+func ByDeviceType(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldDeviceType, opts...).ToFunc()
+}
+
+// ByLastSeen orders the results by the last_seen field.
+func ByLastSeen(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldLastSeen, opts...).ToFunc()
+}
+
+// ByEnrolledAt orders the results by the enrolled_at field.
+func ByEnrolledAt(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldEnrolledAt, opts...).ToFunc()
+}
+
 // ByCreatedAt orders the results by the created_at field.
 func ByCreatedAt(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldCreatedAt, opts...).ToFunc()
@@ -133,10 +288,31 @@ func ByOwnerField(field string, opts ...sql.OrderTermOption) OrderOption {
 		sqlgraph.OrderByNeighborTerms(s, newOwnerStep(), sql.OrderByField(field, opts...))
 	}
 }
+
+// ByGroupsCount orders the results by groups count.
+func ByGroupsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newGroupsStep(), opts...)
+	}
+}
+
+// ByGroups orders the results by groups terms.
+func ByGroups(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newGroupsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
 func newOwnerStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(OwnerInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.M2O, true, OwnerTable, OwnerColumn),
+	)
+}
+func newGroupsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(GroupsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2M, true, GroupsTable, GroupsPrimaryKey...),
 	)
 }
