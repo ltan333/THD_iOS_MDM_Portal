@@ -24,6 +24,7 @@ import (
 	"github.com/thienel/go-backend-template/internal/ent/profiledeploymentstatus"
 	"github.com/thienel/go-backend-template/internal/ent/profileversion"
 	"github.com/thienel/go-backend-template/internal/ent/schema"
+	"github.com/thienel/go-backend-template/internal/ent/setting"
 	"github.com/thienel/go-backend-template/internal/ent/user"
 )
 
@@ -555,6 +556,26 @@ func init() {
 	profileversionDescCreatedAt := profileversionFields[5].Descriptor()
 	// profileversion.DefaultCreatedAt holds the default value on creation for the created_at field.
 	profileversion.DefaultCreatedAt = profileversionDescCreatedAt.Default.(func() time.Time)
+	settingFields := schema.Setting{}.Fields()
+	_ = settingFields
+	// settingDescKey is the schema descriptor for key field.
+	settingDescKey := settingFields[1].Descriptor()
+	// setting.KeyValidator is a validator for the "key" field. It is called by the builders before save.
+	setting.KeyValidator = settingDescKey.Validators[0].(func(string) error)
+	// settingDescValue is the schema descriptor for value field.
+	settingDescValue := settingFields[2].Descriptor()
+	// setting.ValueValidator is a validator for the "value" field. It is called by the builders before save.
+	setting.ValueValidator = settingDescValue.Validators[0].(func(string) error)
+	// settingDescCreatedAt is the schema descriptor for created_at field.
+	settingDescCreatedAt := settingFields[4].Descriptor()
+	// setting.DefaultCreatedAt holds the default value on creation for the created_at field.
+	setting.DefaultCreatedAt = settingDescCreatedAt.Default.(func() time.Time)
+	// settingDescUpdatedAt is the schema descriptor for updated_at field.
+	settingDescUpdatedAt := settingFields[5].Descriptor()
+	// setting.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	setting.DefaultUpdatedAt = settingDescUpdatedAt.Default.(func() time.Time)
+	// setting.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	setting.UpdateDefaultUpdatedAt = settingDescUpdatedAt.UpdateDefault.(func() time.Time)
 	userFields := schema.User{}.Fields()
 	_ = userFields
 	// userDescUsername is the schema descriptor for username field.

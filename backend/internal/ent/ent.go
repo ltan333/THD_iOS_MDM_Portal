@@ -30,6 +30,7 @@ import (
 	"github.com/thienel/go-backend-template/internal/ent/profileassignment"
 	"github.com/thienel/go-backend-template/internal/ent/profiledeploymentstatus"
 	"github.com/thienel/go-backend-template/internal/ent/profileversion"
+	"github.com/thienel/go-backend-template/internal/ent/setting"
 	"github.com/thienel/go-backend-template/internal/ent/user"
 )
 
@@ -109,6 +110,7 @@ func checkColumn(t, c string) error {
 			profileassignment.Table:         profileassignment.ValidColumn,
 			profiledeploymentstatus.Table:   profiledeploymentstatus.ValidColumn,
 			profileversion.Table:            profileversion.ValidColumn,
+			setting.Table:                   setting.ValidColumn,
 			user.Table:                      user.ValidColumn,
 		})
 	})

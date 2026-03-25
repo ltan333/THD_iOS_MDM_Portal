@@ -27,6 +27,7 @@ type routeRegister struct {
 	application  handler.ApplicationHandler
 	alert        handler.AlertHandler
 	report       handler.ReportHandler
+	setting      handler.SettingHandler
 	mw           *middleware.Middleware
 }
 
@@ -46,6 +47,7 @@ func SetupRouter(
 	applicationHandler handler.ApplicationHandler,
 	alertHandler handler.AlertHandler,
 	reportHandler handler.ReportHandler,
+	settingHandler handler.SettingHandler,
 	mw *middleware.Middleware,
 ) *gin.Engine {
 
@@ -64,6 +66,7 @@ func SetupRouter(
 		application:  applicationHandler,
 		alert:        alertHandler,
 		report:       reportHandler,
+		setting:      settingHandler,
 		mw:           mw,
 	}
 
@@ -99,6 +102,7 @@ func SetupRouter(
 			routes.registerApplicationRoutes(protected)
 			routes.registerAlertRoutes(protected)
 			routes.registerReportRoutes(protected)
+			routes.registerSettingRoutes(protected)
 		}
 	}
 
@@ -355,5 +359,16 @@ func (r *routeRegister) registerReportRoutes(rg *gin.RouterGroup) {
 		reports.GET("/devices/export", r.report.ExportDevices)
 		reports.GET("/alerts/export", r.report.ExportAlerts)
 		reports.GET("/applications/export", r.report.ExportApplications)
+	}
+}
+
+func (r *routeRegister) registerSettingRoutes(rg *gin.RouterGroup) {
+	settings := rg.Group("/settings")
+	{
+		settings.GET("", r.setting.List)
+		settings.POST("", r.setting.Create)
+		settings.GET("/:key", r.setting.GetByKey)
+		settings.PUT("/:key", r.setting.Update)
+		settings.DELETE("/:key", r.setting.Delete)
 	}
 }
