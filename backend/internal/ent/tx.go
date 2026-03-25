@@ -48,6 +48,8 @@ type Tx struct {
 	ProfileDeploymentStatus *ProfileDeploymentStatusClient
 	// ProfileVersion is the client for interacting with the ProfileVersion builders.
 	ProfileVersion *ProfileVersionClient
+	// Setting is the client for interacting with the Setting builders.
+	Setting *SettingClient
 	// User is the client for interacting with the User builders.
 	User *UserClient
 
@@ -199,6 +201,7 @@ func (tx *Tx) init() {
 	tx.ProfileAssignment = NewProfileAssignmentClient(tx.config)
 	tx.ProfileDeploymentStatus = NewProfileDeploymentStatusClient(tx.config)
 	tx.ProfileVersion = NewProfileVersionClient(tx.config)
+	tx.Setting = NewSettingClient(tx.config)
 	tx.User = NewUserClient(tx.config)
 }
 

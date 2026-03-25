@@ -60,5 +60,8 @@ type ProfileDeploymentStatus func(*sql.Selector)
 // ProfileVersion is the predicate function for profileversion builders.
 type ProfileVersion func(*sql.Selector)
 
+// Setting is the predicate function for setting builders.
+type Setting func(*sql.Selector)
+
 // User is the predicate function for user builders.
 type User func(*sql.Selector)

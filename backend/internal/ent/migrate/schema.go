@@ -453,6 +453,21 @@ var (
 			},
 		},
 	}
+	// SettingsColumns holds the columns for the "settings" table.
+	SettingsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUint, Increment: true},
+		{Name: "key", Type: field.TypeString, Unique: true},
+		{Name: "value", Type: field.TypeString, Size: 2147483647},
+		{Name: "description", Type: field.TypeString, Nullable: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+	}
+	// SettingsTable holds the schema information for the "settings" table.
+	SettingsTable = &schema.Table{
+		Name:       "settings",
+		Columns:    SettingsColumns,
+		PrimaryKey: []*schema.Column{SettingsColumns[0]},
+	}
 	// PortalUsersColumns holds the columns for the "portal_users" table.
 	PortalUsersColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUint, Increment: true},
@@ -540,6 +555,7 @@ var (
 		ProfileAssignmentsTable,
 		ProfileDeploymentStatusesTable,
 		ProfileVersionsTable,
+		SettingsTable,
 		PortalUsersTable,
 		DeviceGroupDevicesTable,
 		DeviceGroupProfilesTable,
@@ -594,6 +610,9 @@ func init() {
 	ProfileVersionsTable.ForeignKeys[0].RefTable = ProfilesTable
 	ProfileVersionsTable.Annotation = &entsql.Annotation{
 		Table: "profile_versions",
+	}
+	SettingsTable.Annotation = &entsql.Annotation{
+		Table: "settings",
 	}
 	PortalUsersTable.Annotation = &entsql.Annotation{
 		Table: "portal_users",
