@@ -6,6 +6,18 @@ import (
 	"entgo.io/ent/dialect/sql"
 )
 
+// APNSConfig is the predicate function for apnsconfig builders.
+type APNSConfig func(*sql.Selector)
+
+// DEPToken is the predicate function for deptoken builders.
+type DEPToken func(*sql.Selector)
+
+// DepProfile is the predicate function for depprofile builders.
+type DepProfile func(*sql.Selector)
+
+// Device is the predicate function for device builders.
+type Device func(*sql.Selector)
+
 // MobileConfig is the predicate function for mobileconfig builders.
 type MobileConfig func(*sql.Selector)
 

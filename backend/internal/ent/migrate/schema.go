@@ -3,11 +3,111 @@
 package migrate
 
 import (
+	"entgo.io/ent/dialect/entsql"
 	"entgo.io/ent/dialect/sql/schema"
 	"entgo.io/ent/schema/field"
 )
 
 var (
+	// PushCertsColumns holds the columns for the "push_certs" table.
+	PushCertsColumns = []*schema.Column{
+		{Name: "topic", Type: field.TypeString, Unique: true},
+		{Name: "cert_pem", Type: field.TypeString, Size: 2147483647},
+		{Name: "key_pem", Type: field.TypeString, Size: 2147483647},
+		{Name: "stale_token", Type: field.TypeInt, Default: 0},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+	}
+	// PushCertsTable holds the schema information for the "push_certs" table.
+	PushCertsTable = &schema.Table{
+		Name:       "push_certs",
+		Columns:    PushCertsColumns,
+		PrimaryKey: []*schema.Column{PushCertsColumns[0]},
+	}
+	// DepNamesColumns holds the columns for the "dep_names" table.
+	DepNamesColumns = []*schema.Column{
+		{Name: "name", Type: field.TypeString, Unique: true},
+		{Name: "consumer_key", Type: field.TypeString, Nullable: true, Size: 2147483647},
+		{Name: "consumer_secret", Type: field.TypeString, Nullable: true, Size: 2147483647},
+		{Name: "access_token", Type: field.TypeString, Nullable: true, Size: 2147483647},
+		{Name: "access_secret", Type: field.TypeString, Nullable: true, Size: 2147483647},
+		{Name: "access_token_expiry", Type: field.TypeTime, Nullable: true},
+		{Name: "config_base_url", Type: field.TypeString, Nullable: true},
+		{Name: "tokenpki_cert_pem", Type: field.TypeString, Nullable: true, Size: 2147483647},
+		{Name: "tokenpki_key_pem", Type: field.TypeString, Nullable: true, Size: 2147483647},
+		{Name: "syncer_cursor", Type: field.TypeString, Nullable: true},
+		{Name: "assigner_profile_uuid", Type: field.TypeString, Nullable: true, Size: 2147483647},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+	}
+	// DepNamesTable holds the schema information for the "dep_names" table.
+	DepNamesTable = &schema.Table{
+		Name:       "dep_names",
+		Columns:    DepNamesColumns,
+		PrimaryKey: []*schema.Column{DepNamesColumns[0]},
+	}
+	// DepProfilesColumns holds the columns for the "dep_profiles" table.
+	DepProfilesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUint, Increment: true},
+		{Name: "profile_name", Type: field.TypeString, Unique: true},
+		{Name: "profile_uuid", Type: field.TypeString, Unique: true, Nullable: true},
+		{Name: "allow_pairing", Type: field.TypeBool, Default: true},
+		{Name: "anchor_certs", Type: field.TypeJSON, Nullable: true},
+		{Name: "auto_advance_setup", Type: field.TypeBool, Default: false},
+		{Name: "await_device_configured", Type: field.TypeBool, Default: false},
+		{Name: "configuration_web_url", Type: field.TypeString, Nullable: true},
+		{Name: "department", Type: field.TypeString, Nullable: true},
+		{Name: "devices", Type: field.TypeJSON, Nullable: true},
+		{Name: "do_not_use_profile_from_backup", Type: field.TypeBool, Default: false},
+		{Name: "is_return_to_service", Type: field.TypeBool, Default: false},
+		{Name: "is_mandatory", Type: field.TypeBool, Default: false},
+		{Name: "is_mdm_removable", Type: field.TypeBool, Default: true},
+		{Name: "is_multi_user", Type: field.TypeBool, Default: false},
+		{Name: "is_supervised", Type: field.TypeBool, Default: false},
+		{Name: "language", Type: field.TypeString, Nullable: true},
+		{Name: "org_magic", Type: field.TypeString, Nullable: true},
+		{Name: "region", Type: field.TypeString, Nullable: true},
+		{Name: "skip_setup_items", Type: field.TypeJSON, Nullable: true},
+		{Name: "supervising_host_certs", Type: field.TypeJSON, Nullable: true},
+		{Name: "support_email_address", Type: field.TypeString, Nullable: true},
+		{Name: "support_phone_number", Type: field.TypeString, Nullable: true},
+		{Name: "url", Type: field.TypeString, Nullable: true},
+		{Name: "profile_data", Type: field.TypeJSON, Nullable: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+	}
+	// DepProfilesTable holds the schema information for the "dep_profiles" table.
+	DepProfilesTable = &schema.Table{
+		Name:       "dep_profiles",
+		Columns:    DepProfilesColumns,
+		PrimaryKey: []*schema.Column{DepProfilesColumns[0]},
+	}
+	// DevicesColumns holds the columns for the "devices" table.
+	DevicesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeString, Unique: true, SchemaType: map[string]string{"postgres": "character varying(255)"}},
+		{Name: "serial_number", Type: field.TypeString, Unique: true, Nullable: true, SchemaType: map[string]string{"postgres": "character varying(127)"}},
+		{Name: "model", Type: field.TypeString, Nullable: true, SchemaType: map[string]string{"postgres": "character varying(255)"}},
+		{Name: "is_enrolled", Type: field.TypeBool, Default: false},
+		{Name: "name", Type: field.TypeString, Nullable: true},
+		{Name: "last_sync", Type: field.TypeTime, Nullable: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "owner_id", Type: field.TypeUint, Nullable: true},
+	}
+	// DevicesTable holds the schema information for the "devices" table.
+	DevicesTable = &schema.Table{
+		Name:       "devices",
+		Columns:    DevicesColumns,
+		PrimaryKey: []*schema.Column{DevicesColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "devices_portal_users_devices",
+				Columns:    []*schema.Column{DevicesColumns[8]},
+				RefColumns: []*schema.Column{PortalUsersColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+		},
+	}
 	// MobileConfigsColumns holds the columns for the "mobile_configs" table.
 	MobileConfigsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUint, Increment: true},
@@ -122,36 +222,52 @@ var (
 			},
 		},
 	}
-	// UsersColumns holds the columns for the "users" table.
-	UsersColumns = []*schema.Column{
+	// PortalUsersColumns holds the columns for the "portal_users" table.
+	PortalUsersColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUint, Increment: true},
 		{Name: "username", Type: field.TypeString, Unique: true, Size: 50},
 		{Name: "email", Type: field.TypeString, Unique: true, Size: 255},
 		{Name: "password", Type: field.TypeString, Size: 255},
-		{Name: "role", Type: field.TypeString, Size: 20, Default: "USER"},
 		{Name: "status", Type: field.TypeString, Size: 20, Default: "ACTIVE"},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
 		{Name: "deleted_at", Type: field.TypeTime, Nullable: true},
 	}
-	// UsersTable holds the schema information for the "users" table.
-	UsersTable = &schema.Table{
-		Name:       "users",
-		Columns:    UsersColumns,
-		PrimaryKey: []*schema.Column{UsersColumns[0]},
+	// PortalUsersTable holds the schema information for the "portal_users" table.
+	PortalUsersTable = &schema.Table{
+		Name:       "portal_users",
+		Columns:    PortalUsersColumns,
+		PrimaryKey: []*schema.Column{PortalUsersColumns[0]},
 	}
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
+		PushCertsTable,
+		DepNamesTable,
+		DepProfilesTable,
+		DevicesTable,
 		MobileConfigsTable,
 		PayloadsTable,
 		PayloadPropertiesTable,
 		PayloadPropertyDefinitionsTable,
-		UsersTable,
+		PortalUsersTable,
 	}
 )
 
 func init() {
+	PushCertsTable.Annotation = &entsql.Annotation{
+		Table: "push_certs",
+	}
+	DepNamesTable.Annotation = &entsql.Annotation{
+		Table: "dep_names",
+	}
+	DevicesTable.ForeignKeys[0].RefTable = PortalUsersTable
+	DevicesTable.Annotation = &entsql.Annotation{
+		Table: "devices",
+	}
 	PayloadsTable.ForeignKeys[0].RefTable = MobileConfigsTable
 	PayloadPropertiesTable.ForeignKeys[0].RefTable = PayloadsTable
 	PayloadPropertiesTable.ForeignKeys[1].RefTable = PayloadPropertyDefinitionsTable
+	PortalUsersTable.Annotation = &entsql.Annotation{
+		Table: "portal_users",
+	}
 }

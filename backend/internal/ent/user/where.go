@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"entgo.io/ent/dialect/sql"
+	"entgo.io/ent/dialect/sql/sqlgraph"
 	"github.com/thienel/go-backend-template/internal/ent/predicate"
 )
 
@@ -67,11 +68,6 @@ func Email(v string) predicate.User {
 // Password applies equality check predicate on the "password" field. It's identical to PasswordEQ.
 func Password(v string) predicate.User {
 	return predicate.User(sql.FieldEQ(FieldPassword, v))
-}
-
-// Role applies equality check predicate on the "role" field. It's identical to RoleEQ.
-func Role(v string) predicate.User {
-	return predicate.User(sql.FieldEQ(FieldRole, v))
 }
 
 // Status applies equality check predicate on the "status" field. It's identical to StatusEQ.
@@ -289,71 +285,6 @@ func PasswordContainsFold(v string) predicate.User {
 	return predicate.User(sql.FieldContainsFold(FieldPassword, v))
 }
 
-// RoleEQ applies the EQ predicate on the "role" field.
-func RoleEQ(v string) predicate.User {
-	return predicate.User(sql.FieldEQ(FieldRole, v))
-}
-
-// RoleNEQ applies the NEQ predicate on the "role" field.
-func RoleNEQ(v string) predicate.User {
-	return predicate.User(sql.FieldNEQ(FieldRole, v))
-}
-
-// RoleIn applies the In predicate on the "role" field.
-func RoleIn(vs ...string) predicate.User {
-	return predicate.User(sql.FieldIn(FieldRole, vs...))
-}
-
-// RoleNotIn applies the NotIn predicate on the "role" field.
-func RoleNotIn(vs ...string) predicate.User {
-	return predicate.User(sql.FieldNotIn(FieldRole, vs...))
-}
-
-// RoleGT applies the GT predicate on the "role" field.
-func RoleGT(v string) predicate.User {
-	return predicate.User(sql.FieldGT(FieldRole, v))
-}
-
-// RoleGTE applies the GTE predicate on the "role" field.
-func RoleGTE(v string) predicate.User {
-	return predicate.User(sql.FieldGTE(FieldRole, v))
-}
-
-// RoleLT applies the LT predicate on the "role" field.
-func RoleLT(v string) predicate.User {
-	return predicate.User(sql.FieldLT(FieldRole, v))
-}
-
-// RoleLTE applies the LTE predicate on the "role" field.
-func RoleLTE(v string) predicate.User {
-	return predicate.User(sql.FieldLTE(FieldRole, v))
-}
-
-// RoleContains applies the Contains predicate on the "role" field.
-func RoleContains(v string) predicate.User {
-	return predicate.User(sql.FieldContains(FieldRole, v))
-}
-
-// RoleHasPrefix applies the HasPrefix predicate on the "role" field.
-func RoleHasPrefix(v string) predicate.User {
-	return predicate.User(sql.FieldHasPrefix(FieldRole, v))
-}
-
-// RoleHasSuffix applies the HasSuffix predicate on the "role" field.
-func RoleHasSuffix(v string) predicate.User {
-	return predicate.User(sql.FieldHasSuffix(FieldRole, v))
-}
-
-// RoleEqualFold applies the EqualFold predicate on the "role" field.
-func RoleEqualFold(v string) predicate.User {
-	return predicate.User(sql.FieldEqualFold(FieldRole, v))
-}
-
-// RoleContainsFold applies the ContainsFold predicate on the "role" field.
-func RoleContainsFold(v string) predicate.User {
-	return predicate.User(sql.FieldContainsFold(FieldRole, v))
-}
-
 // StatusEQ applies the EQ predicate on the "status" field.
 func StatusEQ(v string) predicate.User {
 	return predicate.User(sql.FieldEQ(FieldStatus, v))
@@ -547,6 +478,29 @@ func DeletedAtIsNil() predicate.User {
 // DeletedAtNotNil applies the NotNil predicate on the "deleted_at" field.
 func DeletedAtNotNil() predicate.User {
 	return predicate.User(sql.FieldNotNull(FieldDeletedAt))
+}
+
+// HasDevices applies the HasEdge predicate on the "devices" edge.
+func HasDevices() predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, DevicesTable, DevicesColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasDevicesWith applies the HasEdge predicate on the "devices" edge with a given conditions (other predicates).
+func HasDevicesWith(preds ...predicate.Device) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := newDevicesStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
 }
 
 // And groups predicates with the AND operator between them.

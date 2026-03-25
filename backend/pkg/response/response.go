@@ -3,6 +3,7 @@ package response
 import (
 	"net/http"
 	"runtime"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/thienel/tlog"
@@ -14,7 +15,7 @@ import (
 // APIResponse is the standard API response format
 type APIResponse[T any] struct {
 	IsSuccess bool   `json:"is_success"`
-	Data      T      `json:"data,omitempty"`
+	Data      T      `json:"data"`
 	Message   string `json:"message,omitempty"`
 	Error     *Error `json:"error,omitempty"`
 }
@@ -127,6 +128,19 @@ func WriteErrorResponse(c *gin.Context, err error) {
 
 	// Log unexpected errors
 	logFields := getRequestContext(c)
+
+	// Handle common binding/validation errors
+	if err.Error() == "EOF" || err.Error() == "unexpected EOF" {
+		WriteErrorResponse(c, apperror.ErrBadRequest.WithMessage("Nội dung yêu cầu (body) không được để trống"))
+		return
+	}
+
+	// You can add more specific checks for JSON syntax errors etc.
+	if strings.Contains(err.Error(), "json:") || strings.Contains(err.Error(), "unmarshal") {
+		WriteErrorResponse(c, apperror.ErrBadRequest.WithMessage("Định dạng dữ liệu JSON không hợp lệ"))
+		return
+	}
+
 	logFields = append(logFields,
 		zap.Error(err),
 		zap.String("stack_trace", getStackTrace(2)),
