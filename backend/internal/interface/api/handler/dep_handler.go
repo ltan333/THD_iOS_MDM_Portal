@@ -118,7 +118,7 @@ func (h *depHandler) GetTokenPKI(c *gin.Context) {
 	valDaysStr := c.Query("validity_days")
 	var valDays int
 	if valDaysStr != "" {
-		fmt.Sscanf(valDaysStr, "%d", &valDays)
+		_, _ = fmt.Sscanf(valDaysStr, "%d", &valDays)
 	}
 
 	cert, contentDisp, err := h.mdmService.GetDEPTokenPKI(c.Request.Context(), name, cn, valDays)
@@ -330,8 +330,8 @@ func (h *depHandler) ListNames(c *gin.Context) {
 	cursor := c.Query("cursor")
 
 	var limit, offset int
-	fmt.Sscanf(limitStr, "%d", &limit)
-	fmt.Sscanf(offsetStr, "%d", &offset)
+	_, _ = fmt.Sscanf(limitStr, "%d", &limit)
+	_, _ = fmt.Sscanf(offsetStr, "%d", &offset)
 
 	result, err := h.mdmService.ListDEPNames(c.Request.Context(), depNames, limit, offset, cursor)
 	if err != nil {

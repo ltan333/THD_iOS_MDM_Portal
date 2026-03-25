@@ -87,11 +87,26 @@ func (s *dashboardServiceImpl) GetDeviceStats(ctx context.Context) (*dto.DeviceS
 		return nil, apperror.ErrInternalServerError.WithMessage("Lỗi khi đếm thiết bị đã đăng ký").WithError(err)
 	}
 
-	// Initialize platform counts (placeholder - will need platform field in Device)
+	// Initialize platform counts
 	byPlatform := map[string]int64{
 		"ios":     0,
 		"android": 0,
 		"windows": 0,
+		"macos":   0,
+	}
+	var platformStats []struct {
+		Platform string `json:"platform"`
+		Count    int    `json:"count"`
+	}
+	if err := s.client.Device.Query().
+		GroupBy(device.FieldPlatform).
+		Aggregate(ent.Count()).
+		Scan(ctx, &platformStats); err == nil {
+		for _, stat := range platformStats {
+			if stat.Platform != "" {
+				byPlatform[stat.Platform] = int64(stat.Count)
+			}
+		}
 	}
 
 	// Initialize status counts
