@@ -102,6 +102,20 @@ func (_u *PayloadPropertyDefinitionUpdate) ClearEnumValues() *PayloadPropertyDef
 	return _u
 }
 
+// SetDeprecated sets the "deprecated" field.
+func (_u *PayloadPropertyDefinitionUpdate) SetDeprecated(v bool) *PayloadPropertyDefinitionUpdate {
+	_u.mutation.SetDeprecated(v)
+	return _u
+}
+
+// SetNillableDeprecated sets the "deprecated" field if the given value is not nil.
+func (_u *PayloadPropertyDefinitionUpdate) SetNillableDeprecated(v *bool) *PayloadPropertyDefinitionUpdate {
+	if v != nil {
+		_u.SetDeprecated(*v)
+	}
+	return _u
+}
+
 // SetDescription sets the "description" field.
 func (_u *PayloadPropertyDefinitionUpdate) SetDescription(v string) *PayloadPropertyDefinitionUpdate {
 	_u.mutation.SetDescription(v)
@@ -283,6 +297,9 @@ func (_u *PayloadPropertyDefinitionUpdate) sqlSave(ctx context.Context) (_node i
 	if _u.mutation.EnumValuesCleared() {
 		_spec.ClearField(payloadpropertydefinition.FieldEnumValues, field.TypeJSON)
 	}
+	if value, ok := _u.mutation.Deprecated(); ok {
+		_spec.SetField(payloadpropertydefinition.FieldDeprecated, field.TypeBool, value)
+	}
 	if value, ok := _u.mutation.Description(); ok {
 		_spec.SetField(payloadpropertydefinition.FieldDescription, field.TypeString, value)
 	}
@@ -432,6 +449,20 @@ func (_u *PayloadPropertyDefinitionUpdateOne) AppendEnumValues(v []interface{}) 
 // ClearEnumValues clears the value of the "enum_values" field.
 func (_u *PayloadPropertyDefinitionUpdateOne) ClearEnumValues() *PayloadPropertyDefinitionUpdateOne {
 	_u.mutation.ClearEnumValues()
+	return _u
+}
+
+// SetDeprecated sets the "deprecated" field.
+func (_u *PayloadPropertyDefinitionUpdateOne) SetDeprecated(v bool) *PayloadPropertyDefinitionUpdateOne {
+	_u.mutation.SetDeprecated(v)
+	return _u
+}
+
+// SetNillableDeprecated sets the "deprecated" field if the given value is not nil.
+func (_u *PayloadPropertyDefinitionUpdateOne) SetNillableDeprecated(v *bool) *PayloadPropertyDefinitionUpdateOne {
+	if v != nil {
+		_u.SetDeprecated(*v)
+	}
 	return _u
 }
 
@@ -645,6 +676,9 @@ func (_u *PayloadPropertyDefinitionUpdateOne) sqlSave(ctx context.Context) (_nod
 	}
 	if _u.mutation.EnumValuesCleared() {
 		_spec.ClearField(payloadpropertydefinition.FieldEnumValues, field.TypeJSON)
+	}
+	if value, ok := _u.mutation.Deprecated(); ok {
+		_spec.SetField(payloadpropertydefinition.FieldDeprecated, field.TypeBool, value)
 	}
 	if value, ok := _u.mutation.Description(); ok {
 		_spec.SetField(payloadpropertydefinition.FieldDescription, field.TypeString, value)

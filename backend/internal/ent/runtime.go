@@ -285,12 +285,16 @@ func init() {
 	payloadpropertydefinitionDescValueType := payloadpropertydefinitionFields[2].Descriptor()
 	// payloadpropertydefinition.ValueTypeValidator is a validator for the "value_type" field. It is called by the builders before save.
 	payloadpropertydefinition.ValueTypeValidator = payloadpropertydefinitionDescValueType.Validators[0].(func(string) error)
+	// payloadpropertydefinitionDescDeprecated is the schema descriptor for deprecated field.
+	payloadpropertydefinitionDescDeprecated := payloadpropertydefinitionFields[5].Descriptor()
+	// payloadpropertydefinition.DefaultDeprecated holds the default value on creation for the deprecated field.
+	payloadpropertydefinition.DefaultDeprecated = payloadpropertydefinitionDescDeprecated.Default.(bool)
 	// payloadpropertydefinitionDescCreatedAt is the schema descriptor for created_at field.
-	payloadpropertydefinitionDescCreatedAt := payloadpropertydefinitionFields[6].Descriptor()
+	payloadpropertydefinitionDescCreatedAt := payloadpropertydefinitionFields[7].Descriptor()
 	// payloadpropertydefinition.DefaultCreatedAt holds the default value on creation for the created_at field.
 	payloadpropertydefinition.DefaultCreatedAt = payloadpropertydefinitionDescCreatedAt.Default.(func() time.Time)
 	// payloadpropertydefinitionDescUpdatedAt is the schema descriptor for updated_at field.
-	payloadpropertydefinitionDescUpdatedAt := payloadpropertydefinitionFields[7].Descriptor()
+	payloadpropertydefinitionDescUpdatedAt := payloadpropertydefinitionFields[8].Descriptor()
 	// payloadpropertydefinition.DefaultUpdatedAt holds the default value on creation for the updated_at field.
 	payloadpropertydefinition.DefaultUpdatedAt = payloadpropertydefinitionDescUpdatedAt.Default.(func() time.Time)
 	// payloadpropertydefinition.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.

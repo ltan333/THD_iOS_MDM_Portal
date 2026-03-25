@@ -28,6 +28,8 @@ type PayloadPropertyDefinition struct {
 	DefaultValue map[string]interface{} `json:"default_value,omitempty"`
 	// EnumValues holds the value of the "enum_values" field.
 	EnumValues []interface{} `json:"enum_values,omitempty"`
+	// Deprecated holds the value of the "deprecated" field.
+	Deprecated bool `json:"deprecated,omitempty"`
 	// Description holds the value of the "description" field.
 	Description string `json:"description,omitempty"`
 	// CreatedAt holds the value of the "created_at" field.
@@ -67,6 +69,8 @@ func (*PayloadPropertyDefinition) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case payloadpropertydefinition.FieldDefaultValue, payloadpropertydefinition.FieldEnumValues:
 			values[i] = new([]byte)
+		case payloadpropertydefinition.FieldDeprecated:
+			values[i] = new(sql.NullBool)
 		case payloadpropertydefinition.FieldID:
 			values[i] = new(sql.NullInt64)
 		case payloadpropertydefinition.FieldPayloadType, payloadpropertydefinition.FieldKey, payloadpropertydefinition.FieldValueType, payloadpropertydefinition.FieldDescription:
@@ -127,6 +131,12 @@ func (_m *PayloadPropertyDefinition) assignValues(columns []string, values []any
 				if err := json.Unmarshal(*value, &_m.EnumValues); err != nil {
 					return fmt.Errorf("unmarshal field enum_values: %w", err)
 				}
+			}
+		case payloadpropertydefinition.FieldDeprecated:
+			if value, ok := values[i].(*sql.NullBool); !ok {
+				return fmt.Errorf("unexpected type %T for field deprecated", values[i])
+			} else if value.Valid {
+				_m.Deprecated = value.Bool
 			}
 		case payloadpropertydefinition.FieldDescription:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -208,6 +218,9 @@ func (_m *PayloadPropertyDefinition) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("enum_values=")
 	builder.WriteString(fmt.Sprintf("%v", _m.EnumValues))
+	builder.WriteString(", ")
+	builder.WriteString("deprecated=")
+	builder.WriteString(fmt.Sprintf("%v", _m.Deprecated))
 	builder.WriteString(", ")
 	builder.WriteString("description=")
 	builder.WriteString(_m.Description)

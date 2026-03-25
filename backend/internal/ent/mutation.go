@@ -7484,6 +7484,7 @@ type PayloadPropertyDefinitionMutation struct {
 	default_value     *map[string]interface{}
 	enum_values       *[]interface{}
 	appendenum_values []interface{}
+	deprecated        *bool
 	description       *string
 	created_at        *time.Time
 	updated_at        *time.Time
@@ -7817,6 +7818,42 @@ func (m *PayloadPropertyDefinitionMutation) ResetEnumValues() {
 	delete(m.clearedFields, payloadpropertydefinition.FieldEnumValues)
 }
 
+// SetDeprecated sets the "deprecated" field.
+func (m *PayloadPropertyDefinitionMutation) SetDeprecated(b bool) {
+	m.deprecated = &b
+}
+
+// Deprecated returns the value of the "deprecated" field in the mutation.
+func (m *PayloadPropertyDefinitionMutation) Deprecated() (r bool, exists bool) {
+	v := m.deprecated
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDeprecated returns the old "deprecated" field's value of the PayloadPropertyDefinition entity.
+// If the PayloadPropertyDefinition object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PayloadPropertyDefinitionMutation) OldDeprecated(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDeprecated is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDeprecated requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDeprecated: %w", err)
+	}
+	return oldValue.Deprecated, nil
+}
+
+// ResetDeprecated resets all changes to the "deprecated" field.
+func (m *PayloadPropertyDefinitionMutation) ResetDeprecated() {
+	m.deprecated = nil
+}
+
 // SetDescription sets the "description" field.
 func (m *PayloadPropertyDefinitionMutation) SetDescription(s string) {
 	m.description = &s
@@ -8075,7 +8112,7 @@ func (m *PayloadPropertyDefinitionMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *PayloadPropertyDefinitionMutation) Fields() []string {
-	fields := make([]string, 0, 9)
+	fields := make([]string, 0, 10)
 	if m.payload_type != nil {
 		fields = append(fields, payloadpropertydefinition.FieldPayloadType)
 	}
@@ -8090,6 +8127,9 @@ func (m *PayloadPropertyDefinitionMutation) Fields() []string {
 	}
 	if m.enum_values != nil {
 		fields = append(fields, payloadpropertydefinition.FieldEnumValues)
+	}
+	if m.deprecated != nil {
+		fields = append(fields, payloadpropertydefinition.FieldDeprecated)
 	}
 	if m.description != nil {
 		fields = append(fields, payloadpropertydefinition.FieldDescription)
@@ -8121,6 +8161,8 @@ func (m *PayloadPropertyDefinitionMutation) Field(name string) (ent.Value, bool)
 		return m.DefaultValue()
 	case payloadpropertydefinition.FieldEnumValues:
 		return m.EnumValues()
+	case payloadpropertydefinition.FieldDeprecated:
+		return m.Deprecated()
 	case payloadpropertydefinition.FieldDescription:
 		return m.Description()
 	case payloadpropertydefinition.FieldCreatedAt:
@@ -8148,6 +8190,8 @@ func (m *PayloadPropertyDefinitionMutation) OldField(ctx context.Context, name s
 		return m.OldDefaultValue(ctx)
 	case payloadpropertydefinition.FieldEnumValues:
 		return m.OldEnumValues(ctx)
+	case payloadpropertydefinition.FieldDeprecated:
+		return m.OldDeprecated(ctx)
 	case payloadpropertydefinition.FieldDescription:
 		return m.OldDescription(ctx)
 	case payloadpropertydefinition.FieldCreatedAt:
@@ -8199,6 +8243,13 @@ func (m *PayloadPropertyDefinitionMutation) SetField(name string, value ent.Valu
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetEnumValues(v)
+		return nil
+	case payloadpropertydefinition.FieldDeprecated:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDeprecated(v)
 		return nil
 	case payloadpropertydefinition.FieldDescription:
 		v, ok := value.(string)
@@ -8318,6 +8369,9 @@ func (m *PayloadPropertyDefinitionMutation) ResetField(name string) error {
 		return nil
 	case payloadpropertydefinition.FieldEnumValues:
 		m.ResetEnumValues()
+		return nil
+	case payloadpropertydefinition.FieldDeprecated:
+		m.ResetDeprecated()
 		return nil
 	case payloadpropertydefinition.FieldDescription:
 		m.ResetDescription()

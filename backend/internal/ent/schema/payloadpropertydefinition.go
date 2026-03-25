@@ -20,6 +20,7 @@ func (PayloadPropertyDefinition) Fields() []ent.Field {
 		field.String("value_type").NotEmpty(),
 		field.JSON("default_value", map[string]interface{}{}).Optional(),
 		field.JSON("enum_values", []interface{}{}).Optional(),
+		field.Bool("deprecated").Default(false),
 		field.String("description").Optional(),
 		field.Time("created_at").Default(time.Now).Immutable(),
 		field.Time("updated_at").Default(time.Now).UpdateDefault(time.Now),

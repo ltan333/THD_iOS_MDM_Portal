@@ -44,6 +44,93 @@ definitions:
           type: string
         type: array
     type: object
+  github_com_thienel_go-backend-template_internal_interface_api_dto.CreateMobileConfigPayloadRequest:
+    properties:
+      payload_description:
+        type: string
+      payload_display_name:
+        type: string
+      payload_identifier:
+        type: string
+      payload_organization:
+        type: string
+      payload_type:
+        type: string
+      payload_version:
+        minimum: 1
+        type: integer
+      properties:
+        items:
+          $ref: '#/definitions/github_com_thienel_go-backend-template_internal_interface_api_dto.CreateMobileConfigPropertyRequest'
+        type: array
+    required:
+    - payload_display_name
+    - payload_identifier
+    - payload_type
+    type: object
+  github_com_thienel_go-backend-template_internal_interface_api_dto.CreateMobileConfigPropertyRequest:
+    properties:
+      key:
+        type: string
+      value_json:
+        additionalProperties: true
+        type: object
+    required:
+    - key
+    - value_json
+    type: object
+  github_com_thienel_go-backend-template_internal_interface_api_dto.CreateMobileConfigRequest:
+    properties:
+      name:
+        type: string
+      payload_description:
+        type: string
+      payload_display_name:
+        type: string
+      payload_identifier:
+        type: string
+      payload_organization:
+        type: string
+      payload_removal_disallowed:
+        type: boolean
+      payload_type:
+        type: string
+      payload_version:
+        minimum: 1
+        type: integer
+      payloads:
+        items:
+          $ref: '#/definitions/github_com_thienel_go-backend-template_internal_interface_api_dto.CreateMobileConfigPayloadRequest'
+        minItems: 1
+        type: array
+    required:
+    - name
+    - payload_display_name
+    - payload_identifier
+    - payload_type
+    - payloads
+    type: object
+  github_com_thienel_go-backend-template_internal_interface_api_dto.CreatePayloadPropertyDefinitionRequest:
+    properties:
+      default_value:
+        additionalProperties: true
+        type: object
+      description:
+        type: string
+      enum_values:
+        items: {}
+        type: array
+      key:
+        type: string
+      payload_type:
+        type: string
+      value_type:
+        type: string
+    required:
+    - key
+    - payload_type
+    - value_type
+    type: object
   github_com_thienel_go-backend-template_internal_interface_api_dto.CreateUserRequest:
     properties:
       email:
@@ -216,6 +303,21 @@ definitions:
       workflow:
         type: string
     type: object
+  ? github_com_thienel_go-backend-template_internal_interface_api_dto.ListResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_PayloadPropertyDefinitionResponse
+  : properties:
+      items:
+        items:
+          $ref: '#/definitions/github_com_thienel_go-backend-template_internal_interface_api_dto.PayloadPropertyDefinitionResponse'
+        type: array
+      limit:
+        type: integer
+      page:
+        type: integer
+      total:
+        type: integer
+      total_pages:
+        type: integer
+    type: object
   ? github_com_thienel_go-backend-template_internal_interface_api_dto.ListResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_UserResponse
   : properties:
       items:
@@ -249,6 +351,70 @@ definitions:
         type: string
       user:
         $ref: '#/definitions/github_com_thienel_go-backend-template_internal_interface_api_dto.UserResponse'
+    type: object
+  github_com_thienel_go-backend-template_internal_interface_api_dto.MobileConfigPayloadResponse:
+    properties:
+      id:
+        type: integer
+      payload_description:
+        type: string
+      payload_display_name:
+        type: string
+      payload_identifier:
+        type: string
+      payload_organization:
+        type: string
+      payload_type:
+        type: string
+      payload_uuid:
+        type: string
+      payload_version:
+        type: integer
+      properties:
+        items:
+          $ref: '#/definitions/github_com_thienel_go-backend-template_internal_interface_api_dto.MobileConfigPropertyResponse'
+        type: array
+    type: object
+  github_com_thienel_go-backend-template_internal_interface_api_dto.MobileConfigPropertyResponse:
+    properties:
+      id:
+        type: integer
+      key:
+        type: string
+      value_json:
+        additionalProperties: true
+        type: object
+    type: object
+  github_com_thienel_go-backend-template_internal_interface_api_dto.MobileConfigResponse:
+    properties:
+      created_at:
+        type: string
+      id:
+        type: integer
+      name:
+        type: string
+      payload_description:
+        type: string
+      payload_display_name:
+        type: string
+      payload_identifier:
+        type: string
+      payload_organization:
+        type: string
+      payload_removal_disallowed:
+        type: boolean
+      payload_type:
+        type: string
+      payload_uuid:
+        type: string
+      payload_version:
+        type: integer
+      payloads:
+        items:
+          $ref: '#/definitions/github_com_thienel_go-backend-template_internal_interface_api_dto.MobileConfigPayloadResponse'
+        type: array
+      updated_at:
+        type: string
     type: object
   github_com_thienel_go-backend-template_internal_interface_api_dto.NanoCMDInventoryDevice:
     properties:
@@ -316,6 +482,29 @@ definitions:
       consumer_secret:
         type: string
     type: object
+  github_com_thienel_go-backend-template_internal_interface_api_dto.PayloadPropertyDefinitionResponse:
+    properties:
+      created_at:
+        type: string
+      default_value:
+        additionalProperties: true
+        type: object
+      description:
+        type: string
+      enum_values:
+        items: {}
+        type: array
+      id:
+        type: integer
+      key:
+        type: string
+      payload_type:
+        type: string
+      updated_at:
+        type: string
+      value_type:
+        type: string
+    type: object
   github_com_thienel_go-backend-template_internal_interface_api_dto.PushCertResponse:
     properties:
       not_after:
@@ -331,6 +520,82 @@ definitions:
         type: string
       push_result:
         type: string
+    type: object
+  github_com_thienel_go-backend-template_internal_interface_api_dto.UpdateMobileConfigPayloadRequest:
+    properties:
+      payload_description:
+        type: string
+      payload_display_name:
+        type: string
+      payload_identifier:
+        type: string
+      payload_organization:
+        type: string
+      payload_type:
+        type: string
+      payload_version:
+        minimum: 1
+        type: integer
+      properties:
+        items:
+          $ref: '#/definitions/github_com_thienel_go-backend-template_internal_interface_api_dto.CreateMobileConfigPropertyRequest'
+        type: array
+    required:
+    - payload_display_name
+    - payload_identifier
+    - payload_type
+    type: object
+  github_com_thienel_go-backend-template_internal_interface_api_dto.UpdateMobileConfigRequest:
+    properties:
+      name:
+        type: string
+      payload_description:
+        type: string
+      payload_display_name:
+        type: string
+      payload_identifier:
+        type: string
+      payload_organization:
+        type: string
+      payload_removal_disallowed:
+        type: boolean
+      payload_type:
+        type: string
+      payload_version:
+        minimum: 1
+        type: integer
+      payloads:
+        items:
+          $ref: '#/definitions/github_com_thienel_go-backend-template_internal_interface_api_dto.UpdateMobileConfigPayloadRequest'
+        minItems: 1
+        type: array
+    required:
+    - name
+    - payload_display_name
+    - payload_identifier
+    - payload_type
+    - payloads
+    type: object
+  github_com_thienel_go-backend-template_internal_interface_api_dto.UpdatePayloadPropertyDefinitionRequest:
+    properties:
+      default_value:
+        additionalProperties: true
+        type: object
+      description:
+        type: string
+      enum_values:
+        items: {}
+        type: array
+      key:
+        type: string
+      payload_type:
+        type: string
+      value_type:
+        type: string
+    required:
+    - key
+    - payload_type
+    - value_type
     type: object
   github_com_thienel_go-backend-template_internal_interface_api_dto.UpdateUserRequest:
     properties:
@@ -363,6 +628,21 @@ definitions:
         type: string
       username:
         type: string
+    type: object
+  github_com_thienel_go-backend-template_internal_usecase_service.ImportPayloadPropertyDefinitionsResult:
+    properties:
+      created:
+        type: integer
+      errors:
+        items:
+          type: string
+        type: array
+      payload_type:
+        type: string
+      total:
+        type: integer
+      updated:
+        type: integer
     type: object
   github_com_thienel_go-backend-template_internal_usecase_service.PolicyRule:
     properties:
@@ -504,6 +784,17 @@ definitions:
       message:
         type: string
     type: object
+  ? github_com_thienel_go-backend-template_pkg_response.APIResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_ListResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_PayloadPropertyDefinitionResponse
+  : properties:
+      data:
+        $ref: '#/definitions/github_com_thienel_go-backend-template_internal_interface_api_dto.ListResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_PayloadPropertyDefinitionResponse'
+      error:
+        $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.Error'
+      is_success:
+        type: boolean
+      message:
+        type: string
+    type: object
   ? github_com_thienel_go-backend-template_pkg_response.APIResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_ListResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_UserResponse
   : properties:
       data:
@@ -592,6 +883,17 @@ definitions:
       message:
         type: string
     type: object
+  ? github_com_thienel_go-backend-template_pkg_response.APIResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_PayloadPropertyDefinitionResponse
+  : properties:
+      data:
+        $ref: '#/definitions/github_com_thienel_go-backend-template_internal_interface_api_dto.PayloadPropertyDefinitionResponse'
+      error:
+        $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.Error'
+      is_success:
+        type: boolean
+      message:
+        type: string
+    type: object
   ? github_com_thienel_go-backend-template_pkg_response.APIResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_PushCertResponse
   : properties:
       data:
@@ -607,6 +909,17 @@ definitions:
   : properties:
       data:
         $ref: '#/definitions/github_com_thienel_go-backend-template_internal_interface_api_dto.UserResponse'
+      error:
+        $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.Error'
+      is_success:
+        type: boolean
+      message:
+        type: string
+    type: object
+  ? github_com_thienel_go-backend-template_pkg_response.APIResponse-github_com_thienel_go-backend-template_internal_usecase_service_ImportPayloadPropertyDefinitionsResult
+  : properties:
+      data:
+        $ref: '#/definitions/github_com_thienel_go-backend-template_internal_usecase_service.ImportPayloadPropertyDefinitionsResult'
       error:
         $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.Error'
       is_success:
@@ -665,6 +978,34 @@ definitions:
       message:
         type: string
     type: object
+  internal_interface_api_handler.APIErrorResponse:
+    properties:
+      error:
+        $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.Error'
+      is_success:
+        type: boolean
+    type: object
+  internal_interface_api_handler.EmptySuccessResponse:
+    properties:
+      is_success:
+        type: boolean
+      message:
+        type: string
+    type: object
+  internal_interface_api_handler.HealthResponse:
+    properties:
+      status:
+        type: string
+    type: object
+  internal_interface_api_handler.MobileConfigSuccessResponse:
+    properties:
+      data:
+        $ref: '#/definitions/github_com_thienel_go-backend-template_internal_interface_api_dto.MobileConfigResponse'
+      is_success:
+        type: boolean
+      message:
+        type: string
+    type: object
   map_string_github_com_thienel_go-backend-template_internal_interface_api_dto.NanoCMDProfile:
     additionalProperties:
       $ref: '#/definitions/github_com_thienel_go-backend-template_internal_interface_api_dto.NanoCMDProfile'
@@ -683,6 +1024,19 @@ info:
   title: THD iOS MDM Portal API
   version: "1.0"
 paths:
+  /health:
+    get:
+      description: Check service liveness
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_interface_api_handler.HealthResponse'
+      summary: Health check
+      tags:
+      - System
   /v1/auth/login:
     post:
       consumes:
@@ -1535,6 +1889,175 @@ paths:
       summary: Returns the running NanoMDM version
       tags:
       - MDM
+  /v1/mobile-configs:
+    post:
+      consumes:
+      - application/json
+      description: Create a new Apple mobileconfig with payloads and payload properties
+      parameters:
+      - description: Mobile config payload
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_thienel_go-backend-template_internal_interface_api_dto.CreateMobileConfigRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/internal_interface_api_handler.MobileConfigSuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/internal_interface_api_handler.APIErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/internal_interface_api_handler.APIErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/internal_interface_api_handler.APIErrorResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/internal_interface_api_handler.APIErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/internal_interface_api_handler.APIErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Create mobile config
+      tags:
+      - Mobile Config
+  /v1/mobile-configs/{id}:
+    delete:
+      description: Delete an existing Apple mobileconfig by ID
+      parameters:
+      - description: Mobile config ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_interface_api_handler.EmptySuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/internal_interface_api_handler.APIErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/internal_interface_api_handler.APIErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/internal_interface_api_handler.APIErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/internal_interface_api_handler.APIErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/internal_interface_api_handler.APIErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Delete mobile config
+      tags:
+      - Mobile Config
+    put:
+      consumes:
+      - application/json
+      description: Update an existing Apple mobileconfig with payloads and payload
+        properties
+      parameters:
+      - description: Mobile config ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Mobile config payload
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_thienel_go-backend-template_internal_interface_api_dto.UpdateMobileConfigRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_interface_api_handler.MobileConfigSuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/internal_interface_api_handler.APIErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/internal_interface_api_handler.APIErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/internal_interface_api_handler.APIErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/internal_interface_api_handler.APIErrorResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/internal_interface_api_handler.APIErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/internal_interface_api_handler.APIErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Update mobile config
+      tags:
+      - Mobile Config
+  /v1/mobile-configs/{id}/xml:
+    get:
+      description: Generate and return raw Apple mobileconfig XML content by ID
+      parameters:
+      - description: Mobile config ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - text/xml
+      responses:
+        "200":
+          description: Raw XML
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/internal_interface_api_handler.APIErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/internal_interface_api_handler.APIErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/internal_interface_api_handler.APIErrorResponse'
+      summary: Export mobile config XML
+      tags:
+      - Mobile Config
   /v1/nanocmd/cmdplan/{name}:
     get:
       description: Retrieve and return a named command plan as JSON.
@@ -1972,6 +2495,233 @@ paths:
       summary: Start a workflow
       tags:
       - NanoCMD
+  /v1/payload-property-definitions:
+    get:
+      description: Get a paginated list of payload property definitions with filtering
+        and sorting
+      parameters:
+      - description: Page number (default 1)
+        in: query
+        name: page
+        type: integer
+      - description: Items per page (default 20)
+        in: query
+        name: limit
+        type: integer
+      - description: Search by payload_type, key, description
+        in: query
+        name: search
+        type: string
+      - description: Filter by payload_type
+        in: query
+        name: payload_type
+        type: string
+      - description: Filter by key
+        in: query
+        name: key
+        type: string
+      - description: Filter by value_type
+        in: query
+        name: value_type
+        type: string
+      - description: Sort by field (id,payload_type,key,value_type,created_at)
+        in: query
+        name: sort
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_ListResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_PayloadPropertyDefinitionResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+      security:
+      - BearerAuth: []
+      summary: List payload property definitions
+      tags:
+      - Payload Property Definitions
+    post:
+      consumes:
+      - application/json
+      description: Create a new payload property definition
+      parameters:
+      - description: Payload property definition data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_thienel_go-backend-template_internal_interface_api_dto.CreatePayloadPropertyDefinitionRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_PayloadPropertyDefinitionResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+      security:
+      - BearerAuth: []
+      summary: Create payload property definition
+      tags:
+      - Payload Property Definitions
+  /v1/payload-property-definitions/{id}:
+    delete:
+      description: Delete a payload property definition by ID
+      parameters:
+      - description: Definition ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+      security:
+      - BearerAuth: []
+      summary: Delete payload property definition
+      tags:
+      - Payload Property Definitions
+    get:
+      description: Get details of a payload property definition by ID
+      parameters:
+      - description: Definition ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_PayloadPropertyDefinitionResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+      security:
+      - BearerAuth: []
+      summary: Get payload property definition by ID
+      tags:
+      - Payload Property Definitions
+    put:
+      consumes:
+      - application/json
+      description: Update an existing payload property definition
+      parameters:
+      - description: Definition ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Payload property definition data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_thienel_go-backend-template_internal_interface_api_dto.UpdatePayloadPropertyDefinitionRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_PayloadPropertyDefinitionResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+      security:
+      - BearerAuth: []
+      summary: Update payload property definition
+      tags:
+      - Payload Property Definitions
+  /v1/payload-property-definitions/import:
+    post:
+      consumes:
+      - multipart/form-data
+      description: Upload an Apple documentation JSON file and import payload property
+        definitions
+      parameters:
+      - description: Apple payload JSON file
+        in: formData
+        name: file
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-github_com_thienel_go-backend-template_internal_usecase_service_ImportPayloadPropertyDefinitionsResult'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+      security:
+      - BearerAuth: []
+      summary: Import payload property definitions from Apple JSON
+      tags:
+      - Payload Property Definitions
   /v1/policies:
     delete:
       consumes:
