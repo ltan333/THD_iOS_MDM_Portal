@@ -1,6 +1,9 @@
 package router
 
 import (
+	"net/url"
+	"strings"
+
 	"github.com/gin-gonic/gin"
 	"github.com/thienel/tlog"
 
@@ -9,7 +12,7 @@ import (
 
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
-	_ "github.com/thienel/go-backend-template/docs"
+	docs "github.com/thienel/go-backend-template/docs"
 )
 
 type routeRegister struct {
@@ -83,9 +86,72 @@ func SetupRouter(
 	v1.POST("/nanocmd/webhook", routes.nanocmd.Webhook)
 
 	// Swagger documentation
-	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+	// Resolve host/scheme from the current request so Swagger works behind public tunnels.
+	swaggerHandler := ginSwagger.WrapHandler(swaggerFiles.Handler)
+	router.GET("/swagger/*any", func(c *gin.Context) {
+		resolvedHost, resolvedScheme := resolveSwaggerEndpoint(c)
+		docs.SwaggerInfo.Host = resolvedHost
+		docs.SwaggerInfo.Schemes = []string{resolvedScheme}
+
+		swaggerHandler(c)
+	})
 
 	return router
+}
+
+func resolveSwaggerEndpoint(c *gin.Context) (string, string) {
+	host := firstHeaderValue(c.GetHeader("X-Forwarded-Host"))
+	scheme := firstHeaderValue(c.GetHeader("X-Forwarded-Proto"))
+
+	if originHost, originScheme := parseHostScheme(c.GetHeader("Origin")); originHost != "" {
+		if host == "" {
+			host = originHost
+		}
+		if scheme == "" {
+			scheme = originScheme
+		}
+	}
+
+	if refHost, refScheme := parseHostScheme(c.GetHeader("Referer")); refHost != "" {
+		if host == "" {
+			host = refHost
+		}
+		if scheme == "" {
+			scheme = refScheme
+		}
+	}
+
+	if host == "" {
+		host = c.Request.Host
+	}
+
+	if scheme == "" {
+		scheme = "http"
+		if c.Request.TLS != nil {
+			scheme = "https"
+		}
+	}
+
+	return host, strings.ToLower(scheme)
+}
+
+func firstHeaderValue(value string) string {
+	if value == "" {
+		return ""
+	}
+	parts := strings.Split(value, ",")
+	return strings.TrimSpace(parts[0])
+}
+
+func parseHostScheme(raw string) (string, string) {
+	if raw == "" {
+		return "", ""
+	}
+	parsed, err := url.Parse(raw)
+	if err != nil {
+		return "", ""
+	}
+	return parsed.Host, parsed.Scheme
 }
 
 func (r *routeRegister) registerAuthRoutes(rg *gin.RouterGroup) {
@@ -202,6 +268,7 @@ func (r *routeRegister) registerPayloadPropertyDefinitionRoutes(rg *gin.RouterGr
 	definitions := rg.Group("/payload-property-definitions")
 	{
 		definitions.GET("", r.ppd.List)
+		definitions.GET("/payload-types", r.ppd.ListPayloadTypes)
 		definitions.GET("/:id", r.ppd.GetByID)
 		definitions.POST("", r.ppd.Create)
 		definitions.PUT("/:id", r.ppd.Update)
