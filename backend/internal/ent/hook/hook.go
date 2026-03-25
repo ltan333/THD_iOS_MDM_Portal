@@ -21,6 +21,30 @@ func (f APNSConfigFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, 
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.APNSConfigMutation", m)
 }
 
+// The AlertFunc type is an adapter to allow the use of ordinary
+// function as Alert mutator.
+type AlertFunc func(context.Context, *ent.AlertMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f AlertFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.AlertMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.AlertMutation", m)
+}
+
+// The AlertRuleFunc type is an adapter to allow the use of ordinary
+// function as AlertRule mutator.
+type AlertRuleFunc func(context.Context, *ent.AlertRuleMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f AlertRuleFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.AlertRuleMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.AlertRuleMutation", m)
+}
+
 // The DEPTokenFunc type is an adapter to allow the use of ordinary
 // function as DEPToken mutator.
 type DEPTokenFunc func(context.Context, *ent.DEPTokenMutation) (ent.Value, error)
@@ -55,6 +79,18 @@ func (f DeviceFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, erro
 		return f(ctx, mv)
 	}
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.DeviceMutation", m)
+}
+
+// The DeviceGroupFunc type is an adapter to allow the use of ordinary
+// function as DeviceGroup mutator.
+type DeviceGroupFunc func(context.Context, *ent.DeviceGroupMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f DeviceGroupFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.DeviceGroupMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.DeviceGroupMutation", m)
 }
 
 // The MobileConfigFunc type is an adapter to allow the use of ordinary
@@ -103,6 +139,54 @@ func (f PayloadPropertyDefinitionFunc) Mutate(ctx context.Context, m ent.Mutatio
 		return f(ctx, mv)
 	}
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.PayloadPropertyDefinitionMutation", m)
+}
+
+// The ProfileFunc type is an adapter to allow the use of ordinary
+// function as Profile mutator.
+type ProfileFunc func(context.Context, *ent.ProfileMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f ProfileFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.ProfileMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.ProfileMutation", m)
+}
+
+// The ProfileAssignmentFunc type is an adapter to allow the use of ordinary
+// function as ProfileAssignment mutator.
+type ProfileAssignmentFunc func(context.Context, *ent.ProfileAssignmentMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f ProfileAssignmentFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.ProfileAssignmentMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.ProfileAssignmentMutation", m)
+}
+
+// The ProfileDeploymentStatusFunc type is an adapter to allow the use of ordinary
+// function as ProfileDeploymentStatus mutator.
+type ProfileDeploymentStatusFunc func(context.Context, *ent.ProfileDeploymentStatusMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f ProfileDeploymentStatusFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.ProfileDeploymentStatusMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.ProfileDeploymentStatusMutation", m)
+}
+
+// The ProfileVersionFunc type is an adapter to allow the use of ordinary
+// function as ProfileVersion mutator.
+type ProfileVersionFunc func(context.Context, *ent.ProfileVersionMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f ProfileVersionFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.ProfileVersionMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.ProfileVersionMutation", m)
 }
 
 // The UserFunc type is an adapter to allow the use of ordinary

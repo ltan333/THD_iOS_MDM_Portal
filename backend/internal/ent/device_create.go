@@ -11,6 +11,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/thienel/go-backend-template/internal/ent/device"
+	"github.com/thienel/go-backend-template/internal/ent/devicegroup"
 	"github.com/thienel/go-backend-template/internal/ent/user"
 )
 
@@ -105,6 +106,104 @@ func (_c *DeviceCreate) SetNillableLastSync(v *time.Time) *DeviceCreate {
 	return _c
 }
 
+// SetPlatform sets the "platform" field.
+func (_c *DeviceCreate) SetPlatform(v device.Platform) *DeviceCreate {
+	_c.mutation.SetPlatform(v)
+	return _c
+}
+
+// SetNillablePlatform sets the "platform" field if the given value is not nil.
+func (_c *DeviceCreate) SetNillablePlatform(v *device.Platform) *DeviceCreate {
+	if v != nil {
+		_c.SetPlatform(*v)
+	}
+	return _c
+}
+
+// SetStatus sets the "status" field.
+func (_c *DeviceCreate) SetStatus(v device.Status) *DeviceCreate {
+	_c.mutation.SetStatus(v)
+	return _c
+}
+
+// SetNillableStatus sets the "status" field if the given value is not nil.
+func (_c *DeviceCreate) SetNillableStatus(v *device.Status) *DeviceCreate {
+	if v != nil {
+		_c.SetStatus(*v)
+	}
+	return _c
+}
+
+// SetComplianceStatus sets the "compliance_status" field.
+func (_c *DeviceCreate) SetComplianceStatus(v device.ComplianceStatus) *DeviceCreate {
+	_c.mutation.SetComplianceStatus(v)
+	return _c
+}
+
+// SetNillableComplianceStatus sets the "compliance_status" field if the given value is not nil.
+func (_c *DeviceCreate) SetNillableComplianceStatus(v *device.ComplianceStatus) *DeviceCreate {
+	if v != nil {
+		_c.SetComplianceStatus(*v)
+	}
+	return _c
+}
+
+// SetOsVersion sets the "os_version" field.
+func (_c *DeviceCreate) SetOsVersion(v string) *DeviceCreate {
+	_c.mutation.SetOsVersion(v)
+	return _c
+}
+
+// SetNillableOsVersion sets the "os_version" field if the given value is not nil.
+func (_c *DeviceCreate) SetNillableOsVersion(v *string) *DeviceCreate {
+	if v != nil {
+		_c.SetOsVersion(*v)
+	}
+	return _c
+}
+
+// SetDeviceType sets the "device_type" field.
+func (_c *DeviceCreate) SetDeviceType(v string) *DeviceCreate {
+	_c.mutation.SetDeviceType(v)
+	return _c
+}
+
+// SetNillableDeviceType sets the "device_type" field if the given value is not nil.
+func (_c *DeviceCreate) SetNillableDeviceType(v *string) *DeviceCreate {
+	if v != nil {
+		_c.SetDeviceType(*v)
+	}
+	return _c
+}
+
+// SetLastSeen sets the "last_seen" field.
+func (_c *DeviceCreate) SetLastSeen(v time.Time) *DeviceCreate {
+	_c.mutation.SetLastSeen(v)
+	return _c
+}
+
+// SetNillableLastSeen sets the "last_seen" field if the given value is not nil.
+func (_c *DeviceCreate) SetNillableLastSeen(v *time.Time) *DeviceCreate {
+	if v != nil {
+		_c.SetLastSeen(*v)
+	}
+	return _c
+}
+
+// SetEnrolledAt sets the "enrolled_at" field.
+func (_c *DeviceCreate) SetEnrolledAt(v time.Time) *DeviceCreate {
+	_c.mutation.SetEnrolledAt(v)
+	return _c
+}
+
+// SetNillableEnrolledAt sets the "enrolled_at" field if the given value is not nil.
+func (_c *DeviceCreate) SetNillableEnrolledAt(v *time.Time) *DeviceCreate {
+	if v != nil {
+		_c.SetEnrolledAt(*v)
+	}
+	return _c
+}
+
 // SetCreatedAt sets the "created_at" field.
 func (_c *DeviceCreate) SetCreatedAt(v time.Time) *DeviceCreate {
 	_c.mutation.SetCreatedAt(v)
@@ -142,6 +241,21 @@ func (_c *DeviceCreate) SetID(v string) *DeviceCreate {
 // SetOwner sets the "owner" edge to the User entity.
 func (_c *DeviceCreate) SetOwner(v *User) *DeviceCreate {
 	return _c.SetOwnerID(v.ID)
+}
+
+// AddGroupIDs adds the "groups" edge to the DeviceGroup entity by IDs.
+func (_c *DeviceCreate) AddGroupIDs(ids ...uint) *DeviceCreate {
+	_c.mutation.AddGroupIDs(ids...)
+	return _c
+}
+
+// AddGroups adds the "groups" edges to the DeviceGroup entity.
+func (_c *DeviceCreate) AddGroups(v ...*DeviceGroup) *DeviceCreate {
+	ids := make([]uint, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddGroupIDs(ids...)
 }
 
 // Mutation returns the DeviceMutation object of the builder.
@@ -183,6 +297,18 @@ func (_c *DeviceCreate) defaults() {
 		v := device.DefaultIsEnrolled
 		_c.mutation.SetIsEnrolled(v)
 	}
+	if _, ok := _c.mutation.Platform(); !ok {
+		v := device.DefaultPlatform
+		_c.mutation.SetPlatform(v)
+	}
+	if _, ok := _c.mutation.Status(); !ok {
+		v := device.DefaultStatus
+		_c.mutation.SetStatus(v)
+	}
+	if _, ok := _c.mutation.ComplianceStatus(); !ok {
+		v := device.DefaultComplianceStatus
+		_c.mutation.SetComplianceStatus(v)
+	}
 	if _, ok := _c.mutation.CreatedAt(); !ok {
 		v := device.DefaultCreatedAt()
 		_c.mutation.SetCreatedAt(v)
@@ -197,6 +323,21 @@ func (_c *DeviceCreate) defaults() {
 func (_c *DeviceCreate) check() error {
 	if _, ok := _c.mutation.IsEnrolled(); !ok {
 		return &ValidationError{Name: "is_enrolled", err: errors.New(`ent: missing required field "Device.is_enrolled"`)}
+	}
+	if v, ok := _c.mutation.Platform(); ok {
+		if err := device.PlatformValidator(v); err != nil {
+			return &ValidationError{Name: "platform", err: fmt.Errorf(`ent: validator failed for field "Device.platform": %w`, err)}
+		}
+	}
+	if v, ok := _c.mutation.Status(); ok {
+		if err := device.StatusValidator(v); err != nil {
+			return &ValidationError{Name: "status", err: fmt.Errorf(`ent: validator failed for field "Device.status": %w`, err)}
+		}
+	}
+	if v, ok := _c.mutation.ComplianceStatus(); ok {
+		if err := device.ComplianceStatusValidator(v); err != nil {
+			return &ValidationError{Name: "compliance_status", err: fmt.Errorf(`ent: validator failed for field "Device.compliance_status": %w`, err)}
+		}
 	}
 	if _, ok := _c.mutation.CreatedAt(); !ok {
 		return &ValidationError{Name: "created_at", err: errors.New(`ent: missing required field "Device.created_at"`)}
@@ -264,6 +405,34 @@ func (_c *DeviceCreate) createSpec() (*Device, *sqlgraph.CreateSpec) {
 		_spec.SetField(device.FieldLastSync, field.TypeTime, value)
 		_node.LastSync = value
 	}
+	if value, ok := _c.mutation.Platform(); ok {
+		_spec.SetField(device.FieldPlatform, field.TypeEnum, value)
+		_node.Platform = value
+	}
+	if value, ok := _c.mutation.Status(); ok {
+		_spec.SetField(device.FieldStatus, field.TypeEnum, value)
+		_node.Status = value
+	}
+	if value, ok := _c.mutation.ComplianceStatus(); ok {
+		_spec.SetField(device.FieldComplianceStatus, field.TypeEnum, value)
+		_node.ComplianceStatus = value
+	}
+	if value, ok := _c.mutation.OsVersion(); ok {
+		_spec.SetField(device.FieldOsVersion, field.TypeString, value)
+		_node.OsVersion = value
+	}
+	if value, ok := _c.mutation.DeviceType(); ok {
+		_spec.SetField(device.FieldDeviceType, field.TypeString, value)
+		_node.DeviceType = value
+	}
+	if value, ok := _c.mutation.LastSeen(); ok {
+		_spec.SetField(device.FieldLastSeen, field.TypeTime, value)
+		_node.LastSeen = value
+	}
+	if value, ok := _c.mutation.EnrolledAt(); ok {
+		_spec.SetField(device.FieldEnrolledAt, field.TypeTime, value)
+		_node.EnrolledAt = value
+	}
 	if value, ok := _c.mutation.CreatedAt(); ok {
 		_spec.SetField(device.FieldCreatedAt, field.TypeTime, value)
 		_node.CreatedAt = value
@@ -287,6 +456,22 @@ func (_c *DeviceCreate) createSpec() (*Device, *sqlgraph.CreateSpec) {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_node.OwnerID = nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.GroupsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   device.GroupsTable,
+			Columns: device.GroupsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(devicegroup.FieldID, field.TypeUint),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec

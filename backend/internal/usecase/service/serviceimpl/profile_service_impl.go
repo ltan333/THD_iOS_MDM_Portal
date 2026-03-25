@@ -1,0 +1,424 @@
+package serviceimpl
+
+import (
+	"context"
+	"strings"
+	"time"
+
+	"github.com/thienel/go-backend-template/internal/ent"
+	"github.com/thienel/go-backend-template/internal/ent/profile"
+	"github.com/thienel/go-backend-template/internal/ent/profileassignment"
+	"github.com/thienel/go-backend-template/internal/usecase/service"
+	apperror "github.com/thienel/go-backend-template/pkg/error"
+	"github.com/thienel/go-backend-template/pkg/query"
+)
+
+type profileServiceImpl struct {
+	client *ent.Client
+}
+
+func NewProfileService(client *ent.Client) service.ProfileService {
+	return &profileServiceImpl{client: client}
+}
+
+func (s *profileServiceImpl) List(ctx context.Context, offset, limit int, opts query.QueryOptions) ([]*ent.Profile, int64, error) {
+	q := s.client.Profile.Query()
+
+	for field, filter := range opts.Filters {
+		switch field {
+		case "search":
+			if val, ok := filter.Value.(string); ok && val != "" {
+				q = q.Where(profile.NameContainsFold(val))
+			}
+		case "platform":
+			if val, ok := filter.Value.(string); ok && val != "" {
+				q = q.Where(profile.PlatformEQ(profile.Platform(val)))
+			}
+		case "status":
+			if val, ok := filter.Value.(string); ok && val != "" {
+				q = q.Where(profile.StatusEQ(profile.Status(val)))
+			}
+		case "scope":
+			if val, ok := filter.Value.(string); ok && val != "" {
+				q = q.Where(profile.ScopeEQ(profile.Scope(val)))
+			}
+		}
+	}
+
+	total, err := q.Clone().Count(ctx)
+	if err != nil {
+		return nil, 0, apperror.ErrInternalServerError.WithMessage("Lỗi khi đếm profile").WithError(err)
+	}
+
+	if len(opts.Sort) > 0 {
+		for _, sortField := range opts.Sort {
+			switch strings.ToLower(sortField.Field) {
+			case "name":
+				if sortField.Desc {
+					q = q.Order(ent.Desc(profile.FieldName))
+				} else {
+					q = q.Order(ent.Asc(profile.FieldName))
+				}
+			case "created_at":
+				if sortField.Desc {
+					q = q.Order(ent.Desc(profile.FieldCreatedAt))
+				} else {
+					q = q.Order(ent.Asc(profile.FieldCreatedAt))
+				}
+			}
+		}
+	} else {
+		q = q.Order(ent.Desc(profile.FieldCreatedAt))
+	}
+
+	profiles, err := q.Offset(offset).Limit(limit).All(ctx)
+	if err != nil {
+		return nil, 0, apperror.ErrInternalServerError.WithMessage("Lỗi khi truy xuất profile").WithError(err)
+	}
+
+	return profiles, int64(total), nil
+}
+
+func (s *profileServiceImpl) GetByID(ctx context.Context, id uint) (*ent.Profile, error) {
+	if id == 0 {
+		return nil, apperror.ErrValidation.WithMessage("ID profile là bắt buộc")
+	}
+
+	p, err := s.client.Profile.Query().
+		Where(profile.IDEQ(id)).
+		WithAssignments().
+		WithVersions().
+		WithDeploymentStatuses().
+		First(ctx)
+	if ent.IsNotFound(err) {
+		return nil, apperror.ErrNotFound.WithMessage("Profile không tồn tại")
+	}
+	if err != nil {
+		return nil, apperror.ErrInternalServerError.WithMessage("Lỗi khi truy xuất profile").WithError(err)
+	}
+
+	return p, nil
+}
+
+func (s *profileServiceImpl) Create(ctx context.Context, cmd service.CreateProfileCommand) (*ent.Profile, error) {
+	if strings.TrimSpace(cmd.Name) == "" {
+		return nil, apperror.ErrValidation.WithMessage("Tên profile là bắt buộc")
+	}
+
+	exists, _ := s.client.Profile.Query().Where(profile.NameEQ(cmd.Name)).Exist(ctx)
+	if exists {
+		return nil, apperror.ErrConflict.WithMessage("Tên profile đã tồn tại")
+	}
+
+	create := s.client.Profile.Create().
+		SetName(cmd.Name).
+		SetStatus(profile.StatusDraft).
+		SetVersion(1)
+
+	if cmd.Platform != "" {
+		create = create.SetPlatform(profile.Platform(cmd.Platform))
+	}
+	if cmd.Scope != "" {
+		create = create.SetScope(profile.Scope(cmd.Scope))
+	}
+	if cmd.SecuritySettings != nil {
+		create = create.SetSecuritySettings(cmd.SecuritySettings)
+	}
+	if cmd.NetworkConfig != nil {
+		create = create.SetNetworkConfig(cmd.NetworkConfig)
+	}
+	if cmd.Restrictions != nil {
+		create = create.SetRestrictions(cmd.Restrictions)
+	}
+	if cmd.ContentFilter != nil {
+		create = create.SetContentFilter(cmd.ContentFilter)
+	}
+	if cmd.ComplianceRules != nil {
+		create = create.SetComplianceRules(cmd.ComplianceRules)
+	}
+	if cmd.Payloads != nil {
+		create = create.SetPayloads(cmd.Payloads)
+	}
+
+	p, err := create.Save(ctx)
+	if err != nil {
+		return nil, apperror.ErrInternalServerError.WithMessage("Lỗi khi tạo profile").WithError(err)
+	}
+
+	return p, nil
+}
+
+func (s *profileServiceImpl) Update(ctx context.Context, cmd service.UpdateProfileCommand) (*ent.Profile, error) {
+	if cmd.ID == 0 {
+		return nil, apperror.ErrValidation.WithMessage("ID profile là bắt buộc")
+	}
+
+	update := s.client.Profile.UpdateOneID(cmd.ID)
+
+	if cmd.Name != nil && strings.TrimSpace(*cmd.Name) != "" {
+		exists, _ := s.client.Profile.Query().
+			Where(profile.NameEQ(*cmd.Name), profile.IDNEQ(cmd.ID)).
+			Exist(ctx)
+		if exists {
+			return nil, apperror.ErrConflict.WithMessage("Tên profile đã tồn tại")
+		}
+		update = update.SetName(*cmd.Name)
+	}
+	if cmd.Platform != nil {
+		update = update.SetPlatform(profile.Platform(*cmd.Platform))
+	}
+	if cmd.Scope != nil {
+		update = update.SetScope(profile.Scope(*cmd.Scope))
+	}
+	if cmd.SecuritySettings != nil {
+		update = update.SetSecuritySettings(cmd.SecuritySettings)
+	}
+	if cmd.NetworkConfig != nil {
+		update = update.SetNetworkConfig(cmd.NetworkConfig)
+	}
+	if cmd.Restrictions != nil {
+		update = update.SetRestrictions(cmd.Restrictions)
+	}
+	if cmd.ContentFilter != nil {
+		update = update.SetContentFilter(cmd.ContentFilter)
+	}
+	if cmd.ComplianceRules != nil {
+		update = update.SetComplianceRules(cmd.ComplianceRules)
+	}
+
+	p, err := update.Save(ctx)
+	if ent.IsNotFound(err) {
+		return nil, apperror.ErrNotFound.WithMessage("Profile không tồn tại")
+	}
+	if err != nil {
+		return nil, apperror.ErrInternalServerError.WithMessage("Lỗi khi cập nhật profile").WithError(err)
+	}
+
+	return p, nil
+}
+
+func (s *profileServiceImpl) Delete(ctx context.Context, id uint) error {
+	if id == 0 {
+		return apperror.ErrValidation.WithMessage("ID profile là bắt buộc")
+	}
+
+	err := s.client.Profile.DeleteOneID(id).Exec(ctx)
+	if ent.IsNotFound(err) {
+		return apperror.ErrNotFound.WithMessage("Profile không tồn tại")
+	}
+	if err != nil {
+		return apperror.ErrInternalServerError.WithMessage("Lỗi khi xóa profile").WithError(err)
+	}
+
+	return nil
+}
+
+func (s *profileServiceImpl) UpdateStatus(ctx context.Context, id uint, status string) error {
+	if id == 0 {
+		return apperror.ErrValidation.WithMessage("ID profile là bắt buộc")
+	}
+
+	_, err := s.client.Profile.UpdateOneID(id).
+		SetStatus(profile.Status(status)).
+		Save(ctx)
+	if ent.IsNotFound(err) {
+		return apperror.ErrNotFound.WithMessage("Profile không tồn tại")
+	}
+	if err != nil {
+		return apperror.ErrInternalServerError.WithMessage("Lỗi khi cập nhật trạng thái").WithError(err)
+	}
+
+	return nil
+}
+
+func (s *profileServiceImpl) UpdateSecuritySettings(ctx context.Context, id uint, settings map[string]interface{}) error {
+	_, err := s.client.Profile.UpdateOneID(id).
+		SetSecuritySettings(settings).
+		Save(ctx)
+	if ent.IsNotFound(err) {
+		return apperror.ErrNotFound.WithMessage("Profile không tồn tại")
+	}
+	if err != nil {
+		return apperror.ErrInternalServerError.WithMessage("Lỗi khi cập nhật security settings").WithError(err)
+	}
+	return nil
+}
+
+func (s *profileServiceImpl) UpdateNetworkConfig(ctx context.Context, id uint, config map[string]interface{}) error {
+	_, err := s.client.Profile.UpdateOneID(id).
+		SetNetworkConfig(config).
+		Save(ctx)
+	if ent.IsNotFound(err) {
+		return apperror.ErrNotFound.WithMessage("Profile không tồn tại")
+	}
+	if err != nil {
+		return apperror.ErrInternalServerError.WithMessage("Lỗi khi cập nhật network config").WithError(err)
+	}
+	return nil
+}
+
+func (s *profileServiceImpl) UpdateRestrictions(ctx context.Context, id uint, restrictions map[string]interface{}) error {
+	_, err := s.client.Profile.UpdateOneID(id).
+		SetRestrictions(restrictions).
+		Save(ctx)
+	if ent.IsNotFound(err) {
+		return apperror.ErrNotFound.WithMessage("Profile không tồn tại")
+	}
+	if err != nil {
+		return apperror.ErrInternalServerError.WithMessage("Lỗi khi cập nhật restrictions").WithError(err)
+	}
+	return nil
+}
+
+func (s *profileServiceImpl) UpdateContentFilter(ctx context.Context, id uint, filter map[string]interface{}) error {
+	_, err := s.client.Profile.UpdateOneID(id).
+		SetContentFilter(filter).
+		Save(ctx)
+	if ent.IsNotFound(err) {
+		return apperror.ErrNotFound.WithMessage("Profile không tồn tại")
+	}
+	if err != nil {
+		return apperror.ErrInternalServerError.WithMessage("Lỗi khi cập nhật content filter").WithError(err)
+	}
+	return nil
+}
+
+func (s *profileServiceImpl) UpdateComplianceRules(ctx context.Context, id uint, rules map[string]interface{}) error {
+	_, err := s.client.Profile.UpdateOneID(id).
+		SetComplianceRules(rules).
+		Save(ctx)
+	if ent.IsNotFound(err) {
+		return apperror.ErrNotFound.WithMessage("Profile không tồn tại")
+	}
+	if err != nil {
+		return apperror.ErrInternalServerError.WithMessage("Lỗi khi cập nhật compliance rules").WithError(err)
+	}
+	return nil
+}
+
+func (s *profileServiceImpl) Assign(ctx context.Context, cmd service.AssignProfileCommand) error {
+	_, err := s.client.ProfileAssignment.Create().
+		SetProfileID(cmd.ProfileID).
+		SetTargetType(profileassignment.TargetType(cmd.TargetType)).
+		SetTargetID(cmd.TargetID).
+		SetScheduleType(profileassignment.ScheduleType(cmd.ScheduleType)).
+		SetNillableScheduledAt(cmd.ScheduledAt).
+		Save(ctx)
+	if err != nil {
+		return apperror.ErrInternalServerError.WithMessage("Lỗi khi gán profile").WithError(err)
+	}
+	return nil
+}
+
+func (s *profileServiceImpl) Unassign(ctx context.Context, profileID uint, assignmentID uint) error {
+	err := s.client.ProfileAssignment.DeleteOneID(assignmentID).Exec(ctx)
+	if ent.IsNotFound(err) {
+		return apperror.ErrNotFound.WithMessage("Assignment không tồn tại")
+	}
+	if err != nil {
+		return apperror.ErrInternalServerError.WithMessage("Lỗi khi xóa assignment").WithError(err)
+	}
+	return nil
+}
+
+func (s *profileServiceImpl) ListAssignments(ctx context.Context, profileID uint) ([]*ent.ProfileAssignment, error) {
+	assignments, err := s.client.ProfileAssignment.Query().
+		Where(profileassignment.HasProfileWith(profile.IDEQ(profileID))).
+		All(ctx)
+	if err != nil {
+		return nil, apperror.ErrInternalServerError.WithMessage("Lỗi khi truy xuất assignments").WithError(err)
+	}
+	return assignments, nil
+}
+
+func (s *profileServiceImpl) ListVersions(ctx context.Context, profileID uint) ([]*ent.ProfileVersion, error) {
+	p, err := s.client.Profile.Query().
+		Where(profile.IDEQ(profileID)).
+		WithVersions().
+		First(ctx)
+	if ent.IsNotFound(err) {
+		return nil, apperror.ErrNotFound.WithMessage("Profile không tồn tại")
+	}
+	if err != nil {
+		return nil, apperror.ErrInternalServerError.WithMessage("Lỗi khi truy xuất versions").WithError(err)
+	}
+	return p.Edges.Versions, nil
+}
+
+func (s *profileServiceImpl) Rollback(ctx context.Context, profileID uint, versionID uint) error {
+	version, err := s.client.ProfileVersion.Get(ctx, versionID)
+	if ent.IsNotFound(err) {
+		return apperror.ErrNotFound.WithMessage("Version không tồn tại")
+	}
+	if err != nil {
+		return apperror.ErrInternalServerError.WithMessage("Lỗi khi truy xuất version").WithError(err)
+	}
+
+	_, err = s.client.Profile.UpdateOneID(profileID).
+		SetSecuritySettings(version.Data["security_settings"].(map[string]interface{})).
+		SetNetworkConfig(version.Data["network_config"].(map[string]interface{})).
+		SetRestrictions(version.Data["restrictions"].(map[string]interface{})).
+		Save(ctx)
+	if err != nil {
+		return apperror.ErrInternalServerError.WithMessage("Lỗi khi rollback").WithError(err)
+	}
+
+	return nil
+}
+
+func (s *profileServiceImpl) GetDeploymentStatus(ctx context.Context, profileID uint) ([]*ent.ProfileDeploymentStatus, error) {
+	p, err := s.client.Profile.Query().
+		Where(profile.IDEQ(profileID)).
+		WithDeploymentStatuses().
+		First(ctx)
+	if ent.IsNotFound(err) {
+		return nil, apperror.ErrNotFound.WithMessage("Profile không tồn tại")
+	}
+	if err != nil {
+		return nil, apperror.ErrInternalServerError.WithMessage("Lỗi khi truy xuất deployment status").WithError(err)
+	}
+	return p.Edges.DeploymentStatuses, nil
+}
+
+func (s *profileServiceImpl) Repush(ctx context.Context, profileID uint) error {
+	// Update deployment statuses to pending
+	_, err := s.client.Profile.Query().
+		Where(profile.IDEQ(profileID)).
+		First(ctx)
+	if ent.IsNotFound(err) {
+		return apperror.ErrNotFound.WithMessage("Profile không tồn tại")
+	}
+	// In a real implementation, this would trigger MDM push
+	return nil
+}
+
+func (s *profileServiceImpl) Duplicate(ctx context.Context, profileID uint) (*ent.Profile, error) {
+	original, err := s.client.Profile.Get(ctx, profileID)
+	if ent.IsNotFound(err) {
+		return nil, apperror.ErrNotFound.WithMessage("Profile không tồn tại")
+	}
+	if err != nil {
+		return nil, apperror.ErrInternalServerError.WithMessage("Lỗi khi truy xuất profile").WithError(err)
+	}
+
+	newName := original.Name + " (Copy) " + time.Now().Format("20060102150405")
+
+	duplicate, err := s.client.Profile.Create().
+		SetName(newName).
+		SetPlatform(original.Platform).
+		SetScope(original.Scope).
+		SetStatus(profile.StatusDraft).
+		SetSecuritySettings(original.SecuritySettings).
+		SetNetworkConfig(original.NetworkConfig).
+		SetRestrictions(original.Restrictions).
+		SetContentFilter(original.ContentFilter).
+		SetComplianceRules(original.ComplianceRules).
+		SetPayloads(original.Payloads).
+		SetVersion(1).
+		Save(ctx)
+	if err != nil {
+		return nil, apperror.ErrInternalServerError.WithMessage("Lỗi khi duplicate profile").WithError(err)
+	}
+
+	return duplicate, nil
+}

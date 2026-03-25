@@ -71,7 +71,7 @@ type DEPProfileResponse struct {
 	ProfileData               map[string]interface{} `json:"profile_data"`
 }
 
-type DeviceResponse struct {
+type DEPDeviceResponse struct {
 	ID           string    `json:"id"`
 	SerialNumber string    `json:"serial_number"`
 	Model        string    `json:"model"`

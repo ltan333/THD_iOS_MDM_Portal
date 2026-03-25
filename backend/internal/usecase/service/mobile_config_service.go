@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/thienel/go-backend-template/internal/ent"
+	"github.com/thienel/go-backend-template/pkg/query"
 )
 
 type CreateMobileConfigPropertyCommand struct {
@@ -51,6 +52,8 @@ type GenerateMobileConfigXMLCommand struct {
 }
 
 type MobileConfigService interface {
+	List(ctx context.Context, offset, limit int, opts query.QueryOptions) ([]*ent.MobileConfig, int64, error)
+	GetByID(ctx context.Context, id uint) (*ent.MobileConfig, error)
 	Create(ctx context.Context, cmd CreateMobileConfigCommand) (*ent.MobileConfig, error)
 	Update(ctx context.Context, cmd UpdateMobileConfigCommand) (*ent.MobileConfig, error)
 	Delete(ctx context.Context, id uint) error

@@ -10,6 +10,7 @@ import (
 	"github.com/thienel/go-backend-template/internal/ent"
 	"github.com/thienel/go-backend-template/internal/usecase/service"
 	apperror "github.com/thienel/go-backend-template/pkg/error"
+	"github.com/thienel/go-backend-template/pkg/query"
 	"howett.net/plist"
 )
 
@@ -19,6 +20,17 @@ type mobileConfigServiceImpl struct {
 
 func NewMobileConfigService(mobileConfigRepo repository.MobileConfigRepository) service.MobileConfigService {
 	return &mobileConfigServiceImpl{mobileConfigRepo: mobileConfigRepo}
+}
+
+func (m *mobileConfigServiceImpl) List(ctx context.Context, offset, limit int, opts query.QueryOptions) ([]*ent.MobileConfig, int64, error) {
+	return m.mobileConfigRepo.List(ctx, offset, limit, opts)
+}
+
+func (m *mobileConfigServiceImpl) GetByID(ctx context.Context, id uint) (*ent.MobileConfig, error) {
+	if id == 0 {
+		return nil, apperror.ErrValidation.WithMessage("id là bắt buộc")
+	}
+	return m.mobileConfigRepo.GetByIDWithPayloads(ctx, id)
 }
 
 func (m *mobileConfigServiceImpl) Create(ctx context.Context, cmd service.CreateMobileConfigCommand) (*ent.MobileConfig, error) {

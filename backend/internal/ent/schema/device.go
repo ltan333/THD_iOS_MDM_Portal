@@ -38,6 +38,14 @@ func (Device) Fields() []ent.Field {
 		field.Bool("is_enrolled").Default(false),
 		field.String("name").Optional(),
 		field.Time("last_sync").Optional(),
+		// New fields for Phase 1
+		field.Enum("platform").Values("ios", "android", "windows", "macos", "other").Default("other").Optional(),
+		field.Enum("status").Values("active", "inactive", "pending", "lost", "wiped").Default("pending").Optional(),
+		field.Enum("compliance_status").Values("compliant", "non_compliant", "unknown").Default("unknown").Optional(),
+		field.String("os_version").Optional(),
+		field.String("device_type").Optional(), // iphone, ipad, android_phone, etc.
+		field.Time("last_seen").Optional(),
+		field.Time("enrolled_at").Optional(),
 		field.Time("created_at").Default(time.Now).Immutable(),
 		field.Time("updated_at").Default(time.Now).UpdateDefault(time.Now),
 	}
@@ -50,5 +58,7 @@ func (Device) Edges() []ent.Edge {
 			Ref("devices").
 			Unique().
 			Field("owner_id"),
+		edge.From("groups", DeviceGroup.Type).
+			Ref("devices"),
 	}
 }

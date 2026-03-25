@@ -13,13 +13,15 @@ import (
 )
 
 type routeRegister struct {
-	auth    handler.AuthHandler
-	user    handler.UserHandler
-	policy  handler.PolicyHandler
-	mdm     handler.MDMHandler
-	dep     handler.DEPHandler
-	nanocmd handler.NanoCMDHandler
-	mw      *middleware.Middleware
+	auth         handler.AuthHandler
+	user         handler.UserHandler
+	policy       handler.PolicyHandler
+	mdm          handler.MDMHandler
+	dep          handler.DEPHandler
+	nanocmd      handler.NanoCMDHandler
+	mobileConfig handler.MobileConfigHandler
+	dashboard    handler.DashboardHandler
+	mw           *middleware.Middleware
 }
 
 // SetupRouter configures all routes following THD-Checkin-App pattern
@@ -30,17 +32,21 @@ func SetupRouter(
 	mdmHandler handler.MDMHandler,
 	depHandler handler.DEPHandler,
 	nanocmdHandler handler.NanoCMDHandler,
+	mobileConfigHandler handler.MobileConfigHandler,
+	dashboardHandler handler.DashboardHandler,
 	mw *middleware.Middleware,
 ) *gin.Engine {
 
 	routes := routeRegister{
-		auth:    authHandler,
-		user:    userHandler,
-		policy:  policyHandler,
-		mdm:     mdmHandler,
-		dep:     depHandler,
-		nanocmd: nanocmdHandler,
-		mw:      mw,
+		auth:         authHandler,
+		user:         userHandler,
+		policy:       policyHandler,
+		mdm:          mdmHandler,
+		dep:          depHandler,
+		nanocmd:      nanocmdHandler,
+		mobileConfig: mobileConfigHandler,
+		dashboard:    dashboardHandler,
+		mw:           mw,
 	}
 
 	router := gin.New()
@@ -67,6 +73,8 @@ func SetupRouter(
 			routes.registerMDMRoutes(protected)
 			routes.registerDEPRoutes(protected)
 			routes.registerNanoCMDRoutes(protected)
+			routes.registerMobileConfigRoutes(protected)
+			routes.registerDashboardRoutes(protected)
 		}
 	}
 
@@ -177,5 +185,27 @@ func (r *routeRegister) registerNanoCMDRoutes(rg *gin.RouterGroup) {
 		nanocmd.GET("/cmdplan/:name", r.nanocmd.GetCMDPlan)
 		nanocmd.PUT("/cmdplan/:name", r.nanocmd.PutCMDPlan)
 		nanocmd.GET("/inventory", r.nanocmd.GetInventory)
+	}
+}
+
+func (r *routeRegister) registerMobileConfigRoutes(rg *gin.RouterGroup) {
+	mobileConfig := rg.Group("/mobile-configs")
+	{
+		mobileConfig.GET("", r.mobileConfig.List)
+		mobileConfig.GET("/:id", r.mobileConfig.GetByID)
+		mobileConfig.POST("", r.mobileConfig.Create)
+		mobileConfig.PUT("/:id", r.mobileConfig.Update)
+		mobileConfig.DELETE("/:id", r.mobileConfig.Delete)
+		mobileConfig.GET("/:id/xml", r.mobileConfig.GetXML)
+	}
+}
+
+func (r *routeRegister) registerDashboardRoutes(rg *gin.RouterGroup) {
+	dashboard := rg.Group("/dashboard")
+	{
+		dashboard.GET("/stats", r.dashboard.GetStats)
+		dashboard.GET("/device-stats", r.dashboard.GetDeviceStats)
+		dashboard.GET("/alerts-summary", r.dashboard.GetAlertsSummary)
+		dashboard.GET("/charts/:type", r.dashboard.GetChartData)
 	}
 }

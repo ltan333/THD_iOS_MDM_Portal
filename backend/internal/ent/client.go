@@ -15,14 +15,21 @@ import (
 	"entgo.io/ent/dialect"
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
+	"github.com/thienel/go-backend-template/internal/ent/alert"
+	"github.com/thienel/go-backend-template/internal/ent/alertrule"
 	"github.com/thienel/go-backend-template/internal/ent/apnsconfig"
 	"github.com/thienel/go-backend-template/internal/ent/depprofile"
 	"github.com/thienel/go-backend-template/internal/ent/deptoken"
 	"github.com/thienel/go-backend-template/internal/ent/device"
+	"github.com/thienel/go-backend-template/internal/ent/devicegroup"
 	"github.com/thienel/go-backend-template/internal/ent/mobileconfig"
 	"github.com/thienel/go-backend-template/internal/ent/payload"
 	"github.com/thienel/go-backend-template/internal/ent/payloadproperty"
 	"github.com/thienel/go-backend-template/internal/ent/payloadpropertydefinition"
+	"github.com/thienel/go-backend-template/internal/ent/profile"
+	"github.com/thienel/go-backend-template/internal/ent/profileassignment"
+	"github.com/thienel/go-backend-template/internal/ent/profiledeploymentstatus"
+	"github.com/thienel/go-backend-template/internal/ent/profileversion"
 	"github.com/thienel/go-backend-template/internal/ent/user"
 )
 
@@ -33,12 +40,18 @@ type Client struct {
 	Schema *migrate.Schema
 	// APNSConfig is the client for interacting with the APNSConfig builders.
 	APNSConfig *APNSConfigClient
+	// Alert is the client for interacting with the Alert builders.
+	Alert *AlertClient
+	// AlertRule is the client for interacting with the AlertRule builders.
+	AlertRule *AlertRuleClient
 	// DEPToken is the client for interacting with the DEPToken builders.
 	DEPToken *DEPTokenClient
 	// DepProfile is the client for interacting with the DepProfile builders.
 	DepProfile *DepProfileClient
 	// Device is the client for interacting with the Device builders.
 	Device *DeviceClient
+	// DeviceGroup is the client for interacting with the DeviceGroup builders.
+	DeviceGroup *DeviceGroupClient
 	// MobileConfig is the client for interacting with the MobileConfig builders.
 	MobileConfig *MobileConfigClient
 	// Payload is the client for interacting with the Payload builders.
@@ -47,6 +60,14 @@ type Client struct {
 	PayloadProperty *PayloadPropertyClient
 	// PayloadPropertyDefinition is the client for interacting with the PayloadPropertyDefinition builders.
 	PayloadPropertyDefinition *PayloadPropertyDefinitionClient
+	// Profile is the client for interacting with the Profile builders.
+	Profile *ProfileClient
+	// ProfileAssignment is the client for interacting with the ProfileAssignment builders.
+	ProfileAssignment *ProfileAssignmentClient
+	// ProfileDeploymentStatus is the client for interacting with the ProfileDeploymentStatus builders.
+	ProfileDeploymentStatus *ProfileDeploymentStatusClient
+	// ProfileVersion is the client for interacting with the ProfileVersion builders.
+	ProfileVersion *ProfileVersionClient
 	// User is the client for interacting with the User builders.
 	User *UserClient
 }
@@ -61,13 +82,20 @@ func NewClient(opts ...Option) *Client {
 func (c *Client) init() {
 	c.Schema = migrate.NewSchema(c.driver)
 	c.APNSConfig = NewAPNSConfigClient(c.config)
+	c.Alert = NewAlertClient(c.config)
+	c.AlertRule = NewAlertRuleClient(c.config)
 	c.DEPToken = NewDEPTokenClient(c.config)
 	c.DepProfile = NewDepProfileClient(c.config)
 	c.Device = NewDeviceClient(c.config)
+	c.DeviceGroup = NewDeviceGroupClient(c.config)
 	c.MobileConfig = NewMobileConfigClient(c.config)
 	c.Payload = NewPayloadClient(c.config)
 	c.PayloadProperty = NewPayloadPropertyClient(c.config)
 	c.PayloadPropertyDefinition = NewPayloadPropertyDefinitionClient(c.config)
+	c.Profile = NewProfileClient(c.config)
+	c.ProfileAssignment = NewProfileAssignmentClient(c.config)
+	c.ProfileDeploymentStatus = NewProfileDeploymentStatusClient(c.config)
+	c.ProfileVersion = NewProfileVersionClient(c.config)
 	c.User = NewUserClient(c.config)
 }
 
@@ -162,13 +190,20 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		ctx:                       ctx,
 		config:                    cfg,
 		APNSConfig:                NewAPNSConfigClient(cfg),
+		Alert:                     NewAlertClient(cfg),
+		AlertRule:                 NewAlertRuleClient(cfg),
 		DEPToken:                  NewDEPTokenClient(cfg),
 		DepProfile:                NewDepProfileClient(cfg),
 		Device:                    NewDeviceClient(cfg),
+		DeviceGroup:               NewDeviceGroupClient(cfg),
 		MobileConfig:              NewMobileConfigClient(cfg),
 		Payload:                   NewPayloadClient(cfg),
 		PayloadProperty:           NewPayloadPropertyClient(cfg),
 		PayloadPropertyDefinition: NewPayloadPropertyDefinitionClient(cfg),
+		Profile:                   NewProfileClient(cfg),
+		ProfileAssignment:         NewProfileAssignmentClient(cfg),
+		ProfileDeploymentStatus:   NewProfileDeploymentStatusClient(cfg),
+		ProfileVersion:            NewProfileVersionClient(cfg),
 		User:                      NewUserClient(cfg),
 	}, nil
 }
@@ -190,13 +225,20 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		ctx:                       ctx,
 		config:                    cfg,
 		APNSConfig:                NewAPNSConfigClient(cfg),
+		Alert:                     NewAlertClient(cfg),
+		AlertRule:                 NewAlertRuleClient(cfg),
 		DEPToken:                  NewDEPTokenClient(cfg),
 		DepProfile:                NewDepProfileClient(cfg),
 		Device:                    NewDeviceClient(cfg),
+		DeviceGroup:               NewDeviceGroupClient(cfg),
 		MobileConfig:              NewMobileConfigClient(cfg),
 		Payload:                   NewPayloadClient(cfg),
 		PayloadProperty:           NewPayloadPropertyClient(cfg),
 		PayloadPropertyDefinition: NewPayloadPropertyDefinitionClient(cfg),
+		Profile:                   NewProfileClient(cfg),
+		ProfileAssignment:         NewProfileAssignmentClient(cfg),
+		ProfileDeploymentStatus:   NewProfileDeploymentStatusClient(cfg),
+		ProfileVersion:            NewProfileVersionClient(cfg),
 		User:                      NewUserClient(cfg),
 	}, nil
 }
@@ -227,8 +269,10 @@ func (c *Client) Close() error {
 // In order to add hooks to a specific client, call: `client.Node.Use(...)`.
 func (c *Client) Use(hooks ...Hook) {
 	for _, n := range []interface{ Use(...Hook) }{
-		c.APNSConfig, c.DEPToken, c.DepProfile, c.Device, c.MobileConfig, c.Payload,
-		c.PayloadProperty, c.PayloadPropertyDefinition, c.User,
+		c.APNSConfig, c.Alert, c.AlertRule, c.DEPToken, c.DepProfile, c.Device,
+		c.DeviceGroup, c.MobileConfig, c.Payload, c.PayloadProperty,
+		c.PayloadPropertyDefinition, c.Profile, c.ProfileAssignment,
+		c.ProfileDeploymentStatus, c.ProfileVersion, c.User,
 	} {
 		n.Use(hooks...)
 	}
@@ -238,8 +282,10 @@ func (c *Client) Use(hooks ...Hook) {
 // In order to add interceptors to a specific client, call: `client.Node.Intercept(...)`.
 func (c *Client) Intercept(interceptors ...Interceptor) {
 	for _, n := range []interface{ Intercept(...Interceptor) }{
-		c.APNSConfig, c.DEPToken, c.DepProfile, c.Device, c.MobileConfig, c.Payload,
-		c.PayloadProperty, c.PayloadPropertyDefinition, c.User,
+		c.APNSConfig, c.Alert, c.AlertRule, c.DEPToken, c.DepProfile, c.Device,
+		c.DeviceGroup, c.MobileConfig, c.Payload, c.PayloadProperty,
+		c.PayloadPropertyDefinition, c.Profile, c.ProfileAssignment,
+		c.ProfileDeploymentStatus, c.ProfileVersion, c.User,
 	} {
 		n.Intercept(interceptors...)
 	}
@@ -250,12 +296,18 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 	switch m := m.(type) {
 	case *APNSConfigMutation:
 		return c.APNSConfig.mutate(ctx, m)
+	case *AlertMutation:
+		return c.Alert.mutate(ctx, m)
+	case *AlertRuleMutation:
+		return c.AlertRule.mutate(ctx, m)
 	case *DEPTokenMutation:
 		return c.DEPToken.mutate(ctx, m)
 	case *DepProfileMutation:
 		return c.DepProfile.mutate(ctx, m)
 	case *DeviceMutation:
 		return c.Device.mutate(ctx, m)
+	case *DeviceGroupMutation:
+		return c.DeviceGroup.mutate(ctx, m)
 	case *MobileConfigMutation:
 		return c.MobileConfig.mutate(ctx, m)
 	case *PayloadMutation:
@@ -264,6 +316,14 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.PayloadProperty.mutate(ctx, m)
 	case *PayloadPropertyDefinitionMutation:
 		return c.PayloadPropertyDefinition.mutate(ctx, m)
+	case *ProfileMutation:
+		return c.Profile.mutate(ctx, m)
+	case *ProfileAssignmentMutation:
+		return c.ProfileAssignment.mutate(ctx, m)
+	case *ProfileDeploymentStatusMutation:
+		return c.ProfileDeploymentStatus.mutate(ctx, m)
+	case *ProfileVersionMutation:
+		return c.ProfileVersion.mutate(ctx, m)
 	case *UserMutation:
 		return c.User.mutate(ctx, m)
 	default:
@@ -401,6 +461,272 @@ func (c *APNSConfigClient) mutate(ctx context.Context, m *APNSConfigMutation) (V
 		return (&APNSConfigDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("ent: unknown APNSConfig mutation op: %q", m.Op())
+	}
+}
+
+// AlertClient is a client for the Alert schema.
+type AlertClient struct {
+	config
+}
+
+// NewAlertClient returns a client for the Alert from the given config.
+func NewAlertClient(c config) *AlertClient {
+	return &AlertClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `alert.Hooks(f(g(h())))`.
+func (c *AlertClient) Use(hooks ...Hook) {
+	c.hooks.Alert = append(c.hooks.Alert, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `alert.Intercept(f(g(h())))`.
+func (c *AlertClient) Intercept(interceptors ...Interceptor) {
+	c.inters.Alert = append(c.inters.Alert, interceptors...)
+}
+
+// Create returns a builder for creating a Alert entity.
+func (c *AlertClient) Create() *AlertCreate {
+	mutation := newAlertMutation(c.config, OpCreate)
+	return &AlertCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of Alert entities.
+func (c *AlertClient) CreateBulk(builders ...*AlertCreate) *AlertCreateBulk {
+	return &AlertCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *AlertClient) MapCreateBulk(slice any, setFunc func(*AlertCreate, int)) *AlertCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &AlertCreateBulk{err: fmt.Errorf("calling to AlertClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*AlertCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &AlertCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for Alert.
+func (c *AlertClient) Update() *AlertUpdate {
+	mutation := newAlertMutation(c.config, OpUpdate)
+	return &AlertUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *AlertClient) UpdateOne(_m *Alert) *AlertUpdateOne {
+	mutation := newAlertMutation(c.config, OpUpdateOne, withAlert(_m))
+	return &AlertUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *AlertClient) UpdateOneID(id uint) *AlertUpdateOne {
+	mutation := newAlertMutation(c.config, OpUpdateOne, withAlertID(id))
+	return &AlertUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for Alert.
+func (c *AlertClient) Delete() *AlertDelete {
+	mutation := newAlertMutation(c.config, OpDelete)
+	return &AlertDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *AlertClient) DeleteOne(_m *Alert) *AlertDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *AlertClient) DeleteOneID(id uint) *AlertDeleteOne {
+	builder := c.Delete().Where(alert.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &AlertDeleteOne{builder}
+}
+
+// Query returns a query builder for Alert.
+func (c *AlertClient) Query() *AlertQuery {
+	return &AlertQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeAlert},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a Alert entity by its id.
+func (c *AlertClient) Get(ctx context.Context, id uint) (*Alert, error) {
+	return c.Query().Where(alert.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *AlertClient) GetX(ctx context.Context, id uint) *Alert {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *AlertClient) Hooks() []Hook {
+	return c.hooks.Alert
+}
+
+// Interceptors returns the client interceptors.
+func (c *AlertClient) Interceptors() []Interceptor {
+	return c.inters.Alert
+}
+
+func (c *AlertClient) mutate(ctx context.Context, m *AlertMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&AlertCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&AlertUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&AlertUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&AlertDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown Alert mutation op: %q", m.Op())
+	}
+}
+
+// AlertRuleClient is a client for the AlertRule schema.
+type AlertRuleClient struct {
+	config
+}
+
+// NewAlertRuleClient returns a client for the AlertRule from the given config.
+func NewAlertRuleClient(c config) *AlertRuleClient {
+	return &AlertRuleClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `alertrule.Hooks(f(g(h())))`.
+func (c *AlertRuleClient) Use(hooks ...Hook) {
+	c.hooks.AlertRule = append(c.hooks.AlertRule, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `alertrule.Intercept(f(g(h())))`.
+func (c *AlertRuleClient) Intercept(interceptors ...Interceptor) {
+	c.inters.AlertRule = append(c.inters.AlertRule, interceptors...)
+}
+
+// Create returns a builder for creating a AlertRule entity.
+func (c *AlertRuleClient) Create() *AlertRuleCreate {
+	mutation := newAlertRuleMutation(c.config, OpCreate)
+	return &AlertRuleCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of AlertRule entities.
+func (c *AlertRuleClient) CreateBulk(builders ...*AlertRuleCreate) *AlertRuleCreateBulk {
+	return &AlertRuleCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *AlertRuleClient) MapCreateBulk(slice any, setFunc func(*AlertRuleCreate, int)) *AlertRuleCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &AlertRuleCreateBulk{err: fmt.Errorf("calling to AlertRuleClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*AlertRuleCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &AlertRuleCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for AlertRule.
+func (c *AlertRuleClient) Update() *AlertRuleUpdate {
+	mutation := newAlertRuleMutation(c.config, OpUpdate)
+	return &AlertRuleUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *AlertRuleClient) UpdateOne(_m *AlertRule) *AlertRuleUpdateOne {
+	mutation := newAlertRuleMutation(c.config, OpUpdateOne, withAlertRule(_m))
+	return &AlertRuleUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *AlertRuleClient) UpdateOneID(id uint) *AlertRuleUpdateOne {
+	mutation := newAlertRuleMutation(c.config, OpUpdateOne, withAlertRuleID(id))
+	return &AlertRuleUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for AlertRule.
+func (c *AlertRuleClient) Delete() *AlertRuleDelete {
+	mutation := newAlertRuleMutation(c.config, OpDelete)
+	return &AlertRuleDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *AlertRuleClient) DeleteOne(_m *AlertRule) *AlertRuleDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *AlertRuleClient) DeleteOneID(id uint) *AlertRuleDeleteOne {
+	builder := c.Delete().Where(alertrule.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &AlertRuleDeleteOne{builder}
+}
+
+// Query returns a query builder for AlertRule.
+func (c *AlertRuleClient) Query() *AlertRuleQuery {
+	return &AlertRuleQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeAlertRule},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a AlertRule entity by its id.
+func (c *AlertRuleClient) Get(ctx context.Context, id uint) (*AlertRule, error) {
+	return c.Query().Where(alertrule.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *AlertRuleClient) GetX(ctx context.Context, id uint) *AlertRule {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *AlertRuleClient) Hooks() []Hook {
+	return c.hooks.AlertRule
+}
+
+// Interceptors returns the client interceptors.
+func (c *AlertRuleClient) Interceptors() []Interceptor {
+	return c.inters.AlertRule
+}
+
+func (c *AlertRuleClient) mutate(ctx context.Context, m *AlertRuleMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&AlertRuleCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&AlertRuleUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&AlertRuleUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&AlertRuleDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown AlertRule mutation op: %q", m.Op())
 	}
 }
 
@@ -794,6 +1120,22 @@ func (c *DeviceClient) QueryOwner(_m *Device) *UserQuery {
 	return query
 }
 
+// QueryGroups queries the groups edge of a Device.
+func (c *DeviceClient) QueryGroups(_m *Device) *DeviceGroupQuery {
+	query := (&DeviceGroupClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(device.Table, device.FieldID, id),
+			sqlgraph.To(devicegroup.Table, devicegroup.FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, true, device.GroupsTable, device.GroupsPrimaryKey...),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *DeviceClient) Hooks() []Hook {
 	return c.hooks.Device
@@ -816,6 +1158,171 @@ func (c *DeviceClient) mutate(ctx context.Context, m *DeviceMutation) (Value, er
 		return (&DeviceDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("ent: unknown Device mutation op: %q", m.Op())
+	}
+}
+
+// DeviceGroupClient is a client for the DeviceGroup schema.
+type DeviceGroupClient struct {
+	config
+}
+
+// NewDeviceGroupClient returns a client for the DeviceGroup from the given config.
+func NewDeviceGroupClient(c config) *DeviceGroupClient {
+	return &DeviceGroupClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `devicegroup.Hooks(f(g(h())))`.
+func (c *DeviceGroupClient) Use(hooks ...Hook) {
+	c.hooks.DeviceGroup = append(c.hooks.DeviceGroup, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `devicegroup.Intercept(f(g(h())))`.
+func (c *DeviceGroupClient) Intercept(interceptors ...Interceptor) {
+	c.inters.DeviceGroup = append(c.inters.DeviceGroup, interceptors...)
+}
+
+// Create returns a builder for creating a DeviceGroup entity.
+func (c *DeviceGroupClient) Create() *DeviceGroupCreate {
+	mutation := newDeviceGroupMutation(c.config, OpCreate)
+	return &DeviceGroupCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of DeviceGroup entities.
+func (c *DeviceGroupClient) CreateBulk(builders ...*DeviceGroupCreate) *DeviceGroupCreateBulk {
+	return &DeviceGroupCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *DeviceGroupClient) MapCreateBulk(slice any, setFunc func(*DeviceGroupCreate, int)) *DeviceGroupCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &DeviceGroupCreateBulk{err: fmt.Errorf("calling to DeviceGroupClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*DeviceGroupCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &DeviceGroupCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for DeviceGroup.
+func (c *DeviceGroupClient) Update() *DeviceGroupUpdate {
+	mutation := newDeviceGroupMutation(c.config, OpUpdate)
+	return &DeviceGroupUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *DeviceGroupClient) UpdateOne(_m *DeviceGroup) *DeviceGroupUpdateOne {
+	mutation := newDeviceGroupMutation(c.config, OpUpdateOne, withDeviceGroup(_m))
+	return &DeviceGroupUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *DeviceGroupClient) UpdateOneID(id uint) *DeviceGroupUpdateOne {
+	mutation := newDeviceGroupMutation(c.config, OpUpdateOne, withDeviceGroupID(id))
+	return &DeviceGroupUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for DeviceGroup.
+func (c *DeviceGroupClient) Delete() *DeviceGroupDelete {
+	mutation := newDeviceGroupMutation(c.config, OpDelete)
+	return &DeviceGroupDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *DeviceGroupClient) DeleteOne(_m *DeviceGroup) *DeviceGroupDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *DeviceGroupClient) DeleteOneID(id uint) *DeviceGroupDeleteOne {
+	builder := c.Delete().Where(devicegroup.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &DeviceGroupDeleteOne{builder}
+}
+
+// Query returns a query builder for DeviceGroup.
+func (c *DeviceGroupClient) Query() *DeviceGroupQuery {
+	return &DeviceGroupQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeDeviceGroup},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a DeviceGroup entity by its id.
+func (c *DeviceGroupClient) Get(ctx context.Context, id uint) (*DeviceGroup, error) {
+	return c.Query().Where(devicegroup.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *DeviceGroupClient) GetX(ctx context.Context, id uint) *DeviceGroup {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryDevices queries the devices edge of a DeviceGroup.
+func (c *DeviceGroupClient) QueryDevices(_m *DeviceGroup) *DeviceQuery {
+	query := (&DeviceClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(devicegroup.Table, devicegroup.FieldID, id),
+			sqlgraph.To(device.Table, device.FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, false, devicegroup.DevicesTable, devicegroup.DevicesPrimaryKey...),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryProfiles queries the profiles edge of a DeviceGroup.
+func (c *DeviceGroupClient) QueryProfiles(_m *DeviceGroup) *ProfileQuery {
+	query := (&ProfileClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(devicegroup.Table, devicegroup.FieldID, id),
+			sqlgraph.To(profile.Table, profile.FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, false, devicegroup.ProfilesTable, devicegroup.ProfilesPrimaryKey...),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *DeviceGroupClient) Hooks() []Hook {
+	return c.hooks.DeviceGroup
+}
+
+// Interceptors returns the client interceptors.
+func (c *DeviceGroupClient) Interceptors() []Interceptor {
+	return c.inters.DeviceGroup
+}
+
+func (c *DeviceGroupClient) mutate(ctx context.Context, m *DeviceGroupMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&DeviceGroupCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&DeviceGroupUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&DeviceGroupUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&DeviceGroupDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown DeviceGroup mutation op: %q", m.Op())
 	}
 }
 
@@ -1447,6 +1954,650 @@ func (c *PayloadPropertyDefinitionClient) mutate(ctx context.Context, m *Payload
 	}
 }
 
+// ProfileClient is a client for the Profile schema.
+type ProfileClient struct {
+	config
+}
+
+// NewProfileClient returns a client for the Profile from the given config.
+func NewProfileClient(c config) *ProfileClient {
+	return &ProfileClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `profile.Hooks(f(g(h())))`.
+func (c *ProfileClient) Use(hooks ...Hook) {
+	c.hooks.Profile = append(c.hooks.Profile, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `profile.Intercept(f(g(h())))`.
+func (c *ProfileClient) Intercept(interceptors ...Interceptor) {
+	c.inters.Profile = append(c.inters.Profile, interceptors...)
+}
+
+// Create returns a builder for creating a Profile entity.
+func (c *ProfileClient) Create() *ProfileCreate {
+	mutation := newProfileMutation(c.config, OpCreate)
+	return &ProfileCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of Profile entities.
+func (c *ProfileClient) CreateBulk(builders ...*ProfileCreate) *ProfileCreateBulk {
+	return &ProfileCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *ProfileClient) MapCreateBulk(slice any, setFunc func(*ProfileCreate, int)) *ProfileCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &ProfileCreateBulk{err: fmt.Errorf("calling to ProfileClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*ProfileCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &ProfileCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for Profile.
+func (c *ProfileClient) Update() *ProfileUpdate {
+	mutation := newProfileMutation(c.config, OpUpdate)
+	return &ProfileUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *ProfileClient) UpdateOne(_m *Profile) *ProfileUpdateOne {
+	mutation := newProfileMutation(c.config, OpUpdateOne, withProfile(_m))
+	return &ProfileUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *ProfileClient) UpdateOneID(id uint) *ProfileUpdateOne {
+	mutation := newProfileMutation(c.config, OpUpdateOne, withProfileID(id))
+	return &ProfileUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for Profile.
+func (c *ProfileClient) Delete() *ProfileDelete {
+	mutation := newProfileMutation(c.config, OpDelete)
+	return &ProfileDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *ProfileClient) DeleteOne(_m *Profile) *ProfileDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *ProfileClient) DeleteOneID(id uint) *ProfileDeleteOne {
+	builder := c.Delete().Where(profile.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &ProfileDeleteOne{builder}
+}
+
+// Query returns a query builder for Profile.
+func (c *ProfileClient) Query() *ProfileQuery {
+	return &ProfileQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeProfile},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a Profile entity by its id.
+func (c *ProfileClient) Get(ctx context.Context, id uint) (*Profile, error) {
+	return c.Query().Where(profile.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *ProfileClient) GetX(ctx context.Context, id uint) *Profile {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryDeviceGroups queries the device_groups edge of a Profile.
+func (c *ProfileClient) QueryDeviceGroups(_m *Profile) *DeviceGroupQuery {
+	query := (&DeviceGroupClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(profile.Table, profile.FieldID, id),
+			sqlgraph.To(devicegroup.Table, devicegroup.FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, true, profile.DeviceGroupsTable, profile.DeviceGroupsPrimaryKey...),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryAssignments queries the assignments edge of a Profile.
+func (c *ProfileClient) QueryAssignments(_m *Profile) *ProfileAssignmentQuery {
+	query := (&ProfileAssignmentClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(profile.Table, profile.FieldID, id),
+			sqlgraph.To(profileassignment.Table, profileassignment.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, profile.AssignmentsTable, profile.AssignmentsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryVersions queries the versions edge of a Profile.
+func (c *ProfileClient) QueryVersions(_m *Profile) *ProfileVersionQuery {
+	query := (&ProfileVersionClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(profile.Table, profile.FieldID, id),
+			sqlgraph.To(profileversion.Table, profileversion.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, profile.VersionsTable, profile.VersionsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryDeploymentStatuses queries the deployment_statuses edge of a Profile.
+func (c *ProfileClient) QueryDeploymentStatuses(_m *Profile) *ProfileDeploymentStatusQuery {
+	query := (&ProfileDeploymentStatusClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(profile.Table, profile.FieldID, id),
+			sqlgraph.To(profiledeploymentstatus.Table, profiledeploymentstatus.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, profile.DeploymentStatusesTable, profile.DeploymentStatusesColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *ProfileClient) Hooks() []Hook {
+	return c.hooks.Profile
+}
+
+// Interceptors returns the client interceptors.
+func (c *ProfileClient) Interceptors() []Interceptor {
+	return c.inters.Profile
+}
+
+func (c *ProfileClient) mutate(ctx context.Context, m *ProfileMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&ProfileCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&ProfileUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&ProfileUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&ProfileDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown Profile mutation op: %q", m.Op())
+	}
+}
+
+// ProfileAssignmentClient is a client for the ProfileAssignment schema.
+type ProfileAssignmentClient struct {
+	config
+}
+
+// NewProfileAssignmentClient returns a client for the ProfileAssignment from the given config.
+func NewProfileAssignmentClient(c config) *ProfileAssignmentClient {
+	return &ProfileAssignmentClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `profileassignment.Hooks(f(g(h())))`.
+func (c *ProfileAssignmentClient) Use(hooks ...Hook) {
+	c.hooks.ProfileAssignment = append(c.hooks.ProfileAssignment, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `profileassignment.Intercept(f(g(h())))`.
+func (c *ProfileAssignmentClient) Intercept(interceptors ...Interceptor) {
+	c.inters.ProfileAssignment = append(c.inters.ProfileAssignment, interceptors...)
+}
+
+// Create returns a builder for creating a ProfileAssignment entity.
+func (c *ProfileAssignmentClient) Create() *ProfileAssignmentCreate {
+	mutation := newProfileAssignmentMutation(c.config, OpCreate)
+	return &ProfileAssignmentCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of ProfileAssignment entities.
+func (c *ProfileAssignmentClient) CreateBulk(builders ...*ProfileAssignmentCreate) *ProfileAssignmentCreateBulk {
+	return &ProfileAssignmentCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *ProfileAssignmentClient) MapCreateBulk(slice any, setFunc func(*ProfileAssignmentCreate, int)) *ProfileAssignmentCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &ProfileAssignmentCreateBulk{err: fmt.Errorf("calling to ProfileAssignmentClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*ProfileAssignmentCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &ProfileAssignmentCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for ProfileAssignment.
+func (c *ProfileAssignmentClient) Update() *ProfileAssignmentUpdate {
+	mutation := newProfileAssignmentMutation(c.config, OpUpdate)
+	return &ProfileAssignmentUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *ProfileAssignmentClient) UpdateOne(_m *ProfileAssignment) *ProfileAssignmentUpdateOne {
+	mutation := newProfileAssignmentMutation(c.config, OpUpdateOne, withProfileAssignment(_m))
+	return &ProfileAssignmentUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *ProfileAssignmentClient) UpdateOneID(id uint) *ProfileAssignmentUpdateOne {
+	mutation := newProfileAssignmentMutation(c.config, OpUpdateOne, withProfileAssignmentID(id))
+	return &ProfileAssignmentUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for ProfileAssignment.
+func (c *ProfileAssignmentClient) Delete() *ProfileAssignmentDelete {
+	mutation := newProfileAssignmentMutation(c.config, OpDelete)
+	return &ProfileAssignmentDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *ProfileAssignmentClient) DeleteOne(_m *ProfileAssignment) *ProfileAssignmentDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *ProfileAssignmentClient) DeleteOneID(id uint) *ProfileAssignmentDeleteOne {
+	builder := c.Delete().Where(profileassignment.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &ProfileAssignmentDeleteOne{builder}
+}
+
+// Query returns a query builder for ProfileAssignment.
+func (c *ProfileAssignmentClient) Query() *ProfileAssignmentQuery {
+	return &ProfileAssignmentQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeProfileAssignment},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a ProfileAssignment entity by its id.
+func (c *ProfileAssignmentClient) Get(ctx context.Context, id uint) (*ProfileAssignment, error) {
+	return c.Query().Where(profileassignment.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *ProfileAssignmentClient) GetX(ctx context.Context, id uint) *ProfileAssignment {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryProfile queries the profile edge of a ProfileAssignment.
+func (c *ProfileAssignmentClient) QueryProfile(_m *ProfileAssignment) *ProfileQuery {
+	query := (&ProfileClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(profileassignment.Table, profileassignment.FieldID, id),
+			sqlgraph.To(profile.Table, profile.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, profileassignment.ProfileTable, profileassignment.ProfileColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *ProfileAssignmentClient) Hooks() []Hook {
+	return c.hooks.ProfileAssignment
+}
+
+// Interceptors returns the client interceptors.
+func (c *ProfileAssignmentClient) Interceptors() []Interceptor {
+	return c.inters.ProfileAssignment
+}
+
+func (c *ProfileAssignmentClient) mutate(ctx context.Context, m *ProfileAssignmentMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&ProfileAssignmentCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&ProfileAssignmentUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&ProfileAssignmentUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&ProfileAssignmentDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown ProfileAssignment mutation op: %q", m.Op())
+	}
+}
+
+// ProfileDeploymentStatusClient is a client for the ProfileDeploymentStatus schema.
+type ProfileDeploymentStatusClient struct {
+	config
+}
+
+// NewProfileDeploymentStatusClient returns a client for the ProfileDeploymentStatus from the given config.
+func NewProfileDeploymentStatusClient(c config) *ProfileDeploymentStatusClient {
+	return &ProfileDeploymentStatusClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `profiledeploymentstatus.Hooks(f(g(h())))`.
+func (c *ProfileDeploymentStatusClient) Use(hooks ...Hook) {
+	c.hooks.ProfileDeploymentStatus = append(c.hooks.ProfileDeploymentStatus, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `profiledeploymentstatus.Intercept(f(g(h())))`.
+func (c *ProfileDeploymentStatusClient) Intercept(interceptors ...Interceptor) {
+	c.inters.ProfileDeploymentStatus = append(c.inters.ProfileDeploymentStatus, interceptors...)
+}
+
+// Create returns a builder for creating a ProfileDeploymentStatus entity.
+func (c *ProfileDeploymentStatusClient) Create() *ProfileDeploymentStatusCreate {
+	mutation := newProfileDeploymentStatusMutation(c.config, OpCreate)
+	return &ProfileDeploymentStatusCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of ProfileDeploymentStatus entities.
+func (c *ProfileDeploymentStatusClient) CreateBulk(builders ...*ProfileDeploymentStatusCreate) *ProfileDeploymentStatusCreateBulk {
+	return &ProfileDeploymentStatusCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *ProfileDeploymentStatusClient) MapCreateBulk(slice any, setFunc func(*ProfileDeploymentStatusCreate, int)) *ProfileDeploymentStatusCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &ProfileDeploymentStatusCreateBulk{err: fmt.Errorf("calling to ProfileDeploymentStatusClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*ProfileDeploymentStatusCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &ProfileDeploymentStatusCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for ProfileDeploymentStatus.
+func (c *ProfileDeploymentStatusClient) Update() *ProfileDeploymentStatusUpdate {
+	mutation := newProfileDeploymentStatusMutation(c.config, OpUpdate)
+	return &ProfileDeploymentStatusUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *ProfileDeploymentStatusClient) UpdateOne(_m *ProfileDeploymentStatus) *ProfileDeploymentStatusUpdateOne {
+	mutation := newProfileDeploymentStatusMutation(c.config, OpUpdateOne, withProfileDeploymentStatus(_m))
+	return &ProfileDeploymentStatusUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *ProfileDeploymentStatusClient) UpdateOneID(id uint) *ProfileDeploymentStatusUpdateOne {
+	mutation := newProfileDeploymentStatusMutation(c.config, OpUpdateOne, withProfileDeploymentStatusID(id))
+	return &ProfileDeploymentStatusUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for ProfileDeploymentStatus.
+func (c *ProfileDeploymentStatusClient) Delete() *ProfileDeploymentStatusDelete {
+	mutation := newProfileDeploymentStatusMutation(c.config, OpDelete)
+	return &ProfileDeploymentStatusDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *ProfileDeploymentStatusClient) DeleteOne(_m *ProfileDeploymentStatus) *ProfileDeploymentStatusDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *ProfileDeploymentStatusClient) DeleteOneID(id uint) *ProfileDeploymentStatusDeleteOne {
+	builder := c.Delete().Where(profiledeploymentstatus.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &ProfileDeploymentStatusDeleteOne{builder}
+}
+
+// Query returns a query builder for ProfileDeploymentStatus.
+func (c *ProfileDeploymentStatusClient) Query() *ProfileDeploymentStatusQuery {
+	return &ProfileDeploymentStatusQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeProfileDeploymentStatus},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a ProfileDeploymentStatus entity by its id.
+func (c *ProfileDeploymentStatusClient) Get(ctx context.Context, id uint) (*ProfileDeploymentStatus, error) {
+	return c.Query().Where(profiledeploymentstatus.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *ProfileDeploymentStatusClient) GetX(ctx context.Context, id uint) *ProfileDeploymentStatus {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryProfile queries the profile edge of a ProfileDeploymentStatus.
+func (c *ProfileDeploymentStatusClient) QueryProfile(_m *ProfileDeploymentStatus) *ProfileQuery {
+	query := (&ProfileClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(profiledeploymentstatus.Table, profiledeploymentstatus.FieldID, id),
+			sqlgraph.To(profile.Table, profile.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, profiledeploymentstatus.ProfileTable, profiledeploymentstatus.ProfileColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *ProfileDeploymentStatusClient) Hooks() []Hook {
+	return c.hooks.ProfileDeploymentStatus
+}
+
+// Interceptors returns the client interceptors.
+func (c *ProfileDeploymentStatusClient) Interceptors() []Interceptor {
+	return c.inters.ProfileDeploymentStatus
+}
+
+func (c *ProfileDeploymentStatusClient) mutate(ctx context.Context, m *ProfileDeploymentStatusMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&ProfileDeploymentStatusCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&ProfileDeploymentStatusUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&ProfileDeploymentStatusUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&ProfileDeploymentStatusDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown ProfileDeploymentStatus mutation op: %q", m.Op())
+	}
+}
+
+// ProfileVersionClient is a client for the ProfileVersion schema.
+type ProfileVersionClient struct {
+	config
+}
+
+// NewProfileVersionClient returns a client for the ProfileVersion from the given config.
+func NewProfileVersionClient(c config) *ProfileVersionClient {
+	return &ProfileVersionClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `profileversion.Hooks(f(g(h())))`.
+func (c *ProfileVersionClient) Use(hooks ...Hook) {
+	c.hooks.ProfileVersion = append(c.hooks.ProfileVersion, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `profileversion.Intercept(f(g(h())))`.
+func (c *ProfileVersionClient) Intercept(interceptors ...Interceptor) {
+	c.inters.ProfileVersion = append(c.inters.ProfileVersion, interceptors...)
+}
+
+// Create returns a builder for creating a ProfileVersion entity.
+func (c *ProfileVersionClient) Create() *ProfileVersionCreate {
+	mutation := newProfileVersionMutation(c.config, OpCreate)
+	return &ProfileVersionCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of ProfileVersion entities.
+func (c *ProfileVersionClient) CreateBulk(builders ...*ProfileVersionCreate) *ProfileVersionCreateBulk {
+	return &ProfileVersionCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *ProfileVersionClient) MapCreateBulk(slice any, setFunc func(*ProfileVersionCreate, int)) *ProfileVersionCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &ProfileVersionCreateBulk{err: fmt.Errorf("calling to ProfileVersionClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*ProfileVersionCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &ProfileVersionCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for ProfileVersion.
+func (c *ProfileVersionClient) Update() *ProfileVersionUpdate {
+	mutation := newProfileVersionMutation(c.config, OpUpdate)
+	return &ProfileVersionUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *ProfileVersionClient) UpdateOne(_m *ProfileVersion) *ProfileVersionUpdateOne {
+	mutation := newProfileVersionMutation(c.config, OpUpdateOne, withProfileVersion(_m))
+	return &ProfileVersionUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *ProfileVersionClient) UpdateOneID(id uint) *ProfileVersionUpdateOne {
+	mutation := newProfileVersionMutation(c.config, OpUpdateOne, withProfileVersionID(id))
+	return &ProfileVersionUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for ProfileVersion.
+func (c *ProfileVersionClient) Delete() *ProfileVersionDelete {
+	mutation := newProfileVersionMutation(c.config, OpDelete)
+	return &ProfileVersionDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *ProfileVersionClient) DeleteOne(_m *ProfileVersion) *ProfileVersionDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *ProfileVersionClient) DeleteOneID(id uint) *ProfileVersionDeleteOne {
+	builder := c.Delete().Where(profileversion.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &ProfileVersionDeleteOne{builder}
+}
+
+// Query returns a query builder for ProfileVersion.
+func (c *ProfileVersionClient) Query() *ProfileVersionQuery {
+	return &ProfileVersionQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeProfileVersion},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a ProfileVersion entity by its id.
+func (c *ProfileVersionClient) Get(ctx context.Context, id uint) (*ProfileVersion, error) {
+	return c.Query().Where(profileversion.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *ProfileVersionClient) GetX(ctx context.Context, id uint) *ProfileVersion {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryProfile queries the profile edge of a ProfileVersion.
+func (c *ProfileVersionClient) QueryProfile(_m *ProfileVersion) *ProfileQuery {
+	query := (&ProfileClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(profileversion.Table, profileversion.FieldID, id),
+			sqlgraph.To(profile.Table, profile.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, profileversion.ProfileTable, profileversion.ProfileColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *ProfileVersionClient) Hooks() []Hook {
+	return c.hooks.ProfileVersion
+}
+
+// Interceptors returns the client interceptors.
+func (c *ProfileVersionClient) Interceptors() []Interceptor {
+	return c.inters.ProfileVersion
+}
+
+func (c *ProfileVersionClient) mutate(ctx context.Context, m *ProfileVersionMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&ProfileVersionCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&ProfileVersionUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&ProfileVersionUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&ProfileVersionDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown ProfileVersion mutation op: %q", m.Op())
+	}
+}
+
 // UserClient is a client for the User schema.
 type UserClient struct {
 	config
@@ -1599,11 +2750,14 @@ func (c *UserClient) mutate(ctx context.Context, m *UserMutation) (Value, error)
 // hooks and interceptors per client, for fast access.
 type (
 	hooks struct {
-		APNSConfig, DEPToken, DepProfile, Device, MobileConfig, Payload,
-		PayloadProperty, PayloadPropertyDefinition, User []ent.Hook
+		APNSConfig, Alert, AlertRule, DEPToken, DepProfile, Device, DeviceGroup,
+		MobileConfig, Payload, PayloadProperty, PayloadPropertyDefinition, Profile,
+		ProfileAssignment, ProfileDeploymentStatus, ProfileVersion, User []ent.Hook
 	}
 	inters struct {
-		APNSConfig, DEPToken, DepProfile, Device, MobileConfig, Payload,
-		PayloadProperty, PayloadPropertyDefinition, User []ent.Interceptor
+		APNSConfig, Alert, AlertRule, DEPToken, DepProfile, Device, DeviceGroup,
+		MobileConfig, Payload, PayloadProperty, PayloadPropertyDefinition, Profile,
+		ProfileAssignment, ProfileDeploymentStatus, ProfileVersion,
+		User []ent.Interceptor
 	}
 )
