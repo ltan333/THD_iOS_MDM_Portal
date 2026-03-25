@@ -44,6 +44,20 @@ type Device struct {
 	LastSeen time.Time `json:"last_seen,omitempty"`
 	// EnrolledAt holds the value of the "enrolled_at" field.
 	EnrolledAt time.Time `json:"enrolled_at,omitempty"`
+	// MACAddress holds the value of the "mac_address" field.
+	MACAddress string `json:"mac_address,omitempty"`
+	// IPAddress holds the value of the "ip_address" field.
+	IPAddress string `json:"ip_address,omitempty"`
+	// Battery level percentage (0-100)
+	BatteryLevel float64 `json:"battery_level,omitempty"`
+	// Total storage in bytes
+	StorageCapacity uint64 `json:"storage_capacity,omitempty"`
+	// Used storage in bytes
+	StorageUsed uint64 `json:"storage_used,omitempty"`
+	// True if device is jailbroken/rooted
+	IsJailbroken bool `json:"is_jailbroken,omitempty"`
+	// EnrollmentType holds the value of the "enrollment_type" field.
+	EnrollmentType device.EnrollmentType `json:"enrollment_type,omitempty"`
 	// CreatedAt holds the value of the "created_at" field.
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	// UpdatedAt holds the value of the "updated_at" field.
@@ -90,11 +104,13 @@ func (*Device) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case device.FieldIsEnrolled:
+		case device.FieldIsEnrolled, device.FieldIsJailbroken:
 			values[i] = new(sql.NullBool)
-		case device.FieldOwnerID:
+		case device.FieldBatteryLevel:
+			values[i] = new(sql.NullFloat64)
+		case device.FieldOwnerID, device.FieldStorageCapacity, device.FieldStorageUsed:
 			values[i] = new(sql.NullInt64)
-		case device.FieldID, device.FieldSerialNumber, device.FieldModel, device.FieldName, device.FieldPlatform, device.FieldStatus, device.FieldComplianceStatus, device.FieldOsVersion, device.FieldDeviceType:
+		case device.FieldID, device.FieldSerialNumber, device.FieldModel, device.FieldName, device.FieldPlatform, device.FieldStatus, device.FieldComplianceStatus, device.FieldOsVersion, device.FieldDeviceType, device.FieldMACAddress, device.FieldIPAddress, device.FieldEnrollmentType:
 			values[i] = new(sql.NullString)
 		case device.FieldLastSync, device.FieldLastSeen, device.FieldEnrolledAt, device.FieldCreatedAt, device.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
@@ -197,6 +213,48 @@ func (_m *Device) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.EnrolledAt = value.Time
 			}
+		case device.FieldMACAddress:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field mac_address", values[i])
+			} else if value.Valid {
+				_m.MACAddress = value.String
+			}
+		case device.FieldIPAddress:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field ip_address", values[i])
+			} else if value.Valid {
+				_m.IPAddress = value.String
+			}
+		case device.FieldBatteryLevel:
+			if value, ok := values[i].(*sql.NullFloat64); !ok {
+				return fmt.Errorf("unexpected type %T for field battery_level", values[i])
+			} else if value.Valid {
+				_m.BatteryLevel = value.Float64
+			}
+		case device.FieldStorageCapacity:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field storage_capacity", values[i])
+			} else if value.Valid {
+				_m.StorageCapacity = uint64(value.Int64)
+			}
+		case device.FieldStorageUsed:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field storage_used", values[i])
+			} else if value.Valid {
+				_m.StorageUsed = uint64(value.Int64)
+			}
+		case device.FieldIsJailbroken:
+			if value, ok := values[i].(*sql.NullBool); !ok {
+				return fmt.Errorf("unexpected type %T for field is_jailbroken", values[i])
+			} else if value.Valid {
+				_m.IsJailbroken = value.Bool
+			}
+		case device.FieldEnrollmentType:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field enrollment_type", values[i])
+			} else if value.Valid {
+				_m.EnrollmentType = device.EnrollmentType(value.String)
+			}
 		case device.FieldCreatedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
 				return fmt.Errorf("unexpected type %T for field created_at", values[i])
@@ -293,6 +351,27 @@ func (_m *Device) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("enrolled_at=")
 	builder.WriteString(_m.EnrolledAt.Format(time.ANSIC))
+	builder.WriteString(", ")
+	builder.WriteString("mac_address=")
+	builder.WriteString(_m.MACAddress)
+	builder.WriteString(", ")
+	builder.WriteString("ip_address=")
+	builder.WriteString(_m.IPAddress)
+	builder.WriteString(", ")
+	builder.WriteString("battery_level=")
+	builder.WriteString(fmt.Sprintf("%v", _m.BatteryLevel))
+	builder.WriteString(", ")
+	builder.WriteString("storage_capacity=")
+	builder.WriteString(fmt.Sprintf("%v", _m.StorageCapacity))
+	builder.WriteString(", ")
+	builder.WriteString("storage_used=")
+	builder.WriteString(fmt.Sprintf("%v", _m.StorageUsed))
+	builder.WriteString(", ")
+	builder.WriteString("is_jailbroken=")
+	builder.WriteString(fmt.Sprintf("%v", _m.IsJailbroken))
+	builder.WriteString(", ")
+	builder.WriteString("enrollment_type=")
+	builder.WriteString(fmt.Sprintf("%v", _m.EnrollmentType))
 	builder.WriteString(", ")
 	builder.WriteString("created_at=")
 	builder.WriteString(_m.CreatedAt.Format(time.ANSIC))

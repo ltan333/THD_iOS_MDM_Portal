@@ -15,6 +15,9 @@ import (
 	"github.com/thienel/go-backend-template/internal/ent/alert"
 	"github.com/thienel/go-backend-template/internal/ent/alertrule"
 	"github.com/thienel/go-backend-template/internal/ent/apnsconfig"
+	"github.com/thienel/go-backend-template/internal/ent/appdeployment"
+	"github.com/thienel/go-backend-template/internal/ent/application"
+	"github.com/thienel/go-backend-template/internal/ent/appversion"
 	"github.com/thienel/go-backend-template/internal/ent/depprofile"
 	"github.com/thienel/go-backend-template/internal/ent/deptoken"
 	"github.com/thienel/go-backend-template/internal/ent/device"
@@ -91,6 +94,9 @@ func checkColumn(t, c string) error {
 			apnsconfig.Table:                apnsconfig.ValidColumn,
 			alert.Table:                     alert.ValidColumn,
 			alertrule.Table:                 alertrule.ValidColumn,
+			appdeployment.Table:             appdeployment.ValidColumn,
+			appversion.Table:                appversion.ValidColumn,
+			application.Table:               application.ValidColumn,
 			deptoken.Table:                  deptoken.ValidColumn,
 			depprofile.Table:                depprofile.ValidColumn,
 			device.Table:                    device.ValidColumn,

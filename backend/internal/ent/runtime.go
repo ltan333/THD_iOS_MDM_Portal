@@ -8,6 +8,9 @@ import (
 	"github.com/thienel/go-backend-template/internal/ent/alert"
 	"github.com/thienel/go-backend-template/internal/ent/alertrule"
 	"github.com/thienel/go-backend-template/internal/ent/apnsconfig"
+	"github.com/thienel/go-backend-template/internal/ent/appdeployment"
+	"github.com/thienel/go-backend-template/internal/ent/application"
+	"github.com/thienel/go-backend-template/internal/ent/appversion"
 	"github.com/thienel/go-backend-template/internal/ent/depprofile"
 	"github.com/thienel/go-backend-template/internal/ent/deptoken"
 	"github.com/thienel/go-backend-template/internal/ent/device"
@@ -118,6 +121,90 @@ func init() {
 	alertrule.DefaultUpdatedAt = alertruleDescUpdatedAt.Default.(func() time.Time)
 	// alertrule.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
 	alertrule.UpdateDefaultUpdatedAt = alertruleDescUpdatedAt.UpdateDefault.(func() time.Time)
+	appdeploymentFields := schema.AppDeployment{}.Fields()
+	_ = appdeploymentFields
+	// appdeploymentDescTargetID is the schema descriptor for target_id field.
+	appdeploymentDescTargetID := appdeploymentFields[3].Descriptor()
+	// appdeployment.TargetIDValidator is a validator for the "target_id" field. It is called by the builders before save.
+	appdeployment.TargetIDValidator = appdeploymentDescTargetID.Validators[0].(func(string) error)
+	// appdeploymentDescCreatedAt is the schema descriptor for created_at field.
+	appdeploymentDescCreatedAt := appdeploymentFields[7].Descriptor()
+	// appdeployment.DefaultCreatedAt holds the default value on creation for the created_at field.
+	appdeployment.DefaultCreatedAt = appdeploymentDescCreatedAt.Default.(func() time.Time)
+	// appdeploymentDescUpdatedAt is the schema descriptor for updated_at field.
+	appdeploymentDescUpdatedAt := appdeploymentFields[8].Descriptor()
+	// appdeployment.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	appdeployment.DefaultUpdatedAt = appdeploymentDescUpdatedAt.Default.(func() time.Time)
+	// appdeployment.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	appdeployment.UpdateDefaultUpdatedAt = appdeploymentDescUpdatedAt.UpdateDefault.(func() time.Time)
+	appversionFields := schema.AppVersion{}.Fields()
+	_ = appversionFields
+	// appversionDescVersion is the schema descriptor for version field.
+	appversionDescVersion := appversionFields[2].Descriptor()
+	// appversion.VersionValidator is a validator for the "version" field. It is called by the builders before save.
+	appversion.VersionValidator = appversionDescVersion.Validators[0].(func(string) error)
+	// appversionDescBuildNumber is the schema descriptor for build_number field.
+	appversionDescBuildNumber := appversionFields[3].Descriptor()
+	// appversion.BuildNumberValidator is a validator for the "build_number" field. It is called by the builders before save.
+	appversion.BuildNumberValidator = appversionDescBuildNumber.Validators[0].(func(string) error)
+	// appversionDescCreatedAt is the schema descriptor for created_at field.
+	appversionDescCreatedAt := appversionFields[8].Descriptor()
+	// appversion.DefaultCreatedAt holds the default value on creation for the created_at field.
+	appversion.DefaultCreatedAt = appversionDescCreatedAt.Default.(func() time.Time)
+	// appversionDescUpdatedAt is the schema descriptor for updated_at field.
+	appversionDescUpdatedAt := appversionFields[9].Descriptor()
+	// appversion.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	appversion.DefaultUpdatedAt = appversionDescUpdatedAt.Default.(func() time.Time)
+	// appversion.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	appversion.UpdateDefaultUpdatedAt = appversionDescUpdatedAt.UpdateDefault.(func() time.Time)
+	applicationFields := schema.Application{}.Fields()
+	_ = applicationFields
+	// applicationDescName is the schema descriptor for name field.
+	applicationDescName := applicationFields[1].Descriptor()
+	// application.NameValidator is a validator for the "name" field. It is called by the builders before save.
+	application.NameValidator = func() func(string) error {
+		validators := applicationDescName.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(name string) error {
+			for _, fn := range fns {
+				if err := fn(name); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// applicationDescBundleID is the schema descriptor for bundle_id field.
+	applicationDescBundleID := applicationFields[2].Descriptor()
+	// application.BundleIDValidator is a validator for the "bundle_id" field. It is called by the builders before save.
+	application.BundleIDValidator = func() func(string) error {
+		validators := applicationDescBundleID.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(bundle_id string) error {
+			for _, fn := range fns {
+				if err := fn(bundle_id); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// applicationDescCreatedAt is the schema descriptor for created_at field.
+	applicationDescCreatedAt := applicationFields[7].Descriptor()
+	// application.DefaultCreatedAt holds the default value on creation for the created_at field.
+	application.DefaultCreatedAt = applicationDescCreatedAt.Default.(func() time.Time)
+	// applicationDescUpdatedAt is the schema descriptor for updated_at field.
+	applicationDescUpdatedAt := applicationFields[8].Descriptor()
+	// application.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	application.DefaultUpdatedAt = applicationDescUpdatedAt.Default.(func() time.Time)
+	// application.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	application.UpdateDefaultUpdatedAt = applicationDescUpdatedAt.UpdateDefault.(func() time.Time)
 	deptokenFields := schema.DEPToken{}.Fields()
 	_ = deptokenFields
 	// deptokenDescCreatedAt is the schema descriptor for created_at field.
@@ -192,12 +279,16 @@ func init() {
 	deviceDescIsEnrolled := deviceFields[4].Descriptor()
 	// device.DefaultIsEnrolled holds the default value on creation for the is_enrolled field.
 	device.DefaultIsEnrolled = deviceDescIsEnrolled.Default.(bool)
+	// deviceDescIsJailbroken is the schema descriptor for is_jailbroken field.
+	deviceDescIsJailbroken := deviceFields[19].Descriptor()
+	// device.DefaultIsJailbroken holds the default value on creation for the is_jailbroken field.
+	device.DefaultIsJailbroken = deviceDescIsJailbroken.Default.(bool)
 	// deviceDescCreatedAt is the schema descriptor for created_at field.
-	deviceDescCreatedAt := deviceFields[14].Descriptor()
+	deviceDescCreatedAt := deviceFields[21].Descriptor()
 	// device.DefaultCreatedAt holds the default value on creation for the created_at field.
 	device.DefaultCreatedAt = deviceDescCreatedAt.Default.(func() time.Time)
 	// deviceDescUpdatedAt is the schema descriptor for updated_at field.
-	deviceDescUpdatedAt := deviceFields[15].Descriptor()
+	deviceDescUpdatedAt := deviceFields[22].Descriptor()
 	// device.DefaultUpdatedAt holds the default value on creation for the updated_at field.
 	device.DefaultUpdatedAt = deviceDescUpdatedAt.Default.(func() time.Time)
 	// device.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.

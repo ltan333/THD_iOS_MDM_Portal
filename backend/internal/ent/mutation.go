@@ -14,6 +14,9 @@ import (
 	"github.com/thienel/go-backend-template/internal/ent/alert"
 	"github.com/thienel/go-backend-template/internal/ent/alertrule"
 	"github.com/thienel/go-backend-template/internal/ent/apnsconfig"
+	"github.com/thienel/go-backend-template/internal/ent/appdeployment"
+	"github.com/thienel/go-backend-template/internal/ent/application"
+	"github.com/thienel/go-backend-template/internal/ent/appversion"
 	"github.com/thienel/go-backend-template/internal/ent/depprofile"
 	"github.com/thienel/go-backend-template/internal/ent/deptoken"
 	"github.com/thienel/go-backend-template/internal/ent/device"
@@ -42,6 +45,9 @@ const (
 	TypeAPNSConfig                = "APNSConfig"
 	TypeAlert                     = "Alert"
 	TypeAlertRule                 = "AlertRule"
+	TypeAppDeployment             = "AppDeployment"
+	TypeAppVersion                = "AppVersion"
+	TypeApplication               = "Application"
 	TypeDEPToken                  = "DEPToken"
 	TypeDepProfile                = "DepProfile"
 	TypeDevice                    = "Device"
@@ -2308,6 +2314,2690 @@ func (m *AlertRuleMutation) ClearEdge(name string) error {
 // It returns an error if the edge is not defined in the schema.
 func (m *AlertRuleMutation) ResetEdge(name string) error {
 	return fmt.Errorf("unknown AlertRule edge %s", name)
+}
+
+// AppDeploymentMutation represents an operation that mutates the AppDeployment nodes in the graph.
+type AppDeploymentMutation struct {
+	config
+	op             Op
+	typ            string
+	id             *uint
+	target_type    *appdeployment.TargetType
+	target_id      *string
+	status         *appdeployment.Status
+	error_message  *string
+	installed_at   *time.Time
+	created_at     *time.Time
+	updated_at     *time.Time
+	clearedFields  map[string]struct{}
+	version        *uint
+	clearedversion bool
+	done           bool
+	oldValue       func(context.Context) (*AppDeployment, error)
+	predicates     []predicate.AppDeployment
+}
+
+var _ ent.Mutation = (*AppDeploymentMutation)(nil)
+
+// appdeploymentOption allows management of the mutation configuration using functional options.
+type appdeploymentOption func(*AppDeploymentMutation)
+
+// newAppDeploymentMutation creates new mutation for the AppDeployment entity.
+func newAppDeploymentMutation(c config, op Op, opts ...appdeploymentOption) *AppDeploymentMutation {
+	m := &AppDeploymentMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeAppDeployment,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withAppDeploymentID sets the ID field of the mutation.
+func withAppDeploymentID(id uint) appdeploymentOption {
+	return func(m *AppDeploymentMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *AppDeployment
+		)
+		m.oldValue = func(ctx context.Context) (*AppDeployment, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().AppDeployment.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withAppDeployment sets the old AppDeployment of the mutation.
+func withAppDeployment(node *AppDeployment) appdeploymentOption {
+	return func(m *AppDeploymentMutation) {
+		m.oldValue = func(context.Context) (*AppDeployment, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m AppDeploymentMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m AppDeploymentMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of AppDeployment entities.
+func (m *AppDeploymentMutation) SetID(id uint) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *AppDeploymentMutation) ID() (id uint, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *AppDeploymentMutation) IDs(ctx context.Context) ([]uint, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []uint{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().AppDeployment.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetAppVersionID sets the "app_version_id" field.
+func (m *AppDeploymentMutation) SetAppVersionID(u uint) {
+	m.version = &u
+}
+
+// AppVersionID returns the value of the "app_version_id" field in the mutation.
+func (m *AppDeploymentMutation) AppVersionID() (r uint, exists bool) {
+	v := m.version
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldAppVersionID returns the old "app_version_id" field's value of the AppDeployment entity.
+// If the AppDeployment object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AppDeploymentMutation) OldAppVersionID(ctx context.Context) (v uint, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldAppVersionID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldAppVersionID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldAppVersionID: %w", err)
+	}
+	return oldValue.AppVersionID, nil
+}
+
+// ResetAppVersionID resets all changes to the "app_version_id" field.
+func (m *AppDeploymentMutation) ResetAppVersionID() {
+	m.version = nil
+}
+
+// SetTargetType sets the "target_type" field.
+func (m *AppDeploymentMutation) SetTargetType(at appdeployment.TargetType) {
+	m.target_type = &at
+}
+
+// TargetType returns the value of the "target_type" field in the mutation.
+func (m *AppDeploymentMutation) TargetType() (r appdeployment.TargetType, exists bool) {
+	v := m.target_type
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldTargetType returns the old "target_type" field's value of the AppDeployment entity.
+// If the AppDeployment object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AppDeploymentMutation) OldTargetType(ctx context.Context) (v appdeployment.TargetType, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldTargetType is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldTargetType requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldTargetType: %w", err)
+	}
+	return oldValue.TargetType, nil
+}
+
+// ResetTargetType resets all changes to the "target_type" field.
+func (m *AppDeploymentMutation) ResetTargetType() {
+	m.target_type = nil
+}
+
+// SetTargetID sets the "target_id" field.
+func (m *AppDeploymentMutation) SetTargetID(s string) {
+	m.target_id = &s
+}
+
+// TargetID returns the value of the "target_id" field in the mutation.
+func (m *AppDeploymentMutation) TargetID() (r string, exists bool) {
+	v := m.target_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldTargetID returns the old "target_id" field's value of the AppDeployment entity.
+// If the AppDeployment object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AppDeploymentMutation) OldTargetID(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldTargetID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldTargetID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldTargetID: %w", err)
+	}
+	return oldValue.TargetID, nil
+}
+
+// ResetTargetID resets all changes to the "target_id" field.
+func (m *AppDeploymentMutation) ResetTargetID() {
+	m.target_id = nil
+}
+
+// SetStatus sets the "status" field.
+func (m *AppDeploymentMutation) SetStatus(a appdeployment.Status) {
+	m.status = &a
+}
+
+// Status returns the value of the "status" field in the mutation.
+func (m *AppDeploymentMutation) Status() (r appdeployment.Status, exists bool) {
+	v := m.status
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldStatus returns the old "status" field's value of the AppDeployment entity.
+// If the AppDeployment object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AppDeploymentMutation) OldStatus(ctx context.Context) (v appdeployment.Status, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldStatus is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldStatus requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldStatus: %w", err)
+	}
+	return oldValue.Status, nil
+}
+
+// ResetStatus resets all changes to the "status" field.
+func (m *AppDeploymentMutation) ResetStatus() {
+	m.status = nil
+}
+
+// SetErrorMessage sets the "error_message" field.
+func (m *AppDeploymentMutation) SetErrorMessage(s string) {
+	m.error_message = &s
+}
+
+// ErrorMessage returns the value of the "error_message" field in the mutation.
+func (m *AppDeploymentMutation) ErrorMessage() (r string, exists bool) {
+	v := m.error_message
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldErrorMessage returns the old "error_message" field's value of the AppDeployment entity.
+// If the AppDeployment object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AppDeploymentMutation) OldErrorMessage(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldErrorMessage is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldErrorMessage requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldErrorMessage: %w", err)
+	}
+	return oldValue.ErrorMessage, nil
+}
+
+// ClearErrorMessage clears the value of the "error_message" field.
+func (m *AppDeploymentMutation) ClearErrorMessage() {
+	m.error_message = nil
+	m.clearedFields[appdeployment.FieldErrorMessage] = struct{}{}
+}
+
+// ErrorMessageCleared returns if the "error_message" field was cleared in this mutation.
+func (m *AppDeploymentMutation) ErrorMessageCleared() bool {
+	_, ok := m.clearedFields[appdeployment.FieldErrorMessage]
+	return ok
+}
+
+// ResetErrorMessage resets all changes to the "error_message" field.
+func (m *AppDeploymentMutation) ResetErrorMessage() {
+	m.error_message = nil
+	delete(m.clearedFields, appdeployment.FieldErrorMessage)
+}
+
+// SetInstalledAt sets the "installed_at" field.
+func (m *AppDeploymentMutation) SetInstalledAt(t time.Time) {
+	m.installed_at = &t
+}
+
+// InstalledAt returns the value of the "installed_at" field in the mutation.
+func (m *AppDeploymentMutation) InstalledAt() (r time.Time, exists bool) {
+	v := m.installed_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldInstalledAt returns the old "installed_at" field's value of the AppDeployment entity.
+// If the AppDeployment object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AppDeploymentMutation) OldInstalledAt(ctx context.Context) (v *time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldInstalledAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldInstalledAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldInstalledAt: %w", err)
+	}
+	return oldValue.InstalledAt, nil
+}
+
+// ClearInstalledAt clears the value of the "installed_at" field.
+func (m *AppDeploymentMutation) ClearInstalledAt() {
+	m.installed_at = nil
+	m.clearedFields[appdeployment.FieldInstalledAt] = struct{}{}
+}
+
+// InstalledAtCleared returns if the "installed_at" field was cleared in this mutation.
+func (m *AppDeploymentMutation) InstalledAtCleared() bool {
+	_, ok := m.clearedFields[appdeployment.FieldInstalledAt]
+	return ok
+}
+
+// ResetInstalledAt resets all changes to the "installed_at" field.
+func (m *AppDeploymentMutation) ResetInstalledAt() {
+	m.installed_at = nil
+	delete(m.clearedFields, appdeployment.FieldInstalledAt)
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *AppDeploymentMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *AppDeploymentMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the AppDeployment entity.
+// If the AppDeployment object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AppDeploymentMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *AppDeploymentMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *AppDeploymentMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *AppDeploymentMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the AppDeployment entity.
+// If the AppDeployment object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AppDeploymentMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *AppDeploymentMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+}
+
+// SetVersionID sets the "version" edge to the AppVersion entity by id.
+func (m *AppDeploymentMutation) SetVersionID(id uint) {
+	m.version = &id
+}
+
+// ClearVersion clears the "version" edge to the AppVersion entity.
+func (m *AppDeploymentMutation) ClearVersion() {
+	m.clearedversion = true
+	m.clearedFields[appdeployment.FieldAppVersionID] = struct{}{}
+}
+
+// VersionCleared reports if the "version" edge to the AppVersion entity was cleared.
+func (m *AppDeploymentMutation) VersionCleared() bool {
+	return m.clearedversion
+}
+
+// VersionID returns the "version" edge ID in the mutation.
+func (m *AppDeploymentMutation) VersionID() (id uint, exists bool) {
+	if m.version != nil {
+		return *m.version, true
+	}
+	return
+}
+
+// VersionIDs returns the "version" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// VersionID instead. It exists only for internal usage by the builders.
+func (m *AppDeploymentMutation) VersionIDs() (ids []uint) {
+	if id := m.version; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetVersion resets all changes to the "version" edge.
+func (m *AppDeploymentMutation) ResetVersion() {
+	m.version = nil
+	m.clearedversion = false
+}
+
+// Where appends a list predicates to the AppDeploymentMutation builder.
+func (m *AppDeploymentMutation) Where(ps ...predicate.AppDeployment) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the AppDeploymentMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *AppDeploymentMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.AppDeployment, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *AppDeploymentMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *AppDeploymentMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (AppDeployment).
+func (m *AppDeploymentMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *AppDeploymentMutation) Fields() []string {
+	fields := make([]string, 0, 8)
+	if m.version != nil {
+		fields = append(fields, appdeployment.FieldAppVersionID)
+	}
+	if m.target_type != nil {
+		fields = append(fields, appdeployment.FieldTargetType)
+	}
+	if m.target_id != nil {
+		fields = append(fields, appdeployment.FieldTargetID)
+	}
+	if m.status != nil {
+		fields = append(fields, appdeployment.FieldStatus)
+	}
+	if m.error_message != nil {
+		fields = append(fields, appdeployment.FieldErrorMessage)
+	}
+	if m.installed_at != nil {
+		fields = append(fields, appdeployment.FieldInstalledAt)
+	}
+	if m.created_at != nil {
+		fields = append(fields, appdeployment.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, appdeployment.FieldUpdatedAt)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *AppDeploymentMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case appdeployment.FieldAppVersionID:
+		return m.AppVersionID()
+	case appdeployment.FieldTargetType:
+		return m.TargetType()
+	case appdeployment.FieldTargetID:
+		return m.TargetID()
+	case appdeployment.FieldStatus:
+		return m.Status()
+	case appdeployment.FieldErrorMessage:
+		return m.ErrorMessage()
+	case appdeployment.FieldInstalledAt:
+		return m.InstalledAt()
+	case appdeployment.FieldCreatedAt:
+		return m.CreatedAt()
+	case appdeployment.FieldUpdatedAt:
+		return m.UpdatedAt()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *AppDeploymentMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case appdeployment.FieldAppVersionID:
+		return m.OldAppVersionID(ctx)
+	case appdeployment.FieldTargetType:
+		return m.OldTargetType(ctx)
+	case appdeployment.FieldTargetID:
+		return m.OldTargetID(ctx)
+	case appdeployment.FieldStatus:
+		return m.OldStatus(ctx)
+	case appdeployment.FieldErrorMessage:
+		return m.OldErrorMessage(ctx)
+	case appdeployment.FieldInstalledAt:
+		return m.OldInstalledAt(ctx)
+	case appdeployment.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case appdeployment.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	}
+	return nil, fmt.Errorf("unknown AppDeployment field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *AppDeploymentMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case appdeployment.FieldAppVersionID:
+		v, ok := value.(uint)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetAppVersionID(v)
+		return nil
+	case appdeployment.FieldTargetType:
+		v, ok := value.(appdeployment.TargetType)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetTargetType(v)
+		return nil
+	case appdeployment.FieldTargetID:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetTargetID(v)
+		return nil
+	case appdeployment.FieldStatus:
+		v, ok := value.(appdeployment.Status)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetStatus(v)
+		return nil
+	case appdeployment.FieldErrorMessage:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetErrorMessage(v)
+		return nil
+	case appdeployment.FieldInstalledAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetInstalledAt(v)
+		return nil
+	case appdeployment.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case appdeployment.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	}
+	return fmt.Errorf("unknown AppDeployment field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *AppDeploymentMutation) AddedFields() []string {
+	var fields []string
+	return fields
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *AppDeploymentMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	}
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *AppDeploymentMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown AppDeployment numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *AppDeploymentMutation) ClearedFields() []string {
+	var fields []string
+	if m.FieldCleared(appdeployment.FieldErrorMessage) {
+		fields = append(fields, appdeployment.FieldErrorMessage)
+	}
+	if m.FieldCleared(appdeployment.FieldInstalledAt) {
+		fields = append(fields, appdeployment.FieldInstalledAt)
+	}
+	return fields
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *AppDeploymentMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *AppDeploymentMutation) ClearField(name string) error {
+	switch name {
+	case appdeployment.FieldErrorMessage:
+		m.ClearErrorMessage()
+		return nil
+	case appdeployment.FieldInstalledAt:
+		m.ClearInstalledAt()
+		return nil
+	}
+	return fmt.Errorf("unknown AppDeployment nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *AppDeploymentMutation) ResetField(name string) error {
+	switch name {
+	case appdeployment.FieldAppVersionID:
+		m.ResetAppVersionID()
+		return nil
+	case appdeployment.FieldTargetType:
+		m.ResetTargetType()
+		return nil
+	case appdeployment.FieldTargetID:
+		m.ResetTargetID()
+		return nil
+	case appdeployment.FieldStatus:
+		m.ResetStatus()
+		return nil
+	case appdeployment.FieldErrorMessage:
+		m.ResetErrorMessage()
+		return nil
+	case appdeployment.FieldInstalledAt:
+		m.ResetInstalledAt()
+		return nil
+	case appdeployment.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case appdeployment.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	}
+	return fmt.Errorf("unknown AppDeployment field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *AppDeploymentMutation) AddedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.version != nil {
+		edges = append(edges, appdeployment.EdgeVersion)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *AppDeploymentMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case appdeployment.EdgeVersion:
+		if id := m.version; id != nil {
+			return []ent.Value{*id}
+		}
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *AppDeploymentMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 1)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *AppDeploymentMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *AppDeploymentMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.clearedversion {
+		edges = append(edges, appdeployment.EdgeVersion)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *AppDeploymentMutation) EdgeCleared(name string) bool {
+	switch name {
+	case appdeployment.EdgeVersion:
+		return m.clearedversion
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *AppDeploymentMutation) ClearEdge(name string) error {
+	switch name {
+	case appdeployment.EdgeVersion:
+		m.ClearVersion()
+		return nil
+	}
+	return fmt.Errorf("unknown AppDeployment unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *AppDeploymentMutation) ResetEdge(name string) error {
+	switch name {
+	case appdeployment.EdgeVersion:
+		m.ResetVersion()
+		return nil
+	}
+	return fmt.Errorf("unknown AppDeployment edge %s", name)
+}
+
+// AppVersionMutation represents an operation that mutates the AppVersion nodes in the graph.
+type AppVersionMutation struct {
+	config
+	op                 Op
+	typ                string
+	id                 *uint
+	version            *string
+	build_number       *string
+	minimum_os_version *string
+	file_url           *string
+	size               *int64
+	addsize            *int64
+	metadata           *map[string]interface{}
+	created_at         *time.Time
+	updated_at         *time.Time
+	clearedFields      map[string]struct{}
+	application        *uint
+	clearedapplication bool
+	deployments        map[uint]struct{}
+	removeddeployments map[uint]struct{}
+	cleareddeployments bool
+	done               bool
+	oldValue           func(context.Context) (*AppVersion, error)
+	predicates         []predicate.AppVersion
+}
+
+var _ ent.Mutation = (*AppVersionMutation)(nil)
+
+// appversionOption allows management of the mutation configuration using functional options.
+type appversionOption func(*AppVersionMutation)
+
+// newAppVersionMutation creates new mutation for the AppVersion entity.
+func newAppVersionMutation(c config, op Op, opts ...appversionOption) *AppVersionMutation {
+	m := &AppVersionMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeAppVersion,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withAppVersionID sets the ID field of the mutation.
+func withAppVersionID(id uint) appversionOption {
+	return func(m *AppVersionMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *AppVersion
+		)
+		m.oldValue = func(ctx context.Context) (*AppVersion, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().AppVersion.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withAppVersion sets the old AppVersion of the mutation.
+func withAppVersion(node *AppVersion) appversionOption {
+	return func(m *AppVersionMutation) {
+		m.oldValue = func(context.Context) (*AppVersion, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m AppVersionMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m AppVersionMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of AppVersion entities.
+func (m *AppVersionMutation) SetID(id uint) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *AppVersionMutation) ID() (id uint, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *AppVersionMutation) IDs(ctx context.Context) ([]uint, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []uint{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().AppVersion.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetApplicationID sets the "application_id" field.
+func (m *AppVersionMutation) SetApplicationID(u uint) {
+	m.application = &u
+}
+
+// ApplicationID returns the value of the "application_id" field in the mutation.
+func (m *AppVersionMutation) ApplicationID() (r uint, exists bool) {
+	v := m.application
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldApplicationID returns the old "application_id" field's value of the AppVersion entity.
+// If the AppVersion object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AppVersionMutation) OldApplicationID(ctx context.Context) (v uint, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldApplicationID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldApplicationID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldApplicationID: %w", err)
+	}
+	return oldValue.ApplicationID, nil
+}
+
+// ResetApplicationID resets all changes to the "application_id" field.
+func (m *AppVersionMutation) ResetApplicationID() {
+	m.application = nil
+}
+
+// SetVersion sets the "version" field.
+func (m *AppVersionMutation) SetVersion(s string) {
+	m.version = &s
+}
+
+// Version returns the value of the "version" field in the mutation.
+func (m *AppVersionMutation) Version() (r string, exists bool) {
+	v := m.version
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldVersion returns the old "version" field's value of the AppVersion entity.
+// If the AppVersion object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AppVersionMutation) OldVersion(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldVersion is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldVersion requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldVersion: %w", err)
+	}
+	return oldValue.Version, nil
+}
+
+// ResetVersion resets all changes to the "version" field.
+func (m *AppVersionMutation) ResetVersion() {
+	m.version = nil
+}
+
+// SetBuildNumber sets the "build_number" field.
+func (m *AppVersionMutation) SetBuildNumber(s string) {
+	m.build_number = &s
+}
+
+// BuildNumber returns the value of the "build_number" field in the mutation.
+func (m *AppVersionMutation) BuildNumber() (r string, exists bool) {
+	v := m.build_number
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldBuildNumber returns the old "build_number" field's value of the AppVersion entity.
+// If the AppVersion object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AppVersionMutation) OldBuildNumber(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldBuildNumber is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldBuildNumber requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldBuildNumber: %w", err)
+	}
+	return oldValue.BuildNumber, nil
+}
+
+// ResetBuildNumber resets all changes to the "build_number" field.
+func (m *AppVersionMutation) ResetBuildNumber() {
+	m.build_number = nil
+}
+
+// SetMinimumOsVersion sets the "minimum_os_version" field.
+func (m *AppVersionMutation) SetMinimumOsVersion(s string) {
+	m.minimum_os_version = &s
+}
+
+// MinimumOsVersion returns the value of the "minimum_os_version" field in the mutation.
+func (m *AppVersionMutation) MinimumOsVersion() (r string, exists bool) {
+	v := m.minimum_os_version
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldMinimumOsVersion returns the old "minimum_os_version" field's value of the AppVersion entity.
+// If the AppVersion object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AppVersionMutation) OldMinimumOsVersion(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldMinimumOsVersion is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldMinimumOsVersion requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldMinimumOsVersion: %w", err)
+	}
+	return oldValue.MinimumOsVersion, nil
+}
+
+// ClearMinimumOsVersion clears the value of the "minimum_os_version" field.
+func (m *AppVersionMutation) ClearMinimumOsVersion() {
+	m.minimum_os_version = nil
+	m.clearedFields[appversion.FieldMinimumOsVersion] = struct{}{}
+}
+
+// MinimumOsVersionCleared returns if the "minimum_os_version" field was cleared in this mutation.
+func (m *AppVersionMutation) MinimumOsVersionCleared() bool {
+	_, ok := m.clearedFields[appversion.FieldMinimumOsVersion]
+	return ok
+}
+
+// ResetMinimumOsVersion resets all changes to the "minimum_os_version" field.
+func (m *AppVersionMutation) ResetMinimumOsVersion() {
+	m.minimum_os_version = nil
+	delete(m.clearedFields, appversion.FieldMinimumOsVersion)
+}
+
+// SetFileURL sets the "file_url" field.
+func (m *AppVersionMutation) SetFileURL(s string) {
+	m.file_url = &s
+}
+
+// FileURL returns the value of the "file_url" field in the mutation.
+func (m *AppVersionMutation) FileURL() (r string, exists bool) {
+	v := m.file_url
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldFileURL returns the old "file_url" field's value of the AppVersion entity.
+// If the AppVersion object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AppVersionMutation) OldFileURL(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldFileURL is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldFileURL requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldFileURL: %w", err)
+	}
+	return oldValue.FileURL, nil
+}
+
+// ClearFileURL clears the value of the "file_url" field.
+func (m *AppVersionMutation) ClearFileURL() {
+	m.file_url = nil
+	m.clearedFields[appversion.FieldFileURL] = struct{}{}
+}
+
+// FileURLCleared returns if the "file_url" field was cleared in this mutation.
+func (m *AppVersionMutation) FileURLCleared() bool {
+	_, ok := m.clearedFields[appversion.FieldFileURL]
+	return ok
+}
+
+// ResetFileURL resets all changes to the "file_url" field.
+func (m *AppVersionMutation) ResetFileURL() {
+	m.file_url = nil
+	delete(m.clearedFields, appversion.FieldFileURL)
+}
+
+// SetSize sets the "size" field.
+func (m *AppVersionMutation) SetSize(i int64) {
+	m.size = &i
+	m.addsize = nil
+}
+
+// Size returns the value of the "size" field in the mutation.
+func (m *AppVersionMutation) Size() (r int64, exists bool) {
+	v := m.size
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSize returns the old "size" field's value of the AppVersion entity.
+// If the AppVersion object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AppVersionMutation) OldSize(ctx context.Context) (v int64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSize is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSize requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSize: %w", err)
+	}
+	return oldValue.Size, nil
+}
+
+// AddSize adds i to the "size" field.
+func (m *AppVersionMutation) AddSize(i int64) {
+	if m.addsize != nil {
+		*m.addsize += i
+	} else {
+		m.addsize = &i
+	}
+}
+
+// AddedSize returns the value that was added to the "size" field in this mutation.
+func (m *AppVersionMutation) AddedSize() (r int64, exists bool) {
+	v := m.addsize
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ClearSize clears the value of the "size" field.
+func (m *AppVersionMutation) ClearSize() {
+	m.size = nil
+	m.addsize = nil
+	m.clearedFields[appversion.FieldSize] = struct{}{}
+}
+
+// SizeCleared returns if the "size" field was cleared in this mutation.
+func (m *AppVersionMutation) SizeCleared() bool {
+	_, ok := m.clearedFields[appversion.FieldSize]
+	return ok
+}
+
+// ResetSize resets all changes to the "size" field.
+func (m *AppVersionMutation) ResetSize() {
+	m.size = nil
+	m.addsize = nil
+	delete(m.clearedFields, appversion.FieldSize)
+}
+
+// SetMetadata sets the "metadata" field.
+func (m *AppVersionMutation) SetMetadata(value map[string]interface{}) {
+	m.metadata = &value
+}
+
+// Metadata returns the value of the "metadata" field in the mutation.
+func (m *AppVersionMutation) Metadata() (r map[string]interface{}, exists bool) {
+	v := m.metadata
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldMetadata returns the old "metadata" field's value of the AppVersion entity.
+// If the AppVersion object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AppVersionMutation) OldMetadata(ctx context.Context) (v map[string]interface{}, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldMetadata is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldMetadata requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldMetadata: %w", err)
+	}
+	return oldValue.Metadata, nil
+}
+
+// ClearMetadata clears the value of the "metadata" field.
+func (m *AppVersionMutation) ClearMetadata() {
+	m.metadata = nil
+	m.clearedFields[appversion.FieldMetadata] = struct{}{}
+}
+
+// MetadataCleared returns if the "metadata" field was cleared in this mutation.
+func (m *AppVersionMutation) MetadataCleared() bool {
+	_, ok := m.clearedFields[appversion.FieldMetadata]
+	return ok
+}
+
+// ResetMetadata resets all changes to the "metadata" field.
+func (m *AppVersionMutation) ResetMetadata() {
+	m.metadata = nil
+	delete(m.clearedFields, appversion.FieldMetadata)
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *AppVersionMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *AppVersionMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the AppVersion entity.
+// If the AppVersion object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AppVersionMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *AppVersionMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *AppVersionMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *AppVersionMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the AppVersion entity.
+// If the AppVersion object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AppVersionMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *AppVersionMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+}
+
+// ClearApplication clears the "application" edge to the Application entity.
+func (m *AppVersionMutation) ClearApplication() {
+	m.clearedapplication = true
+	m.clearedFields[appversion.FieldApplicationID] = struct{}{}
+}
+
+// ApplicationCleared reports if the "application" edge to the Application entity was cleared.
+func (m *AppVersionMutation) ApplicationCleared() bool {
+	return m.clearedapplication
+}
+
+// ApplicationIDs returns the "application" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// ApplicationID instead. It exists only for internal usage by the builders.
+func (m *AppVersionMutation) ApplicationIDs() (ids []uint) {
+	if id := m.application; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetApplication resets all changes to the "application" edge.
+func (m *AppVersionMutation) ResetApplication() {
+	m.application = nil
+	m.clearedapplication = false
+}
+
+// AddDeploymentIDs adds the "deployments" edge to the AppDeployment entity by ids.
+func (m *AppVersionMutation) AddDeploymentIDs(ids ...uint) {
+	if m.deployments == nil {
+		m.deployments = make(map[uint]struct{})
+	}
+	for i := range ids {
+		m.deployments[ids[i]] = struct{}{}
+	}
+}
+
+// ClearDeployments clears the "deployments" edge to the AppDeployment entity.
+func (m *AppVersionMutation) ClearDeployments() {
+	m.cleareddeployments = true
+}
+
+// DeploymentsCleared reports if the "deployments" edge to the AppDeployment entity was cleared.
+func (m *AppVersionMutation) DeploymentsCleared() bool {
+	return m.cleareddeployments
+}
+
+// RemoveDeploymentIDs removes the "deployments" edge to the AppDeployment entity by IDs.
+func (m *AppVersionMutation) RemoveDeploymentIDs(ids ...uint) {
+	if m.removeddeployments == nil {
+		m.removeddeployments = make(map[uint]struct{})
+	}
+	for i := range ids {
+		delete(m.deployments, ids[i])
+		m.removeddeployments[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedDeployments returns the removed IDs of the "deployments" edge to the AppDeployment entity.
+func (m *AppVersionMutation) RemovedDeploymentsIDs() (ids []uint) {
+	for id := range m.removeddeployments {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// DeploymentsIDs returns the "deployments" edge IDs in the mutation.
+func (m *AppVersionMutation) DeploymentsIDs() (ids []uint) {
+	for id := range m.deployments {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetDeployments resets all changes to the "deployments" edge.
+func (m *AppVersionMutation) ResetDeployments() {
+	m.deployments = nil
+	m.cleareddeployments = false
+	m.removeddeployments = nil
+}
+
+// Where appends a list predicates to the AppVersionMutation builder.
+func (m *AppVersionMutation) Where(ps ...predicate.AppVersion) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the AppVersionMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *AppVersionMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.AppVersion, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *AppVersionMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *AppVersionMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (AppVersion).
+func (m *AppVersionMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *AppVersionMutation) Fields() []string {
+	fields := make([]string, 0, 9)
+	if m.application != nil {
+		fields = append(fields, appversion.FieldApplicationID)
+	}
+	if m.version != nil {
+		fields = append(fields, appversion.FieldVersion)
+	}
+	if m.build_number != nil {
+		fields = append(fields, appversion.FieldBuildNumber)
+	}
+	if m.minimum_os_version != nil {
+		fields = append(fields, appversion.FieldMinimumOsVersion)
+	}
+	if m.file_url != nil {
+		fields = append(fields, appversion.FieldFileURL)
+	}
+	if m.size != nil {
+		fields = append(fields, appversion.FieldSize)
+	}
+	if m.metadata != nil {
+		fields = append(fields, appversion.FieldMetadata)
+	}
+	if m.created_at != nil {
+		fields = append(fields, appversion.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, appversion.FieldUpdatedAt)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *AppVersionMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case appversion.FieldApplicationID:
+		return m.ApplicationID()
+	case appversion.FieldVersion:
+		return m.Version()
+	case appversion.FieldBuildNumber:
+		return m.BuildNumber()
+	case appversion.FieldMinimumOsVersion:
+		return m.MinimumOsVersion()
+	case appversion.FieldFileURL:
+		return m.FileURL()
+	case appversion.FieldSize:
+		return m.Size()
+	case appversion.FieldMetadata:
+		return m.Metadata()
+	case appversion.FieldCreatedAt:
+		return m.CreatedAt()
+	case appversion.FieldUpdatedAt:
+		return m.UpdatedAt()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *AppVersionMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case appversion.FieldApplicationID:
+		return m.OldApplicationID(ctx)
+	case appversion.FieldVersion:
+		return m.OldVersion(ctx)
+	case appversion.FieldBuildNumber:
+		return m.OldBuildNumber(ctx)
+	case appversion.FieldMinimumOsVersion:
+		return m.OldMinimumOsVersion(ctx)
+	case appversion.FieldFileURL:
+		return m.OldFileURL(ctx)
+	case appversion.FieldSize:
+		return m.OldSize(ctx)
+	case appversion.FieldMetadata:
+		return m.OldMetadata(ctx)
+	case appversion.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case appversion.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	}
+	return nil, fmt.Errorf("unknown AppVersion field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *AppVersionMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case appversion.FieldApplicationID:
+		v, ok := value.(uint)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetApplicationID(v)
+		return nil
+	case appversion.FieldVersion:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetVersion(v)
+		return nil
+	case appversion.FieldBuildNumber:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetBuildNumber(v)
+		return nil
+	case appversion.FieldMinimumOsVersion:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetMinimumOsVersion(v)
+		return nil
+	case appversion.FieldFileURL:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetFileURL(v)
+		return nil
+	case appversion.FieldSize:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSize(v)
+		return nil
+	case appversion.FieldMetadata:
+		v, ok := value.(map[string]interface{})
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetMetadata(v)
+		return nil
+	case appversion.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case appversion.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	}
+	return fmt.Errorf("unknown AppVersion field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *AppVersionMutation) AddedFields() []string {
+	var fields []string
+	if m.addsize != nil {
+		fields = append(fields, appversion.FieldSize)
+	}
+	return fields
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *AppVersionMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case appversion.FieldSize:
+		return m.AddedSize()
+	}
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *AppVersionMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	case appversion.FieldSize:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddSize(v)
+		return nil
+	}
+	return fmt.Errorf("unknown AppVersion numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *AppVersionMutation) ClearedFields() []string {
+	var fields []string
+	if m.FieldCleared(appversion.FieldMinimumOsVersion) {
+		fields = append(fields, appversion.FieldMinimumOsVersion)
+	}
+	if m.FieldCleared(appversion.FieldFileURL) {
+		fields = append(fields, appversion.FieldFileURL)
+	}
+	if m.FieldCleared(appversion.FieldSize) {
+		fields = append(fields, appversion.FieldSize)
+	}
+	if m.FieldCleared(appversion.FieldMetadata) {
+		fields = append(fields, appversion.FieldMetadata)
+	}
+	return fields
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *AppVersionMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *AppVersionMutation) ClearField(name string) error {
+	switch name {
+	case appversion.FieldMinimumOsVersion:
+		m.ClearMinimumOsVersion()
+		return nil
+	case appversion.FieldFileURL:
+		m.ClearFileURL()
+		return nil
+	case appversion.FieldSize:
+		m.ClearSize()
+		return nil
+	case appversion.FieldMetadata:
+		m.ClearMetadata()
+		return nil
+	}
+	return fmt.Errorf("unknown AppVersion nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *AppVersionMutation) ResetField(name string) error {
+	switch name {
+	case appversion.FieldApplicationID:
+		m.ResetApplicationID()
+		return nil
+	case appversion.FieldVersion:
+		m.ResetVersion()
+		return nil
+	case appversion.FieldBuildNumber:
+		m.ResetBuildNumber()
+		return nil
+	case appversion.FieldMinimumOsVersion:
+		m.ResetMinimumOsVersion()
+		return nil
+	case appversion.FieldFileURL:
+		m.ResetFileURL()
+		return nil
+	case appversion.FieldSize:
+		m.ResetSize()
+		return nil
+	case appversion.FieldMetadata:
+		m.ResetMetadata()
+		return nil
+	case appversion.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case appversion.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	}
+	return fmt.Errorf("unknown AppVersion field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *AppVersionMutation) AddedEdges() []string {
+	edges := make([]string, 0, 2)
+	if m.application != nil {
+		edges = append(edges, appversion.EdgeApplication)
+	}
+	if m.deployments != nil {
+		edges = append(edges, appversion.EdgeDeployments)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *AppVersionMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case appversion.EdgeApplication:
+		if id := m.application; id != nil {
+			return []ent.Value{*id}
+		}
+	case appversion.EdgeDeployments:
+		ids := make([]ent.Value, 0, len(m.deployments))
+		for id := range m.deployments {
+			ids = append(ids, id)
+		}
+		return ids
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *AppVersionMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 2)
+	if m.removeddeployments != nil {
+		edges = append(edges, appversion.EdgeDeployments)
+	}
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *AppVersionMutation) RemovedIDs(name string) []ent.Value {
+	switch name {
+	case appversion.EdgeDeployments:
+		ids := make([]ent.Value, 0, len(m.removeddeployments))
+		for id := range m.removeddeployments {
+			ids = append(ids, id)
+		}
+		return ids
+	}
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *AppVersionMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 2)
+	if m.clearedapplication {
+		edges = append(edges, appversion.EdgeApplication)
+	}
+	if m.cleareddeployments {
+		edges = append(edges, appversion.EdgeDeployments)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *AppVersionMutation) EdgeCleared(name string) bool {
+	switch name {
+	case appversion.EdgeApplication:
+		return m.clearedapplication
+	case appversion.EdgeDeployments:
+		return m.cleareddeployments
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *AppVersionMutation) ClearEdge(name string) error {
+	switch name {
+	case appversion.EdgeApplication:
+		m.ClearApplication()
+		return nil
+	}
+	return fmt.Errorf("unknown AppVersion unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *AppVersionMutation) ResetEdge(name string) error {
+	switch name {
+	case appversion.EdgeApplication:
+		m.ResetApplication()
+		return nil
+	case appversion.EdgeDeployments:
+		m.ResetDeployments()
+		return nil
+	}
+	return fmt.Errorf("unknown AppVersion edge %s", name)
+}
+
+// ApplicationMutation represents an operation that mutates the Application nodes in the graph.
+type ApplicationMutation struct {
+	config
+	op              Op
+	typ             string
+	id              *uint
+	name            *string
+	bundle_id       *string
+	platform        *application.Platform
+	_type           *application.Type
+	description     *string
+	icon_url        *string
+	created_at      *time.Time
+	updated_at      *time.Time
+	clearedFields   map[string]struct{}
+	versions        map[uint]struct{}
+	removedversions map[uint]struct{}
+	clearedversions bool
+	done            bool
+	oldValue        func(context.Context) (*Application, error)
+	predicates      []predicate.Application
+}
+
+var _ ent.Mutation = (*ApplicationMutation)(nil)
+
+// applicationOption allows management of the mutation configuration using functional options.
+type applicationOption func(*ApplicationMutation)
+
+// newApplicationMutation creates new mutation for the Application entity.
+func newApplicationMutation(c config, op Op, opts ...applicationOption) *ApplicationMutation {
+	m := &ApplicationMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeApplication,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withApplicationID sets the ID field of the mutation.
+func withApplicationID(id uint) applicationOption {
+	return func(m *ApplicationMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *Application
+		)
+		m.oldValue = func(ctx context.Context) (*Application, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().Application.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withApplication sets the old Application of the mutation.
+func withApplication(node *Application) applicationOption {
+	return func(m *ApplicationMutation) {
+		m.oldValue = func(context.Context) (*Application, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m ApplicationMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m ApplicationMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of Application entities.
+func (m *ApplicationMutation) SetID(id uint) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *ApplicationMutation) ID() (id uint, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *ApplicationMutation) IDs(ctx context.Context) ([]uint, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []uint{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().Application.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetName sets the "name" field.
+func (m *ApplicationMutation) SetName(s string) {
+	m.name = &s
+}
+
+// Name returns the value of the "name" field in the mutation.
+func (m *ApplicationMutation) Name() (r string, exists bool) {
+	v := m.name
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldName returns the old "name" field's value of the Application entity.
+// If the Application object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ApplicationMutation) OldName(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldName is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldName requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldName: %w", err)
+	}
+	return oldValue.Name, nil
+}
+
+// ResetName resets all changes to the "name" field.
+func (m *ApplicationMutation) ResetName() {
+	m.name = nil
+}
+
+// SetBundleID sets the "bundle_id" field.
+func (m *ApplicationMutation) SetBundleID(s string) {
+	m.bundle_id = &s
+}
+
+// BundleID returns the value of the "bundle_id" field in the mutation.
+func (m *ApplicationMutation) BundleID() (r string, exists bool) {
+	v := m.bundle_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldBundleID returns the old "bundle_id" field's value of the Application entity.
+// If the Application object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ApplicationMutation) OldBundleID(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldBundleID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldBundleID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldBundleID: %w", err)
+	}
+	return oldValue.BundleID, nil
+}
+
+// ResetBundleID resets all changes to the "bundle_id" field.
+func (m *ApplicationMutation) ResetBundleID() {
+	m.bundle_id = nil
+}
+
+// SetPlatform sets the "platform" field.
+func (m *ApplicationMutation) SetPlatform(a application.Platform) {
+	m.platform = &a
+}
+
+// Platform returns the value of the "platform" field in the mutation.
+func (m *ApplicationMutation) Platform() (r application.Platform, exists bool) {
+	v := m.platform
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPlatform returns the old "platform" field's value of the Application entity.
+// If the Application object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ApplicationMutation) OldPlatform(ctx context.Context) (v application.Platform, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldPlatform is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldPlatform requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPlatform: %w", err)
+	}
+	return oldValue.Platform, nil
+}
+
+// ResetPlatform resets all changes to the "platform" field.
+func (m *ApplicationMutation) ResetPlatform() {
+	m.platform = nil
+}
+
+// SetType sets the "type" field.
+func (m *ApplicationMutation) SetType(a application.Type) {
+	m._type = &a
+}
+
+// GetType returns the value of the "type" field in the mutation.
+func (m *ApplicationMutation) GetType() (r application.Type, exists bool) {
+	v := m._type
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldType returns the old "type" field's value of the Application entity.
+// If the Application object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ApplicationMutation) OldType(ctx context.Context) (v application.Type, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldType is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldType requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldType: %w", err)
+	}
+	return oldValue.Type, nil
+}
+
+// ResetType resets all changes to the "type" field.
+func (m *ApplicationMutation) ResetType() {
+	m._type = nil
+}
+
+// SetDescription sets the "description" field.
+func (m *ApplicationMutation) SetDescription(s string) {
+	m.description = &s
+}
+
+// Description returns the value of the "description" field in the mutation.
+func (m *ApplicationMutation) Description() (r string, exists bool) {
+	v := m.description
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDescription returns the old "description" field's value of the Application entity.
+// If the Application object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ApplicationMutation) OldDescription(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDescription is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDescription requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDescription: %w", err)
+	}
+	return oldValue.Description, nil
+}
+
+// ClearDescription clears the value of the "description" field.
+func (m *ApplicationMutation) ClearDescription() {
+	m.description = nil
+	m.clearedFields[application.FieldDescription] = struct{}{}
+}
+
+// DescriptionCleared returns if the "description" field was cleared in this mutation.
+func (m *ApplicationMutation) DescriptionCleared() bool {
+	_, ok := m.clearedFields[application.FieldDescription]
+	return ok
+}
+
+// ResetDescription resets all changes to the "description" field.
+func (m *ApplicationMutation) ResetDescription() {
+	m.description = nil
+	delete(m.clearedFields, application.FieldDescription)
+}
+
+// SetIconURL sets the "icon_url" field.
+func (m *ApplicationMutation) SetIconURL(s string) {
+	m.icon_url = &s
+}
+
+// IconURL returns the value of the "icon_url" field in the mutation.
+func (m *ApplicationMutation) IconURL() (r string, exists bool) {
+	v := m.icon_url
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldIconURL returns the old "icon_url" field's value of the Application entity.
+// If the Application object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ApplicationMutation) OldIconURL(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldIconURL is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldIconURL requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldIconURL: %w", err)
+	}
+	return oldValue.IconURL, nil
+}
+
+// ClearIconURL clears the value of the "icon_url" field.
+func (m *ApplicationMutation) ClearIconURL() {
+	m.icon_url = nil
+	m.clearedFields[application.FieldIconURL] = struct{}{}
+}
+
+// IconURLCleared returns if the "icon_url" field was cleared in this mutation.
+func (m *ApplicationMutation) IconURLCleared() bool {
+	_, ok := m.clearedFields[application.FieldIconURL]
+	return ok
+}
+
+// ResetIconURL resets all changes to the "icon_url" field.
+func (m *ApplicationMutation) ResetIconURL() {
+	m.icon_url = nil
+	delete(m.clearedFields, application.FieldIconURL)
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *ApplicationMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *ApplicationMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the Application entity.
+// If the Application object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ApplicationMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *ApplicationMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *ApplicationMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *ApplicationMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the Application entity.
+// If the Application object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ApplicationMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *ApplicationMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+}
+
+// AddVersionIDs adds the "versions" edge to the AppVersion entity by ids.
+func (m *ApplicationMutation) AddVersionIDs(ids ...uint) {
+	if m.versions == nil {
+		m.versions = make(map[uint]struct{})
+	}
+	for i := range ids {
+		m.versions[ids[i]] = struct{}{}
+	}
+}
+
+// ClearVersions clears the "versions" edge to the AppVersion entity.
+func (m *ApplicationMutation) ClearVersions() {
+	m.clearedversions = true
+}
+
+// VersionsCleared reports if the "versions" edge to the AppVersion entity was cleared.
+func (m *ApplicationMutation) VersionsCleared() bool {
+	return m.clearedversions
+}
+
+// RemoveVersionIDs removes the "versions" edge to the AppVersion entity by IDs.
+func (m *ApplicationMutation) RemoveVersionIDs(ids ...uint) {
+	if m.removedversions == nil {
+		m.removedversions = make(map[uint]struct{})
+	}
+	for i := range ids {
+		delete(m.versions, ids[i])
+		m.removedversions[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedVersions returns the removed IDs of the "versions" edge to the AppVersion entity.
+func (m *ApplicationMutation) RemovedVersionsIDs() (ids []uint) {
+	for id := range m.removedversions {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// VersionsIDs returns the "versions" edge IDs in the mutation.
+func (m *ApplicationMutation) VersionsIDs() (ids []uint) {
+	for id := range m.versions {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetVersions resets all changes to the "versions" edge.
+func (m *ApplicationMutation) ResetVersions() {
+	m.versions = nil
+	m.clearedversions = false
+	m.removedversions = nil
+}
+
+// Where appends a list predicates to the ApplicationMutation builder.
+func (m *ApplicationMutation) Where(ps ...predicate.Application) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the ApplicationMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *ApplicationMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.Application, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *ApplicationMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *ApplicationMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (Application).
+func (m *ApplicationMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *ApplicationMutation) Fields() []string {
+	fields := make([]string, 0, 8)
+	if m.name != nil {
+		fields = append(fields, application.FieldName)
+	}
+	if m.bundle_id != nil {
+		fields = append(fields, application.FieldBundleID)
+	}
+	if m.platform != nil {
+		fields = append(fields, application.FieldPlatform)
+	}
+	if m._type != nil {
+		fields = append(fields, application.FieldType)
+	}
+	if m.description != nil {
+		fields = append(fields, application.FieldDescription)
+	}
+	if m.icon_url != nil {
+		fields = append(fields, application.FieldIconURL)
+	}
+	if m.created_at != nil {
+		fields = append(fields, application.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, application.FieldUpdatedAt)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *ApplicationMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case application.FieldName:
+		return m.Name()
+	case application.FieldBundleID:
+		return m.BundleID()
+	case application.FieldPlatform:
+		return m.Platform()
+	case application.FieldType:
+		return m.GetType()
+	case application.FieldDescription:
+		return m.Description()
+	case application.FieldIconURL:
+		return m.IconURL()
+	case application.FieldCreatedAt:
+		return m.CreatedAt()
+	case application.FieldUpdatedAt:
+		return m.UpdatedAt()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *ApplicationMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case application.FieldName:
+		return m.OldName(ctx)
+	case application.FieldBundleID:
+		return m.OldBundleID(ctx)
+	case application.FieldPlatform:
+		return m.OldPlatform(ctx)
+	case application.FieldType:
+		return m.OldType(ctx)
+	case application.FieldDescription:
+		return m.OldDescription(ctx)
+	case application.FieldIconURL:
+		return m.OldIconURL(ctx)
+	case application.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case application.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	}
+	return nil, fmt.Errorf("unknown Application field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *ApplicationMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case application.FieldName:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetName(v)
+		return nil
+	case application.FieldBundleID:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetBundleID(v)
+		return nil
+	case application.FieldPlatform:
+		v, ok := value.(application.Platform)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPlatform(v)
+		return nil
+	case application.FieldType:
+		v, ok := value.(application.Type)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetType(v)
+		return nil
+	case application.FieldDescription:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDescription(v)
+		return nil
+	case application.FieldIconURL:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetIconURL(v)
+		return nil
+	case application.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case application.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	}
+	return fmt.Errorf("unknown Application field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *ApplicationMutation) AddedFields() []string {
+	return nil
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *ApplicationMutation) AddedField(name string) (ent.Value, bool) {
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *ApplicationMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown Application numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *ApplicationMutation) ClearedFields() []string {
+	var fields []string
+	if m.FieldCleared(application.FieldDescription) {
+		fields = append(fields, application.FieldDescription)
+	}
+	if m.FieldCleared(application.FieldIconURL) {
+		fields = append(fields, application.FieldIconURL)
+	}
+	return fields
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *ApplicationMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *ApplicationMutation) ClearField(name string) error {
+	switch name {
+	case application.FieldDescription:
+		m.ClearDescription()
+		return nil
+	case application.FieldIconURL:
+		m.ClearIconURL()
+		return nil
+	}
+	return fmt.Errorf("unknown Application nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *ApplicationMutation) ResetField(name string) error {
+	switch name {
+	case application.FieldName:
+		m.ResetName()
+		return nil
+	case application.FieldBundleID:
+		m.ResetBundleID()
+		return nil
+	case application.FieldPlatform:
+		m.ResetPlatform()
+		return nil
+	case application.FieldType:
+		m.ResetType()
+		return nil
+	case application.FieldDescription:
+		m.ResetDescription()
+		return nil
+	case application.FieldIconURL:
+		m.ResetIconURL()
+		return nil
+	case application.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case application.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	}
+	return fmt.Errorf("unknown Application field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *ApplicationMutation) AddedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.versions != nil {
+		edges = append(edges, application.EdgeVersions)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *ApplicationMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case application.EdgeVersions:
+		ids := make([]ent.Value, 0, len(m.versions))
+		for id := range m.versions {
+			ids = append(ids, id)
+		}
+		return ids
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *ApplicationMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.removedversions != nil {
+		edges = append(edges, application.EdgeVersions)
+	}
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *ApplicationMutation) RemovedIDs(name string) []ent.Value {
+	switch name {
+	case application.EdgeVersions:
+		ids := make([]ent.Value, 0, len(m.removedversions))
+		for id := range m.removedversions {
+			ids = append(ids, id)
+		}
+		return ids
+	}
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *ApplicationMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.clearedversions {
+		edges = append(edges, application.EdgeVersions)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *ApplicationMutation) EdgeCleared(name string) bool {
+	switch name {
+	case application.EdgeVersions:
+		return m.clearedversions
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *ApplicationMutation) ClearEdge(name string) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown Application unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *ApplicationMutation) ResetEdge(name string) error {
+	switch name {
+	case application.EdgeVersions:
+		m.ResetVersions()
+		return nil
+	}
+	return fmt.Errorf("unknown Application edge %s", name)
 }
 
 // DEPTokenMutation represents an operation that mutates the DEPToken nodes in the graph.
@@ -5451,32 +8141,42 @@ func (m *DepProfileMutation) ResetEdge(name string) error {
 // DeviceMutation represents an operation that mutates the Device nodes in the graph.
 type DeviceMutation struct {
 	config
-	op                Op
-	typ               string
-	id                *string
-	serial_number     *string
-	model             *string
-	is_enrolled       *bool
-	name              *string
-	last_sync         *time.Time
-	platform          *device.Platform
-	status            *device.Status
-	compliance_status *device.ComplianceStatus
-	os_version        *string
-	device_type       *string
-	last_seen         *time.Time
-	enrolled_at       *time.Time
-	created_at        *time.Time
-	updated_at        *time.Time
-	clearedFields     map[string]struct{}
-	owner             *uint
-	clearedowner      bool
-	groups            map[uint]struct{}
-	removedgroups     map[uint]struct{}
-	clearedgroups     bool
-	done              bool
-	oldValue          func(context.Context) (*Device, error)
-	predicates        []predicate.Device
+	op                  Op
+	typ                 string
+	id                  *string
+	serial_number       *string
+	model               *string
+	is_enrolled         *bool
+	name                *string
+	last_sync           *time.Time
+	platform            *device.Platform
+	status              *device.Status
+	compliance_status   *device.ComplianceStatus
+	os_version          *string
+	device_type         *string
+	last_seen           *time.Time
+	enrolled_at         *time.Time
+	mac_address         *string
+	ip_address          *string
+	battery_level       *float64
+	addbattery_level    *float64
+	storage_capacity    *uint64
+	addstorage_capacity *int64
+	storage_used        *uint64
+	addstorage_used     *int64
+	is_jailbroken       *bool
+	enrollment_type     *device.EnrollmentType
+	created_at          *time.Time
+	updated_at          *time.Time
+	clearedFields       map[string]struct{}
+	owner               *uint
+	clearedowner        bool
+	groups              map[uint]struct{}
+	removedgroups       map[uint]struct{}
+	clearedgroups       bool
+	done                bool
+	oldValue            func(context.Context) (*Device, error)
+	predicates          []predicate.Device
 }
 
 var _ ent.Mutation = (*DeviceMutation)(nil)
@@ -6207,6 +8907,399 @@ func (m *DeviceMutation) ResetEnrolledAt() {
 	delete(m.clearedFields, device.FieldEnrolledAt)
 }
 
+// SetMACAddress sets the "mac_address" field.
+func (m *DeviceMutation) SetMACAddress(s string) {
+	m.mac_address = &s
+}
+
+// MACAddress returns the value of the "mac_address" field in the mutation.
+func (m *DeviceMutation) MACAddress() (r string, exists bool) {
+	v := m.mac_address
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldMACAddress returns the old "mac_address" field's value of the Device entity.
+// If the Device object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *DeviceMutation) OldMACAddress(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldMACAddress is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldMACAddress requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldMACAddress: %w", err)
+	}
+	return oldValue.MACAddress, nil
+}
+
+// ClearMACAddress clears the value of the "mac_address" field.
+func (m *DeviceMutation) ClearMACAddress() {
+	m.mac_address = nil
+	m.clearedFields[device.FieldMACAddress] = struct{}{}
+}
+
+// MACAddressCleared returns if the "mac_address" field was cleared in this mutation.
+func (m *DeviceMutation) MACAddressCleared() bool {
+	_, ok := m.clearedFields[device.FieldMACAddress]
+	return ok
+}
+
+// ResetMACAddress resets all changes to the "mac_address" field.
+func (m *DeviceMutation) ResetMACAddress() {
+	m.mac_address = nil
+	delete(m.clearedFields, device.FieldMACAddress)
+}
+
+// SetIPAddress sets the "ip_address" field.
+func (m *DeviceMutation) SetIPAddress(s string) {
+	m.ip_address = &s
+}
+
+// IPAddress returns the value of the "ip_address" field in the mutation.
+func (m *DeviceMutation) IPAddress() (r string, exists bool) {
+	v := m.ip_address
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldIPAddress returns the old "ip_address" field's value of the Device entity.
+// If the Device object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *DeviceMutation) OldIPAddress(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldIPAddress is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldIPAddress requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldIPAddress: %w", err)
+	}
+	return oldValue.IPAddress, nil
+}
+
+// ClearIPAddress clears the value of the "ip_address" field.
+func (m *DeviceMutation) ClearIPAddress() {
+	m.ip_address = nil
+	m.clearedFields[device.FieldIPAddress] = struct{}{}
+}
+
+// IPAddressCleared returns if the "ip_address" field was cleared in this mutation.
+func (m *DeviceMutation) IPAddressCleared() bool {
+	_, ok := m.clearedFields[device.FieldIPAddress]
+	return ok
+}
+
+// ResetIPAddress resets all changes to the "ip_address" field.
+func (m *DeviceMutation) ResetIPAddress() {
+	m.ip_address = nil
+	delete(m.clearedFields, device.FieldIPAddress)
+}
+
+// SetBatteryLevel sets the "battery_level" field.
+func (m *DeviceMutation) SetBatteryLevel(f float64) {
+	m.battery_level = &f
+	m.addbattery_level = nil
+}
+
+// BatteryLevel returns the value of the "battery_level" field in the mutation.
+func (m *DeviceMutation) BatteryLevel() (r float64, exists bool) {
+	v := m.battery_level
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldBatteryLevel returns the old "battery_level" field's value of the Device entity.
+// If the Device object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *DeviceMutation) OldBatteryLevel(ctx context.Context) (v float64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldBatteryLevel is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldBatteryLevel requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldBatteryLevel: %w", err)
+	}
+	return oldValue.BatteryLevel, nil
+}
+
+// AddBatteryLevel adds f to the "battery_level" field.
+func (m *DeviceMutation) AddBatteryLevel(f float64) {
+	if m.addbattery_level != nil {
+		*m.addbattery_level += f
+	} else {
+		m.addbattery_level = &f
+	}
+}
+
+// AddedBatteryLevel returns the value that was added to the "battery_level" field in this mutation.
+func (m *DeviceMutation) AddedBatteryLevel() (r float64, exists bool) {
+	v := m.addbattery_level
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ClearBatteryLevel clears the value of the "battery_level" field.
+func (m *DeviceMutation) ClearBatteryLevel() {
+	m.battery_level = nil
+	m.addbattery_level = nil
+	m.clearedFields[device.FieldBatteryLevel] = struct{}{}
+}
+
+// BatteryLevelCleared returns if the "battery_level" field was cleared in this mutation.
+func (m *DeviceMutation) BatteryLevelCleared() bool {
+	_, ok := m.clearedFields[device.FieldBatteryLevel]
+	return ok
+}
+
+// ResetBatteryLevel resets all changes to the "battery_level" field.
+func (m *DeviceMutation) ResetBatteryLevel() {
+	m.battery_level = nil
+	m.addbattery_level = nil
+	delete(m.clearedFields, device.FieldBatteryLevel)
+}
+
+// SetStorageCapacity sets the "storage_capacity" field.
+func (m *DeviceMutation) SetStorageCapacity(u uint64) {
+	m.storage_capacity = &u
+	m.addstorage_capacity = nil
+}
+
+// StorageCapacity returns the value of the "storage_capacity" field in the mutation.
+func (m *DeviceMutation) StorageCapacity() (r uint64, exists bool) {
+	v := m.storage_capacity
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldStorageCapacity returns the old "storage_capacity" field's value of the Device entity.
+// If the Device object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *DeviceMutation) OldStorageCapacity(ctx context.Context) (v uint64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldStorageCapacity is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldStorageCapacity requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldStorageCapacity: %w", err)
+	}
+	return oldValue.StorageCapacity, nil
+}
+
+// AddStorageCapacity adds u to the "storage_capacity" field.
+func (m *DeviceMutation) AddStorageCapacity(u int64) {
+	if m.addstorage_capacity != nil {
+		*m.addstorage_capacity += u
+	} else {
+		m.addstorage_capacity = &u
+	}
+}
+
+// AddedStorageCapacity returns the value that was added to the "storage_capacity" field in this mutation.
+func (m *DeviceMutation) AddedStorageCapacity() (r int64, exists bool) {
+	v := m.addstorage_capacity
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ClearStorageCapacity clears the value of the "storage_capacity" field.
+func (m *DeviceMutation) ClearStorageCapacity() {
+	m.storage_capacity = nil
+	m.addstorage_capacity = nil
+	m.clearedFields[device.FieldStorageCapacity] = struct{}{}
+}
+
+// StorageCapacityCleared returns if the "storage_capacity" field was cleared in this mutation.
+func (m *DeviceMutation) StorageCapacityCleared() bool {
+	_, ok := m.clearedFields[device.FieldStorageCapacity]
+	return ok
+}
+
+// ResetStorageCapacity resets all changes to the "storage_capacity" field.
+func (m *DeviceMutation) ResetStorageCapacity() {
+	m.storage_capacity = nil
+	m.addstorage_capacity = nil
+	delete(m.clearedFields, device.FieldStorageCapacity)
+}
+
+// SetStorageUsed sets the "storage_used" field.
+func (m *DeviceMutation) SetStorageUsed(u uint64) {
+	m.storage_used = &u
+	m.addstorage_used = nil
+}
+
+// StorageUsed returns the value of the "storage_used" field in the mutation.
+func (m *DeviceMutation) StorageUsed() (r uint64, exists bool) {
+	v := m.storage_used
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldStorageUsed returns the old "storage_used" field's value of the Device entity.
+// If the Device object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *DeviceMutation) OldStorageUsed(ctx context.Context) (v uint64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldStorageUsed is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldStorageUsed requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldStorageUsed: %w", err)
+	}
+	return oldValue.StorageUsed, nil
+}
+
+// AddStorageUsed adds u to the "storage_used" field.
+func (m *DeviceMutation) AddStorageUsed(u int64) {
+	if m.addstorage_used != nil {
+		*m.addstorage_used += u
+	} else {
+		m.addstorage_used = &u
+	}
+}
+
+// AddedStorageUsed returns the value that was added to the "storage_used" field in this mutation.
+func (m *DeviceMutation) AddedStorageUsed() (r int64, exists bool) {
+	v := m.addstorage_used
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ClearStorageUsed clears the value of the "storage_used" field.
+func (m *DeviceMutation) ClearStorageUsed() {
+	m.storage_used = nil
+	m.addstorage_used = nil
+	m.clearedFields[device.FieldStorageUsed] = struct{}{}
+}
+
+// StorageUsedCleared returns if the "storage_used" field was cleared in this mutation.
+func (m *DeviceMutation) StorageUsedCleared() bool {
+	_, ok := m.clearedFields[device.FieldStorageUsed]
+	return ok
+}
+
+// ResetStorageUsed resets all changes to the "storage_used" field.
+func (m *DeviceMutation) ResetStorageUsed() {
+	m.storage_used = nil
+	m.addstorage_used = nil
+	delete(m.clearedFields, device.FieldStorageUsed)
+}
+
+// SetIsJailbroken sets the "is_jailbroken" field.
+func (m *DeviceMutation) SetIsJailbroken(b bool) {
+	m.is_jailbroken = &b
+}
+
+// IsJailbroken returns the value of the "is_jailbroken" field in the mutation.
+func (m *DeviceMutation) IsJailbroken() (r bool, exists bool) {
+	v := m.is_jailbroken
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldIsJailbroken returns the old "is_jailbroken" field's value of the Device entity.
+// If the Device object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *DeviceMutation) OldIsJailbroken(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldIsJailbroken is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldIsJailbroken requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldIsJailbroken: %w", err)
+	}
+	return oldValue.IsJailbroken, nil
+}
+
+// ResetIsJailbroken resets all changes to the "is_jailbroken" field.
+func (m *DeviceMutation) ResetIsJailbroken() {
+	m.is_jailbroken = nil
+}
+
+// SetEnrollmentType sets the "enrollment_type" field.
+func (m *DeviceMutation) SetEnrollmentType(dt device.EnrollmentType) {
+	m.enrollment_type = &dt
+}
+
+// EnrollmentType returns the value of the "enrollment_type" field in the mutation.
+func (m *DeviceMutation) EnrollmentType() (r device.EnrollmentType, exists bool) {
+	v := m.enrollment_type
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldEnrollmentType returns the old "enrollment_type" field's value of the Device entity.
+// If the Device object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *DeviceMutation) OldEnrollmentType(ctx context.Context) (v device.EnrollmentType, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldEnrollmentType is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldEnrollmentType requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldEnrollmentType: %w", err)
+	}
+	return oldValue.EnrollmentType, nil
+}
+
+// ClearEnrollmentType clears the value of the "enrollment_type" field.
+func (m *DeviceMutation) ClearEnrollmentType() {
+	m.enrollment_type = nil
+	m.clearedFields[device.FieldEnrollmentType] = struct{}{}
+}
+
+// EnrollmentTypeCleared returns if the "enrollment_type" field was cleared in this mutation.
+func (m *DeviceMutation) EnrollmentTypeCleared() bool {
+	_, ok := m.clearedFields[device.FieldEnrollmentType]
+	return ok
+}
+
+// ResetEnrollmentType resets all changes to the "enrollment_type" field.
+func (m *DeviceMutation) ResetEnrollmentType() {
+	m.enrollment_type = nil
+	delete(m.clearedFields, device.FieldEnrollmentType)
+}
+
 // SetCreatedAt sets the "created_at" field.
 func (m *DeviceMutation) SetCreatedAt(t time.Time) {
 	m.created_at = &t
@@ -6394,7 +9487,7 @@ func (m *DeviceMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *DeviceMutation) Fields() []string {
-	fields := make([]string, 0, 15)
+	fields := make([]string, 0, 22)
 	if m.serial_number != nil {
 		fields = append(fields, device.FieldSerialNumber)
 	}
@@ -6433,6 +9526,27 @@ func (m *DeviceMutation) Fields() []string {
 	}
 	if m.enrolled_at != nil {
 		fields = append(fields, device.FieldEnrolledAt)
+	}
+	if m.mac_address != nil {
+		fields = append(fields, device.FieldMACAddress)
+	}
+	if m.ip_address != nil {
+		fields = append(fields, device.FieldIPAddress)
+	}
+	if m.battery_level != nil {
+		fields = append(fields, device.FieldBatteryLevel)
+	}
+	if m.storage_capacity != nil {
+		fields = append(fields, device.FieldStorageCapacity)
+	}
+	if m.storage_used != nil {
+		fields = append(fields, device.FieldStorageUsed)
+	}
+	if m.is_jailbroken != nil {
+		fields = append(fields, device.FieldIsJailbroken)
+	}
+	if m.enrollment_type != nil {
+		fields = append(fields, device.FieldEnrollmentType)
 	}
 	if m.created_at != nil {
 		fields = append(fields, device.FieldCreatedAt)
@@ -6474,6 +9588,20 @@ func (m *DeviceMutation) Field(name string) (ent.Value, bool) {
 		return m.LastSeen()
 	case device.FieldEnrolledAt:
 		return m.EnrolledAt()
+	case device.FieldMACAddress:
+		return m.MACAddress()
+	case device.FieldIPAddress:
+		return m.IPAddress()
+	case device.FieldBatteryLevel:
+		return m.BatteryLevel()
+	case device.FieldStorageCapacity:
+		return m.StorageCapacity()
+	case device.FieldStorageUsed:
+		return m.StorageUsed()
+	case device.FieldIsJailbroken:
+		return m.IsJailbroken()
+	case device.FieldEnrollmentType:
+		return m.EnrollmentType()
 	case device.FieldCreatedAt:
 		return m.CreatedAt()
 	case device.FieldUpdatedAt:
@@ -6513,6 +9641,20 @@ func (m *DeviceMutation) OldField(ctx context.Context, name string) (ent.Value, 
 		return m.OldLastSeen(ctx)
 	case device.FieldEnrolledAt:
 		return m.OldEnrolledAt(ctx)
+	case device.FieldMACAddress:
+		return m.OldMACAddress(ctx)
+	case device.FieldIPAddress:
+		return m.OldIPAddress(ctx)
+	case device.FieldBatteryLevel:
+		return m.OldBatteryLevel(ctx)
+	case device.FieldStorageCapacity:
+		return m.OldStorageCapacity(ctx)
+	case device.FieldStorageUsed:
+		return m.OldStorageUsed(ctx)
+	case device.FieldIsJailbroken:
+		return m.OldIsJailbroken(ctx)
+	case device.FieldEnrollmentType:
+		return m.OldEnrollmentType(ctx)
 	case device.FieldCreatedAt:
 		return m.OldCreatedAt(ctx)
 	case device.FieldUpdatedAt:
@@ -6617,6 +9759,55 @@ func (m *DeviceMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetEnrolledAt(v)
 		return nil
+	case device.FieldMACAddress:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetMACAddress(v)
+		return nil
+	case device.FieldIPAddress:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetIPAddress(v)
+		return nil
+	case device.FieldBatteryLevel:
+		v, ok := value.(float64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetBatteryLevel(v)
+		return nil
+	case device.FieldStorageCapacity:
+		v, ok := value.(uint64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetStorageCapacity(v)
+		return nil
+	case device.FieldStorageUsed:
+		v, ok := value.(uint64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetStorageUsed(v)
+		return nil
+	case device.FieldIsJailbroken:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetIsJailbroken(v)
+		return nil
+	case device.FieldEnrollmentType:
+		v, ok := value.(device.EnrollmentType)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetEnrollmentType(v)
+		return nil
 	case device.FieldCreatedAt:
 		v, ok := value.(time.Time)
 		if !ok {
@@ -6639,6 +9830,15 @@ func (m *DeviceMutation) SetField(name string, value ent.Value) error {
 // this mutation.
 func (m *DeviceMutation) AddedFields() []string {
 	var fields []string
+	if m.addbattery_level != nil {
+		fields = append(fields, device.FieldBatteryLevel)
+	}
+	if m.addstorage_capacity != nil {
+		fields = append(fields, device.FieldStorageCapacity)
+	}
+	if m.addstorage_used != nil {
+		fields = append(fields, device.FieldStorageUsed)
+	}
 	return fields
 }
 
@@ -6647,6 +9847,12 @@ func (m *DeviceMutation) AddedFields() []string {
 // was not set, or was not defined in the schema.
 func (m *DeviceMutation) AddedField(name string) (ent.Value, bool) {
 	switch name {
+	case device.FieldBatteryLevel:
+		return m.AddedBatteryLevel()
+	case device.FieldStorageCapacity:
+		return m.AddedStorageCapacity()
+	case device.FieldStorageUsed:
+		return m.AddedStorageUsed()
 	}
 	return nil, false
 }
@@ -6656,6 +9862,27 @@ func (m *DeviceMutation) AddedField(name string) (ent.Value, bool) {
 // type.
 func (m *DeviceMutation) AddField(name string, value ent.Value) error {
 	switch name {
+	case device.FieldBatteryLevel:
+		v, ok := value.(float64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddBatteryLevel(v)
+		return nil
+	case device.FieldStorageCapacity:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddStorageCapacity(v)
+		return nil
+	case device.FieldStorageUsed:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddStorageUsed(v)
+		return nil
 	}
 	return fmt.Errorf("unknown Device numeric field %s", name)
 }
@@ -6699,6 +9926,24 @@ func (m *DeviceMutation) ClearedFields() []string {
 	}
 	if m.FieldCleared(device.FieldEnrolledAt) {
 		fields = append(fields, device.FieldEnrolledAt)
+	}
+	if m.FieldCleared(device.FieldMACAddress) {
+		fields = append(fields, device.FieldMACAddress)
+	}
+	if m.FieldCleared(device.FieldIPAddress) {
+		fields = append(fields, device.FieldIPAddress)
+	}
+	if m.FieldCleared(device.FieldBatteryLevel) {
+		fields = append(fields, device.FieldBatteryLevel)
+	}
+	if m.FieldCleared(device.FieldStorageCapacity) {
+		fields = append(fields, device.FieldStorageCapacity)
+	}
+	if m.FieldCleared(device.FieldStorageUsed) {
+		fields = append(fields, device.FieldStorageUsed)
+	}
+	if m.FieldCleared(device.FieldEnrollmentType) {
+		fields = append(fields, device.FieldEnrollmentType)
 	}
 	return fields
 }
@@ -6750,6 +9995,24 @@ func (m *DeviceMutation) ClearField(name string) error {
 	case device.FieldEnrolledAt:
 		m.ClearEnrolledAt()
 		return nil
+	case device.FieldMACAddress:
+		m.ClearMACAddress()
+		return nil
+	case device.FieldIPAddress:
+		m.ClearIPAddress()
+		return nil
+	case device.FieldBatteryLevel:
+		m.ClearBatteryLevel()
+		return nil
+	case device.FieldStorageCapacity:
+		m.ClearStorageCapacity()
+		return nil
+	case device.FieldStorageUsed:
+		m.ClearStorageUsed()
+		return nil
+	case device.FieldEnrollmentType:
+		m.ClearEnrollmentType()
+		return nil
 	}
 	return fmt.Errorf("unknown Device nullable field %s", name)
 }
@@ -6796,6 +10059,27 @@ func (m *DeviceMutation) ResetField(name string) error {
 		return nil
 	case device.FieldEnrolledAt:
 		m.ResetEnrolledAt()
+		return nil
+	case device.FieldMACAddress:
+		m.ResetMACAddress()
+		return nil
+	case device.FieldIPAddress:
+		m.ResetIPAddress()
+		return nil
+	case device.FieldBatteryLevel:
+		m.ResetBatteryLevel()
+		return nil
+	case device.FieldStorageCapacity:
+		m.ResetStorageCapacity()
+		return nil
+	case device.FieldStorageUsed:
+		m.ResetStorageUsed()
+		return nil
+	case device.FieldIsJailbroken:
+		m.ResetIsJailbroken()
+		return nil
+	case device.FieldEnrollmentType:
+		m.ResetEnrollmentType()
 		return nil
 	case device.FieldCreatedAt:
 		m.ResetCreatedAt()
