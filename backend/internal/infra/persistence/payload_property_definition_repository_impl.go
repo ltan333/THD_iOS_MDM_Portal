@@ -2,6 +2,7 @@ package persistence
 
 import (
 	"context"
+	"sort"
 	"strings"
 
 	"github.com/thienel/go-backend-template/internal/domain/repository"
@@ -177,6 +178,23 @@ func (r *payloadPropertyDefinitionRepositoryImpl) ListWithQuery(ctx context.Cont
 	}
 
 	return items, int64(total), nil
+}
+
+func (r *payloadPropertyDefinitionRepositoryImpl) ListPayloadTypes(ctx context.Context) ([]string, error) {
+	types, err := r.client.PayloadPropertyDefinition.Query().
+		Where(payloadpropertydefinition.PayloadTypeNEQ("")).
+		GroupBy(payloadpropertydefinition.FieldPayloadType).
+		Strings(ctx)
+	if err != nil {
+		return nil, wrapListError(err, "payload type")
+	}
+
+	for i := range types {
+		types[i] = strings.TrimSpace(types[i])
+	}
+	sort.Strings(types)
+
+	return types, nil
 }
 
 func (r *payloadPropertyDefinitionRepositoryImpl) FindByPayloadTypeAndKey(ctx context.Context, payloadType, key string) (*ent.PayloadPropertyDefinition, error) {

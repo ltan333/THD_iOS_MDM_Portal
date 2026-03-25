@@ -113,6 +113,10 @@ func (s *payloadPropertyDefinitionServiceImpl) List(ctx context.Context, offset,
 	return items, total, nil
 }
 
+func (s *payloadPropertyDefinitionServiceImpl) ListPayloadTypes(ctx context.Context) ([]string, error) {
+	return s.payloadPropertyDefinitionRepo.ListPayloadTypes(ctx)
+}
+
 func (s *payloadPropertyDefinitionServiceImpl) ImportFromAppleJSON(ctx context.Context, filename string, data []byte) (*service.ImportPayloadPropertyDefinitionsResult, error) {
 	result := &service.ImportPayloadPropertyDefinitionsResult{
 		PayloadType: "",

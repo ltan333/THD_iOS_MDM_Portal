@@ -43,6 +43,7 @@ type PayloadPropertyDefinitionService interface {
 	Update(ctx context.Context, cmd UpdatePayloadPropertyDefinitionCommand) (*ent.PayloadPropertyDefinition, error)
 	Delete(ctx context.Context, id uint) error
 	List(ctx context.Context, offset, limit int, opts query.QueryOptions) ([]*ent.PayloadPropertyDefinition, int64, error)
+	ListPayloadTypes(ctx context.Context) ([]string, error)
 
 	ImportFromAppleJSON(ctx context.Context, filename string, data []byte) (*ImportPayloadPropertyDefinitionsResult, error)
 }

@@ -115,6 +115,8 @@ definitions:
       default_value:
         additionalProperties: true
         type: object
+      deprecated:
+        type: boolean
       description:
         type: string
       enum_values:
@@ -489,6 +491,8 @@ definitions:
       default_value:
         additionalProperties: true
         type: object
+      deprecated:
+        type: boolean
       description:
         type: string
       enum_values:
@@ -581,6 +585,8 @@ definitions:
       default_value:
         additionalProperties: true
         type: object
+      deprecated:
+        type: boolean
       description:
         type: string
       enum_values:
@@ -688,6 +694,19 @@ definitions:
       data:
         items:
           $ref: '#/definitions/github_com_thienel_go-backend-template_internal_usecase_service.RoleLink'
+        type: array
+      error:
+        $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.Error'
+      is_success:
+        type: boolean
+      message:
+        type: string
+    type: object
+  github_com_thienel_go-backend-template_pkg_response.APIResponse-array_string:
+    properties:
+      data:
+        items:
+          type: string
         type: array
       error:
         $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.Error'
@@ -2720,6 +2739,25 @@ paths:
       security:
       - BearerAuth: []
       summary: Import payload property definitions from Apple JSON
+      tags:
+      - Payload Property Definitions
+  /v1/payload-property-definitions/payload-types:
+    get:
+      description: Get all distinct payload types from payload property definitions
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-array_string'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+      security:
+      - BearerAuth: []
+      summary: List payload types
       tags:
       - Payload Property Definitions
   /v1/policies:
