@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"strconv"
 	"strings"
 
 	"github.com/thienel/tlog"
@@ -313,35 +314,13 @@ func (s *payloadPropertyDefinitionServiceImpl) buildPropertyDefinition(itemMap m
 		deprecated = deprecatedVal
 	}
 
-	// Extract type information
-	typeInfo := ""
-	if typeVal, ok := itemMap["type"].([]interface{}); ok && len(typeVal) > 0 {
-		if typeStr, ok := typeVal[0].(string); ok {
-			typeInfo = strings.TrimSpace(typeStr)
-		}
-	}
-
-	prop.ValueType = typeInfo
-	if typeInfo == "" {
-		prop.ValueType = "string"
-	}
+	prop.ValueType = s.extractValueType(itemMap)
 	prop.Deprecated = deprecated
+	prop.DefaultValue = s.extractDefaultValue(itemMap)
+	prop.EnumValues = s.extractEnumValues(itemMap)
 
-	// Extract description
-	if discussion, ok := itemMap["discussion"].([]interface{}); ok && len(discussion) > 0 {
-		if discMap, ok := discussion[0].(map[string]interface{}); ok {
-			if inlineContent, ok := discMap["inlineContent"].([]interface{}); ok {
-				for _, inline := range inlineContent {
-					if inlineMap, ok := inline.(map[string]interface{}); ok {
-						if text, ok := inlineMap["text"].(string); ok {
-							prop.Description = strings.TrimSpace(text)
-							break
-						}
-					}
-				}
-			}
-		}
-	}
+	// Extract description from modern Apple docs format (content), fallback to legacy (discussion).
+	prop.Description = s.extractDescription(itemMap)
 
 	// Add required flag to description if not empty
 	if required {
@@ -353,6 +332,172 @@ func (s *payloadPropertyDefinitionServiceImpl) buildPropertyDefinition(itemMap m
 	}
 
 	return prop
+}
+
+func (s *payloadPropertyDefinitionServiceImpl) extractValueType(itemMap map[string]interface{}) string {
+	typeInfo := ""
+	typeVal, ok := itemMap["type"].([]interface{})
+	if !ok || len(typeVal) == 0 {
+		return "string"
+	}
+
+	first := typeVal[0]
+	if typeStr, ok := first.(string); ok {
+		typeInfo = strings.TrimSpace(typeStr)
+	}
+	if typeMap, ok := first.(map[string]interface{}); ok {
+		if text, ok := typeMap["text"].(string); ok {
+			typeInfo = strings.TrimSpace(text)
+		}
+	}
+
+	if typeInfo == "" {
+		return "string"
+	}
+	return typeInfo
+}
+
+func (s *payloadPropertyDefinitionServiceImpl) extractDefaultValue(itemMap map[string]interface{}) map[string]interface{} {
+	attributes, ok := itemMap["attributes"].([]interface{})
+	if !ok {
+		return map[string]interface{}{}
+	}
+
+	for _, attr := range attributes {
+		attrMap, ok := attr.(map[string]interface{})
+		if !ok {
+			continue
+		}
+		kind, ok := attrMap["kind"].(string)
+		if !ok || kind != "default" {
+			continue
+		}
+
+		if raw, ok := attrMap["value"].(string); ok {
+			return map[string]interface{}{"value": parseScalarString(raw)}
+		}
+		if raw, ok := attrMap["value"]; ok {
+			return map[string]interface{}{"value": raw}
+		}
+	}
+
+	return map[string]interface{}{}
+}
+
+func (s *payloadPropertyDefinitionServiceImpl) extractEnumValues(itemMap map[string]interface{}) []interface{} {
+	attributes, ok := itemMap["attributes"].([]interface{})
+	if !ok {
+		return []interface{}{}
+	}
+
+	for _, attr := range attributes {
+		attrMap, ok := attr.(map[string]interface{})
+		if !ok {
+			continue
+		}
+		kind, ok := attrMap["kind"].(string)
+		if !ok || kind != "allowedValues" {
+			continue
+		}
+
+		values, ok := attrMap["values"].([]interface{})
+		if !ok {
+			continue
+		}
+
+		parsed := make([]interface{}, 0, len(values))
+		for _, v := range values {
+			s, ok := v.(string)
+			if ok {
+				parsed = append(parsed, parseScalarString(s))
+				continue
+			}
+			parsed = append(parsed, v)
+		}
+		return parsed
+	}
+
+	return []interface{}{}
+}
+
+func (s *payloadPropertyDefinitionServiceImpl) extractDescription(itemMap map[string]interface{}) string {
+	content, ok := itemMap["content"].([]interface{})
+	if ok {
+		var parts []string
+		for _, block := range content {
+			blockMap, ok := block.(map[string]interface{})
+			if !ok {
+				continue
+			}
+			blockType, _ := blockMap["type"].(string)
+			if blockType == "paragraph" {
+				text := extractInlineText(blockMap["inlineContent"])
+				if strings.TrimSpace(text) != "" {
+					parts = append(parts, text)
+				}
+			}
+		}
+		if len(parts) > 0 {
+			return strings.TrimSpace(strings.Join(parts, "\n"))
+		}
+	}
+
+	if discussion, ok := itemMap["discussion"].([]interface{}); ok && len(discussion) > 0 {
+		if discMap, ok := discussion[0].(map[string]interface{}); ok {
+			text := extractInlineText(discMap["inlineContent"])
+			if strings.TrimSpace(text) != "" {
+				return strings.TrimSpace(text)
+			}
+		}
+	}
+
+	return ""
+}
+
+func extractInlineText(raw interface{}) string {
+	inlineContent, ok := raw.([]interface{})
+	if !ok {
+		return ""
+	}
+	var b strings.Builder
+	for _, inline := range inlineContent {
+		inlineMap, ok := inline.(map[string]interface{})
+		if !ok {
+			continue
+		}
+		if text, ok := inlineMap["text"].(string); ok {
+			b.WriteString(text)
+			continue
+		}
+		if code, ok := inlineMap["code"].(string); ok {
+			b.WriteString(code)
+		}
+	}
+	return strings.TrimSpace(b.String())
+}
+
+func parseScalarString(raw string) interface{} {
+	v := strings.TrimSpace(raw)
+	if v == "" {
+		return ""
+	}
+
+	lower := strings.ToLower(v)
+	if lower == "true" {
+		return true
+	}
+	if lower == "false" {
+		return false
+	}
+
+	if i, err := strconv.ParseInt(v, 10, 64); err == nil {
+		return i
+	}
+	if f, err := strconv.ParseFloat(v, 64); err == nil {
+		return f
+	}
+
+	return v
 }
 
 // Validation functions
