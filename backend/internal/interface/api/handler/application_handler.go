@@ -44,6 +44,14 @@ func NewApplicationHandler(appService service.ApplicationService) ApplicationHan
 	return &applicationHandlerImpl{appService: appService}
 }
 
+// List godoc
+// @Summary List applications
+// @Description Fetch tracked applications with pagination
+// @Tags applications
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} response.APIResponse[any]
+// @Router /applications [get]
 func (h *applicationHandlerImpl) List(c *gin.Context) {
 	params := make(map[string]string)
 	for k, v := range c.Request.URL.Query() {
@@ -77,6 +85,14 @@ func (h *applicationHandlerImpl) List(c *gin.Context) {
 	}, "")
 }
 
+// GetByID godoc
+// @Summary Get app block by ID
+// @Description Fetch details of a specific app
+// @Tags applications
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} response.APIResponse[any]
+// @Router /applications/{id} [get]
 func (h *applicationHandlerImpl) GetByID(c *gin.Context) {
 	idStr := c.Param("id")
 	id, err := strconv.ParseUint(idStr, 10, 32)
@@ -94,6 +110,15 @@ func (h *applicationHandlerImpl) GetByID(c *gin.Context) {
 	response.OK(c, mapApplicationToResponse(app), "")
 }
 
+// Create godoc
+// @Summary Add a new application tracking record
+// @Description Create application
+// @Tags applications
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Success 201 {object} response.APIResponse[any]
+// @Router /applications [post]
 func (h *applicationHandlerImpl) Create(c *gin.Context) {
 	var req dto.CreateApplicationRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -117,6 +142,15 @@ func (h *applicationHandlerImpl) Create(c *gin.Context) {
 	response.Created(c, mapApplicationToResponse(app), "Application created successfully")
 }
 
+// Update godoc
+// @Summary Update application metadata
+// @Description Update application
+// @Tags applications
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} response.APIResponse[any]
+// @Router /applications/{id} [put]
 func (h *applicationHandlerImpl) Update(c *gin.Context) {
 	idStr := c.Param("id")
 	id, err := strconv.ParseUint(idStr, 10, 32)
@@ -147,6 +181,13 @@ func (h *applicationHandlerImpl) Update(c *gin.Context) {
 	response.OK(c, mapApplicationToResponse(app), "Application updated successfully")
 }
 
+// Delete godoc
+// @Summary Delete application
+// @Tags applications
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} response.APIResponse[any]
+// @Router /applications/{id} [delete]
 func (h *applicationHandlerImpl) Delete(c *gin.Context) {
 	idStr := c.Param("id")
 	id, err := strconv.ParseUint(idStr, 10, 32)
@@ -163,6 +204,13 @@ func (h *applicationHandlerImpl) Delete(c *gin.Context) {
 	response.OK[any](c, nil, "Application deleted successfully")
 }
 
+// ListVersions godoc
+// @Summary List application versions
+// @Tags applications
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} response.APIResponse[any]
+// @Router /applications/{id}/versions [get]
 func (h *applicationHandlerImpl) ListVersions(c *gin.Context) {
 	idStr := c.Param("id")
 	id, err := strconv.ParseUint(idStr, 10, 32)
@@ -185,6 +233,14 @@ func (h *applicationHandlerImpl) ListVersions(c *gin.Context) {
 	response.OK(c, res, "")
 }
 
+// CreateVersion godoc
+// @Summary Upload and create a new version of an app
+// @Tags applications
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Success 201 {object} response.APIResponse[any]
+// @Router /applications/{id}/versions [post]
 func (h *applicationHandlerImpl) CreateVersion(c *gin.Context) {
 	idStr := c.Param("id")
 	id, err := strconv.ParseUint(idStr, 10, 32)
@@ -217,6 +273,13 @@ func (h *applicationHandlerImpl) CreateVersion(c *gin.Context) {
 	response.Created(c, mapAppVersionToResponse(v), "Version created successfully")
 }
 
+// DeleteVersion godoc
+// @Summary Delete app version
+// @Tags applications
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} response.APIResponse[any]
+// @Router /applications/{id}/versions/{versionId} [delete]
 func (h *applicationHandlerImpl) DeleteVersion(c *gin.Context) {
 	versionIdStr := c.Param("versionId")
 	versionId, err := strconv.ParseUint(versionIdStr, 10, 32)
@@ -233,6 +296,15 @@ func (h *applicationHandlerImpl) DeleteVersion(c *gin.Context) {
 	response.OK[any](c, nil, "Version deleted successfully")
 }
 
+// Deploy godoc
+// @Summary Push app to devices
+// @Description Command the MDM core to push app installations
+// @Tags applications
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} response.APIResponse[any]
+// @Router /applications/deployments [post]
 func (h *applicationHandlerImpl) Deploy(c *gin.Context) {
 	var req dto.CreateAppDeploymentRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -263,6 +335,14 @@ func (h *applicationHandlerImpl) Deploy(c *gin.Context) {
 	}, "Deployment initiated successfully")
 }
 
+// ListDeployments godoc
+// @Summary List deployment status
+// @Description Review installation statuses of pushed tools
+// @Tags applications
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} response.APIResponse[any]
+// @Router /applications/{id}/versions/{versionId}/deployments [get]
 func (h *applicationHandlerImpl) ListDeployments(c *gin.Context) {
 	versionIdStr := c.Param("versionId")
 	versionId, err := strconv.ParseUint(versionIdStr, 10, 32)
