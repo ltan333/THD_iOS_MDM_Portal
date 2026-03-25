@@ -61,6 +61,77 @@ var (
 		Columns:    AlertRulesColumns,
 		PrimaryKey: []*schema.Column{AlertRulesColumns[0]},
 	}
+	// AppDeploymentsColumns holds the columns for the "app_deployments" table.
+	AppDeploymentsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUint, Increment: true},
+		{Name: "target_type", Type: field.TypeEnum, Enums: []string{"device", "group", "user"}},
+		{Name: "target_id", Type: field.TypeString},
+		{Name: "status", Type: field.TypeEnum, Enums: []string{"pending", "installing", "success", "failed"}, Default: "pending"},
+		{Name: "error_message", Type: field.TypeString, Nullable: true},
+		{Name: "installed_at", Type: field.TypeTime, Nullable: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "app_version_id", Type: field.TypeUint},
+	}
+	// AppDeploymentsTable holds the schema information for the "app_deployments" table.
+	AppDeploymentsTable = &schema.Table{
+		Name:       "app_deployments",
+		Columns:    AppDeploymentsColumns,
+		PrimaryKey: []*schema.Column{AppDeploymentsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "app_deployments_app_versions_deployments",
+				Columns:    []*schema.Column{AppDeploymentsColumns[8]},
+				RefColumns: []*schema.Column{AppVersionsColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+	}
+	// AppVersionsColumns holds the columns for the "app_versions" table.
+	AppVersionsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUint, Increment: true},
+		{Name: "version", Type: field.TypeString},
+		{Name: "build_number", Type: field.TypeString},
+		{Name: "minimum_os_version", Type: field.TypeString, Nullable: true},
+		{Name: "file_url", Type: field.TypeString, Nullable: true},
+		{Name: "size", Type: field.TypeInt64, Nullable: true},
+		{Name: "metadata", Type: field.TypeJSON, Nullable: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "application_id", Type: field.TypeUint},
+	}
+	// AppVersionsTable holds the schema information for the "app_versions" table.
+	AppVersionsTable = &schema.Table{
+		Name:       "app_versions",
+		Columns:    AppVersionsColumns,
+		PrimaryKey: []*schema.Column{AppVersionsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "app_versions_applications_versions",
+				Columns:    []*schema.Column{AppVersionsColumns[9]},
+				RefColumns: []*schema.Column{ApplicationsColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+	}
+	// ApplicationsColumns holds the columns for the "applications" table.
+	ApplicationsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUint, Increment: true},
+		{Name: "name", Type: field.TypeString, Size: 255},
+		{Name: "bundle_id", Type: field.TypeString, Unique: true, Size: 255},
+		{Name: "platform", Type: field.TypeEnum, Enums: []string{"ios", "android", "windows", "macos"}},
+		{Name: "type", Type: field.TypeEnum, Enums: []string{"app_store", "enterprise", "web_clip"}, Default: "app_store"},
+		{Name: "description", Type: field.TypeString, Nullable: true},
+		{Name: "icon_url", Type: field.TypeString, Nullable: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+	}
+	// ApplicationsTable holds the schema information for the "applications" table.
+	ApplicationsTable = &schema.Table{
+		Name:       "applications",
+		Columns:    ApplicationsColumns,
+		PrimaryKey: []*schema.Column{ApplicationsColumns[0]},
+	}
 	// DepNamesColumns holds the columns for the "dep_names" table.
 	DepNamesColumns = []*schema.Column{
 		{Name: "name", Type: field.TypeString, Unique: true},
@@ -134,6 +205,13 @@ var (
 		{Name: "device_type", Type: field.TypeString, Nullable: true},
 		{Name: "last_seen", Type: field.TypeTime, Nullable: true},
 		{Name: "enrolled_at", Type: field.TypeTime, Nullable: true},
+		{Name: "mac_address", Type: field.TypeString, Nullable: true},
+		{Name: "ip_address", Type: field.TypeString, Nullable: true},
+		{Name: "battery_level", Type: field.TypeFloat64, Nullable: true},
+		{Name: "storage_capacity", Type: field.TypeUint64, Nullable: true},
+		{Name: "storage_used", Type: field.TypeUint64, Nullable: true},
+		{Name: "is_jailbroken", Type: field.TypeBool, Default: false},
+		{Name: "enrollment_type", Type: field.TypeEnum, Nullable: true, Enums: []string{"dep", "qr", "manual", "unknown"}, Default: "unknown"},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
 		{Name: "owner_id", Type: field.TypeUint, Nullable: true},
@@ -146,7 +224,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "devices_portal_users_devices",
-				Columns:    []*schema.Column{DevicesColumns[15]},
+				Columns:    []*schema.Column{DevicesColumns[22]},
 				RefColumns: []*schema.Column{PortalUsersColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
@@ -447,6 +525,9 @@ var (
 		PushCertsTable,
 		AlertsTable,
 		AlertRulesTable,
+		AppDeploymentsTable,
+		AppVersionsTable,
+		ApplicationsTable,
 		DepNamesTable,
 		DepProfilesTable,
 		DevicesTable,
@@ -474,6 +555,17 @@ func init() {
 	}
 	AlertRulesTable.Annotation = &entsql.Annotation{
 		Table: "alert_rules",
+	}
+	AppDeploymentsTable.ForeignKeys[0].RefTable = AppVersionsTable
+	AppDeploymentsTable.Annotation = &entsql.Annotation{
+		Table: "app_deployments",
+	}
+	AppVersionsTable.ForeignKeys[0].RefTable = ApplicationsTable
+	AppVersionsTable.Annotation = &entsql.Annotation{
+		Table: "app_versions",
+	}
+	ApplicationsTable.Annotation = &entsql.Annotation{
+		Table: "applications",
 	}
 	DepNamesTable.Annotation = &entsql.Annotation{
 		Table: "dep_names",

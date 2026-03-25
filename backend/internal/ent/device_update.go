@@ -284,6 +284,161 @@ func (_u *DeviceUpdate) ClearEnrolledAt() *DeviceUpdate {
 	return _u
 }
 
+// SetMACAddress sets the "mac_address" field.
+func (_u *DeviceUpdate) SetMACAddress(v string) *DeviceUpdate {
+	_u.mutation.SetMACAddress(v)
+	return _u
+}
+
+// SetNillableMACAddress sets the "mac_address" field if the given value is not nil.
+func (_u *DeviceUpdate) SetNillableMACAddress(v *string) *DeviceUpdate {
+	if v != nil {
+		_u.SetMACAddress(*v)
+	}
+	return _u
+}
+
+// ClearMACAddress clears the value of the "mac_address" field.
+func (_u *DeviceUpdate) ClearMACAddress() *DeviceUpdate {
+	_u.mutation.ClearMACAddress()
+	return _u
+}
+
+// SetIPAddress sets the "ip_address" field.
+func (_u *DeviceUpdate) SetIPAddress(v string) *DeviceUpdate {
+	_u.mutation.SetIPAddress(v)
+	return _u
+}
+
+// SetNillableIPAddress sets the "ip_address" field if the given value is not nil.
+func (_u *DeviceUpdate) SetNillableIPAddress(v *string) *DeviceUpdate {
+	if v != nil {
+		_u.SetIPAddress(*v)
+	}
+	return _u
+}
+
+// ClearIPAddress clears the value of the "ip_address" field.
+func (_u *DeviceUpdate) ClearIPAddress() *DeviceUpdate {
+	_u.mutation.ClearIPAddress()
+	return _u
+}
+
+// SetBatteryLevel sets the "battery_level" field.
+func (_u *DeviceUpdate) SetBatteryLevel(v float64) *DeviceUpdate {
+	_u.mutation.ResetBatteryLevel()
+	_u.mutation.SetBatteryLevel(v)
+	return _u
+}
+
+// SetNillableBatteryLevel sets the "battery_level" field if the given value is not nil.
+func (_u *DeviceUpdate) SetNillableBatteryLevel(v *float64) *DeviceUpdate {
+	if v != nil {
+		_u.SetBatteryLevel(*v)
+	}
+	return _u
+}
+
+// AddBatteryLevel adds value to the "battery_level" field.
+func (_u *DeviceUpdate) AddBatteryLevel(v float64) *DeviceUpdate {
+	_u.mutation.AddBatteryLevel(v)
+	return _u
+}
+
+// ClearBatteryLevel clears the value of the "battery_level" field.
+func (_u *DeviceUpdate) ClearBatteryLevel() *DeviceUpdate {
+	_u.mutation.ClearBatteryLevel()
+	return _u
+}
+
+// SetStorageCapacity sets the "storage_capacity" field.
+func (_u *DeviceUpdate) SetStorageCapacity(v uint64) *DeviceUpdate {
+	_u.mutation.ResetStorageCapacity()
+	_u.mutation.SetStorageCapacity(v)
+	return _u
+}
+
+// SetNillableStorageCapacity sets the "storage_capacity" field if the given value is not nil.
+func (_u *DeviceUpdate) SetNillableStorageCapacity(v *uint64) *DeviceUpdate {
+	if v != nil {
+		_u.SetStorageCapacity(*v)
+	}
+	return _u
+}
+
+// AddStorageCapacity adds value to the "storage_capacity" field.
+func (_u *DeviceUpdate) AddStorageCapacity(v int64) *DeviceUpdate {
+	_u.mutation.AddStorageCapacity(v)
+	return _u
+}
+
+// ClearStorageCapacity clears the value of the "storage_capacity" field.
+func (_u *DeviceUpdate) ClearStorageCapacity() *DeviceUpdate {
+	_u.mutation.ClearStorageCapacity()
+	return _u
+}
+
+// SetStorageUsed sets the "storage_used" field.
+func (_u *DeviceUpdate) SetStorageUsed(v uint64) *DeviceUpdate {
+	_u.mutation.ResetStorageUsed()
+	_u.mutation.SetStorageUsed(v)
+	return _u
+}
+
+// SetNillableStorageUsed sets the "storage_used" field if the given value is not nil.
+func (_u *DeviceUpdate) SetNillableStorageUsed(v *uint64) *DeviceUpdate {
+	if v != nil {
+		_u.SetStorageUsed(*v)
+	}
+	return _u
+}
+
+// AddStorageUsed adds value to the "storage_used" field.
+func (_u *DeviceUpdate) AddStorageUsed(v int64) *DeviceUpdate {
+	_u.mutation.AddStorageUsed(v)
+	return _u
+}
+
+// ClearStorageUsed clears the value of the "storage_used" field.
+func (_u *DeviceUpdate) ClearStorageUsed() *DeviceUpdate {
+	_u.mutation.ClearStorageUsed()
+	return _u
+}
+
+// SetIsJailbroken sets the "is_jailbroken" field.
+func (_u *DeviceUpdate) SetIsJailbroken(v bool) *DeviceUpdate {
+	_u.mutation.SetIsJailbroken(v)
+	return _u
+}
+
+// SetNillableIsJailbroken sets the "is_jailbroken" field if the given value is not nil.
+func (_u *DeviceUpdate) SetNillableIsJailbroken(v *bool) *DeviceUpdate {
+	if v != nil {
+		_u.SetIsJailbroken(*v)
+	}
+	return _u
+}
+
+// SetEnrollmentType sets the "enrollment_type" field.
+func (_u *DeviceUpdate) SetEnrollmentType(v device.EnrollmentType) *DeviceUpdate {
+	_u.mutation.SetEnrollmentType(v)
+	return _u
+}
+
+// SetNillableEnrollmentType sets the "enrollment_type" field if the given value is not nil.
+func (_u *DeviceUpdate) SetNillableEnrollmentType(v *device.EnrollmentType) *DeviceUpdate {
+	if v != nil {
+		_u.SetEnrollmentType(*v)
+	}
+	return _u
+}
+
+// ClearEnrollmentType clears the value of the "enrollment_type" field.
+func (_u *DeviceUpdate) ClearEnrollmentType() *DeviceUpdate {
+	_u.mutation.ClearEnrollmentType()
+	return _u
+}
+
 // SetUpdatedAt sets the "updated_at" field.
 func (_u *DeviceUpdate) SetUpdatedAt(v time.Time) *DeviceUpdate {
 	_u.mutation.SetUpdatedAt(v)
@@ -395,6 +550,11 @@ func (_u *DeviceUpdate) check() error {
 			return &ValidationError{Name: "compliance_status", err: fmt.Errorf(`ent: validator failed for field "Device.compliance_status": %w`, err)}
 		}
 	}
+	if v, ok := _u.mutation.EnrollmentType(); ok {
+		if err := device.EnrollmentTypeValidator(v); err != nil {
+			return &ValidationError{Name: "enrollment_type", err: fmt.Errorf(`ent: validator failed for field "Device.enrollment_type": %w`, err)}
+		}
+	}
 	return nil
 }
 
@@ -478,6 +638,54 @@ func (_u *DeviceUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	}
 	if _u.mutation.EnrolledAtCleared() {
 		_spec.ClearField(device.FieldEnrolledAt, field.TypeTime)
+	}
+	if value, ok := _u.mutation.MACAddress(); ok {
+		_spec.SetField(device.FieldMACAddress, field.TypeString, value)
+	}
+	if _u.mutation.MACAddressCleared() {
+		_spec.ClearField(device.FieldMACAddress, field.TypeString)
+	}
+	if value, ok := _u.mutation.IPAddress(); ok {
+		_spec.SetField(device.FieldIPAddress, field.TypeString, value)
+	}
+	if _u.mutation.IPAddressCleared() {
+		_spec.ClearField(device.FieldIPAddress, field.TypeString)
+	}
+	if value, ok := _u.mutation.BatteryLevel(); ok {
+		_spec.SetField(device.FieldBatteryLevel, field.TypeFloat64, value)
+	}
+	if value, ok := _u.mutation.AddedBatteryLevel(); ok {
+		_spec.AddField(device.FieldBatteryLevel, field.TypeFloat64, value)
+	}
+	if _u.mutation.BatteryLevelCleared() {
+		_spec.ClearField(device.FieldBatteryLevel, field.TypeFloat64)
+	}
+	if value, ok := _u.mutation.StorageCapacity(); ok {
+		_spec.SetField(device.FieldStorageCapacity, field.TypeUint64, value)
+	}
+	if value, ok := _u.mutation.AddedStorageCapacity(); ok {
+		_spec.AddField(device.FieldStorageCapacity, field.TypeUint64, value)
+	}
+	if _u.mutation.StorageCapacityCleared() {
+		_spec.ClearField(device.FieldStorageCapacity, field.TypeUint64)
+	}
+	if value, ok := _u.mutation.StorageUsed(); ok {
+		_spec.SetField(device.FieldStorageUsed, field.TypeUint64, value)
+	}
+	if value, ok := _u.mutation.AddedStorageUsed(); ok {
+		_spec.AddField(device.FieldStorageUsed, field.TypeUint64, value)
+	}
+	if _u.mutation.StorageUsedCleared() {
+		_spec.ClearField(device.FieldStorageUsed, field.TypeUint64)
+	}
+	if value, ok := _u.mutation.IsJailbroken(); ok {
+		_spec.SetField(device.FieldIsJailbroken, field.TypeBool, value)
+	}
+	if value, ok := _u.mutation.EnrollmentType(); ok {
+		_spec.SetField(device.FieldEnrollmentType, field.TypeEnum, value)
+	}
+	if _u.mutation.EnrollmentTypeCleared() {
+		_spec.ClearField(device.FieldEnrollmentType, field.TypeEnum)
 	}
 	if value, ok := _u.mutation.UpdatedAt(); ok {
 		_spec.SetField(device.FieldUpdatedAt, field.TypeTime, value)
@@ -830,6 +1038,161 @@ func (_u *DeviceUpdateOne) ClearEnrolledAt() *DeviceUpdateOne {
 	return _u
 }
 
+// SetMACAddress sets the "mac_address" field.
+func (_u *DeviceUpdateOne) SetMACAddress(v string) *DeviceUpdateOne {
+	_u.mutation.SetMACAddress(v)
+	return _u
+}
+
+// SetNillableMACAddress sets the "mac_address" field if the given value is not nil.
+func (_u *DeviceUpdateOne) SetNillableMACAddress(v *string) *DeviceUpdateOne {
+	if v != nil {
+		_u.SetMACAddress(*v)
+	}
+	return _u
+}
+
+// ClearMACAddress clears the value of the "mac_address" field.
+func (_u *DeviceUpdateOne) ClearMACAddress() *DeviceUpdateOne {
+	_u.mutation.ClearMACAddress()
+	return _u
+}
+
+// SetIPAddress sets the "ip_address" field.
+func (_u *DeviceUpdateOne) SetIPAddress(v string) *DeviceUpdateOne {
+	_u.mutation.SetIPAddress(v)
+	return _u
+}
+
+// SetNillableIPAddress sets the "ip_address" field if the given value is not nil.
+func (_u *DeviceUpdateOne) SetNillableIPAddress(v *string) *DeviceUpdateOne {
+	if v != nil {
+		_u.SetIPAddress(*v)
+	}
+	return _u
+}
+
+// ClearIPAddress clears the value of the "ip_address" field.
+func (_u *DeviceUpdateOne) ClearIPAddress() *DeviceUpdateOne {
+	_u.mutation.ClearIPAddress()
+	return _u
+}
+
+// SetBatteryLevel sets the "battery_level" field.
+func (_u *DeviceUpdateOne) SetBatteryLevel(v float64) *DeviceUpdateOne {
+	_u.mutation.ResetBatteryLevel()
+	_u.mutation.SetBatteryLevel(v)
+	return _u
+}
+
+// SetNillableBatteryLevel sets the "battery_level" field if the given value is not nil.
+func (_u *DeviceUpdateOne) SetNillableBatteryLevel(v *float64) *DeviceUpdateOne {
+	if v != nil {
+		_u.SetBatteryLevel(*v)
+	}
+	return _u
+}
+
+// AddBatteryLevel adds value to the "battery_level" field.
+func (_u *DeviceUpdateOne) AddBatteryLevel(v float64) *DeviceUpdateOne {
+	_u.mutation.AddBatteryLevel(v)
+	return _u
+}
+
+// ClearBatteryLevel clears the value of the "battery_level" field.
+func (_u *DeviceUpdateOne) ClearBatteryLevel() *DeviceUpdateOne {
+	_u.mutation.ClearBatteryLevel()
+	return _u
+}
+
+// SetStorageCapacity sets the "storage_capacity" field.
+func (_u *DeviceUpdateOne) SetStorageCapacity(v uint64) *DeviceUpdateOne {
+	_u.mutation.ResetStorageCapacity()
+	_u.mutation.SetStorageCapacity(v)
+	return _u
+}
+
+// SetNillableStorageCapacity sets the "storage_capacity" field if the given value is not nil.
+func (_u *DeviceUpdateOne) SetNillableStorageCapacity(v *uint64) *DeviceUpdateOne {
+	if v != nil {
+		_u.SetStorageCapacity(*v)
+	}
+	return _u
+}
+
+// AddStorageCapacity adds value to the "storage_capacity" field.
+func (_u *DeviceUpdateOne) AddStorageCapacity(v int64) *DeviceUpdateOne {
+	_u.mutation.AddStorageCapacity(v)
+	return _u
+}
+
+// ClearStorageCapacity clears the value of the "storage_capacity" field.
+func (_u *DeviceUpdateOne) ClearStorageCapacity() *DeviceUpdateOne {
+	_u.mutation.ClearStorageCapacity()
+	return _u
+}
+
+// SetStorageUsed sets the "storage_used" field.
+func (_u *DeviceUpdateOne) SetStorageUsed(v uint64) *DeviceUpdateOne {
+	_u.mutation.ResetStorageUsed()
+	_u.mutation.SetStorageUsed(v)
+	return _u
+}
+
+// SetNillableStorageUsed sets the "storage_used" field if the given value is not nil.
+func (_u *DeviceUpdateOne) SetNillableStorageUsed(v *uint64) *DeviceUpdateOne {
+	if v != nil {
+		_u.SetStorageUsed(*v)
+	}
+	return _u
+}
+
+// AddStorageUsed adds value to the "storage_used" field.
+func (_u *DeviceUpdateOne) AddStorageUsed(v int64) *DeviceUpdateOne {
+	_u.mutation.AddStorageUsed(v)
+	return _u
+}
+
+// ClearStorageUsed clears the value of the "storage_used" field.
+func (_u *DeviceUpdateOne) ClearStorageUsed() *DeviceUpdateOne {
+	_u.mutation.ClearStorageUsed()
+	return _u
+}
+
+// SetIsJailbroken sets the "is_jailbroken" field.
+func (_u *DeviceUpdateOne) SetIsJailbroken(v bool) *DeviceUpdateOne {
+	_u.mutation.SetIsJailbroken(v)
+	return _u
+}
+
+// SetNillableIsJailbroken sets the "is_jailbroken" field if the given value is not nil.
+func (_u *DeviceUpdateOne) SetNillableIsJailbroken(v *bool) *DeviceUpdateOne {
+	if v != nil {
+		_u.SetIsJailbroken(*v)
+	}
+	return _u
+}
+
+// SetEnrollmentType sets the "enrollment_type" field.
+func (_u *DeviceUpdateOne) SetEnrollmentType(v device.EnrollmentType) *DeviceUpdateOne {
+	_u.mutation.SetEnrollmentType(v)
+	return _u
+}
+
+// SetNillableEnrollmentType sets the "enrollment_type" field if the given value is not nil.
+func (_u *DeviceUpdateOne) SetNillableEnrollmentType(v *device.EnrollmentType) *DeviceUpdateOne {
+	if v != nil {
+		_u.SetEnrollmentType(*v)
+	}
+	return _u
+}
+
+// ClearEnrollmentType clears the value of the "enrollment_type" field.
+func (_u *DeviceUpdateOne) ClearEnrollmentType() *DeviceUpdateOne {
+	_u.mutation.ClearEnrollmentType()
+	return _u
+}
+
 // SetUpdatedAt sets the "updated_at" field.
 func (_u *DeviceUpdateOne) SetUpdatedAt(v time.Time) *DeviceUpdateOne {
 	_u.mutation.SetUpdatedAt(v)
@@ -954,6 +1317,11 @@ func (_u *DeviceUpdateOne) check() error {
 			return &ValidationError{Name: "compliance_status", err: fmt.Errorf(`ent: validator failed for field "Device.compliance_status": %w`, err)}
 		}
 	}
+	if v, ok := _u.mutation.EnrollmentType(); ok {
+		if err := device.EnrollmentTypeValidator(v); err != nil {
+			return &ValidationError{Name: "enrollment_type", err: fmt.Errorf(`ent: validator failed for field "Device.enrollment_type": %w`, err)}
+		}
+	}
 	return nil
 }
 
@@ -1054,6 +1422,54 @@ func (_u *DeviceUpdateOne) sqlSave(ctx context.Context) (_node *Device, err erro
 	}
 	if _u.mutation.EnrolledAtCleared() {
 		_spec.ClearField(device.FieldEnrolledAt, field.TypeTime)
+	}
+	if value, ok := _u.mutation.MACAddress(); ok {
+		_spec.SetField(device.FieldMACAddress, field.TypeString, value)
+	}
+	if _u.mutation.MACAddressCleared() {
+		_spec.ClearField(device.FieldMACAddress, field.TypeString)
+	}
+	if value, ok := _u.mutation.IPAddress(); ok {
+		_spec.SetField(device.FieldIPAddress, field.TypeString, value)
+	}
+	if _u.mutation.IPAddressCleared() {
+		_spec.ClearField(device.FieldIPAddress, field.TypeString)
+	}
+	if value, ok := _u.mutation.BatteryLevel(); ok {
+		_spec.SetField(device.FieldBatteryLevel, field.TypeFloat64, value)
+	}
+	if value, ok := _u.mutation.AddedBatteryLevel(); ok {
+		_spec.AddField(device.FieldBatteryLevel, field.TypeFloat64, value)
+	}
+	if _u.mutation.BatteryLevelCleared() {
+		_spec.ClearField(device.FieldBatteryLevel, field.TypeFloat64)
+	}
+	if value, ok := _u.mutation.StorageCapacity(); ok {
+		_spec.SetField(device.FieldStorageCapacity, field.TypeUint64, value)
+	}
+	if value, ok := _u.mutation.AddedStorageCapacity(); ok {
+		_spec.AddField(device.FieldStorageCapacity, field.TypeUint64, value)
+	}
+	if _u.mutation.StorageCapacityCleared() {
+		_spec.ClearField(device.FieldStorageCapacity, field.TypeUint64)
+	}
+	if value, ok := _u.mutation.StorageUsed(); ok {
+		_spec.SetField(device.FieldStorageUsed, field.TypeUint64, value)
+	}
+	if value, ok := _u.mutation.AddedStorageUsed(); ok {
+		_spec.AddField(device.FieldStorageUsed, field.TypeUint64, value)
+	}
+	if _u.mutation.StorageUsedCleared() {
+		_spec.ClearField(device.FieldStorageUsed, field.TypeUint64)
+	}
+	if value, ok := _u.mutation.IsJailbroken(); ok {
+		_spec.SetField(device.FieldIsJailbroken, field.TypeBool, value)
+	}
+	if value, ok := _u.mutation.EnrollmentType(); ok {
+		_spec.SetField(device.FieldEnrollmentType, field.TypeEnum, value)
+	}
+	if _u.mutation.EnrollmentTypeCleared() {
+		_spec.ClearField(device.FieldEnrollmentType, field.TypeEnum)
 	}
 	if value, ok := _u.mutation.UpdatedAt(); ok {
 		_spec.SetField(device.FieldUpdatedAt, field.TypeTime, value)

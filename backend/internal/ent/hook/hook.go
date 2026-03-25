@@ -45,6 +45,42 @@ func (f AlertRuleFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, e
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.AlertRuleMutation", m)
 }
 
+// The AppDeploymentFunc type is an adapter to allow the use of ordinary
+// function as AppDeployment mutator.
+type AppDeploymentFunc func(context.Context, *ent.AppDeploymentMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f AppDeploymentFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.AppDeploymentMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.AppDeploymentMutation", m)
+}
+
+// The AppVersionFunc type is an adapter to allow the use of ordinary
+// function as AppVersion mutator.
+type AppVersionFunc func(context.Context, *ent.AppVersionMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f AppVersionFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.AppVersionMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.AppVersionMutation", m)
+}
+
+// The ApplicationFunc type is an adapter to allow the use of ordinary
+// function as Application mutator.
+type ApplicationFunc func(context.Context, *ent.ApplicationMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f ApplicationFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.ApplicationMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.ApplicationMutation", m)
+}
+
 // The DEPTokenFunc type is an adapter to allow the use of ordinary
 // function as DEPToken mutator.
 type DEPTokenFunc func(context.Context, *ent.DEPTokenMutation) (ent.Value, error)

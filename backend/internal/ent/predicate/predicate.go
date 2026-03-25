@@ -15,6 +15,15 @@ type Alert func(*sql.Selector)
 // AlertRule is the predicate function for alertrule builders.
 type AlertRule func(*sql.Selector)
 
+// AppDeployment is the predicate function for appdeployment builders.
+type AppDeployment func(*sql.Selector)
+
+// AppVersion is the predicate function for appversion builders.
+type AppVersion func(*sql.Selector)
+
+// Application is the predicate function for application builders.
+type Application func(*sql.Selector)
+
 // DEPToken is the predicate function for deptoken builders.
 type DEPToken func(*sql.Selector)
 

@@ -41,6 +41,20 @@ const (
 	FieldLastSeen = "last_seen"
 	// FieldEnrolledAt holds the string denoting the enrolled_at field in the database.
 	FieldEnrolledAt = "enrolled_at"
+	// FieldMACAddress holds the string denoting the mac_address field in the database.
+	FieldMACAddress = "mac_address"
+	// FieldIPAddress holds the string denoting the ip_address field in the database.
+	FieldIPAddress = "ip_address"
+	// FieldBatteryLevel holds the string denoting the battery_level field in the database.
+	FieldBatteryLevel = "battery_level"
+	// FieldStorageCapacity holds the string denoting the storage_capacity field in the database.
+	FieldStorageCapacity = "storage_capacity"
+	// FieldStorageUsed holds the string denoting the storage_used field in the database.
+	FieldStorageUsed = "storage_used"
+	// FieldIsJailbroken holds the string denoting the is_jailbroken field in the database.
+	FieldIsJailbroken = "is_jailbroken"
+	// FieldEnrollmentType holds the string denoting the enrollment_type field in the database.
+	FieldEnrollmentType = "enrollment_type"
 	// FieldCreatedAt holds the string denoting the created_at field in the database.
 	FieldCreatedAt = "created_at"
 	// FieldUpdatedAt holds the string denoting the updated_at field in the database.
@@ -81,6 +95,13 @@ var Columns = []string{
 	FieldDeviceType,
 	FieldLastSeen,
 	FieldEnrolledAt,
+	FieldMACAddress,
+	FieldIPAddress,
+	FieldBatteryLevel,
+	FieldStorageCapacity,
+	FieldStorageUsed,
+	FieldIsJailbroken,
+	FieldEnrollmentType,
 	FieldCreatedAt,
 	FieldUpdatedAt,
 }
@@ -104,6 +125,8 @@ func ValidColumn(column string) bool {
 var (
 	// DefaultIsEnrolled holds the default value on creation for the "is_enrolled" field.
 	DefaultIsEnrolled bool
+	// DefaultIsJailbroken holds the default value on creation for the "is_jailbroken" field.
+	DefaultIsJailbroken bool
 	// DefaultCreatedAt holds the default value on creation for the "created_at" field.
 	DefaultCreatedAt func() time.Time
 	// DefaultUpdatedAt holds the default value on creation for the "updated_at" field.
@@ -199,6 +222,34 @@ func ComplianceStatusValidator(cs ComplianceStatus) error {
 	}
 }
 
+// EnrollmentType defines the type for the "enrollment_type" enum field.
+type EnrollmentType string
+
+// EnrollmentTypeUnknown is the default value of the EnrollmentType enum.
+const DefaultEnrollmentType = EnrollmentTypeUnknown
+
+// EnrollmentType values.
+const (
+	EnrollmentTypeDep     EnrollmentType = "dep"
+	EnrollmentTypeQr      EnrollmentType = "qr"
+	EnrollmentTypeManual  EnrollmentType = "manual"
+	EnrollmentTypeUnknown EnrollmentType = "unknown"
+)
+
+func (et EnrollmentType) String() string {
+	return string(et)
+}
+
+// EnrollmentTypeValidator is a validator for the "enrollment_type" field enum values. It is called by the builders before save.
+func EnrollmentTypeValidator(et EnrollmentType) error {
+	switch et {
+	case EnrollmentTypeDep, EnrollmentTypeQr, EnrollmentTypeManual, EnrollmentTypeUnknown:
+		return nil
+	default:
+		return fmt.Errorf("device: invalid enum value for enrollment_type field: %q", et)
+	}
+}
+
 // OrderOption defines the ordering options for the Device queries.
 type OrderOption func(*sql.Selector)
 
@@ -270,6 +321,41 @@ func ByLastSeen(opts ...sql.OrderTermOption) OrderOption {
 // ByEnrolledAt orders the results by the enrolled_at field.
 func ByEnrolledAt(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldEnrolledAt, opts...).ToFunc()
+}
+
+// ByMACAddress orders the results by the mac_address field.
+func ByMACAddress(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldMACAddress, opts...).ToFunc()
+}
+
+// ByIPAddress orders the results by the ip_address field.
+func ByIPAddress(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldIPAddress, opts...).ToFunc()
+}
+
+// ByBatteryLevel orders the results by the battery_level field.
+func ByBatteryLevel(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldBatteryLevel, opts...).ToFunc()
+}
+
+// ByStorageCapacity orders the results by the storage_capacity field.
+func ByStorageCapacity(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldStorageCapacity, opts...).ToFunc()
+}
+
+// ByStorageUsed orders the results by the storage_used field.
+func ByStorageUsed(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldStorageUsed, opts...).ToFunc()
+}
+
+// ByIsJailbroken orders the results by the is_jailbroken field.
+func ByIsJailbroken(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldIsJailbroken, opts...).ToFunc()
+}
+
+// ByEnrollmentType orders the results by the enrollment_type field.
+func ByEnrollmentType(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldEnrollmentType, opts...).ToFunc()
 }
 
 // ByCreatedAt orders the results by the created_at field.

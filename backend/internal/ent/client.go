@@ -18,6 +18,9 @@ import (
 	"github.com/thienel/go-backend-template/internal/ent/alert"
 	"github.com/thienel/go-backend-template/internal/ent/alertrule"
 	"github.com/thienel/go-backend-template/internal/ent/apnsconfig"
+	"github.com/thienel/go-backend-template/internal/ent/appdeployment"
+	"github.com/thienel/go-backend-template/internal/ent/application"
+	"github.com/thienel/go-backend-template/internal/ent/appversion"
 	"github.com/thienel/go-backend-template/internal/ent/depprofile"
 	"github.com/thienel/go-backend-template/internal/ent/deptoken"
 	"github.com/thienel/go-backend-template/internal/ent/device"
@@ -44,6 +47,12 @@ type Client struct {
 	Alert *AlertClient
 	// AlertRule is the client for interacting with the AlertRule builders.
 	AlertRule *AlertRuleClient
+	// AppDeployment is the client for interacting with the AppDeployment builders.
+	AppDeployment *AppDeploymentClient
+	// AppVersion is the client for interacting with the AppVersion builders.
+	AppVersion *AppVersionClient
+	// Application is the client for interacting with the Application builders.
+	Application *ApplicationClient
 	// DEPToken is the client for interacting with the DEPToken builders.
 	DEPToken *DEPTokenClient
 	// DepProfile is the client for interacting with the DepProfile builders.
@@ -84,6 +93,9 @@ func (c *Client) init() {
 	c.APNSConfig = NewAPNSConfigClient(c.config)
 	c.Alert = NewAlertClient(c.config)
 	c.AlertRule = NewAlertRuleClient(c.config)
+	c.AppDeployment = NewAppDeploymentClient(c.config)
+	c.AppVersion = NewAppVersionClient(c.config)
+	c.Application = NewApplicationClient(c.config)
 	c.DEPToken = NewDEPTokenClient(c.config)
 	c.DepProfile = NewDepProfileClient(c.config)
 	c.Device = NewDeviceClient(c.config)
@@ -192,6 +204,9 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		APNSConfig:                NewAPNSConfigClient(cfg),
 		Alert:                     NewAlertClient(cfg),
 		AlertRule:                 NewAlertRuleClient(cfg),
+		AppDeployment:             NewAppDeploymentClient(cfg),
+		AppVersion:                NewAppVersionClient(cfg),
+		Application:               NewApplicationClient(cfg),
 		DEPToken:                  NewDEPTokenClient(cfg),
 		DepProfile:                NewDepProfileClient(cfg),
 		Device:                    NewDeviceClient(cfg),
@@ -227,6 +242,9 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		APNSConfig:                NewAPNSConfigClient(cfg),
 		Alert:                     NewAlertClient(cfg),
 		AlertRule:                 NewAlertRuleClient(cfg),
+		AppDeployment:             NewAppDeploymentClient(cfg),
+		AppVersion:                NewAppVersionClient(cfg),
+		Application:               NewApplicationClient(cfg),
 		DEPToken:                  NewDEPTokenClient(cfg),
 		DepProfile:                NewDepProfileClient(cfg),
 		Device:                    NewDeviceClient(cfg),
@@ -269,10 +287,11 @@ func (c *Client) Close() error {
 // In order to add hooks to a specific client, call: `client.Node.Use(...)`.
 func (c *Client) Use(hooks ...Hook) {
 	for _, n := range []interface{ Use(...Hook) }{
-		c.APNSConfig, c.Alert, c.AlertRule, c.DEPToken, c.DepProfile, c.Device,
-		c.DeviceGroup, c.MobileConfig, c.Payload, c.PayloadProperty,
-		c.PayloadPropertyDefinition, c.Profile, c.ProfileAssignment,
-		c.ProfileDeploymentStatus, c.ProfileVersion, c.User,
+		c.APNSConfig, c.Alert, c.AlertRule, c.AppDeployment, c.AppVersion,
+		c.Application, c.DEPToken, c.DepProfile, c.Device, c.DeviceGroup,
+		c.MobileConfig, c.Payload, c.PayloadProperty, c.PayloadPropertyDefinition,
+		c.Profile, c.ProfileAssignment, c.ProfileDeploymentStatus, c.ProfileVersion,
+		c.User,
 	} {
 		n.Use(hooks...)
 	}
@@ -282,10 +301,11 @@ func (c *Client) Use(hooks ...Hook) {
 // In order to add interceptors to a specific client, call: `client.Node.Intercept(...)`.
 func (c *Client) Intercept(interceptors ...Interceptor) {
 	for _, n := range []interface{ Intercept(...Interceptor) }{
-		c.APNSConfig, c.Alert, c.AlertRule, c.DEPToken, c.DepProfile, c.Device,
-		c.DeviceGroup, c.MobileConfig, c.Payload, c.PayloadProperty,
-		c.PayloadPropertyDefinition, c.Profile, c.ProfileAssignment,
-		c.ProfileDeploymentStatus, c.ProfileVersion, c.User,
+		c.APNSConfig, c.Alert, c.AlertRule, c.AppDeployment, c.AppVersion,
+		c.Application, c.DEPToken, c.DepProfile, c.Device, c.DeviceGroup,
+		c.MobileConfig, c.Payload, c.PayloadProperty, c.PayloadPropertyDefinition,
+		c.Profile, c.ProfileAssignment, c.ProfileDeploymentStatus, c.ProfileVersion,
+		c.User,
 	} {
 		n.Intercept(interceptors...)
 	}
@@ -300,6 +320,12 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.Alert.mutate(ctx, m)
 	case *AlertRuleMutation:
 		return c.AlertRule.mutate(ctx, m)
+	case *AppDeploymentMutation:
+		return c.AppDeployment.mutate(ctx, m)
+	case *AppVersionMutation:
+		return c.AppVersion.mutate(ctx, m)
+	case *ApplicationMutation:
+		return c.Application.mutate(ctx, m)
 	case *DEPTokenMutation:
 		return c.DEPToken.mutate(ctx, m)
 	case *DepProfileMutation:
@@ -727,6 +753,469 @@ func (c *AlertRuleClient) mutate(ctx context.Context, m *AlertRuleMutation) (Val
 		return (&AlertRuleDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("ent: unknown AlertRule mutation op: %q", m.Op())
+	}
+}
+
+// AppDeploymentClient is a client for the AppDeployment schema.
+type AppDeploymentClient struct {
+	config
+}
+
+// NewAppDeploymentClient returns a client for the AppDeployment from the given config.
+func NewAppDeploymentClient(c config) *AppDeploymentClient {
+	return &AppDeploymentClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `appdeployment.Hooks(f(g(h())))`.
+func (c *AppDeploymentClient) Use(hooks ...Hook) {
+	c.hooks.AppDeployment = append(c.hooks.AppDeployment, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `appdeployment.Intercept(f(g(h())))`.
+func (c *AppDeploymentClient) Intercept(interceptors ...Interceptor) {
+	c.inters.AppDeployment = append(c.inters.AppDeployment, interceptors...)
+}
+
+// Create returns a builder for creating a AppDeployment entity.
+func (c *AppDeploymentClient) Create() *AppDeploymentCreate {
+	mutation := newAppDeploymentMutation(c.config, OpCreate)
+	return &AppDeploymentCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of AppDeployment entities.
+func (c *AppDeploymentClient) CreateBulk(builders ...*AppDeploymentCreate) *AppDeploymentCreateBulk {
+	return &AppDeploymentCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *AppDeploymentClient) MapCreateBulk(slice any, setFunc func(*AppDeploymentCreate, int)) *AppDeploymentCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &AppDeploymentCreateBulk{err: fmt.Errorf("calling to AppDeploymentClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*AppDeploymentCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &AppDeploymentCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for AppDeployment.
+func (c *AppDeploymentClient) Update() *AppDeploymentUpdate {
+	mutation := newAppDeploymentMutation(c.config, OpUpdate)
+	return &AppDeploymentUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *AppDeploymentClient) UpdateOne(_m *AppDeployment) *AppDeploymentUpdateOne {
+	mutation := newAppDeploymentMutation(c.config, OpUpdateOne, withAppDeployment(_m))
+	return &AppDeploymentUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *AppDeploymentClient) UpdateOneID(id uint) *AppDeploymentUpdateOne {
+	mutation := newAppDeploymentMutation(c.config, OpUpdateOne, withAppDeploymentID(id))
+	return &AppDeploymentUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for AppDeployment.
+func (c *AppDeploymentClient) Delete() *AppDeploymentDelete {
+	mutation := newAppDeploymentMutation(c.config, OpDelete)
+	return &AppDeploymentDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *AppDeploymentClient) DeleteOne(_m *AppDeployment) *AppDeploymentDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *AppDeploymentClient) DeleteOneID(id uint) *AppDeploymentDeleteOne {
+	builder := c.Delete().Where(appdeployment.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &AppDeploymentDeleteOne{builder}
+}
+
+// Query returns a query builder for AppDeployment.
+func (c *AppDeploymentClient) Query() *AppDeploymentQuery {
+	return &AppDeploymentQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeAppDeployment},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a AppDeployment entity by its id.
+func (c *AppDeploymentClient) Get(ctx context.Context, id uint) (*AppDeployment, error) {
+	return c.Query().Where(appdeployment.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *AppDeploymentClient) GetX(ctx context.Context, id uint) *AppDeployment {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryVersion queries the version edge of a AppDeployment.
+func (c *AppDeploymentClient) QueryVersion(_m *AppDeployment) *AppVersionQuery {
+	query := (&AppVersionClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(appdeployment.Table, appdeployment.FieldID, id),
+			sqlgraph.To(appversion.Table, appversion.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, appdeployment.VersionTable, appdeployment.VersionColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *AppDeploymentClient) Hooks() []Hook {
+	return c.hooks.AppDeployment
+}
+
+// Interceptors returns the client interceptors.
+func (c *AppDeploymentClient) Interceptors() []Interceptor {
+	return c.inters.AppDeployment
+}
+
+func (c *AppDeploymentClient) mutate(ctx context.Context, m *AppDeploymentMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&AppDeploymentCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&AppDeploymentUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&AppDeploymentUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&AppDeploymentDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown AppDeployment mutation op: %q", m.Op())
+	}
+}
+
+// AppVersionClient is a client for the AppVersion schema.
+type AppVersionClient struct {
+	config
+}
+
+// NewAppVersionClient returns a client for the AppVersion from the given config.
+func NewAppVersionClient(c config) *AppVersionClient {
+	return &AppVersionClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `appversion.Hooks(f(g(h())))`.
+func (c *AppVersionClient) Use(hooks ...Hook) {
+	c.hooks.AppVersion = append(c.hooks.AppVersion, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `appversion.Intercept(f(g(h())))`.
+func (c *AppVersionClient) Intercept(interceptors ...Interceptor) {
+	c.inters.AppVersion = append(c.inters.AppVersion, interceptors...)
+}
+
+// Create returns a builder for creating a AppVersion entity.
+func (c *AppVersionClient) Create() *AppVersionCreate {
+	mutation := newAppVersionMutation(c.config, OpCreate)
+	return &AppVersionCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of AppVersion entities.
+func (c *AppVersionClient) CreateBulk(builders ...*AppVersionCreate) *AppVersionCreateBulk {
+	return &AppVersionCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *AppVersionClient) MapCreateBulk(slice any, setFunc func(*AppVersionCreate, int)) *AppVersionCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &AppVersionCreateBulk{err: fmt.Errorf("calling to AppVersionClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*AppVersionCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &AppVersionCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for AppVersion.
+func (c *AppVersionClient) Update() *AppVersionUpdate {
+	mutation := newAppVersionMutation(c.config, OpUpdate)
+	return &AppVersionUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *AppVersionClient) UpdateOne(_m *AppVersion) *AppVersionUpdateOne {
+	mutation := newAppVersionMutation(c.config, OpUpdateOne, withAppVersion(_m))
+	return &AppVersionUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *AppVersionClient) UpdateOneID(id uint) *AppVersionUpdateOne {
+	mutation := newAppVersionMutation(c.config, OpUpdateOne, withAppVersionID(id))
+	return &AppVersionUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for AppVersion.
+func (c *AppVersionClient) Delete() *AppVersionDelete {
+	mutation := newAppVersionMutation(c.config, OpDelete)
+	return &AppVersionDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *AppVersionClient) DeleteOne(_m *AppVersion) *AppVersionDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *AppVersionClient) DeleteOneID(id uint) *AppVersionDeleteOne {
+	builder := c.Delete().Where(appversion.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &AppVersionDeleteOne{builder}
+}
+
+// Query returns a query builder for AppVersion.
+func (c *AppVersionClient) Query() *AppVersionQuery {
+	return &AppVersionQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeAppVersion},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a AppVersion entity by its id.
+func (c *AppVersionClient) Get(ctx context.Context, id uint) (*AppVersion, error) {
+	return c.Query().Where(appversion.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *AppVersionClient) GetX(ctx context.Context, id uint) *AppVersion {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryApplication queries the application edge of a AppVersion.
+func (c *AppVersionClient) QueryApplication(_m *AppVersion) *ApplicationQuery {
+	query := (&ApplicationClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(appversion.Table, appversion.FieldID, id),
+			sqlgraph.To(application.Table, application.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, appversion.ApplicationTable, appversion.ApplicationColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryDeployments queries the deployments edge of a AppVersion.
+func (c *AppVersionClient) QueryDeployments(_m *AppVersion) *AppDeploymentQuery {
+	query := (&AppDeploymentClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(appversion.Table, appversion.FieldID, id),
+			sqlgraph.To(appdeployment.Table, appdeployment.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, appversion.DeploymentsTable, appversion.DeploymentsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *AppVersionClient) Hooks() []Hook {
+	return c.hooks.AppVersion
+}
+
+// Interceptors returns the client interceptors.
+func (c *AppVersionClient) Interceptors() []Interceptor {
+	return c.inters.AppVersion
+}
+
+func (c *AppVersionClient) mutate(ctx context.Context, m *AppVersionMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&AppVersionCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&AppVersionUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&AppVersionUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&AppVersionDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown AppVersion mutation op: %q", m.Op())
+	}
+}
+
+// ApplicationClient is a client for the Application schema.
+type ApplicationClient struct {
+	config
+}
+
+// NewApplicationClient returns a client for the Application from the given config.
+func NewApplicationClient(c config) *ApplicationClient {
+	return &ApplicationClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `application.Hooks(f(g(h())))`.
+func (c *ApplicationClient) Use(hooks ...Hook) {
+	c.hooks.Application = append(c.hooks.Application, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `application.Intercept(f(g(h())))`.
+func (c *ApplicationClient) Intercept(interceptors ...Interceptor) {
+	c.inters.Application = append(c.inters.Application, interceptors...)
+}
+
+// Create returns a builder for creating a Application entity.
+func (c *ApplicationClient) Create() *ApplicationCreate {
+	mutation := newApplicationMutation(c.config, OpCreate)
+	return &ApplicationCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of Application entities.
+func (c *ApplicationClient) CreateBulk(builders ...*ApplicationCreate) *ApplicationCreateBulk {
+	return &ApplicationCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *ApplicationClient) MapCreateBulk(slice any, setFunc func(*ApplicationCreate, int)) *ApplicationCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &ApplicationCreateBulk{err: fmt.Errorf("calling to ApplicationClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*ApplicationCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &ApplicationCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for Application.
+func (c *ApplicationClient) Update() *ApplicationUpdate {
+	mutation := newApplicationMutation(c.config, OpUpdate)
+	return &ApplicationUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *ApplicationClient) UpdateOne(_m *Application) *ApplicationUpdateOne {
+	mutation := newApplicationMutation(c.config, OpUpdateOne, withApplication(_m))
+	return &ApplicationUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *ApplicationClient) UpdateOneID(id uint) *ApplicationUpdateOne {
+	mutation := newApplicationMutation(c.config, OpUpdateOne, withApplicationID(id))
+	return &ApplicationUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for Application.
+func (c *ApplicationClient) Delete() *ApplicationDelete {
+	mutation := newApplicationMutation(c.config, OpDelete)
+	return &ApplicationDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *ApplicationClient) DeleteOne(_m *Application) *ApplicationDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *ApplicationClient) DeleteOneID(id uint) *ApplicationDeleteOne {
+	builder := c.Delete().Where(application.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &ApplicationDeleteOne{builder}
+}
+
+// Query returns a query builder for Application.
+func (c *ApplicationClient) Query() *ApplicationQuery {
+	return &ApplicationQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeApplication},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a Application entity by its id.
+func (c *ApplicationClient) Get(ctx context.Context, id uint) (*Application, error) {
+	return c.Query().Where(application.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *ApplicationClient) GetX(ctx context.Context, id uint) *Application {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryVersions queries the versions edge of a Application.
+func (c *ApplicationClient) QueryVersions(_m *Application) *AppVersionQuery {
+	query := (&AppVersionClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(application.Table, application.FieldID, id),
+			sqlgraph.To(appversion.Table, appversion.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, application.VersionsTable, application.VersionsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *ApplicationClient) Hooks() []Hook {
+	return c.hooks.Application
+}
+
+// Interceptors returns the client interceptors.
+func (c *ApplicationClient) Interceptors() []Interceptor {
+	return c.inters.Application
+}
+
+func (c *ApplicationClient) mutate(ctx context.Context, m *ApplicationMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&ApplicationCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&ApplicationUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&ApplicationUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&ApplicationDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown Application mutation op: %q", m.Op())
 	}
 }
 
@@ -2750,14 +3239,15 @@ func (c *UserClient) mutate(ctx context.Context, m *UserMutation) (Value, error)
 // hooks and interceptors per client, for fast access.
 type (
 	hooks struct {
-		APNSConfig, Alert, AlertRule, DEPToken, DepProfile, Device, DeviceGroup,
-		MobileConfig, Payload, PayloadProperty, PayloadPropertyDefinition, Profile,
-		ProfileAssignment, ProfileDeploymentStatus, ProfileVersion, User []ent.Hook
+		APNSConfig, Alert, AlertRule, AppDeployment, AppVersion, Application, DEPToken,
+		DepProfile, Device, DeviceGroup, MobileConfig, Payload, PayloadProperty,
+		PayloadPropertyDefinition, Profile, ProfileAssignment, ProfileDeploymentStatus,
+		ProfileVersion, User []ent.Hook
 	}
 	inters struct {
-		APNSConfig, Alert, AlertRule, DEPToken, DepProfile, Device, DeviceGroup,
-		MobileConfig, Payload, PayloadProperty, PayloadPropertyDefinition, Profile,
-		ProfileAssignment, ProfileDeploymentStatus, ProfileVersion,
-		User []ent.Interceptor
+		APNSConfig, Alert, AlertRule, AppDeployment, AppVersion, Application, DEPToken,
+		DepProfile, Device, DeviceGroup, MobileConfig, Payload, PayloadProperty,
+		PayloadPropertyDefinition, Profile, ProfileAssignment, ProfileDeploymentStatus,
+		ProfileVersion, User []ent.Interceptor
 	}
 )

@@ -46,6 +46,14 @@ func (Device) Fields() []ent.Field {
 		field.String("device_type").Optional(), // iphone, ipad, android_phone, etc.
 		field.Time("last_seen").Optional(),
 		field.Time("enrolled_at").Optional(),
+		// Newly added fields for comprehensive device health & network
+		field.String("mac_address").Optional(),
+		field.String("ip_address").Optional(),
+		field.Float("battery_level").Optional().Comment("Battery level percentage (0-100)"),
+		field.Uint64("storage_capacity").Optional().Comment("Total storage in bytes"),
+		field.Uint64("storage_used").Optional().Comment("Used storage in bytes"),
+		field.Bool("is_jailbroken").Default(false).Comment("True if device is jailbroken/rooted"),
+		field.Enum("enrollment_type").Values("dep", "qr", "manual", "unknown").Default("unknown").Optional(),
 		field.Time("created_at").Default(time.Now).Immutable(),
 		field.Time("updated_at").Default(time.Now).UpdateDefault(time.Now),
 	}

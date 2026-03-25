@@ -115,6 +115,36 @@ func EnrolledAt(v time.Time) predicate.Device {
 	return predicate.Device(sql.FieldEQ(FieldEnrolledAt, v))
 }
 
+// MACAddress applies equality check predicate on the "mac_address" field. It's identical to MACAddressEQ.
+func MACAddress(v string) predicate.Device {
+	return predicate.Device(sql.FieldEQ(FieldMACAddress, v))
+}
+
+// IPAddress applies equality check predicate on the "ip_address" field. It's identical to IPAddressEQ.
+func IPAddress(v string) predicate.Device {
+	return predicate.Device(sql.FieldEQ(FieldIPAddress, v))
+}
+
+// BatteryLevel applies equality check predicate on the "battery_level" field. It's identical to BatteryLevelEQ.
+func BatteryLevel(v float64) predicate.Device {
+	return predicate.Device(sql.FieldEQ(FieldBatteryLevel, v))
+}
+
+// StorageCapacity applies equality check predicate on the "storage_capacity" field. It's identical to StorageCapacityEQ.
+func StorageCapacity(v uint64) predicate.Device {
+	return predicate.Device(sql.FieldEQ(FieldStorageCapacity, v))
+}
+
+// StorageUsed applies equality check predicate on the "storage_used" field. It's identical to StorageUsedEQ.
+func StorageUsed(v uint64) predicate.Device {
+	return predicate.Device(sql.FieldEQ(FieldStorageUsed, v))
+}
+
+// IsJailbroken applies equality check predicate on the "is_jailbroken" field. It's identical to IsJailbrokenEQ.
+func IsJailbroken(v bool) predicate.Device {
+	return predicate.Device(sql.FieldEQ(FieldIsJailbroken, v))
+}
+
 // CreatedAt applies equality check predicate on the "created_at" field. It's identical to CreatedAtEQ.
 func CreatedAt(v time.Time) predicate.Device {
 	return predicate.Device(sql.FieldEQ(FieldCreatedAt, v))
@@ -778,6 +808,346 @@ func EnrolledAtIsNil() predicate.Device {
 // EnrolledAtNotNil applies the NotNil predicate on the "enrolled_at" field.
 func EnrolledAtNotNil() predicate.Device {
 	return predicate.Device(sql.FieldNotNull(FieldEnrolledAt))
+}
+
+// MACAddressEQ applies the EQ predicate on the "mac_address" field.
+func MACAddressEQ(v string) predicate.Device {
+	return predicate.Device(sql.FieldEQ(FieldMACAddress, v))
+}
+
+// MACAddressNEQ applies the NEQ predicate on the "mac_address" field.
+func MACAddressNEQ(v string) predicate.Device {
+	return predicate.Device(sql.FieldNEQ(FieldMACAddress, v))
+}
+
+// MACAddressIn applies the In predicate on the "mac_address" field.
+func MACAddressIn(vs ...string) predicate.Device {
+	return predicate.Device(sql.FieldIn(FieldMACAddress, vs...))
+}
+
+// MACAddressNotIn applies the NotIn predicate on the "mac_address" field.
+func MACAddressNotIn(vs ...string) predicate.Device {
+	return predicate.Device(sql.FieldNotIn(FieldMACAddress, vs...))
+}
+
+// MACAddressGT applies the GT predicate on the "mac_address" field.
+func MACAddressGT(v string) predicate.Device {
+	return predicate.Device(sql.FieldGT(FieldMACAddress, v))
+}
+
+// MACAddressGTE applies the GTE predicate on the "mac_address" field.
+func MACAddressGTE(v string) predicate.Device {
+	return predicate.Device(sql.FieldGTE(FieldMACAddress, v))
+}
+
+// MACAddressLT applies the LT predicate on the "mac_address" field.
+func MACAddressLT(v string) predicate.Device {
+	return predicate.Device(sql.FieldLT(FieldMACAddress, v))
+}
+
+// MACAddressLTE applies the LTE predicate on the "mac_address" field.
+func MACAddressLTE(v string) predicate.Device {
+	return predicate.Device(sql.FieldLTE(FieldMACAddress, v))
+}
+
+// MACAddressContains applies the Contains predicate on the "mac_address" field.
+func MACAddressContains(v string) predicate.Device {
+	return predicate.Device(sql.FieldContains(FieldMACAddress, v))
+}
+
+// MACAddressHasPrefix applies the HasPrefix predicate on the "mac_address" field.
+func MACAddressHasPrefix(v string) predicate.Device {
+	return predicate.Device(sql.FieldHasPrefix(FieldMACAddress, v))
+}
+
+// MACAddressHasSuffix applies the HasSuffix predicate on the "mac_address" field.
+func MACAddressHasSuffix(v string) predicate.Device {
+	return predicate.Device(sql.FieldHasSuffix(FieldMACAddress, v))
+}
+
+// MACAddressIsNil applies the IsNil predicate on the "mac_address" field.
+func MACAddressIsNil() predicate.Device {
+	return predicate.Device(sql.FieldIsNull(FieldMACAddress))
+}
+
+// MACAddressNotNil applies the NotNil predicate on the "mac_address" field.
+func MACAddressNotNil() predicate.Device {
+	return predicate.Device(sql.FieldNotNull(FieldMACAddress))
+}
+
+// MACAddressEqualFold applies the EqualFold predicate on the "mac_address" field.
+func MACAddressEqualFold(v string) predicate.Device {
+	return predicate.Device(sql.FieldEqualFold(FieldMACAddress, v))
+}
+
+// MACAddressContainsFold applies the ContainsFold predicate on the "mac_address" field.
+func MACAddressContainsFold(v string) predicate.Device {
+	return predicate.Device(sql.FieldContainsFold(FieldMACAddress, v))
+}
+
+// IPAddressEQ applies the EQ predicate on the "ip_address" field.
+func IPAddressEQ(v string) predicate.Device {
+	return predicate.Device(sql.FieldEQ(FieldIPAddress, v))
+}
+
+// IPAddressNEQ applies the NEQ predicate on the "ip_address" field.
+func IPAddressNEQ(v string) predicate.Device {
+	return predicate.Device(sql.FieldNEQ(FieldIPAddress, v))
+}
+
+// IPAddressIn applies the In predicate on the "ip_address" field.
+func IPAddressIn(vs ...string) predicate.Device {
+	return predicate.Device(sql.FieldIn(FieldIPAddress, vs...))
+}
+
+// IPAddressNotIn applies the NotIn predicate on the "ip_address" field.
+func IPAddressNotIn(vs ...string) predicate.Device {
+	return predicate.Device(sql.FieldNotIn(FieldIPAddress, vs...))
+}
+
+// IPAddressGT applies the GT predicate on the "ip_address" field.
+func IPAddressGT(v string) predicate.Device {
+	return predicate.Device(sql.FieldGT(FieldIPAddress, v))
+}
+
+// IPAddressGTE applies the GTE predicate on the "ip_address" field.
+func IPAddressGTE(v string) predicate.Device {
+	return predicate.Device(sql.FieldGTE(FieldIPAddress, v))
+}
+
+// IPAddressLT applies the LT predicate on the "ip_address" field.
+func IPAddressLT(v string) predicate.Device {
+	return predicate.Device(sql.FieldLT(FieldIPAddress, v))
+}
+
+// IPAddressLTE applies the LTE predicate on the "ip_address" field.
+func IPAddressLTE(v string) predicate.Device {
+	return predicate.Device(sql.FieldLTE(FieldIPAddress, v))
+}
+
+// IPAddressContains applies the Contains predicate on the "ip_address" field.
+func IPAddressContains(v string) predicate.Device {
+	return predicate.Device(sql.FieldContains(FieldIPAddress, v))
+}
+
+// IPAddressHasPrefix applies the HasPrefix predicate on the "ip_address" field.
+func IPAddressHasPrefix(v string) predicate.Device {
+	return predicate.Device(sql.FieldHasPrefix(FieldIPAddress, v))
+}
+
+// IPAddressHasSuffix applies the HasSuffix predicate on the "ip_address" field.
+func IPAddressHasSuffix(v string) predicate.Device {
+	return predicate.Device(sql.FieldHasSuffix(FieldIPAddress, v))
+}
+
+// IPAddressIsNil applies the IsNil predicate on the "ip_address" field.
+func IPAddressIsNil() predicate.Device {
+	return predicate.Device(sql.FieldIsNull(FieldIPAddress))
+}
+
+// IPAddressNotNil applies the NotNil predicate on the "ip_address" field.
+func IPAddressNotNil() predicate.Device {
+	return predicate.Device(sql.FieldNotNull(FieldIPAddress))
+}
+
+// IPAddressEqualFold applies the EqualFold predicate on the "ip_address" field.
+func IPAddressEqualFold(v string) predicate.Device {
+	return predicate.Device(sql.FieldEqualFold(FieldIPAddress, v))
+}
+
+// IPAddressContainsFold applies the ContainsFold predicate on the "ip_address" field.
+func IPAddressContainsFold(v string) predicate.Device {
+	return predicate.Device(sql.FieldContainsFold(FieldIPAddress, v))
+}
+
+// BatteryLevelEQ applies the EQ predicate on the "battery_level" field.
+func BatteryLevelEQ(v float64) predicate.Device {
+	return predicate.Device(sql.FieldEQ(FieldBatteryLevel, v))
+}
+
+// BatteryLevelNEQ applies the NEQ predicate on the "battery_level" field.
+func BatteryLevelNEQ(v float64) predicate.Device {
+	return predicate.Device(sql.FieldNEQ(FieldBatteryLevel, v))
+}
+
+// BatteryLevelIn applies the In predicate on the "battery_level" field.
+func BatteryLevelIn(vs ...float64) predicate.Device {
+	return predicate.Device(sql.FieldIn(FieldBatteryLevel, vs...))
+}
+
+// BatteryLevelNotIn applies the NotIn predicate on the "battery_level" field.
+func BatteryLevelNotIn(vs ...float64) predicate.Device {
+	return predicate.Device(sql.FieldNotIn(FieldBatteryLevel, vs...))
+}
+
+// BatteryLevelGT applies the GT predicate on the "battery_level" field.
+func BatteryLevelGT(v float64) predicate.Device {
+	return predicate.Device(sql.FieldGT(FieldBatteryLevel, v))
+}
+
+// BatteryLevelGTE applies the GTE predicate on the "battery_level" field.
+func BatteryLevelGTE(v float64) predicate.Device {
+	return predicate.Device(sql.FieldGTE(FieldBatteryLevel, v))
+}
+
+// BatteryLevelLT applies the LT predicate on the "battery_level" field.
+func BatteryLevelLT(v float64) predicate.Device {
+	return predicate.Device(sql.FieldLT(FieldBatteryLevel, v))
+}
+
+// BatteryLevelLTE applies the LTE predicate on the "battery_level" field.
+func BatteryLevelLTE(v float64) predicate.Device {
+	return predicate.Device(sql.FieldLTE(FieldBatteryLevel, v))
+}
+
+// BatteryLevelIsNil applies the IsNil predicate on the "battery_level" field.
+func BatteryLevelIsNil() predicate.Device {
+	return predicate.Device(sql.FieldIsNull(FieldBatteryLevel))
+}
+
+// BatteryLevelNotNil applies the NotNil predicate on the "battery_level" field.
+func BatteryLevelNotNil() predicate.Device {
+	return predicate.Device(sql.FieldNotNull(FieldBatteryLevel))
+}
+
+// StorageCapacityEQ applies the EQ predicate on the "storage_capacity" field.
+func StorageCapacityEQ(v uint64) predicate.Device {
+	return predicate.Device(sql.FieldEQ(FieldStorageCapacity, v))
+}
+
+// StorageCapacityNEQ applies the NEQ predicate on the "storage_capacity" field.
+func StorageCapacityNEQ(v uint64) predicate.Device {
+	return predicate.Device(sql.FieldNEQ(FieldStorageCapacity, v))
+}
+
+// StorageCapacityIn applies the In predicate on the "storage_capacity" field.
+func StorageCapacityIn(vs ...uint64) predicate.Device {
+	return predicate.Device(sql.FieldIn(FieldStorageCapacity, vs...))
+}
+
+// StorageCapacityNotIn applies the NotIn predicate on the "storage_capacity" field.
+func StorageCapacityNotIn(vs ...uint64) predicate.Device {
+	return predicate.Device(sql.FieldNotIn(FieldStorageCapacity, vs...))
+}
+
+// StorageCapacityGT applies the GT predicate on the "storage_capacity" field.
+func StorageCapacityGT(v uint64) predicate.Device {
+	return predicate.Device(sql.FieldGT(FieldStorageCapacity, v))
+}
+
+// StorageCapacityGTE applies the GTE predicate on the "storage_capacity" field.
+func StorageCapacityGTE(v uint64) predicate.Device {
+	return predicate.Device(sql.FieldGTE(FieldStorageCapacity, v))
+}
+
+// StorageCapacityLT applies the LT predicate on the "storage_capacity" field.
+func StorageCapacityLT(v uint64) predicate.Device {
+	return predicate.Device(sql.FieldLT(FieldStorageCapacity, v))
+}
+
+// StorageCapacityLTE applies the LTE predicate on the "storage_capacity" field.
+func StorageCapacityLTE(v uint64) predicate.Device {
+	return predicate.Device(sql.FieldLTE(FieldStorageCapacity, v))
+}
+
+// StorageCapacityIsNil applies the IsNil predicate on the "storage_capacity" field.
+func StorageCapacityIsNil() predicate.Device {
+	return predicate.Device(sql.FieldIsNull(FieldStorageCapacity))
+}
+
+// StorageCapacityNotNil applies the NotNil predicate on the "storage_capacity" field.
+func StorageCapacityNotNil() predicate.Device {
+	return predicate.Device(sql.FieldNotNull(FieldStorageCapacity))
+}
+
+// StorageUsedEQ applies the EQ predicate on the "storage_used" field.
+func StorageUsedEQ(v uint64) predicate.Device {
+	return predicate.Device(sql.FieldEQ(FieldStorageUsed, v))
+}
+
+// StorageUsedNEQ applies the NEQ predicate on the "storage_used" field.
+func StorageUsedNEQ(v uint64) predicate.Device {
+	return predicate.Device(sql.FieldNEQ(FieldStorageUsed, v))
+}
+
+// StorageUsedIn applies the In predicate on the "storage_used" field.
+func StorageUsedIn(vs ...uint64) predicate.Device {
+	return predicate.Device(sql.FieldIn(FieldStorageUsed, vs...))
+}
+
+// StorageUsedNotIn applies the NotIn predicate on the "storage_used" field.
+func StorageUsedNotIn(vs ...uint64) predicate.Device {
+	return predicate.Device(sql.FieldNotIn(FieldStorageUsed, vs...))
+}
+
+// StorageUsedGT applies the GT predicate on the "storage_used" field.
+func StorageUsedGT(v uint64) predicate.Device {
+	return predicate.Device(sql.FieldGT(FieldStorageUsed, v))
+}
+
+// StorageUsedGTE applies the GTE predicate on the "storage_used" field.
+func StorageUsedGTE(v uint64) predicate.Device {
+	return predicate.Device(sql.FieldGTE(FieldStorageUsed, v))
+}
+
+// StorageUsedLT applies the LT predicate on the "storage_used" field.
+func StorageUsedLT(v uint64) predicate.Device {
+	return predicate.Device(sql.FieldLT(FieldStorageUsed, v))
+}
+
+// StorageUsedLTE applies the LTE predicate on the "storage_used" field.
+func StorageUsedLTE(v uint64) predicate.Device {
+	return predicate.Device(sql.FieldLTE(FieldStorageUsed, v))
+}
+
+// StorageUsedIsNil applies the IsNil predicate on the "storage_used" field.
+func StorageUsedIsNil() predicate.Device {
+	return predicate.Device(sql.FieldIsNull(FieldStorageUsed))
+}
+
+// StorageUsedNotNil applies the NotNil predicate on the "storage_used" field.
+func StorageUsedNotNil() predicate.Device {
+	return predicate.Device(sql.FieldNotNull(FieldStorageUsed))
+}
+
+// IsJailbrokenEQ applies the EQ predicate on the "is_jailbroken" field.
+func IsJailbrokenEQ(v bool) predicate.Device {
+	return predicate.Device(sql.FieldEQ(FieldIsJailbroken, v))
+}
+
+// IsJailbrokenNEQ applies the NEQ predicate on the "is_jailbroken" field.
+func IsJailbrokenNEQ(v bool) predicate.Device {
+	return predicate.Device(sql.FieldNEQ(FieldIsJailbroken, v))
+}
+
+// EnrollmentTypeEQ applies the EQ predicate on the "enrollment_type" field.
+func EnrollmentTypeEQ(v EnrollmentType) predicate.Device {
+	return predicate.Device(sql.FieldEQ(FieldEnrollmentType, v))
+}
+
+// EnrollmentTypeNEQ applies the NEQ predicate on the "enrollment_type" field.
+func EnrollmentTypeNEQ(v EnrollmentType) predicate.Device {
+	return predicate.Device(sql.FieldNEQ(FieldEnrollmentType, v))
+}
+
+// EnrollmentTypeIn applies the In predicate on the "enrollment_type" field.
+func EnrollmentTypeIn(vs ...EnrollmentType) predicate.Device {
+	return predicate.Device(sql.FieldIn(FieldEnrollmentType, vs...))
+}
+
+// EnrollmentTypeNotIn applies the NotIn predicate on the "enrollment_type" field.
+func EnrollmentTypeNotIn(vs ...EnrollmentType) predicate.Device {
+	return predicate.Device(sql.FieldNotIn(FieldEnrollmentType, vs...))
+}
+
+// EnrollmentTypeIsNil applies the IsNil predicate on the "enrollment_type" field.
+func EnrollmentTypeIsNil() predicate.Device {
+	return predicate.Device(sql.FieldIsNull(FieldEnrollmentType))
+}
+
+// EnrollmentTypeNotNil applies the NotNil predicate on the "enrollment_type" field.
+func EnrollmentTypeNotNil() predicate.Device {
+	return predicate.Device(sql.FieldNotNull(FieldEnrollmentType))
 }
 
 // CreatedAtEQ applies the EQ predicate on the "created_at" field.

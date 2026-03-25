@@ -24,6 +24,7 @@ type routeRegister struct {
 	device       handler.DeviceHandler
 	deviceGroup  handler.DeviceGroupHandler
 	profile      handler.ProfileHandler
+	application  handler.ApplicationHandler
 	mw           *middleware.Middleware
 }
 
@@ -40,6 +41,7 @@ func SetupRouter(
 	deviceHandler handler.DeviceHandler,
 	deviceGroupHandler handler.DeviceGroupHandler,
 	profileHandler handler.ProfileHandler,
+	applicationHandler handler.ApplicationHandler,
 	mw *middleware.Middleware,
 ) *gin.Engine {
 
@@ -55,6 +57,7 @@ func SetupRouter(
 		device:       deviceHandler,
 		deviceGroup:  deviceGroupHandler,
 		profile:      profileHandler,
+		application:  applicationHandler,
 		mw:           mw,
 	}
 
@@ -87,6 +90,7 @@ func SetupRouter(
 			routes.registerDeviceRoutes(protected)
 			routes.registerDeviceGroupRoutes(protected)
 			routes.registerProfileRoutes(protected)
+			routes.registerApplicationRoutes(protected)
 		}
 	}
 
@@ -281,5 +285,26 @@ func (r *routeRegister) registerProfileRoutes(rg *gin.RouterGroup) {
 		profiles.GET("/:id/deployment-status", r.profile.GetDeploymentStatus)
 		profiles.POST("/:id/repush", r.profile.Repush)
 		profiles.POST("/:id/duplicate", r.profile.Duplicate)
+	}
+}
+
+func (r *routeRegister) registerApplicationRoutes(rg *gin.RouterGroup) {
+	apps := rg.Group("/applications")
+	{
+		apps.GET("", r.application.List)
+		apps.POST("", r.application.Create)
+		apps.GET("/:id", r.application.GetByID)
+		apps.PUT("/:id", r.application.Update)
+		apps.DELETE("/:id", r.application.Delete)
+
+		versions := apps.Group("/:id/versions")
+		{
+			versions.GET("", r.application.ListVersions)
+			versions.POST("", r.application.CreateVersion)
+			versions.DELETE("/:versionId", r.application.DeleteVersion)
+			versions.GET("/:versionId/deployments", r.application.ListDeployments)
+		}
+		
+		apps.POST("/deployments", r.application.Deploy)
 	}
 }

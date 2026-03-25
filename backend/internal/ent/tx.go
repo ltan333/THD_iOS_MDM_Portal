@@ -18,6 +18,12 @@ type Tx struct {
 	Alert *AlertClient
 	// AlertRule is the client for interacting with the AlertRule builders.
 	AlertRule *AlertRuleClient
+	// AppDeployment is the client for interacting with the AppDeployment builders.
+	AppDeployment *AppDeploymentClient
+	// AppVersion is the client for interacting with the AppVersion builders.
+	AppVersion *AppVersionClient
+	// Application is the client for interacting with the Application builders.
+	Application *ApplicationClient
 	// DEPToken is the client for interacting with the DEPToken builders.
 	DEPToken *DEPTokenClient
 	// DepProfile is the client for interacting with the DepProfile builders.
@@ -178,6 +184,9 @@ func (tx *Tx) init() {
 	tx.APNSConfig = NewAPNSConfigClient(tx.config)
 	tx.Alert = NewAlertClient(tx.config)
 	tx.AlertRule = NewAlertRuleClient(tx.config)
+	tx.AppDeployment = NewAppDeploymentClient(tx.config)
+	tx.AppVersion = NewAppVersionClient(tx.config)
+	tx.Application = NewApplicationClient(tx.config)
 	tx.DEPToken = NewDEPTokenClient(tx.config)
 	tx.DepProfile = NewDepProfileClient(tx.config)
 	tx.Device = NewDeviceClient(tx.config)

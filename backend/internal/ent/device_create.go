@@ -204,6 +204,104 @@ func (_c *DeviceCreate) SetNillableEnrolledAt(v *time.Time) *DeviceCreate {
 	return _c
 }
 
+// SetMACAddress sets the "mac_address" field.
+func (_c *DeviceCreate) SetMACAddress(v string) *DeviceCreate {
+	_c.mutation.SetMACAddress(v)
+	return _c
+}
+
+// SetNillableMACAddress sets the "mac_address" field if the given value is not nil.
+func (_c *DeviceCreate) SetNillableMACAddress(v *string) *DeviceCreate {
+	if v != nil {
+		_c.SetMACAddress(*v)
+	}
+	return _c
+}
+
+// SetIPAddress sets the "ip_address" field.
+func (_c *DeviceCreate) SetIPAddress(v string) *DeviceCreate {
+	_c.mutation.SetIPAddress(v)
+	return _c
+}
+
+// SetNillableIPAddress sets the "ip_address" field if the given value is not nil.
+func (_c *DeviceCreate) SetNillableIPAddress(v *string) *DeviceCreate {
+	if v != nil {
+		_c.SetIPAddress(*v)
+	}
+	return _c
+}
+
+// SetBatteryLevel sets the "battery_level" field.
+func (_c *DeviceCreate) SetBatteryLevel(v float64) *DeviceCreate {
+	_c.mutation.SetBatteryLevel(v)
+	return _c
+}
+
+// SetNillableBatteryLevel sets the "battery_level" field if the given value is not nil.
+func (_c *DeviceCreate) SetNillableBatteryLevel(v *float64) *DeviceCreate {
+	if v != nil {
+		_c.SetBatteryLevel(*v)
+	}
+	return _c
+}
+
+// SetStorageCapacity sets the "storage_capacity" field.
+func (_c *DeviceCreate) SetStorageCapacity(v uint64) *DeviceCreate {
+	_c.mutation.SetStorageCapacity(v)
+	return _c
+}
+
+// SetNillableStorageCapacity sets the "storage_capacity" field if the given value is not nil.
+func (_c *DeviceCreate) SetNillableStorageCapacity(v *uint64) *DeviceCreate {
+	if v != nil {
+		_c.SetStorageCapacity(*v)
+	}
+	return _c
+}
+
+// SetStorageUsed sets the "storage_used" field.
+func (_c *DeviceCreate) SetStorageUsed(v uint64) *DeviceCreate {
+	_c.mutation.SetStorageUsed(v)
+	return _c
+}
+
+// SetNillableStorageUsed sets the "storage_used" field if the given value is not nil.
+func (_c *DeviceCreate) SetNillableStorageUsed(v *uint64) *DeviceCreate {
+	if v != nil {
+		_c.SetStorageUsed(*v)
+	}
+	return _c
+}
+
+// SetIsJailbroken sets the "is_jailbroken" field.
+func (_c *DeviceCreate) SetIsJailbroken(v bool) *DeviceCreate {
+	_c.mutation.SetIsJailbroken(v)
+	return _c
+}
+
+// SetNillableIsJailbroken sets the "is_jailbroken" field if the given value is not nil.
+func (_c *DeviceCreate) SetNillableIsJailbroken(v *bool) *DeviceCreate {
+	if v != nil {
+		_c.SetIsJailbroken(*v)
+	}
+	return _c
+}
+
+// SetEnrollmentType sets the "enrollment_type" field.
+func (_c *DeviceCreate) SetEnrollmentType(v device.EnrollmentType) *DeviceCreate {
+	_c.mutation.SetEnrollmentType(v)
+	return _c
+}
+
+// SetNillableEnrollmentType sets the "enrollment_type" field if the given value is not nil.
+func (_c *DeviceCreate) SetNillableEnrollmentType(v *device.EnrollmentType) *DeviceCreate {
+	if v != nil {
+		_c.SetEnrollmentType(*v)
+	}
+	return _c
+}
+
 // SetCreatedAt sets the "created_at" field.
 func (_c *DeviceCreate) SetCreatedAt(v time.Time) *DeviceCreate {
 	_c.mutation.SetCreatedAt(v)
@@ -309,6 +407,14 @@ func (_c *DeviceCreate) defaults() {
 		v := device.DefaultComplianceStatus
 		_c.mutation.SetComplianceStatus(v)
 	}
+	if _, ok := _c.mutation.IsJailbroken(); !ok {
+		v := device.DefaultIsJailbroken
+		_c.mutation.SetIsJailbroken(v)
+	}
+	if _, ok := _c.mutation.EnrollmentType(); !ok {
+		v := device.DefaultEnrollmentType
+		_c.mutation.SetEnrollmentType(v)
+	}
 	if _, ok := _c.mutation.CreatedAt(); !ok {
 		v := device.DefaultCreatedAt()
 		_c.mutation.SetCreatedAt(v)
@@ -337,6 +443,14 @@ func (_c *DeviceCreate) check() error {
 	if v, ok := _c.mutation.ComplianceStatus(); ok {
 		if err := device.ComplianceStatusValidator(v); err != nil {
 			return &ValidationError{Name: "compliance_status", err: fmt.Errorf(`ent: validator failed for field "Device.compliance_status": %w`, err)}
+		}
+	}
+	if _, ok := _c.mutation.IsJailbroken(); !ok {
+		return &ValidationError{Name: "is_jailbroken", err: errors.New(`ent: missing required field "Device.is_jailbroken"`)}
+	}
+	if v, ok := _c.mutation.EnrollmentType(); ok {
+		if err := device.EnrollmentTypeValidator(v); err != nil {
+			return &ValidationError{Name: "enrollment_type", err: fmt.Errorf(`ent: validator failed for field "Device.enrollment_type": %w`, err)}
 		}
 	}
 	if _, ok := _c.mutation.CreatedAt(); !ok {
@@ -432,6 +546,34 @@ func (_c *DeviceCreate) createSpec() (*Device, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.EnrolledAt(); ok {
 		_spec.SetField(device.FieldEnrolledAt, field.TypeTime, value)
 		_node.EnrolledAt = value
+	}
+	if value, ok := _c.mutation.MACAddress(); ok {
+		_spec.SetField(device.FieldMACAddress, field.TypeString, value)
+		_node.MACAddress = value
+	}
+	if value, ok := _c.mutation.IPAddress(); ok {
+		_spec.SetField(device.FieldIPAddress, field.TypeString, value)
+		_node.IPAddress = value
+	}
+	if value, ok := _c.mutation.BatteryLevel(); ok {
+		_spec.SetField(device.FieldBatteryLevel, field.TypeFloat64, value)
+		_node.BatteryLevel = value
+	}
+	if value, ok := _c.mutation.StorageCapacity(); ok {
+		_spec.SetField(device.FieldStorageCapacity, field.TypeUint64, value)
+		_node.StorageCapacity = value
+	}
+	if value, ok := _c.mutation.StorageUsed(); ok {
+		_spec.SetField(device.FieldStorageUsed, field.TypeUint64, value)
+		_node.StorageUsed = value
+	}
+	if value, ok := _c.mutation.IsJailbroken(); ok {
+		_spec.SetField(device.FieldIsJailbroken, field.TypeBool, value)
+		_node.IsJailbroken = value
+	}
+	if value, ok := _c.mutation.EnrollmentType(); ok {
+		_spec.SetField(device.FieldEnrollmentType, field.TypeEnum, value)
+		_node.EnrollmentType = value
 	}
 	if value, ok := _c.mutation.CreatedAt(); ok {
 		_spec.SetField(device.FieldCreatedAt, field.TypeTime, value)

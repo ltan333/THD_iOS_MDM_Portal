@@ -55,6 +55,7 @@ func setupDependencies(cfg *config.Config) *gin.Engine {
 	deviceService := serviceimpl.NewDeviceService(client)
 	deviceGroupService := serviceimpl.NewDeviceGroupService(client)
 	profileService := serviceimpl.NewProfileService(client)
+	applicationService := serviceimpl.NewApplicationService(client)
 
 	// Middleware
 	origins := strings.Join(cfg.CORSAllowedOrigins, ",")
@@ -72,7 +73,8 @@ func setupDependencies(cfg *config.Config) *gin.Engine {
 	deviceHandler := handler.NewDeviceHandler(deviceService, nanocmdService)
 	deviceGroupHandler := handler.NewDeviceGroupHandler(deviceGroupService)
 	profileHandler := handler.NewProfileHandler(profileService)
+	applicationHandler := handler.NewApplicationHandler(applicationService)
 
 	// Build router
-	return router.SetupRouter(authHandler, userHandler, policyHandler, mdmHandler, depHandler, nanocmdHandler, mobileConfigHandler, dashboardHandler, deviceHandler, deviceGroupHandler, profileHandler, mw)
+	return router.SetupRouter(authHandler, userHandler, policyHandler, mdmHandler, depHandler, nanocmdHandler, mobileConfigHandler, dashboardHandler, deviceHandler, deviceGroupHandler, profileHandler, applicationHandler, mw)
 }
