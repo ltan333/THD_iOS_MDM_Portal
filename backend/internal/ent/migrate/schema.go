@@ -204,6 +204,7 @@ var (
 		{Name: "value_type", Type: field.TypeString},
 		{Name: "default_value", Type: field.TypeJSON, Nullable: true},
 		{Name: "enum_values", Type: field.TypeJSON, Nullable: true},
+		{Name: "deprecated", Type: field.TypeBool, Default: false},
 		{Name: "description", Type: field.TypeString, Nullable: true},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},

@@ -24,6 +24,8 @@ const (
 	FieldDefaultValue = "default_value"
 	// FieldEnumValues holds the string denoting the enum_values field in the database.
 	FieldEnumValues = "enum_values"
+	// FieldDeprecated holds the string denoting the deprecated field in the database.
+	FieldDeprecated = "deprecated"
 	// FieldDescription holds the string denoting the description field in the database.
 	FieldDescription = "description"
 	// FieldCreatedAt holds the string denoting the created_at field in the database.
@@ -53,6 +55,7 @@ var Columns = []string{
 	FieldValueType,
 	FieldDefaultValue,
 	FieldEnumValues,
+	FieldDeprecated,
 	FieldDescription,
 	FieldCreatedAt,
 	FieldUpdatedAt,
@@ -76,6 +79,8 @@ var (
 	KeyValidator func(string) error
 	// ValueTypeValidator is a validator for the "value_type" field. It is called by the builders before save.
 	ValueTypeValidator func(string) error
+	// DefaultDeprecated holds the default value on creation for the "deprecated" field.
+	DefaultDeprecated bool
 	// DefaultCreatedAt holds the default value on creation for the "created_at" field.
 	DefaultCreatedAt func() time.Time
 	// DefaultUpdatedAt holds the default value on creation for the "updated_at" field.
@@ -105,6 +110,11 @@ func ByKey(opts ...sql.OrderTermOption) OrderOption {
 // ByValueType orders the results by the value_type field.
 func ByValueType(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldValueType, opts...).ToFunc()
+}
+
+// ByDeprecated orders the results by the deprecated field.
+func ByDeprecated(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldDeprecated, opts...).ToFunc()
 }
 
 // ByDescription orders the results by the description field.

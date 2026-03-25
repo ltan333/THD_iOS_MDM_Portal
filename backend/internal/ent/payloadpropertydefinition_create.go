@@ -51,6 +51,20 @@ func (_c *PayloadPropertyDefinitionCreate) SetEnumValues(v []interface{}) *Paylo
 	return _c
 }
 
+// SetDeprecated sets the "deprecated" field.
+func (_c *PayloadPropertyDefinitionCreate) SetDeprecated(v bool) *PayloadPropertyDefinitionCreate {
+	_c.mutation.SetDeprecated(v)
+	return _c
+}
+
+// SetNillableDeprecated sets the "deprecated" field if the given value is not nil.
+func (_c *PayloadPropertyDefinitionCreate) SetNillableDeprecated(v *bool) *PayloadPropertyDefinitionCreate {
+	if v != nil {
+		_c.SetDeprecated(*v)
+	}
+	return _c
+}
+
 // SetDescription sets the "description" field.
 func (_c *PayloadPropertyDefinitionCreate) SetDescription(v string) *PayloadPropertyDefinitionCreate {
 	_c.mutation.SetDescription(v)
@@ -157,6 +171,10 @@ func (_c *PayloadPropertyDefinitionCreate) ExecX(ctx context.Context) {
 
 // defaults sets the default values of the builder before save.
 func (_c *PayloadPropertyDefinitionCreate) defaults() {
+	if _, ok := _c.mutation.Deprecated(); !ok {
+		v := payloadpropertydefinition.DefaultDeprecated
+		_c.mutation.SetDeprecated(v)
+	}
 	if _, ok := _c.mutation.CreatedAt(); !ok {
 		v := payloadpropertydefinition.DefaultCreatedAt()
 		_c.mutation.SetCreatedAt(v)
@@ -192,6 +210,9 @@ func (_c *PayloadPropertyDefinitionCreate) check() error {
 		if err := payloadpropertydefinition.ValueTypeValidator(v); err != nil {
 			return &ValidationError{Name: "value_type", err: fmt.Errorf(`ent: validator failed for field "PayloadPropertyDefinition.value_type": %w`, err)}
 		}
+	}
+	if _, ok := _c.mutation.Deprecated(); !ok {
+		return &ValidationError{Name: "deprecated", err: errors.New(`ent: missing required field "PayloadPropertyDefinition.deprecated"`)}
 	}
 	if _, ok := _c.mutation.CreatedAt(); !ok {
 		return &ValidationError{Name: "created_at", err: errors.New(`ent: missing required field "PayloadPropertyDefinition.created_at"`)}
@@ -244,6 +265,10 @@ func (_c *PayloadPropertyDefinitionCreate) createSpec() (*PayloadPropertyDefinit
 	if value, ok := _c.mutation.EnumValues(); ok {
 		_spec.SetField(payloadpropertydefinition.FieldEnumValues, field.TypeJSON, value)
 		_node.EnumValues = value
+	}
+	if value, ok := _c.mutation.Deprecated(); ok {
+		_spec.SetField(payloadpropertydefinition.FieldDeprecated, field.TypeBool, value)
+		_node.Deprecated = value
 	}
 	if value, ok := _c.mutation.Description(); ok {
 		_spec.SetField(payloadpropertydefinition.FieldDescription, field.TypeString, value)

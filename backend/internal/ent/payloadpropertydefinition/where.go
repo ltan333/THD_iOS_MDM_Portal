@@ -70,6 +70,11 @@ func ValueType(v string) predicate.PayloadPropertyDefinition {
 	return predicate.PayloadPropertyDefinition(sql.FieldEQ(FieldValueType, v))
 }
 
+// Deprecated applies equality check predicate on the "deprecated" field. It's identical to DeprecatedEQ.
+func Deprecated(v bool) predicate.PayloadPropertyDefinition {
+	return predicate.PayloadPropertyDefinition(sql.FieldEQ(FieldDeprecated, v))
+}
+
 // Description applies equality check predicate on the "description" field. It's identical to DescriptionEQ.
 func Description(v string) predicate.PayloadPropertyDefinition {
 	return predicate.PayloadPropertyDefinition(sql.FieldEQ(FieldDescription, v))
@@ -303,6 +308,16 @@ func EnumValuesIsNil() predicate.PayloadPropertyDefinition {
 // EnumValuesNotNil applies the NotNil predicate on the "enum_values" field.
 func EnumValuesNotNil() predicate.PayloadPropertyDefinition {
 	return predicate.PayloadPropertyDefinition(sql.FieldNotNull(FieldEnumValues))
+}
+
+// DeprecatedEQ applies the EQ predicate on the "deprecated" field.
+func DeprecatedEQ(v bool) predicate.PayloadPropertyDefinition {
+	return predicate.PayloadPropertyDefinition(sql.FieldEQ(FieldDeprecated, v))
+}
+
+// DeprecatedNEQ applies the NEQ predicate on the "deprecated" field.
+func DeprecatedNEQ(v bool) predicate.PayloadPropertyDefinition {
+	return predicate.PayloadPropertyDefinition(sql.FieldNEQ(FieldDeprecated, v))
 }
 
 // DescriptionEQ applies the EQ predicate on the "description" field.

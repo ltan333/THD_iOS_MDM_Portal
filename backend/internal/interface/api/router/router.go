@@ -19,6 +19,8 @@ type routeRegister struct {
 	mdm     handler.MDMHandler
 	dep     handler.DEPHandler
 	nanocmd handler.NanoCMDHandler
+	mc      handler.MobileConfigHandler
+	ppd     handler.PayloadPropertyDefinitionHandler
 	mw      *middleware.Middleware
 }
 
@@ -30,6 +32,8 @@ func SetupRouter(
 	mdmHandler handler.MDMHandler,
 	depHandler handler.DEPHandler,
 	nanocmdHandler handler.NanoCMDHandler,
+	mobileConfigHandler handler.MobileConfigHandler,
+	payloadPropertyDefinitionHandler handler.PayloadPropertyDefinitionHandler,
 	mw *middleware.Middleware,
 ) *gin.Engine {
 
@@ -40,6 +44,8 @@ func SetupRouter(
 		mdm:     mdmHandler,
 		dep:     depHandler,
 		nanocmd: nanocmdHandler,
+		mc:      mobileConfigHandler,
+		ppd:     payloadPropertyDefinitionHandler,
 		mw:      mw,
 	}
 
@@ -58,6 +64,8 @@ func SetupRouter(
 	v1 := api.Group("/v1")
 	{
 		routes.registerAuthRoutes(v1)
+		routes.registerMobileConfigRoutes(v1)
+		routes.registerPayloadPropertyDefinitionRoutes(v1)
 
 		// Protected V1 routes
 		protected := v1.Group("", mw.Auth(), mw.Authorize())
@@ -177,5 +185,27 @@ func (r *routeRegister) registerNanoCMDRoutes(rg *gin.RouterGroup) {
 		nanocmd.GET("/cmdplan/:name", r.nanocmd.GetCMDPlan)
 		nanocmd.PUT("/cmdplan/:name", r.nanocmd.PutCMDPlan)
 		nanocmd.GET("/inventory", r.nanocmd.GetInventory)
+	}
+}
+
+func (r *routeRegister) registerMobileConfigRoutes(rg *gin.RouterGroup) {
+	mobileConfigs := rg.Group("/mobile-configs")
+	{
+		mobileConfigs.POST("", r.mc.Create)
+		mobileConfigs.PUT("/:id", r.mc.Update)
+		mobileConfigs.DELETE("/:id", r.mc.Delete)
+		mobileConfigs.GET("/:id/xml", r.mc.GetXML)
+	}
+}
+
+func (r *routeRegister) registerPayloadPropertyDefinitionRoutes(rg *gin.RouterGroup) {
+	definitions := rg.Group("/payload-property-definitions")
+	{
+		definitions.GET("", r.ppd.List)
+		definitions.GET("/:id", r.ppd.GetByID)
+		definitions.POST("", r.ppd.Create)
+		definitions.PUT("/:id", r.ppd.Update)
+		definitions.DELETE("/:id", r.ppd.Delete)
+		definitions.POST("/import", r.ppd.Import)
 	}
 }
