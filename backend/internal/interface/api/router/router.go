@@ -25,6 +25,7 @@ type routeRegister struct {
 	deviceGroup  handler.DeviceGroupHandler
 	profile      handler.ProfileHandler
 	application  handler.ApplicationHandler
+	alert        handler.AlertHandler
 	mw           *middleware.Middleware
 }
 
@@ -42,6 +43,7 @@ func SetupRouter(
 	deviceGroupHandler handler.DeviceGroupHandler,
 	profileHandler handler.ProfileHandler,
 	applicationHandler handler.ApplicationHandler,
+	alertHandler handler.AlertHandler,
 	mw *middleware.Middleware,
 ) *gin.Engine {
 
@@ -58,6 +60,7 @@ func SetupRouter(
 		deviceGroup:  deviceGroupHandler,
 		profile:      profileHandler,
 		application:  applicationHandler,
+		alert:        alertHandler,
 		mw:           mw,
 	}
 
@@ -91,6 +94,7 @@ func SetupRouter(
 			routes.registerDeviceGroupRoutes(protected)
 			routes.registerProfileRoutes(protected)
 			routes.registerApplicationRoutes(protected)
+			routes.registerAlertRoutes(protected)
 		}
 	}
 
@@ -306,5 +310,37 @@ func (r *routeRegister) registerApplicationRoutes(rg *gin.RouterGroup) {
 		}
 		
 		apps.POST("/deployments", r.application.Deploy)
+	}
+}
+
+func (r *routeRegister) registerAlertRoutes(rg *gin.RouterGroup) {
+	alerts := rg.Group("/alerts")
+	{
+		alerts.GET("", r.alert.List)
+		alerts.POST("", r.alert.Create)
+		alerts.GET("/stats", r.alert.GetStats) // Needs to be above /:id
+		alerts.GET("/:id", r.alert.GetByID)
+		
+		alerts.PUT("/:id/acknowledge", r.alert.Acknowledge)
+		alerts.PUT("/:id/resolve", r.alert.Resolve)
+		alerts.POST("/bulk-resolve", r.alert.BulkResolve)
+
+		actions := alerts.Group("/:id/actions")
+		{
+			actions.POST("/lock", r.alert.LockDevice)
+			actions.POST("/wipe", r.alert.WipeDevice)
+			actions.POST("/push-policy", r.alert.PushPolicy)
+			actions.POST("/message", r.alert.SendMessage)
+		}
+
+		rules := alerts.Group("/rules")
+		{
+			rules.GET("", r.alert.ListRules)
+			rules.POST("", r.alert.CreateRule)
+			rules.GET("/:id", r.alert.GetRuleByID)
+			rules.PUT("/:id", r.alert.UpdateRule)
+			rules.DELETE("/:id", r.alert.DeleteRule)
+			rules.PUT("/:id/toggle", r.alert.ToggleRule)
+		}
 	}
 }
