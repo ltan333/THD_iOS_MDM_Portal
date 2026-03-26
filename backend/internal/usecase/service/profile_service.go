@@ -35,8 +35,9 @@ type UpdateProfileCommand struct {
 
 type AssignProfileCommand struct {
 	ProfileID    uint
-	TargetType   string // device, group, user
-	TargetID     string
+	TargetType   string // device, group
+	DeviceID     *string
+	GroupID      *uint
 	ScheduleType string // immediate, scheduled
 	ScheduledAt  *time.Time
 }

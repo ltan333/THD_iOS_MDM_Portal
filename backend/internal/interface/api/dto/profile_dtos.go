@@ -113,8 +113,9 @@ type UpdateComplianceRulesRequest struct {
 
 // AssignProfileRequest represents the request to assign a profile
 type AssignProfileRequest struct {
-	TargetType   string     `json:"target_type" binding:"required,oneof=device group user"`
-	TargetID     string     `json:"target_id" binding:"required"`
+	TargetType   string     `json:"target_type" binding:"required,oneof=device group"`
+	DeviceID     *string    `json:"device_id,omitempty"`
+	GroupID      *uint      `json:"group_id,omitempty"`
 	ScheduleType string     `json:"schedule_type,omitempty"` // immediate, scheduled
 	ScheduledAt  *time.Time `json:"scheduled_at,omitempty"`
 }
@@ -142,7 +143,8 @@ type ProfileAssignmentResponse struct {
 	ID           uint       `json:"id"`
 	ProfileID    uint       `json:"profile_id"`
 	TargetType   string     `json:"target_type"`
-	TargetID     string     `json:"target_id"`
+	DeviceID     *string    `json:"device_id,omitempty"`
+	GroupID      *uint      `json:"group_id,omitempty"`
 	ScheduleType string     `json:"schedule_type"`
 	ScheduledAt  *time.Time `json:"scheduled_at,omitempty"`
 	CreatedAt    time.Time  `json:"created_at"`

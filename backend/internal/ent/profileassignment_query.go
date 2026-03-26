@@ -11,6 +11,8 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/thienel/go-backend-template/internal/ent/device"
+	"github.com/thienel/go-backend-template/internal/ent/devicegroup"
 	"github.com/thienel/go-backend-template/internal/ent/predicate"
 	"github.com/thienel/go-backend-template/internal/ent/profile"
 	"github.com/thienel/go-backend-template/internal/ent/profileassignment"
@@ -24,6 +26,8 @@ type ProfileAssignmentQuery struct {
 	inters      []Interceptor
 	predicates  []predicate.ProfileAssignment
 	withProfile *ProfileQuery
+	withDevice  *DeviceQuery
+	withGroup   *DeviceGroupQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -75,6 +79,50 @@ func (_q *ProfileAssignmentQuery) QueryProfile() *ProfileQuery {
 			sqlgraph.From(profileassignment.Table, profileassignment.FieldID, selector),
 			sqlgraph.To(profile.Table, profile.FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, true, profileassignment.ProfileTable, profileassignment.ProfileColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryDevice chains the current query on the "device" edge.
+func (_q *ProfileAssignmentQuery) QueryDevice() *DeviceQuery {
+	query := (&DeviceClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(profileassignment.Table, profileassignment.FieldID, selector),
+			sqlgraph.To(device.Table, device.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, profileassignment.DeviceTable, profileassignment.DeviceColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryGroup chains the current query on the "group" edge.
+func (_q *ProfileAssignmentQuery) QueryGroup() *DeviceGroupQuery {
+	query := (&DeviceGroupClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(profileassignment.Table, profileassignment.FieldID, selector),
+			sqlgraph.To(devicegroup.Table, devicegroup.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, profileassignment.GroupTable, profileassignment.GroupColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
@@ -275,6 +323,8 @@ func (_q *ProfileAssignmentQuery) Clone() *ProfileAssignmentQuery {
 		inters:      append([]Interceptor{}, _q.inters...),
 		predicates:  append([]predicate.ProfileAssignment{}, _q.predicates...),
 		withProfile: _q.withProfile.Clone(),
+		withDevice:  _q.withDevice.Clone(),
+		withGroup:   _q.withGroup.Clone(),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
 		path: _q.path,
@@ -289,6 +339,28 @@ func (_q *ProfileAssignmentQuery) WithProfile(opts ...func(*ProfileQuery)) *Prof
 		opt(query)
 	}
 	_q.withProfile = query
+	return _q
+}
+
+// WithDevice tells the query-builder to eager-load the nodes that are connected to
+// the "device" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *ProfileAssignmentQuery) WithDevice(opts ...func(*DeviceQuery)) *ProfileAssignmentQuery {
+	query := (&DeviceClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withDevice = query
+	return _q
+}
+
+// WithGroup tells the query-builder to eager-load the nodes that are connected to
+// the "group" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *ProfileAssignmentQuery) WithGroup(opts ...func(*DeviceGroupQuery)) *ProfileAssignmentQuery {
+	query := (&DeviceGroupClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withGroup = query
 	return _q
 }
 
@@ -370,8 +442,10 @@ func (_q *ProfileAssignmentQuery) sqlAll(ctx context.Context, hooks ...queryHook
 	var (
 		nodes       = []*ProfileAssignment{}
 		_spec       = _q.querySpec()
-		loadedTypes = [1]bool{
+		loadedTypes = [3]bool{
 			_q.withProfile != nil,
+			_q.withDevice != nil,
+			_q.withGroup != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -395,6 +469,18 @@ func (_q *ProfileAssignmentQuery) sqlAll(ctx context.Context, hooks ...queryHook
 	if query := _q.withProfile; query != nil {
 		if err := _q.loadProfile(ctx, query, nodes, nil,
 			func(n *ProfileAssignment, e *Profile) { n.Edges.Profile = e }); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withDevice; query != nil {
+		if err := _q.loadDevice(ctx, query, nodes, nil,
+			func(n *ProfileAssignment, e *Device) { n.Edges.Device = e }); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withGroup; query != nil {
+		if err := _q.loadGroup(ctx, query, nodes, nil,
+			func(n *ProfileAssignment, e *DeviceGroup) { n.Edges.Group = e }); err != nil {
 			return nil, err
 		}
 	}
@@ -430,6 +516,70 @@ func (_q *ProfileAssignmentQuery) loadProfile(ctx context.Context, query *Profil
 	}
 	return nil
 }
+func (_q *ProfileAssignmentQuery) loadDevice(ctx context.Context, query *DeviceQuery, nodes []*ProfileAssignment, init func(*ProfileAssignment), assign func(*ProfileAssignment, *Device)) error {
+	ids := make([]string, 0, len(nodes))
+	nodeids := make(map[string][]*ProfileAssignment)
+	for i := range nodes {
+		if nodes[i].DeviceID == nil {
+			continue
+		}
+		fk := *nodes[i].DeviceID
+		if _, ok := nodeids[fk]; !ok {
+			ids = append(ids, fk)
+		}
+		nodeids[fk] = append(nodeids[fk], nodes[i])
+	}
+	if len(ids) == 0 {
+		return nil
+	}
+	query.Where(device.IDIn(ids...))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nodeids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "device_id" returned %v`, n.ID)
+		}
+		for i := range nodes {
+			assign(nodes[i], n)
+		}
+	}
+	return nil
+}
+func (_q *ProfileAssignmentQuery) loadGroup(ctx context.Context, query *DeviceGroupQuery, nodes []*ProfileAssignment, init func(*ProfileAssignment), assign func(*ProfileAssignment, *DeviceGroup)) error {
+	ids := make([]uint, 0, len(nodes))
+	nodeids := make(map[uint][]*ProfileAssignment)
+	for i := range nodes {
+		if nodes[i].GroupID == nil {
+			continue
+		}
+		fk := *nodes[i].GroupID
+		if _, ok := nodeids[fk]; !ok {
+			ids = append(ids, fk)
+		}
+		nodeids[fk] = append(nodeids[fk], nodes[i])
+	}
+	if len(ids) == 0 {
+		return nil
+	}
+	query.Where(devicegroup.IDIn(ids...))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nodeids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "group_id" returned %v`, n.ID)
+		}
+		for i := range nodes {
+			assign(nodes[i], n)
+		}
+	}
+	return nil
+}
 
 func (_q *ProfileAssignmentQuery) sqlCount(ctx context.Context) (int, error) {
 	_spec := _q.querySpec()
@@ -458,6 +608,12 @@ func (_q *ProfileAssignmentQuery) querySpec() *sqlgraph.QuerySpec {
 		}
 		if _q.withProfile != nil {
 			_spec.Node.AddColumnOnce(profileassignment.FieldProfileID)
+		}
+		if _q.withDevice != nil {
+			_spec.Node.AddColumnOnce(profileassignment.FieldDeviceID)
+		}
+		if _q.withGroup != nil {
+			_spec.Node.AddColumnOnce(profileassignment.FieldGroupID)
 		}
 	}
 	if ps := _q.predicates; len(ps) > 0 {

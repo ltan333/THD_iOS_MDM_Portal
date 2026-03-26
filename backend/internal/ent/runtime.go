@@ -526,12 +526,8 @@ func init() {
 	profile.UpdateDefaultUpdatedAt = profileDescUpdatedAt.UpdateDefault.(func() time.Time)
 	profileassignmentFields := schema.ProfileAssignment{}.Fields()
 	_ = profileassignmentFields
-	// profileassignmentDescTargetID is the schema descriptor for target_id field.
-	profileassignmentDescTargetID := profileassignmentFields[3].Descriptor()
-	// profileassignment.TargetIDValidator is a validator for the "target_id" field. It is called by the builders before save.
-	profileassignment.TargetIDValidator = profileassignmentDescTargetID.Validators[0].(func(string) error)
 	// profileassignmentDescCreatedAt is the schema descriptor for created_at field.
-	profileassignmentDescCreatedAt := profileassignmentFields[6].Descriptor()
+	profileassignmentDescCreatedAt := profileassignmentFields[8].Descriptor()
 	// profileassignment.DefaultCreatedAt holds the default value on creation for the created_at field.
 	profileassignment.DefaultCreatedAt = profileassignmentDescCreatedAt.Default.(func() time.Time)
 	profiledeploymentstatusFields := schema.ProfileDeploymentStatus{}.Fields()

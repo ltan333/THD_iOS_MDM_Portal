@@ -2772,6 +2772,38 @@ func (c *ProfileAssignmentClient) QueryProfile(_m *ProfileAssignment) *ProfileQu
 	return query
 }
 
+// QueryDevice queries the device edge of a ProfileAssignment.
+func (c *ProfileAssignmentClient) QueryDevice(_m *ProfileAssignment) *DeviceQuery {
+	query := (&DeviceClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(profileassignment.Table, profileassignment.FieldID, id),
+			sqlgraph.To(device.Table, device.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, profileassignment.DeviceTable, profileassignment.DeviceColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryGroup queries the group edge of a ProfileAssignment.
+func (c *ProfileAssignmentClient) QueryGroup(_m *ProfileAssignment) *DeviceGroupQuery {
+	query := (&DeviceGroupClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(profileassignment.Table, profileassignment.FieldID, id),
+			sqlgraph.To(devicegroup.Table, devicegroup.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, profileassignment.GroupTable, profileassignment.GroupColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *ProfileAssignmentClient) Hooks() []Hook {
 	return c.hooks.ProfileAssignment
@@ -2914,6 +2946,22 @@ func (c *ProfileDeploymentStatusClient) QueryProfile(_m *ProfileDeploymentStatus
 			sqlgraph.From(profiledeploymentstatus.Table, profiledeploymentstatus.FieldID, id),
 			sqlgraph.To(profile.Table, profile.FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, true, profiledeploymentstatus.ProfileTable, profiledeploymentstatus.ProfileColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryDevice queries the device edge of a ProfileDeploymentStatus.
+func (c *ProfileDeploymentStatusClient) QueryDevice(_m *ProfileDeploymentStatus) *DeviceQuery {
+	query := (&DeviceClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(profiledeploymentstatus.Table, profiledeploymentstatus.FieldID, id),
+			sqlgraph.To(device.Table, device.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, profiledeploymentstatus.DeviceTable, profiledeploymentstatus.DeviceColumn),
 		)
 		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
 		return fromV, nil

@@ -385,11 +385,13 @@ var (
 	ProfileAssignmentsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUint, Increment: true},
 		{Name: "target_type", Type: field.TypeEnum, Enums: []string{"device", "group", "user"}},
-		{Name: "target_id", Type: field.TypeString},
+		{Name: "target_id", Type: field.TypeString, Nullable: true},
 		{Name: "schedule_type", Type: field.TypeEnum, Enums: []string{"immediate", "scheduled"}, Default: "immediate"},
 		{Name: "scheduled_at", Type: field.TypeTime, Nullable: true},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "profile_id", Type: field.TypeUint},
+		{Name: "device_id", Type: field.TypeString, Nullable: true, SchemaType: map[string]string{"postgres": "character varying(255)"}},
+		{Name: "group_id", Type: field.TypeUint, Nullable: true},
 	}
 	// ProfileAssignmentsTable holds the schema information for the "profile_assignments" table.
 	ProfileAssignmentsTable = &schema.Table{
@@ -403,18 +405,30 @@ var (
 				RefColumns: []*schema.Column{ProfilesColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
+			{
+				Symbol:     "profile_assignments_devices_device",
+				Columns:    []*schema.Column{ProfileAssignmentsColumns[7]},
+				RefColumns: []*schema.Column{DevicesColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+			{
+				Symbol:     "profile_assignments_device_groups_group",
+				Columns:    []*schema.Column{ProfileAssignmentsColumns[8]},
+				RefColumns: []*schema.Column{DeviceGroupsColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
 		},
 	}
 	// ProfileDeploymentStatusesColumns holds the columns for the "profile_deployment_statuses" table.
 	ProfileDeploymentStatusesColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUint, Increment: true},
-		{Name: "device_id", Type: field.TypeString},
 		{Name: "status", Type: field.TypeEnum, Enums: []string{"pending", "success", "failed"}, Default: "pending"},
 		{Name: "error_message", Type: field.TypeString, Nullable: true},
 		{Name: "applied_at", Type: field.TypeTime, Nullable: true},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
 		{Name: "profile_id", Type: field.TypeUint},
+		{Name: "device_id", Type: field.TypeString, SchemaType: map[string]string{"postgres": "character varying(255)"}},
 	}
 	// ProfileDeploymentStatusesTable holds the schema information for the "profile_deployment_statuses" table.
 	ProfileDeploymentStatusesTable = &schema.Table{
@@ -424,8 +438,14 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "profile_deployment_statuses_profiles_deployment_statuses",
-				Columns:    []*schema.Column{ProfileDeploymentStatusesColumns[7]},
+				Columns:    []*schema.Column{ProfileDeploymentStatusesColumns[6]},
 				RefColumns: []*schema.Column{ProfilesColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "profile_deployment_statuses_devices_device",
+				Columns:    []*schema.Column{ProfileDeploymentStatusesColumns[7]},
+				RefColumns: []*schema.Column{DevicesColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 		},
@@ -600,10 +620,13 @@ func init() {
 		Table: "profiles",
 	}
 	ProfileAssignmentsTable.ForeignKeys[0].RefTable = ProfilesTable
+	ProfileAssignmentsTable.ForeignKeys[1].RefTable = DevicesTable
+	ProfileAssignmentsTable.ForeignKeys[2].RefTable = DeviceGroupsTable
 	ProfileAssignmentsTable.Annotation = &entsql.Annotation{
 		Table: "profile_assignments",
 	}
 	ProfileDeploymentStatusesTable.ForeignKeys[0].RefTable = ProfilesTable
+	ProfileDeploymentStatusesTable.ForeignKeys[1].RefTable = DevicesTable
 	ProfileDeploymentStatusesTable.Annotation = &entsql.Annotation{
 		Table: "profile_deployment_statuses",
 	}

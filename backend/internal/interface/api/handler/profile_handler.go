@@ -347,7 +347,8 @@ func (h *profileHandlerImpl) Assign(c *gin.Context) {
 	err = h.profileService.Assign(c.Request.Context(), service.AssignProfileCommand{
 		ProfileID:    uint(id),
 		TargetType:   req.TargetType,
-		TargetID:     req.TargetID,
+		DeviceID:     req.DeviceID,
+		GroupID:      req.GroupID,
 		ScheduleType: req.ScheduleType,
 		ScheduledAt:  req.ScheduledAt,
 	})
@@ -399,7 +400,8 @@ func (h *profileHandlerImpl) ListAssignments(c *gin.Context) {
 			ID:           a.ID,
 			ProfileID:    a.ProfileID,
 			TargetType:   string(a.TargetType),
-			TargetID:     a.TargetID,
+			DeviceID:     a.DeviceID,
+			GroupID:      a.GroupID,
 			ScheduleType: string(a.ScheduleType),
 			CreatedAt:    a.CreatedAt,
 		})

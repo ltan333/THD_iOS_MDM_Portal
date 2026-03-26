@@ -9,6 +9,7 @@ import (
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
+	"github.com/thienel/go-backend-template/internal/ent/device"
 	"github.com/thienel/go-backend-template/internal/ent/profile"
 	"github.com/thienel/go-backend-template/internal/ent/profiledeploymentstatus"
 )
@@ -42,9 +43,11 @@ type ProfileDeploymentStatus struct {
 type ProfileDeploymentStatusEdges struct {
 	// Profile holds the value of the profile edge.
 	Profile *Profile `json:"profile,omitempty"`
+	// Device holds the value of the device edge.
+	Device *Device `json:"device,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [1]bool
+	loadedTypes [2]bool
 }
 
 // ProfileOrErr returns the Profile value or an error if the edge
@@ -56,6 +59,17 @@ func (e ProfileDeploymentStatusEdges) ProfileOrErr() (*Profile, error) {
 		return nil, &NotFoundError{label: profile.Label}
 	}
 	return nil, &NotLoadedError{edge: "profile"}
+}
+
+// DeviceOrErr returns the Device value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e ProfileDeploymentStatusEdges) DeviceOrErr() (*Device, error) {
+	if e.Device != nil {
+		return e.Device, nil
+	} else if e.loadedTypes[1] {
+		return nil, &NotFoundError{label: device.Label}
+	}
+	return nil, &NotLoadedError{edge: "device"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -149,6 +163,11 @@ func (_m *ProfileDeploymentStatus) Value(name string) (ent.Value, error) {
 // QueryProfile queries the "profile" edge of the ProfileDeploymentStatus entity.
 func (_m *ProfileDeploymentStatus) QueryProfile() *ProfileQuery {
 	return NewProfileDeploymentStatusClient(_m.config).QueryProfile(_m)
+}
+
+// QueryDevice queries the "device" edge of the ProfileDeploymentStatus entity.
+func (_m *ProfileDeploymentStatus) QueryDevice() *DeviceQuery {
+	return NewProfileDeploymentStatusClient(_m.config).QueryDevice(_m)
 }
 
 // Update returns a builder for updating this ProfileDeploymentStatus.
