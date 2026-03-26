@@ -23,7 +23,6 @@ func setupDependencies(cfg *config.Config) *gin.Engine {
 	// Repositories
 	client := database.GetClient()
 	userRepo := persistence.NewUserRepository(client)
-	depProfileRepo := persistence.NewDepProfileRepository(client)
 	mobileConfigRepo := persistence.NewMobileConfigRepository(client)
 
 	// Casbin Enforcer
@@ -51,7 +50,6 @@ func setupDependencies(cfg *config.Config) *gin.Engine {
 		cfg.NanoMDM.DEPUsername,
 		cfg.NanoMDM.DEPPassword,
 	)
-	depProfileService := serviceimpl.NewDepProfileService(depProfileRepo, nanomdmService)
 	mobileConfigService := serviceimpl.NewMobileConfigService(mobileConfigRepo)
 	dashboardService := serviceimpl.NewDashboardService(client)
 	deviceGroupService := serviceimpl.NewDeviceGroupService(client)
@@ -75,8 +73,6 @@ func setupDependencies(cfg *config.Config) *gin.Engine {
 	authHandler := handler.NewAuthHandler(authService, userService, authzService)
 	userHandler := handler.NewUserHandler(userService, authzService)
 	policyHandler := handler.NewPolicyHandler(authzService)
-	mdmHandler := handler.NewMDMHandler(client, nanomdmService)
-	depHandler := handler.NewDEPHandler(client, authzService, nanomdmService, depProfileService, deviceService)
 	nanocmdHandler := handler.NewNanoCMDHandler(nanocmdService, deviceService)
 	mobileConfigHandler := handler.NewMobileConfigHandler(mobileConfigService)
 	dashboardHandler := handler.NewDashboardHandler(dashboardService)
@@ -89,5 +85,5 @@ func setupDependencies(cfg *config.Config) *gin.Engine {
 	settingHandler := handler.NewSettingHandler(settingService)
 
 	// Build router
-	return router.SetupRouter(authHandler, userHandler, policyHandler, mdmHandler, depHandler, nanocmdHandler, mobileConfigHandler, dashboardHandler, deviceHandler, deviceGroupHandler, profileHandler, applicationHandler, alertHandler, reportHandler, settingHandler, mw)
+	return router.SetupRouter(authHandler, userHandler, policyHandler, nanocmdHandler, mobileConfigHandler, dashboardHandler, deviceHandler, deviceGroupHandler, profileHandler, applicationHandler, alertHandler, reportHandler, settingHandler, mw)
 }
