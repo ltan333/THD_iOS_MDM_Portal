@@ -15,6 +15,10 @@ import (
 	"entgo.io/ent/dialect"
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
+	"github.com/thienel/go-backend-template/internal/ent/apnsconfig"
+	"github.com/thienel/go-backend-template/internal/ent/depprofile"
+	"github.com/thienel/go-backend-template/internal/ent/deptoken"
+	"github.com/thienel/go-backend-template/internal/ent/device"
 	"github.com/thienel/go-backend-template/internal/ent/mobileconfig"
 	"github.com/thienel/go-backend-template/internal/ent/payload"
 	"github.com/thienel/go-backend-template/internal/ent/payloadproperty"
@@ -27,6 +31,14 @@ type Client struct {
 	config
 	// Schema is the client for creating, migrating and dropping schema.
 	Schema *migrate.Schema
+	// APNSConfig is the client for interacting with the APNSConfig builders.
+	APNSConfig *APNSConfigClient
+	// DEPToken is the client for interacting with the DEPToken builders.
+	DEPToken *DEPTokenClient
+	// DepProfile is the client for interacting with the DepProfile builders.
+	DepProfile *DepProfileClient
+	// Device is the client for interacting with the Device builders.
+	Device *DeviceClient
 	// MobileConfig is the client for interacting with the MobileConfig builders.
 	MobileConfig *MobileConfigClient
 	// Payload is the client for interacting with the Payload builders.
@@ -48,6 +60,10 @@ func NewClient(opts ...Option) *Client {
 
 func (c *Client) init() {
 	c.Schema = migrate.NewSchema(c.driver)
+	c.APNSConfig = NewAPNSConfigClient(c.config)
+	c.DEPToken = NewDEPTokenClient(c.config)
+	c.DepProfile = NewDepProfileClient(c.config)
+	c.Device = NewDeviceClient(c.config)
 	c.MobileConfig = NewMobileConfigClient(c.config)
 	c.Payload = NewPayloadClient(c.config)
 	c.PayloadProperty = NewPayloadPropertyClient(c.config)
@@ -145,6 +161,10 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 	return &Tx{
 		ctx:                       ctx,
 		config:                    cfg,
+		APNSConfig:                NewAPNSConfigClient(cfg),
+		DEPToken:                  NewDEPTokenClient(cfg),
+		DepProfile:                NewDepProfileClient(cfg),
+		Device:                    NewDeviceClient(cfg),
 		MobileConfig:              NewMobileConfigClient(cfg),
 		Payload:                   NewPayloadClient(cfg),
 		PayloadProperty:           NewPayloadPropertyClient(cfg),
@@ -169,6 +189,10 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 	return &Tx{
 		ctx:                       ctx,
 		config:                    cfg,
+		APNSConfig:                NewAPNSConfigClient(cfg),
+		DEPToken:                  NewDEPTokenClient(cfg),
+		DepProfile:                NewDepProfileClient(cfg),
+		Device:                    NewDeviceClient(cfg),
 		MobileConfig:              NewMobileConfigClient(cfg),
 		Payload:                   NewPayloadClient(cfg),
 		PayloadProperty:           NewPayloadPropertyClient(cfg),
@@ -180,7 +204,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 // Debug returns a new debug-client. It's used to get verbose logging on specific operations.
 //
 //	client.Debug().
-//		MobileConfig.
+//		APNSConfig.
 //		Query().
 //		Count(ctx)
 func (c *Client) Debug() *Client {
@@ -202,26 +226,36 @@ func (c *Client) Close() error {
 // Use adds the mutation hooks to all the entity clients.
 // In order to add hooks to a specific client, call: `client.Node.Use(...)`.
 func (c *Client) Use(hooks ...Hook) {
-	c.MobileConfig.Use(hooks...)
-	c.Payload.Use(hooks...)
-	c.PayloadProperty.Use(hooks...)
-	c.PayloadPropertyDefinition.Use(hooks...)
-	c.User.Use(hooks...)
+	for _, n := range []interface{ Use(...Hook) }{
+		c.APNSConfig, c.DEPToken, c.DepProfile, c.Device, c.MobileConfig, c.Payload,
+		c.PayloadProperty, c.PayloadPropertyDefinition, c.User,
+	} {
+		n.Use(hooks...)
+	}
 }
 
 // Intercept adds the query interceptors to all the entity clients.
 // In order to add interceptors to a specific client, call: `client.Node.Intercept(...)`.
 func (c *Client) Intercept(interceptors ...Interceptor) {
-	c.MobileConfig.Intercept(interceptors...)
-	c.Payload.Intercept(interceptors...)
-	c.PayloadProperty.Intercept(interceptors...)
-	c.PayloadPropertyDefinition.Intercept(interceptors...)
-	c.User.Intercept(interceptors...)
+	for _, n := range []interface{ Intercept(...Interceptor) }{
+		c.APNSConfig, c.DEPToken, c.DepProfile, c.Device, c.MobileConfig, c.Payload,
+		c.PayloadProperty, c.PayloadPropertyDefinition, c.User,
+	} {
+		n.Intercept(interceptors...)
+	}
 }
 
 // Mutate implements the ent.Mutator interface.
 func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 	switch m := m.(type) {
+	case *APNSConfigMutation:
+		return c.APNSConfig.mutate(ctx, m)
+	case *DEPTokenMutation:
+		return c.DEPToken.mutate(ctx, m)
+	case *DepProfileMutation:
+		return c.DepProfile.mutate(ctx, m)
+	case *DeviceMutation:
+		return c.Device.mutate(ctx, m)
 	case *MobileConfigMutation:
 		return c.MobileConfig.mutate(ctx, m)
 	case *PayloadMutation:
@@ -234,6 +268,554 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.User.mutate(ctx, m)
 	default:
 		return nil, fmt.Errorf("ent: unknown mutation type %T", m)
+	}
+}
+
+// APNSConfigClient is a client for the APNSConfig schema.
+type APNSConfigClient struct {
+	config
+}
+
+// NewAPNSConfigClient returns a client for the APNSConfig from the given config.
+func NewAPNSConfigClient(c config) *APNSConfigClient {
+	return &APNSConfigClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `apnsconfig.Hooks(f(g(h())))`.
+func (c *APNSConfigClient) Use(hooks ...Hook) {
+	c.hooks.APNSConfig = append(c.hooks.APNSConfig, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `apnsconfig.Intercept(f(g(h())))`.
+func (c *APNSConfigClient) Intercept(interceptors ...Interceptor) {
+	c.inters.APNSConfig = append(c.inters.APNSConfig, interceptors...)
+}
+
+// Create returns a builder for creating a APNSConfig entity.
+func (c *APNSConfigClient) Create() *APNSConfigCreate {
+	mutation := newAPNSConfigMutation(c.config, OpCreate)
+	return &APNSConfigCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of APNSConfig entities.
+func (c *APNSConfigClient) CreateBulk(builders ...*APNSConfigCreate) *APNSConfigCreateBulk {
+	return &APNSConfigCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *APNSConfigClient) MapCreateBulk(slice any, setFunc func(*APNSConfigCreate, int)) *APNSConfigCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &APNSConfigCreateBulk{err: fmt.Errorf("calling to APNSConfigClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*APNSConfigCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &APNSConfigCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for APNSConfig.
+func (c *APNSConfigClient) Update() *APNSConfigUpdate {
+	mutation := newAPNSConfigMutation(c.config, OpUpdate)
+	return &APNSConfigUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *APNSConfigClient) UpdateOne(_m *APNSConfig) *APNSConfigUpdateOne {
+	mutation := newAPNSConfigMutation(c.config, OpUpdateOne, withAPNSConfig(_m))
+	return &APNSConfigUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *APNSConfigClient) UpdateOneID(id string) *APNSConfigUpdateOne {
+	mutation := newAPNSConfigMutation(c.config, OpUpdateOne, withAPNSConfigID(id))
+	return &APNSConfigUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for APNSConfig.
+func (c *APNSConfigClient) Delete() *APNSConfigDelete {
+	mutation := newAPNSConfigMutation(c.config, OpDelete)
+	return &APNSConfigDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *APNSConfigClient) DeleteOne(_m *APNSConfig) *APNSConfigDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *APNSConfigClient) DeleteOneID(id string) *APNSConfigDeleteOne {
+	builder := c.Delete().Where(apnsconfig.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &APNSConfigDeleteOne{builder}
+}
+
+// Query returns a query builder for APNSConfig.
+func (c *APNSConfigClient) Query() *APNSConfigQuery {
+	return &APNSConfigQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeAPNSConfig},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a APNSConfig entity by its id.
+func (c *APNSConfigClient) Get(ctx context.Context, id string) (*APNSConfig, error) {
+	return c.Query().Where(apnsconfig.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *APNSConfigClient) GetX(ctx context.Context, id string) *APNSConfig {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *APNSConfigClient) Hooks() []Hook {
+	return c.hooks.APNSConfig
+}
+
+// Interceptors returns the client interceptors.
+func (c *APNSConfigClient) Interceptors() []Interceptor {
+	return c.inters.APNSConfig
+}
+
+func (c *APNSConfigClient) mutate(ctx context.Context, m *APNSConfigMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&APNSConfigCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&APNSConfigUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&APNSConfigUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&APNSConfigDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown APNSConfig mutation op: %q", m.Op())
+	}
+}
+
+// DEPTokenClient is a client for the DEPToken schema.
+type DEPTokenClient struct {
+	config
+}
+
+// NewDEPTokenClient returns a client for the DEPToken from the given config.
+func NewDEPTokenClient(c config) *DEPTokenClient {
+	return &DEPTokenClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `deptoken.Hooks(f(g(h())))`.
+func (c *DEPTokenClient) Use(hooks ...Hook) {
+	c.hooks.DEPToken = append(c.hooks.DEPToken, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `deptoken.Intercept(f(g(h())))`.
+func (c *DEPTokenClient) Intercept(interceptors ...Interceptor) {
+	c.inters.DEPToken = append(c.inters.DEPToken, interceptors...)
+}
+
+// Create returns a builder for creating a DEPToken entity.
+func (c *DEPTokenClient) Create() *DEPTokenCreate {
+	mutation := newDEPTokenMutation(c.config, OpCreate)
+	return &DEPTokenCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of DEPToken entities.
+func (c *DEPTokenClient) CreateBulk(builders ...*DEPTokenCreate) *DEPTokenCreateBulk {
+	return &DEPTokenCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *DEPTokenClient) MapCreateBulk(slice any, setFunc func(*DEPTokenCreate, int)) *DEPTokenCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &DEPTokenCreateBulk{err: fmt.Errorf("calling to DEPTokenClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*DEPTokenCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &DEPTokenCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for DEPToken.
+func (c *DEPTokenClient) Update() *DEPTokenUpdate {
+	mutation := newDEPTokenMutation(c.config, OpUpdate)
+	return &DEPTokenUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *DEPTokenClient) UpdateOne(_m *DEPToken) *DEPTokenUpdateOne {
+	mutation := newDEPTokenMutation(c.config, OpUpdateOne, withDEPToken(_m))
+	return &DEPTokenUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *DEPTokenClient) UpdateOneID(id string) *DEPTokenUpdateOne {
+	mutation := newDEPTokenMutation(c.config, OpUpdateOne, withDEPTokenID(id))
+	return &DEPTokenUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for DEPToken.
+func (c *DEPTokenClient) Delete() *DEPTokenDelete {
+	mutation := newDEPTokenMutation(c.config, OpDelete)
+	return &DEPTokenDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *DEPTokenClient) DeleteOne(_m *DEPToken) *DEPTokenDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *DEPTokenClient) DeleteOneID(id string) *DEPTokenDeleteOne {
+	builder := c.Delete().Where(deptoken.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &DEPTokenDeleteOne{builder}
+}
+
+// Query returns a query builder for DEPToken.
+func (c *DEPTokenClient) Query() *DEPTokenQuery {
+	return &DEPTokenQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeDEPToken},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a DEPToken entity by its id.
+func (c *DEPTokenClient) Get(ctx context.Context, id string) (*DEPToken, error) {
+	return c.Query().Where(deptoken.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *DEPTokenClient) GetX(ctx context.Context, id string) *DEPToken {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *DEPTokenClient) Hooks() []Hook {
+	return c.hooks.DEPToken
+}
+
+// Interceptors returns the client interceptors.
+func (c *DEPTokenClient) Interceptors() []Interceptor {
+	return c.inters.DEPToken
+}
+
+func (c *DEPTokenClient) mutate(ctx context.Context, m *DEPTokenMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&DEPTokenCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&DEPTokenUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&DEPTokenUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&DEPTokenDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown DEPToken mutation op: %q", m.Op())
+	}
+}
+
+// DepProfileClient is a client for the DepProfile schema.
+type DepProfileClient struct {
+	config
+}
+
+// NewDepProfileClient returns a client for the DepProfile from the given config.
+func NewDepProfileClient(c config) *DepProfileClient {
+	return &DepProfileClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `depprofile.Hooks(f(g(h())))`.
+func (c *DepProfileClient) Use(hooks ...Hook) {
+	c.hooks.DepProfile = append(c.hooks.DepProfile, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `depprofile.Intercept(f(g(h())))`.
+func (c *DepProfileClient) Intercept(interceptors ...Interceptor) {
+	c.inters.DepProfile = append(c.inters.DepProfile, interceptors...)
+}
+
+// Create returns a builder for creating a DepProfile entity.
+func (c *DepProfileClient) Create() *DepProfileCreate {
+	mutation := newDepProfileMutation(c.config, OpCreate)
+	return &DepProfileCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of DepProfile entities.
+func (c *DepProfileClient) CreateBulk(builders ...*DepProfileCreate) *DepProfileCreateBulk {
+	return &DepProfileCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *DepProfileClient) MapCreateBulk(slice any, setFunc func(*DepProfileCreate, int)) *DepProfileCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &DepProfileCreateBulk{err: fmt.Errorf("calling to DepProfileClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*DepProfileCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &DepProfileCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for DepProfile.
+func (c *DepProfileClient) Update() *DepProfileUpdate {
+	mutation := newDepProfileMutation(c.config, OpUpdate)
+	return &DepProfileUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *DepProfileClient) UpdateOne(_m *DepProfile) *DepProfileUpdateOne {
+	mutation := newDepProfileMutation(c.config, OpUpdateOne, withDepProfile(_m))
+	return &DepProfileUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *DepProfileClient) UpdateOneID(id uint) *DepProfileUpdateOne {
+	mutation := newDepProfileMutation(c.config, OpUpdateOne, withDepProfileID(id))
+	return &DepProfileUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for DepProfile.
+func (c *DepProfileClient) Delete() *DepProfileDelete {
+	mutation := newDepProfileMutation(c.config, OpDelete)
+	return &DepProfileDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *DepProfileClient) DeleteOne(_m *DepProfile) *DepProfileDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *DepProfileClient) DeleteOneID(id uint) *DepProfileDeleteOne {
+	builder := c.Delete().Where(depprofile.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &DepProfileDeleteOne{builder}
+}
+
+// Query returns a query builder for DepProfile.
+func (c *DepProfileClient) Query() *DepProfileQuery {
+	return &DepProfileQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeDepProfile},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a DepProfile entity by its id.
+func (c *DepProfileClient) Get(ctx context.Context, id uint) (*DepProfile, error) {
+	return c.Query().Where(depprofile.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *DepProfileClient) GetX(ctx context.Context, id uint) *DepProfile {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *DepProfileClient) Hooks() []Hook {
+	return c.hooks.DepProfile
+}
+
+// Interceptors returns the client interceptors.
+func (c *DepProfileClient) Interceptors() []Interceptor {
+	return c.inters.DepProfile
+}
+
+func (c *DepProfileClient) mutate(ctx context.Context, m *DepProfileMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&DepProfileCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&DepProfileUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&DepProfileUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&DepProfileDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown DepProfile mutation op: %q", m.Op())
+	}
+}
+
+// DeviceClient is a client for the Device schema.
+type DeviceClient struct {
+	config
+}
+
+// NewDeviceClient returns a client for the Device from the given config.
+func NewDeviceClient(c config) *DeviceClient {
+	return &DeviceClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `device.Hooks(f(g(h())))`.
+func (c *DeviceClient) Use(hooks ...Hook) {
+	c.hooks.Device = append(c.hooks.Device, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `device.Intercept(f(g(h())))`.
+func (c *DeviceClient) Intercept(interceptors ...Interceptor) {
+	c.inters.Device = append(c.inters.Device, interceptors...)
+}
+
+// Create returns a builder for creating a Device entity.
+func (c *DeviceClient) Create() *DeviceCreate {
+	mutation := newDeviceMutation(c.config, OpCreate)
+	return &DeviceCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of Device entities.
+func (c *DeviceClient) CreateBulk(builders ...*DeviceCreate) *DeviceCreateBulk {
+	return &DeviceCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *DeviceClient) MapCreateBulk(slice any, setFunc func(*DeviceCreate, int)) *DeviceCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &DeviceCreateBulk{err: fmt.Errorf("calling to DeviceClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*DeviceCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &DeviceCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for Device.
+func (c *DeviceClient) Update() *DeviceUpdate {
+	mutation := newDeviceMutation(c.config, OpUpdate)
+	return &DeviceUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *DeviceClient) UpdateOne(_m *Device) *DeviceUpdateOne {
+	mutation := newDeviceMutation(c.config, OpUpdateOne, withDevice(_m))
+	return &DeviceUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *DeviceClient) UpdateOneID(id string) *DeviceUpdateOne {
+	mutation := newDeviceMutation(c.config, OpUpdateOne, withDeviceID(id))
+	return &DeviceUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for Device.
+func (c *DeviceClient) Delete() *DeviceDelete {
+	mutation := newDeviceMutation(c.config, OpDelete)
+	return &DeviceDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *DeviceClient) DeleteOne(_m *Device) *DeviceDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *DeviceClient) DeleteOneID(id string) *DeviceDeleteOne {
+	builder := c.Delete().Where(device.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &DeviceDeleteOne{builder}
+}
+
+// Query returns a query builder for Device.
+func (c *DeviceClient) Query() *DeviceQuery {
+	return &DeviceQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeDevice},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a Device entity by its id.
+func (c *DeviceClient) Get(ctx context.Context, id string) (*Device, error) {
+	return c.Query().Where(device.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *DeviceClient) GetX(ctx context.Context, id string) *Device {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryOwner queries the owner edge of a Device.
+func (c *DeviceClient) QueryOwner(_m *Device) *UserQuery {
+	query := (&UserClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(device.Table, device.FieldID, id),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, device.OwnerTable, device.OwnerColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *DeviceClient) Hooks() []Hook {
+	return c.hooks.Device
+}
+
+// Interceptors returns the client interceptors.
+func (c *DeviceClient) Interceptors() []Interceptor {
+	return c.inters.Device
+}
+
+func (c *DeviceClient) mutate(ctx context.Context, m *DeviceMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&DeviceCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&DeviceUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&DeviceUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&DeviceDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown Device mutation op: %q", m.Op())
 	}
 }
 
@@ -973,6 +1555,22 @@ func (c *UserClient) GetX(ctx context.Context, id uint) *User {
 	return obj
 }
 
+// QueryDevices queries the devices edge of a User.
+func (c *UserClient) QueryDevices(_m *User) *DeviceQuery {
+	query := (&DeviceClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, id),
+			sqlgraph.To(device.Table, device.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.DevicesTable, user.DevicesColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *UserClient) Hooks() []Hook {
 	return c.hooks.User
@@ -1001,11 +1599,11 @@ func (c *UserClient) mutate(ctx context.Context, m *UserMutation) (Value, error)
 // hooks and interceptors per client, for fast access.
 type (
 	hooks struct {
-		MobileConfig, Payload, PayloadProperty, PayloadPropertyDefinition,
-		User []ent.Hook
+		APNSConfig, DEPToken, DepProfile, Device, MobileConfig, Payload,
+		PayloadProperty, PayloadPropertyDefinition, User []ent.Hook
 	}
 	inters struct {
-		MobileConfig, Payload, PayloadProperty, PayloadPropertyDefinition,
-		User []ent.Interceptor
+		APNSConfig, DEPToken, DepProfile, Device, MobileConfig, Payload,
+		PayloadProperty, PayloadPropertyDefinition, User []ent.Interceptor
 	}
 )

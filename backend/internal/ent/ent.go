@@ -12,6 +12,10 @@ import (
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
+	"github.com/thienel/go-backend-template/internal/ent/apnsconfig"
+	"github.com/thienel/go-backend-template/internal/ent/depprofile"
+	"github.com/thienel/go-backend-template/internal/ent/deptoken"
+	"github.com/thienel/go-backend-template/internal/ent/device"
 	"github.com/thienel/go-backend-template/internal/ent/mobileconfig"
 	"github.com/thienel/go-backend-template/internal/ent/payload"
 	"github.com/thienel/go-backend-template/internal/ent/payloadproperty"
@@ -77,6 +81,10 @@ var (
 func checkColumn(t, c string) error {
 	initCheck.Do(func() {
 		columnCheck = sql.NewColumnCheck(map[string]func(string) bool{
+			apnsconfig.Table:                apnsconfig.ValidColumn,
+			deptoken.Table:                  deptoken.ValidColumn,
+			depprofile.Table:                depprofile.ValidColumn,
+			device.Table:                    device.ValidColumn,
 			mobileconfig.Table:              mobileconfig.ValidColumn,
 			payload.Table:                   payload.ValidColumn,
 			payloadproperty.Table:           payloadproperty.ValidColumn,

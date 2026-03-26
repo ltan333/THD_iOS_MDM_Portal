@@ -14,7 +14,6 @@ var userAllowedFields = map[string]bool{
 	"id":         true,
 	"username":   true,
 	"email":      true,
-	"role":       true,
 	"status":     true,
 	"created_at": true,
 	"updated_at": true,
@@ -36,7 +35,6 @@ func (r *userRepositoryImpl) Create(ctx context.Context, e *ent.User) error {
 		SetUsername(e.Username).
 		SetEmail(e.Email).
 		SetPassword(e.Password).
-		SetRole(e.Role).
 		SetStatus(e.Status).
 		Save(ctx)
 	if err != nil {
@@ -67,7 +65,6 @@ func (r *userRepositoryImpl) Update(ctx context.Context, e *ent.User) error {
 		SetUsername(e.Username).
 		SetEmail(e.Email).
 		SetPassword(e.Password).
-		SetRole(e.Role).
 		SetStatus(e.Status).
 		Save(ctx)
 	if err != nil {

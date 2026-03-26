@@ -1,6 +1,7 @@
 package serviceimpl
 
 import (
+	"fmt"
 	"github.com/casbin/casbin/v2"
 
 	"github.com/thienel/go-backend-template/internal/usecase/service"
@@ -108,4 +109,23 @@ func (s *authorizationServiceImpl) GetPermissionsForRole(role string) ([]service
 		}
 	}
 	return result, nil
+}
+
+func (s *authorizationServiceImpl) AuthorizeResource(userID uint, resource string, action string) (bool, error) {
+	sub := fmt.Sprintf("user:%d", userID)
+	return s.enforcer.Enforce(sub, resource, action)
+}
+
+func (s *authorizationServiceImpl) AddResourcePolicy(userID uint, resource string, action string) (bool, error) {
+	sub := fmt.Sprintf("user:%d", userID)
+	added, err := s.enforcer.AddPolicy(sub, resource, action)
+	if err != nil {
+		return false, err
+	}
+	return added, nil
+}
+
+func (s *authorizationServiceImpl) GetRolesForUser(userID uint) ([]string, error) {
+	sub := fmt.Sprintf("user:%d", userID)
+	return s.enforcer.GetRolesForUser(sub)
 }

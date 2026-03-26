@@ -9,6 +9,54 @@ import (
 	"github.com/thienel/go-backend-template/internal/ent"
 )
 
+// The APNSConfigFunc type is an adapter to allow the use of ordinary
+// function as APNSConfig mutator.
+type APNSConfigFunc func(context.Context, *ent.APNSConfigMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f APNSConfigFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.APNSConfigMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.APNSConfigMutation", m)
+}
+
+// The DEPTokenFunc type is an adapter to allow the use of ordinary
+// function as DEPToken mutator.
+type DEPTokenFunc func(context.Context, *ent.DEPTokenMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f DEPTokenFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.DEPTokenMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.DEPTokenMutation", m)
+}
+
+// The DepProfileFunc type is an adapter to allow the use of ordinary
+// function as DepProfile mutator.
+type DepProfileFunc func(context.Context, *ent.DepProfileMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f DepProfileFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.DepProfileMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.DepProfileMutation", m)
+}
+
+// The DeviceFunc type is an adapter to allow the use of ordinary
+// function as Device mutator.
+type DeviceFunc func(context.Context, *ent.DeviceMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f DeviceFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.DeviceMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.DeviceMutation", m)
+}
+
 // The MobileConfigFunc type is an adapter to allow the use of ordinary
 // function as MobileConfig mutator.
 type MobileConfigFunc func(context.Context, *ent.MobileConfigMutation) (ent.Value, error)

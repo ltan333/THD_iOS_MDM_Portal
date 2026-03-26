@@ -22,7 +22,7 @@ func setupDependencies(cfg *config.Config) *gin.Engine {
 	// Repositories
 	client := database.GetClient()
 	userRepo := persistence.NewUserRepository(client)
-	mobileConfigRepo := persistence.NewMobileConfigRepository(client)
+	depProfileRepo := persistence.NewDepProfileRepository(client)
 
 	// Casbin Enforcer
 	enforcer, err := authorization.NewEnforcer(cfg.Casbin.ModelPath, database.GetDB())
@@ -36,21 +36,32 @@ func setupDependencies(cfg *config.Config) *gin.Engine {
 		cfg.JWT.AccessExpiryMinutes,
 		cfg.JWT.RefreshExpiryHours,
 	)
-	authService := serviceimpl.NewAuthService(userRepo, jwtService)
-	userService := serviceimpl.NewUserService(userRepo)
-	mobileConfigService := serviceimpl.NewMobileConfigService(mobileConfigRepo)
 	authzService := serviceimpl.NewAuthorizationService(enforcer)
+	authService := serviceimpl.NewAuthService(userRepo, jwtService, authzService)
+	userService := serviceimpl.NewUserService(userRepo, authzService)
+	nanocmdService := serviceimpl.NewNanoCMDService(cfg.NanoCMD.BaseURL, cfg.NanoCMD.Username, cfg.NanoCMD.Password)
+	nanomdmService := serviceimpl.NewNanoMDMService(
+		cfg.NanoMDM.MDMBaseURL,
+		cfg.NanoMDM.DEPBaseURL,
+		cfg.NanoMDM.MDMUsername,
+		cfg.NanoMDM.MDMPassword,
+		cfg.NanoMDM.DEPUsername,
+		cfg.NanoMDM.DEPPassword,
+	)
+	depProfileService := serviceimpl.NewDepProfileService(depProfileRepo, nanomdmService)
 
 	// Middleware
 	origins := strings.Join(cfg.CORSAllowedOrigins, ",")
 	mw := middleware.New(jwtService, authzService, origins)
 
 	// Handlers
-	authHandler := handler.NewAuthHandler(authService, userService)
-	userHandler := handler.NewUserHandler(userService)
+	authHandler := handler.NewAuthHandler(authService, userService, authzService)
+	userHandler := handler.NewUserHandler(userService, authzService)
 	policyHandler := handler.NewPolicyHandler(authzService)
-	mobileConfigHandler := handler.NewMobileConfigHandler(mobileConfigService)
+	mdmHandler := handler.NewMDMHandler(client, nanomdmService)
+	depHandler := handler.NewDEPHandler(client, authzService, nanomdmService, depProfileService)
+	nanocmdHandler := handler.NewNanoCMDHandler(nanocmdService)
 
 	// Build router
-	return router.SetupRouter(authHandler, userHandler, policyHandler, mobileConfigHandler, mw)
+	return router.SetupRouter(authHandler, userHandler, policyHandler, mdmHandler, depHandler, nanocmdHandler, mw)
 }

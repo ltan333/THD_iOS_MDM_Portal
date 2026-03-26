@@ -12,6 +12,14 @@ import (
 // Tx is a transactional client that is created by calling Client.Tx().
 type Tx struct {
 	config
+	// APNSConfig is the client for interacting with the APNSConfig builders.
+	APNSConfig *APNSConfigClient
+	// DEPToken is the client for interacting with the DEPToken builders.
+	DEPToken *DEPTokenClient
+	// DepProfile is the client for interacting with the DepProfile builders.
+	DepProfile *DepProfileClient
+	// Device is the client for interacting with the Device builders.
+	Device *DeviceClient
 	// MobileConfig is the client for interacting with the MobileConfig builders.
 	MobileConfig *MobileConfigClient
 	// Payload is the client for interacting with the Payload builders.
@@ -153,6 +161,10 @@ func (tx *Tx) Client() *Client {
 }
 
 func (tx *Tx) init() {
+	tx.APNSConfig = NewAPNSConfigClient(tx.config)
+	tx.DEPToken = NewDEPTokenClient(tx.config)
+	tx.DepProfile = NewDepProfileClient(tx.config)
+	tx.Device = NewDeviceClient(tx.config)
 	tx.MobileConfig = NewMobileConfigClient(tx.config)
 	tx.Payload = NewPayloadClient(tx.config)
 	tx.PayloadProperty = NewPayloadPropertyClient(tx.config)
@@ -167,7 +179,7 @@ func (tx *Tx) init() {
 // of them in order to commit or rollback the transaction.
 //
 // If a closed transaction is embedded in one of the generated entities, and the entity
-// applies a query, for example: MobileConfig.QueryXXX(), the query will be executed
+// applies a query, for example: APNSConfig.QueryXXX(), the query will be executed
 // through the driver which created this transaction.
 //
 // Note that txDriver is not goroutine safe.

@@ -5,6 +5,10 @@ package ent
 import (
 	"time"
 
+	"github.com/thienel/go-backend-template/internal/ent/apnsconfig"
+	"github.com/thienel/go-backend-template/internal/ent/depprofile"
+	"github.com/thienel/go-backend-template/internal/ent/deptoken"
+	"github.com/thienel/go-backend-template/internal/ent/device"
 	"github.com/thienel/go-backend-template/internal/ent/mobileconfig"
 	"github.com/thienel/go-backend-template/internal/ent/payload"
 	"github.com/thienel/go-backend-template/internal/ent/payloadproperty"
@@ -17,6 +21,122 @@ import (
 // (default values, validators, hooks and policies) and stitches it
 // to their package variables.
 func init() {
+	apnsconfigFields := schema.APNSConfig{}.Fields()
+	_ = apnsconfigFields
+	// apnsconfigDescCertPem is the schema descriptor for cert_pem field.
+	apnsconfigDescCertPem := apnsconfigFields[1].Descriptor()
+	// apnsconfig.CertPemValidator is a validator for the "cert_pem" field. It is called by the builders before save.
+	apnsconfig.CertPemValidator = apnsconfigDescCertPem.Validators[0].(func(string) error)
+	// apnsconfigDescKeyPem is the schema descriptor for key_pem field.
+	apnsconfigDescKeyPem := apnsconfigFields[2].Descriptor()
+	// apnsconfig.KeyPemValidator is a validator for the "key_pem" field. It is called by the builders before save.
+	apnsconfig.KeyPemValidator = apnsconfigDescKeyPem.Validators[0].(func(string) error)
+	// apnsconfigDescStaleToken is the schema descriptor for stale_token field.
+	apnsconfigDescStaleToken := apnsconfigFields[3].Descriptor()
+	// apnsconfig.DefaultStaleToken holds the default value on creation for the stale_token field.
+	apnsconfig.DefaultStaleToken = apnsconfigDescStaleToken.Default.(int)
+	// apnsconfigDescCreatedAt is the schema descriptor for created_at field.
+	apnsconfigDescCreatedAt := apnsconfigFields[4].Descriptor()
+	// apnsconfig.DefaultCreatedAt holds the default value on creation for the created_at field.
+	apnsconfig.DefaultCreatedAt = apnsconfigDescCreatedAt.Default.(func() time.Time)
+	// apnsconfigDescUpdatedAt is the schema descriptor for updated_at field.
+	apnsconfigDescUpdatedAt := apnsconfigFields[5].Descriptor()
+	// apnsconfig.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	apnsconfig.DefaultUpdatedAt = apnsconfigDescUpdatedAt.Default.(func() time.Time)
+	// apnsconfig.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	apnsconfig.UpdateDefaultUpdatedAt = apnsconfigDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// apnsconfigDescID is the schema descriptor for id field.
+	apnsconfigDescID := apnsconfigFields[0].Descriptor()
+	// apnsconfig.IDValidator is a validator for the "id" field. It is called by the builders before save.
+	apnsconfig.IDValidator = apnsconfigDescID.Validators[0].(func(string) error)
+	deptokenFields := schema.DEPToken{}.Fields()
+	_ = deptokenFields
+	// deptokenDescCreatedAt is the schema descriptor for created_at field.
+	deptokenDescCreatedAt := deptokenFields[11].Descriptor()
+	// deptoken.DefaultCreatedAt holds the default value on creation for the created_at field.
+	deptoken.DefaultCreatedAt = deptokenDescCreatedAt.Default.(func() time.Time)
+	// deptokenDescUpdatedAt is the schema descriptor for updated_at field.
+	deptokenDescUpdatedAt := deptokenFields[12].Descriptor()
+	// deptoken.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	deptoken.DefaultUpdatedAt = deptokenDescUpdatedAt.Default.(func() time.Time)
+	// deptoken.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	deptoken.UpdateDefaultUpdatedAt = deptokenDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// deptokenDescID is the schema descriptor for id field.
+	deptokenDescID := deptokenFields[0].Descriptor()
+	// deptoken.IDValidator is a validator for the "id" field. It is called by the builders before save.
+	deptoken.IDValidator = deptokenDescID.Validators[0].(func(string) error)
+	depprofileFields := schema.DepProfile{}.Fields()
+	_ = depprofileFields
+	// depprofileDescProfileName is the schema descriptor for profile_name field.
+	depprofileDescProfileName := depprofileFields[1].Descriptor()
+	// depprofile.ProfileNameValidator is a validator for the "profile_name" field. It is called by the builders before save.
+	depprofile.ProfileNameValidator = depprofileDescProfileName.Validators[0].(func(string) error)
+	// depprofileDescAllowPairing is the schema descriptor for allow_pairing field.
+	depprofileDescAllowPairing := depprofileFields[3].Descriptor()
+	// depprofile.DefaultAllowPairing holds the default value on creation for the allow_pairing field.
+	depprofile.DefaultAllowPairing = depprofileDescAllowPairing.Default.(bool)
+	// depprofileDescAutoAdvanceSetup is the schema descriptor for auto_advance_setup field.
+	depprofileDescAutoAdvanceSetup := depprofileFields[5].Descriptor()
+	// depprofile.DefaultAutoAdvanceSetup holds the default value on creation for the auto_advance_setup field.
+	depprofile.DefaultAutoAdvanceSetup = depprofileDescAutoAdvanceSetup.Default.(bool)
+	// depprofileDescAwaitDeviceConfigured is the schema descriptor for await_device_configured field.
+	depprofileDescAwaitDeviceConfigured := depprofileFields[6].Descriptor()
+	// depprofile.DefaultAwaitDeviceConfigured holds the default value on creation for the await_device_configured field.
+	depprofile.DefaultAwaitDeviceConfigured = depprofileDescAwaitDeviceConfigured.Default.(bool)
+	// depprofileDescDoNotUseProfileFromBackup is the schema descriptor for do_not_use_profile_from_backup field.
+	depprofileDescDoNotUseProfileFromBackup := depprofileFields[10].Descriptor()
+	// depprofile.DefaultDoNotUseProfileFromBackup holds the default value on creation for the do_not_use_profile_from_backup field.
+	depprofile.DefaultDoNotUseProfileFromBackup = depprofileDescDoNotUseProfileFromBackup.Default.(bool)
+	// depprofileDescIsReturnToService is the schema descriptor for is_return_to_service field.
+	depprofileDescIsReturnToService := depprofileFields[11].Descriptor()
+	// depprofile.DefaultIsReturnToService holds the default value on creation for the is_return_to_service field.
+	depprofile.DefaultIsReturnToService = depprofileDescIsReturnToService.Default.(bool)
+	// depprofileDescIsMandatory is the schema descriptor for is_mandatory field.
+	depprofileDescIsMandatory := depprofileFields[12].Descriptor()
+	// depprofile.DefaultIsMandatory holds the default value on creation for the is_mandatory field.
+	depprofile.DefaultIsMandatory = depprofileDescIsMandatory.Default.(bool)
+	// depprofileDescIsMdmRemovable is the schema descriptor for is_mdm_removable field.
+	depprofileDescIsMdmRemovable := depprofileFields[13].Descriptor()
+	// depprofile.DefaultIsMdmRemovable holds the default value on creation for the is_mdm_removable field.
+	depprofile.DefaultIsMdmRemovable = depprofileDescIsMdmRemovable.Default.(bool)
+	// depprofileDescIsMultiUser is the schema descriptor for is_multi_user field.
+	depprofileDescIsMultiUser := depprofileFields[14].Descriptor()
+	// depprofile.DefaultIsMultiUser holds the default value on creation for the is_multi_user field.
+	depprofile.DefaultIsMultiUser = depprofileDescIsMultiUser.Default.(bool)
+	// depprofileDescIsSupervised is the schema descriptor for is_supervised field.
+	depprofileDescIsSupervised := depprofileFields[15].Descriptor()
+	// depprofile.DefaultIsSupervised holds the default value on creation for the is_supervised field.
+	depprofile.DefaultIsSupervised = depprofileDescIsSupervised.Default.(bool)
+	// depprofileDescCreatedAt is the schema descriptor for created_at field.
+	depprofileDescCreatedAt := depprofileFields[25].Descriptor()
+	// depprofile.DefaultCreatedAt holds the default value on creation for the created_at field.
+	depprofile.DefaultCreatedAt = depprofileDescCreatedAt.Default.(func() time.Time)
+	// depprofileDescUpdatedAt is the schema descriptor for updated_at field.
+	depprofileDescUpdatedAt := depprofileFields[26].Descriptor()
+	// depprofile.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	depprofile.DefaultUpdatedAt = depprofileDescUpdatedAt.Default.(func() time.Time)
+	// depprofile.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	depprofile.UpdateDefaultUpdatedAt = depprofileDescUpdatedAt.UpdateDefault.(func() time.Time)
+	deviceFields := schema.Device{}.Fields()
+	_ = deviceFields
+	// deviceDescIsEnrolled is the schema descriptor for is_enrolled field.
+	deviceDescIsEnrolled := deviceFields[4].Descriptor()
+	// device.DefaultIsEnrolled holds the default value on creation for the is_enrolled field.
+	device.DefaultIsEnrolled = deviceDescIsEnrolled.Default.(bool)
+	// deviceDescCreatedAt is the schema descriptor for created_at field.
+	deviceDescCreatedAt := deviceFields[7].Descriptor()
+	// device.DefaultCreatedAt holds the default value on creation for the created_at field.
+	device.DefaultCreatedAt = deviceDescCreatedAt.Default.(func() time.Time)
+	// deviceDescUpdatedAt is the schema descriptor for updated_at field.
+	deviceDescUpdatedAt := deviceFields[8].Descriptor()
+	// device.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	device.DefaultUpdatedAt = deviceDescUpdatedAt.Default.(func() time.Time)
+	// device.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	device.UpdateDefaultUpdatedAt = deviceDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// deviceDescID is the schema descriptor for id field.
+	deviceDescID := deviceFields[0].Descriptor()
+	// device.IDValidator is a validator for the "id" field. It is called by the builders before save.
+	device.IDValidator = deviceDescID.Validators[0].(func(string) error)
 	mobileconfigFields := schema.MobileConfig{}.Fields()
 	_ = mobileconfigFields
 	// mobileconfigDescName is the schema descriptor for name field.
@@ -231,24 +351,18 @@ func init() {
 			return nil
 		}
 	}()
-	// userDescRole is the schema descriptor for role field.
-	userDescRole := userFields[4].Descriptor()
-	// user.DefaultRole holds the default value on creation for the role field.
-	user.DefaultRole = userDescRole.Default.(string)
-	// user.RoleValidator is a validator for the "role" field. It is called by the builders before save.
-	user.RoleValidator = userDescRole.Validators[0].(func(string) error)
 	// userDescStatus is the schema descriptor for status field.
-	userDescStatus := userFields[5].Descriptor()
+	userDescStatus := userFields[4].Descriptor()
 	// user.DefaultStatus holds the default value on creation for the status field.
 	user.DefaultStatus = userDescStatus.Default.(string)
 	// user.StatusValidator is a validator for the "status" field. It is called by the builders before save.
 	user.StatusValidator = userDescStatus.Validators[0].(func(string) error)
 	// userDescCreatedAt is the schema descriptor for created_at field.
-	userDescCreatedAt := userFields[6].Descriptor()
+	userDescCreatedAt := userFields[5].Descriptor()
 	// user.DefaultCreatedAt holds the default value on creation for the created_at field.
 	user.DefaultCreatedAt = userDescCreatedAt.Default.(func() time.Time)
 	// userDescUpdatedAt is the schema descriptor for updated_at field.
-	userDescUpdatedAt := userFields[7].Descriptor()
+	userDescUpdatedAt := userFields[6].Descriptor()
 	// user.DefaultUpdatedAt holds the default value on creation for the updated_at field.
 	user.DefaultUpdatedAt = userDescUpdatedAt.Default.(func() time.Time)
 	// user.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
