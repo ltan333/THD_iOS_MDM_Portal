@@ -30,13 +30,13 @@ type DeviceHandler interface {
 
 type deviceHandlerImpl struct {
 	deviceService service.DeviceService
-	nanoCmd       service.NanoCMDService
+	mdmService    service.NanoMDMService
 }
 
-func NewDeviceHandler(deviceService service.DeviceService, nanoCmd service.NanoCMDService) DeviceHandler {
+func NewDeviceHandler(deviceService service.DeviceService, mdmService service.NanoMDMService) DeviceHandler {
 	return &deviceHandlerImpl{
 		deviceService: deviceService,
-		nanoCmd:       nanoCmd,
+		mdmService:    mdmService,
 	}
 }
 
@@ -138,7 +138,34 @@ func (h *deviceHandlerImpl) Export(c *gin.Context) {
 // @Security BearerAuth
 // @Router /v1/devices/{id}/lock [post]
 func (h *deviceHandlerImpl) Lock(c *gin.Context) {
-	response.OK[any](c, nil, "Chức năng Lock Queue sẽ được hoàn thiện trong tích hợp NanoCMD")
+	id := c.Param("id")
+	if id == "" {
+		response.WriteErrorResponse(c, apperror.ErrBadRequest.WithMessage("Thiếu tham số ID"))
+		return
+	}
+
+	// Simple DeviceLock XML command
+	cmdXML := `<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>Command</key>
+	<dict>
+		<key>RequestType</key>
+		<string>DeviceLock</string>
+	</dict>
+	<key>CommandUUID</key>
+	<string>Lock-` + id + `</string>
+</dict>
+</plist>`
+
+	result, err := h.mdmService.EnqueueCommand(c.Request.Context(), id, []byte(cmdXML))
+	if err != nil {
+		response.WriteErrorResponse(c, err)
+		return
+	}
+
+	response.OK(c, result, "Lệnh Lock đã được đẩy vào hàng đợi")
 }
 
 // @Summary Wipe device
@@ -149,7 +176,34 @@ func (h *deviceHandlerImpl) Lock(c *gin.Context) {
 // @Security BearerAuth
 // @Router /v1/devices/{id}/wipe [post]
 func (h *deviceHandlerImpl) Wipe(c *gin.Context) {
-	response.OK[any](c, nil, "Chức năng Wipe Queue sẽ được hoàn thiện trong tích hợp NanoCMD")
+	id := c.Param("id")
+	if id == "" {
+		response.WriteErrorResponse(c, apperror.ErrBadRequest.WithMessage("Thiếu tham số ID"))
+		return
+	}
+
+	// Simple EraseDevice XML command
+	cmdXML := `<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>Command</key>
+	<dict>
+		<key>RequestType</key>
+		<string>EraseDevice</string>
+	</dict>
+	<key>CommandUUID</key>
+	<string>Wipe-` + id + `</string>
+</dict>
+</plist>`
+
+	result, err := h.mdmService.EnqueueCommand(c.Request.Context(), id, []byte(cmdXML))
+	if err != nil {
+		response.WriteErrorResponse(c, err)
+		return
+	}
+
+	response.OK(c, result, "Lệnh Wipe đã được đẩy vào hàng đợi")
 }
 
 func mapDeviceToResponse(d *ent.Device) dto.DeviceResponse {

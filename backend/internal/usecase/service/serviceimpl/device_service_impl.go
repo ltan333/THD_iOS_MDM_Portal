@@ -5,6 +5,7 @@ import (
 	"encoding/csv"
 	"encoding/json"
 	"strings"
+	"time"
 
 	"github.com/thienel/go-backend-template/internal/ent"
 	"github.com/thienel/go-backend-template/internal/ent/device"
@@ -12,6 +13,8 @@ import (
 	"github.com/thienel/go-backend-template/internal/usecase/service"
 	apperror "github.com/thienel/go-backend-template/pkg/error"
 	"github.com/thienel/go-backend-template/pkg/query"
+	"github.com/thienel/tlog"
+	"go.uber.org/zap"
 )
 
 type deviceServiceImpl struct {
@@ -331,6 +334,121 @@ func (s *deviceServiceImpl) Export(ctx context.Context, format string) ([]byte, 
 	default:
 		return nil, apperror.ErrBadRequest.WithMessage("Format không hỗ trợ: " + format)
 	}
+}
+
+func (s *deviceServiceImpl) HandleWebhook(ctx context.Context, payload *dto.NanoCMDWebhook) error {
+	if payload.Topic == "" {
+		return nil
+	}
+
+	// MDM Check-in events usually have the UDID in the checkin_event map
+	var udid string
+	if payload.Checkin_event != nil {
+		if u, ok := payload.Checkin_event["udid"].(string); ok {
+			udid = u
+		}
+	}
+
+	if udid == "" {
+		return nil
+	}
+
+	switch payload.Topic {
+	case "mdm.Authenticate":
+		tlog.Info("Device authenticating", zap.String("udid", udid))
+		// Create or update device record
+		exists, _ := s.client.Device.Query().Where(device.IDEQ(udid)).Exist(ctx)
+		if !exists {
+			return s.client.Device.Create().
+				SetID(udid).
+				SetStatus(device.StatusPending).
+				SetIsEnrolled(false).
+				Exec(ctx)
+		}
+		return nil
+
+	case "mdm.TokenUpdate":
+		tlog.Info("Device tokens updated/enrolled", zap.String("udid", udid))
+		
+		updater := s.client.Device.UpdateOneID(udid).
+			SetIsEnrolled(true).
+			SetStatus(device.StatusActive).
+			SetEnrolledAt(time.Now()).
+			SetLastSeen(time.Now())
+
+		// Update other info if present in checkin_event
+		if sn, ok := payload.Checkin_event["serial_number"].(string); ok && sn != "" {
+			updater.SetSerialNumber(sn)
+		}
+		if model, ok := payload.Checkin_event["model"].(string); ok && model != "" {
+			updater.SetModel(model)
+		}
+		if osVer, ok := payload.Checkin_event["os_version"].(string); ok && osVer != "" {
+			updater.SetOsVersion(osVer)
+		}
+		if prodName, ok := payload.Checkin_event["product_name"].(string); ok && prodName != "" {
+			updater.SetDeviceType(prodName)
+		}
+
+		_, err := updater.Save(ctx)
+		return err
+
+	case "mdm.CheckOut":
+		tlog.Info("Device checked out/unenrolled", zap.String("udid", udid))
+		return s.client.Device.UpdateOneID(udid).
+			SetIsEnrolled(false).
+			SetStatus(device.StatusInactive).
+			Exec(ctx)
+	}
+
+	return nil
+}
+
+func (s *deviceServiceImpl) UpsertFromDEP(ctx context.Context, devices []any) error {
+	for _, devAny := range devices {
+		devMap, ok := devAny.(map[string]any)
+		if !ok {
+			continue
+		}
+
+		sn, _ := devMap["serial_number"].(string)
+		if sn == "" {
+			continue
+		}
+
+		// Use serial number as ID if UDID is not available yet (DEP devices)
+		// Or try to find by serial number
+		existing, _ := s.client.Device.Query().Where(device.SerialNumberEQ(sn)).Only(ctx)
+		
+		model, _ := devMap["model"].(string)
+		desc, _ := devMap["description"].(string)
+		
+		if existing != nil {
+			updater := s.client.Device.UpdateOne(existing)
+			if model != "" { updater.SetModel(model) }
+			if desc != "" { updater.SetName(desc) }
+			updater.SetEnrollmentType(device.EnrollmentTypeDep)
+			if err := updater.Exec(ctx); err != nil {
+				tlog.Error("Failed to update DEP device", zap.String("sn", sn), zap.Error(err))
+			}
+		} else {
+			// Create new record using serial number as ID temporarily if no UDID
+			// Most DEP devices will eventually enroll and update their ID to UDID
+			// For now, we use a prefixed SN or just SN to represent the "pre-enrolled" state
+			err := s.client.Device.Create().
+				SetID("dep-" + sn).
+				SetSerialNumber(sn).
+				SetModel(model).
+				SetName(desc).
+				SetStatus(device.StatusPending).
+				SetEnrollmentType(device.EnrollmentTypeDep).
+				Exec(ctx)
+			if err != nil {
+				tlog.Error("Failed to create DEP device", zap.String("sn", sn), zap.Error(err))
+			}
+		}
+	}
+	return nil
 }
 
 func boolToString(b bool) string {

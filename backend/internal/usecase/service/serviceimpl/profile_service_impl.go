@@ -2,6 +2,8 @@ package serviceimpl
 
 import (
 	"context"
+	"encoding/base64"
+	"fmt"
 	"strings"
 	"time"
 
@@ -11,14 +13,22 @@ import (
 	"github.com/thienel/go-backend-template/internal/usecase/service"
 	apperror "github.com/thienel/go-backend-template/pkg/error"
 	"github.com/thienel/go-backend-template/pkg/query"
+	"github.com/thienel/tlog"
+	"go.uber.org/zap"
 )
 
 type profileServiceImpl struct {
-	client *ent.Client
+	client    *ent.Client
+	generator service.ProfileGenerator
+	mdmService service.NanoMDMService
 }
 
-func NewProfileService(client *ent.Client) service.ProfileService {
-	return &profileServiceImpl{client: client}
+func NewProfileService(client *ent.Client, generator service.ProfileGenerator, mdmService service.NanoMDMService) service.ProfileService {
+	return &profileServiceImpl{
+		client:    client,
+		generator: generator,
+		mdmService: mdmService,
+	}
 }
 
 func (s *profileServiceImpl) List(ctx context.Context, offset, limit int, opts query.QueryOptions) ([]*ent.Profile, int64, error) {
@@ -422,14 +432,64 @@ func (s *profileServiceImpl) GetDeploymentStatus(ctx context.Context, profileID 
 }
 
 func (s *profileServiceImpl) Repush(ctx context.Context, profileID uint) error {
-	// Update deployment statuses to pending
-	_, err := s.client.Profile.Query().
-		Where(profile.IDEQ(profileID)).
-		First(ctx)
+	// 1. Fetch profile
+	p, err := s.client.Profile.Get(ctx, profileID)
 	if ent.IsNotFound(err) {
 		return apperror.ErrNotFound.WithMessage("Profile không tồn tại")
 	}
-	// In a real implementation, this would trigger MDM push
+	if err != nil {
+		return apperror.ErrInternalServerError.WithMessage("Lỗi khi truy xuất profile").WithError(err)
+	}
+
+	// 2. Generate XML
+	xmlData, err := s.generator.GenerateXML(ctx, p)
+	if err != nil {
+		return apperror.ErrInternalServerError.WithMessage("Lỗi khi tạo XML profile").WithError(err)
+	}
+
+	// 3. Find all assigned devices
+	assignments, err := s.client.ProfileAssignment.Query().
+		Where(profileassignment.ProfileIDEQ(profileID), profileassignment.DeviceIDNEQ("")).
+		All(ctx)
+	if err != nil {
+		return apperror.ErrInternalServerError.WithMessage("Lỗi khi truy xuất danh sách máy gán").WithError(err)
+	}
+
+	// 4. Enqueue InstallProfile command for each device
+	installProfileXML := `<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>Command</key>
+	<dict>
+		<key>Payload</key>
+		<data>%s</data>
+		<key>RequestType</key>
+		<string>InstallProfile</string>
+	</dict>
+	<key>CommandUUID</key>
+	<string>InstallProfile-%d-%s</string>
+</dict>
+</plist>`
+
+	encodedProfile := base64.StdEncoding.EncodeToString(xmlData)
+
+	for _, as := range assignments {
+		if as.DeviceID == nil {
+			continue
+		}
+		udid := *as.DeviceID
+		finalXML := fmt.Sprintf(installProfileXML, encodedProfile, p.ID, udid)
+		_, err := s.mdmService.EnqueueCommand(ctx, udid, []byte(finalXML))
+		if err != nil {
+			tlog.Error("Failed to enqueue InstallProfile", zap.String("udid", udid), zap.Error(err))
+			continue
+		}
+		
+		// 5. Trigger Push
+		_, _ = s.mdmService.Push(ctx, []string{udid})
+	}
+
 	return nil
 }
 
