@@ -28,8 +28,8 @@ func (AppVersion) Fields() []ent.Field {
 		field.String("build_number").NotEmpty(),
 		field.String("minimum_os_version").Optional(),
 		field.String("file_url").Optional(), // For enterprise apps
-		field.Int64("size").Optional(), // Binary size in bytes
-		field.JSON("metadata", map[string]interface{}{}).Optional(),
+		field.Int64("size").Optional(),      // Binary size in bytes
+		field.JSON("metadata", map[string]any{}).Optional(),
 		field.Time("created_at").Default(time.Now).Immutable(),
 		field.Time("updated_at").Default(time.Now).UpdateDefault(time.Now),
 	}

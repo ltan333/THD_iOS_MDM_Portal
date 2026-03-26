@@ -303,7 +303,7 @@ func (_c *DepProfileCreate) SetNillableURL(v *string) *DepProfileCreate {
 }
 
 // SetProfileData sets the "profile_data" field.
-func (_c *DepProfileCreate) SetProfileData(v map[string]interface{}) *DepProfileCreate {
+func (_c *DepProfileCreate) SetProfileData(v map[string]any) *DepProfileCreate {
 	_c.mutation.SetProfileData(v)
 	return _c
 }

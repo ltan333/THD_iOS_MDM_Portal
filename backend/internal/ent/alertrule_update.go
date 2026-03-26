@@ -63,7 +63,7 @@ func (_u *AlertRuleUpdate) ClearDescription() *AlertRuleUpdate {
 }
 
 // SetCondition sets the "condition" field.
-func (_u *AlertRuleUpdate) SetCondition(v map[string]interface{}) *AlertRuleUpdate {
+func (_u *AlertRuleUpdate) SetCondition(v map[string]any) *AlertRuleUpdate {
 	_u.mutation.SetCondition(v)
 	return _u
 }
@@ -75,7 +75,7 @@ func (_u *AlertRuleUpdate) ClearCondition() *AlertRuleUpdate {
 }
 
 // SetActions sets the "actions" field.
-func (_u *AlertRuleUpdate) SetActions(v map[string]interface{}) *AlertRuleUpdate {
+func (_u *AlertRuleUpdate) SetActions(v map[string]any) *AlertRuleUpdate {
 	_u.mutation.SetActions(v)
 	return _u
 }
@@ -256,7 +256,7 @@ func (_u *AlertRuleUpdateOne) ClearDescription() *AlertRuleUpdateOne {
 }
 
 // SetCondition sets the "condition" field.
-func (_u *AlertRuleUpdateOne) SetCondition(v map[string]interface{}) *AlertRuleUpdateOne {
+func (_u *AlertRuleUpdateOne) SetCondition(v map[string]any) *AlertRuleUpdateOne {
 	_u.mutation.SetCondition(v)
 	return _u
 }
@@ -268,7 +268,7 @@ func (_u *AlertRuleUpdateOne) ClearCondition() *AlertRuleUpdateOne {
 }
 
 // SetActions sets the "actions" field.
-func (_u *AlertRuleUpdateOne) SetActions(v map[string]interface{}) *AlertRuleUpdateOne {
+func (_u *AlertRuleUpdateOne) SetActions(v map[string]any) *AlertRuleUpdateOne {
 	_u.mutation.SetActions(v)
 	return _u
 }

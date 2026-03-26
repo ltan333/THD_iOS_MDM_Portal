@@ -154,7 +154,7 @@ func buildCreateEntities(cmd service.CreateMobileConfigCommand) (*ent.MobileConf
 		for _, propCmd := range payloadCmd.Properties {
 			valueJSON := propCmd.ValueJSON
 			if valueJSON == nil {
-				valueJSON = map[string]interface{}{}
+				valueJSON = map[string]any{}
 			}
 
 			properties = append(properties, &ent.PayloadProperty{
@@ -264,7 +264,7 @@ func (m *mobileConfigServiceImpl) GenerateXML(ctx context.Context, cmd service.G
 }
 
 func buildMobileConfigXML(mc *ent.MobileConfig) ([]byte, error) {
-	root := map[string]interface{}{
+	root := map[string]any{
 		"PayloadDescription":       mc.PayloadDescription,
 		"PayloadDisplayName":       mc.PayloadDisplayName,
 		"PayloadIdentifier":        mc.PayloadIdentifier,
@@ -279,11 +279,11 @@ func buildMobileConfigXML(mc *ent.MobileConfig) ([]byte, error) {
 	return plist.MarshalIndent(root, plist.XMLFormat, "\t")
 }
 
-func buildPayloadContent(payloads []*ent.Payload) []map[string]interface{} {
-	var content []map[string]interface{}
+func buildPayloadContent(payloads []*ent.Payload) []map[string]any {
+	var content []map[string]any
 
 	for _, p := range payloads {
-		payloadDict := map[string]interface{}{
+		payloadDict := map[string]any{
 			"PayloadType":         p.PayloadType,
 			"PayloadVersion":      p.PayloadVersion,
 			"PayloadIdentifier":   p.PayloadIdentifier,
@@ -311,7 +311,7 @@ func buildPayloadContent(payloads []*ent.Payload) []map[string]interface{} {
 	return content
 }
 
-func normalizeValue(val interface{}, valueType string) interface{} {
+func normalizeValue(val any, valueType string) any {
 	raw := extractRawValue(val)
 
 	switch strings.ToLower(valueType) {
@@ -342,8 +342,8 @@ func normalizeValue(val interface{}, valueType string) interface{} {
 	}
 }
 
-func extractRawValue(val interface{}) interface{} {
-	if m, ok := val.(map[string]interface{}); ok {
+func extractRawValue(val any) any {
+	if m, ok := val.(map[string]any); ok {
 		if unwrapped, exists := m["value"]; exists {
 			return unwrapped
 		}

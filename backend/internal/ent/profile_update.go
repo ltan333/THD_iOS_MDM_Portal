@@ -89,7 +89,7 @@ func (_u *ProfileUpdate) SetNillableStatus(v *profile.Status) *ProfileUpdate {
 }
 
 // SetSecuritySettings sets the "security_settings" field.
-func (_u *ProfileUpdate) SetSecuritySettings(v map[string]interface{}) *ProfileUpdate {
+func (_u *ProfileUpdate) SetSecuritySettings(v map[string]any) *ProfileUpdate {
 	_u.mutation.SetSecuritySettings(v)
 	return _u
 }
@@ -101,7 +101,7 @@ func (_u *ProfileUpdate) ClearSecuritySettings() *ProfileUpdate {
 }
 
 // SetNetworkConfig sets the "network_config" field.
-func (_u *ProfileUpdate) SetNetworkConfig(v map[string]interface{}) *ProfileUpdate {
+func (_u *ProfileUpdate) SetNetworkConfig(v map[string]any) *ProfileUpdate {
 	_u.mutation.SetNetworkConfig(v)
 	return _u
 }
@@ -113,7 +113,7 @@ func (_u *ProfileUpdate) ClearNetworkConfig() *ProfileUpdate {
 }
 
 // SetRestrictions sets the "restrictions" field.
-func (_u *ProfileUpdate) SetRestrictions(v map[string]interface{}) *ProfileUpdate {
+func (_u *ProfileUpdate) SetRestrictions(v map[string]any) *ProfileUpdate {
 	_u.mutation.SetRestrictions(v)
 	return _u
 }
@@ -125,7 +125,7 @@ func (_u *ProfileUpdate) ClearRestrictions() *ProfileUpdate {
 }
 
 // SetContentFilter sets the "content_filter" field.
-func (_u *ProfileUpdate) SetContentFilter(v map[string]interface{}) *ProfileUpdate {
+func (_u *ProfileUpdate) SetContentFilter(v map[string]any) *ProfileUpdate {
 	_u.mutation.SetContentFilter(v)
 	return _u
 }
@@ -137,7 +137,7 @@ func (_u *ProfileUpdate) ClearContentFilter() *ProfileUpdate {
 }
 
 // SetComplianceRules sets the "compliance_rules" field.
-func (_u *ProfileUpdate) SetComplianceRules(v map[string]interface{}) *ProfileUpdate {
+func (_u *ProfileUpdate) SetComplianceRules(v map[string]any) *ProfileUpdate {
 	_u.mutation.SetComplianceRules(v)
 	return _u
 }
@@ -149,7 +149,7 @@ func (_u *ProfileUpdate) ClearComplianceRules() *ProfileUpdate {
 }
 
 // SetPayloads sets the "payloads" field.
-func (_u *ProfileUpdate) SetPayloads(v map[string]interface{}) *ProfileUpdate {
+func (_u *ProfileUpdate) SetPayloads(v map[string]any) *ProfileUpdate {
 	_u.mutation.SetPayloads(v)
 	return _u
 }
@@ -723,7 +723,7 @@ func (_u *ProfileUpdateOne) SetNillableStatus(v *profile.Status) *ProfileUpdateO
 }
 
 // SetSecuritySettings sets the "security_settings" field.
-func (_u *ProfileUpdateOne) SetSecuritySettings(v map[string]interface{}) *ProfileUpdateOne {
+func (_u *ProfileUpdateOne) SetSecuritySettings(v map[string]any) *ProfileUpdateOne {
 	_u.mutation.SetSecuritySettings(v)
 	return _u
 }
@@ -735,7 +735,7 @@ func (_u *ProfileUpdateOne) ClearSecuritySettings() *ProfileUpdateOne {
 }
 
 // SetNetworkConfig sets the "network_config" field.
-func (_u *ProfileUpdateOne) SetNetworkConfig(v map[string]interface{}) *ProfileUpdateOne {
+func (_u *ProfileUpdateOne) SetNetworkConfig(v map[string]any) *ProfileUpdateOne {
 	_u.mutation.SetNetworkConfig(v)
 	return _u
 }
@@ -747,7 +747,7 @@ func (_u *ProfileUpdateOne) ClearNetworkConfig() *ProfileUpdateOne {
 }
 
 // SetRestrictions sets the "restrictions" field.
-func (_u *ProfileUpdateOne) SetRestrictions(v map[string]interface{}) *ProfileUpdateOne {
+func (_u *ProfileUpdateOne) SetRestrictions(v map[string]any) *ProfileUpdateOne {
 	_u.mutation.SetRestrictions(v)
 	return _u
 }
@@ -759,7 +759,7 @@ func (_u *ProfileUpdateOne) ClearRestrictions() *ProfileUpdateOne {
 }
 
 // SetContentFilter sets the "content_filter" field.
-func (_u *ProfileUpdateOne) SetContentFilter(v map[string]interface{}) *ProfileUpdateOne {
+func (_u *ProfileUpdateOne) SetContentFilter(v map[string]any) *ProfileUpdateOne {
 	_u.mutation.SetContentFilter(v)
 	return _u
 }
@@ -771,7 +771,7 @@ func (_u *ProfileUpdateOne) ClearContentFilter() *ProfileUpdateOne {
 }
 
 // SetComplianceRules sets the "compliance_rules" field.
-func (_u *ProfileUpdateOne) SetComplianceRules(v map[string]interface{}) *ProfileUpdateOne {
+func (_u *ProfileUpdateOne) SetComplianceRules(v map[string]any) *ProfileUpdateOne {
 	_u.mutation.SetComplianceRules(v)
 	return _u
 }
@@ -783,7 +783,7 @@ func (_u *ProfileUpdateOne) ClearComplianceRules() *ProfileUpdateOne {
 }
 
 // SetPayloads sets the "payloads" field.
-func (_u *ProfileUpdateOne) SetPayloads(v map[string]interface{}) *ProfileUpdateOne {
+func (_u *ProfileUpdateOne) SetPayloads(v map[string]any) *ProfileUpdateOne {
 	_u.mutation.SetPayloads(v)
 	return _u
 }

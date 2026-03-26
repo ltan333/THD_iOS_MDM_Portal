@@ -32,7 +32,7 @@ func NewNanoCMDService(baseURL, username, password string) service.NanoCMDServic
 	}
 }
 
-func (s *nanocmdServiceImpl) doRequest(ctx context.Context, method, path string, body interface{}, query url.Values) (*http.Response, error) {
+func (s *nanocmdServiceImpl) doRequest(ctx context.Context, method, path string, body any, query url.Values) (*http.Response, error) {
 	u, err := url.Parse(fmt.Sprintf("%s%s", s.baseURL, path))
 	if err != nil {
 		return nil, err
@@ -70,7 +70,7 @@ func (s *nanocmdServiceImpl) doRequest(ctx context.Context, method, path string,
 	return s.client.Do(req)
 }
 
-func (s *nanocmdServiceImpl) handleResponse(resp *http.Response, target interface{}) error {
+func (s *nanocmdServiceImpl) handleResponse(resp *http.Response, target any) error {
 	defer func() { _ = resp.Body.Close() }()
 
 	if resp.StatusCode >= 200 && resp.StatusCode < 300 {

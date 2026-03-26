@@ -27,7 +27,7 @@ func NewRedisService(cfg config.RedisConfig) service.RedisService {
 	}
 }
 
-func (s *redisServiceImpl) Set(ctx context.Context, key string, value interface{}, expiration time.Duration) error {
+func (s *redisServiceImpl) Set(ctx context.Context, key string, value any, expiration time.Duration) error {
 	return s.client.Set(ctx, key, value, expiration).Err()
 }
 

@@ -24,7 +24,7 @@ type ProfileVersion struct {
 	// Version holds the value of the "version" field.
 	Version int `json:"version,omitempty"`
 	// Data holds the value of the "data" field.
-	Data map[string]interface{} `json:"data,omitempty"`
+	Data map[string]any `json:"data,omitempty"`
 	// ChangeNotes holds the value of the "change_notes" field.
 	ChangeNotes string `json:"change_notes,omitempty"`
 	// CreatedAt holds the value of the "created_at" field.

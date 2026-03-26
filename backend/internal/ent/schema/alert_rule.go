@@ -27,8 +27,8 @@ func (AlertRule) Fields() []ent.Field {
 		field.Uint("id"),
 		field.String("name").NotEmpty().MaxLen(255),
 		field.String("description").Optional().MaxLen(500),
-		field.JSON("condition", map[string]interface{}{}).Optional(), // e.g., {"type": "device_offline", "threshold": "24h"}
-		field.JSON("actions", map[string]interface{}{}).Optional(),   // e.g., {"trigger_alert": true, "send_email": true}
+		field.JSON("condition", map[string]any{}).Optional(), // e.g., {"type": "device_offline", "threshold": "24h"}
+		field.JSON("actions", map[string]any{}).Optional(),   // e.g., {"trigger_alert": true, "send_email": true}
 		field.Bool("enabled").Default(true),
 		field.Time("created_at").Default(time.Now).Immutable(),
 		field.Time("updated_at").Default(time.Now).UpdateDefault(time.Now),

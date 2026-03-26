@@ -52,6 +52,19 @@ services:
     networks:
       - mdm-network
 
+  redis:
+    image: redis:7-alpine
+    container_name: mdm-redis
+    ports:
+      - "6379:6379"
+    networks:
+      - mdm-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
 networks:
   mdm-network:
     driver: bridge

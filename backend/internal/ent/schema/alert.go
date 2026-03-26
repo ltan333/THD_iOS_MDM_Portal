@@ -31,7 +31,7 @@ func (Alert) Fields() []ent.Field {
 		field.Enum("status").Values("open", "acknowledged", "resolved").Default("open"),
 		field.String("device_id").Optional(),
 		field.Uint("user_id").Optional().Nillable(),
-		field.JSON("details", map[string]interface{}{}).Optional(),
+		field.JSON("details", map[string]any{}).Optional(),
 		field.Time("created_at").Default(time.Now).Immutable(),
 		field.Time("acknowledged_at").Optional().Nillable(),
 		field.Time("resolved_at").Optional().Nillable(),

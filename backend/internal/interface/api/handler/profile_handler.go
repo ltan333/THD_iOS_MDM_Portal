@@ -243,7 +243,7 @@ func (h *profileHandlerImpl) UpdateSecuritySettings(c *gin.Context) {
 		response.WriteErrorResponse(c, apperror.ErrBadRequest.WithMessage("Invalid ID"))
 		return
 	}
-	var req map[string]interface{}
+	var req map[string]any
 	if err := c.ShouldBindJSON(&req); err != nil {
 		response.WriteErrorResponse(c, apperror.ErrValidation.WithMessage("Invalid data"))
 		return
@@ -262,7 +262,7 @@ func (h *profileHandlerImpl) UpdateNetworkConfig(c *gin.Context) {
 		response.WriteErrorResponse(c, apperror.ErrBadRequest.WithMessage("Invalid ID"))
 		return
 	}
-	var req map[string]interface{}
+	var req map[string]any
 	if err := c.ShouldBindJSON(&req); err != nil {
 		response.WriteErrorResponse(c, apperror.ErrValidation.WithMessage("Invalid data"))
 		return
@@ -281,7 +281,7 @@ func (h *profileHandlerImpl) UpdateRestrictions(c *gin.Context) {
 		response.WriteErrorResponse(c, apperror.ErrBadRequest.WithMessage("Invalid ID"))
 		return
 	}
-	var req map[string]interface{}
+	var req map[string]any
 	if err := c.ShouldBindJSON(&req); err != nil {
 		response.WriteErrorResponse(c, apperror.ErrValidation.WithMessage("Invalid data"))
 		return
@@ -300,7 +300,7 @@ func (h *profileHandlerImpl) UpdateContentFilter(c *gin.Context) {
 		response.WriteErrorResponse(c, apperror.ErrBadRequest.WithMessage("Invalid ID"))
 		return
 	}
-	var req map[string]interface{}
+	var req map[string]any
 	if err := c.ShouldBindJSON(&req); err != nil {
 		response.WriteErrorResponse(c, apperror.ErrValidation.WithMessage("Invalid data"))
 		return
@@ -319,7 +319,7 @@ func (h *profileHandlerImpl) UpdateComplianceRules(c *gin.Context) {
 		response.WriteErrorResponse(c, apperror.ErrBadRequest.WithMessage("Invalid ID"))
 		return
 	}
-	var req map[string]interface{}
+	var req map[string]any
 	if err := c.ShouldBindJSON(&req); err != nil {
 		response.WriteErrorResponse(c, apperror.ErrValidation.WithMessage("Invalid data"))
 		return
@@ -343,7 +343,7 @@ func (h *profileHandlerImpl) Assign(c *gin.Context) {
 		response.WriteErrorResponse(c, apperror.ErrValidation.WithMessage("Invalid data"))
 		return
 	}
-	
+
 	err = h.profileService.Assign(c.Request.Context(), service.AssignProfileCommand{
 		ProfileID:    uint(id),
 		TargetType:   req.TargetType,
@@ -387,13 +387,13 @@ func (h *profileHandlerImpl) ListAssignments(c *gin.Context) {
 		response.WriteErrorResponse(c, apperror.ErrBadRequest.WithMessage("Invalid ID"))
 		return
 	}
-	
+
 	assignments, err := h.profileService.ListAssignments(c.Request.Context(), uint(id))
 	if err != nil {
 		response.WriteErrorResponse(c, err)
 		return
 	}
-	
+
 	res := make([]dto.ProfileAssignmentResponse, 0, len(assignments))
 	for _, a := range assignments {
 		res = append(res, dto.ProfileAssignmentResponse{
@@ -406,7 +406,7 @@ func (h *profileHandlerImpl) ListAssignments(c *gin.Context) {
 			CreatedAt:    a.CreatedAt,
 		})
 	}
-	
+
 	response.OK(c, res, "")
 }
 
@@ -417,13 +417,13 @@ func (h *profileHandlerImpl) ListVersions(c *gin.Context) {
 		response.WriteErrorResponse(c, apperror.ErrBadRequest.WithMessage("Invalid ID"))
 		return
 	}
-	
+
 	versions, err := h.profileService.ListVersions(c.Request.Context(), uint(id))
 	if err != nil {
 		response.WriteErrorResponse(c, err)
 		return
 	}
-	
+
 	res := make([]dto.ProfileVersionResponse, 0, len(versions))
 	for _, v := range versions {
 		res = append(res, dto.ProfileVersionResponse{
@@ -435,7 +435,7 @@ func (h *profileHandlerImpl) ListVersions(c *gin.Context) {
 			CreatedAt:   v.CreatedAt,
 		})
 	}
-	
+
 	response.OK(c, res, "")
 }
 
@@ -452,7 +452,7 @@ func (h *profileHandlerImpl) Rollback(c *gin.Context) {
 		response.WriteErrorResponse(c, apperror.ErrBadRequest.WithMessage("Invalid Version ID"))
 		return
 	}
-	
+
 	if err := h.profileService.Rollback(c.Request.Context(), uint(id), uint(versionId)); err != nil {
 		response.WriteErrorResponse(c, err)
 		return
@@ -467,13 +467,13 @@ func (h *profileHandlerImpl) GetDeploymentStatus(c *gin.Context) {
 		response.WriteErrorResponse(c, apperror.ErrBadRequest.WithMessage("Invalid ID"))
 		return
 	}
-	
+
 	statuses, err := h.profileService.GetDeploymentStatus(c.Request.Context(), uint(id))
 	if err != nil {
 		response.WriteErrorResponse(c, err)
 		return
 	}
-	
+
 	res := make([]dto.ProfileDeploymentStatusResponse, 0, len(statuses))
 	for _, s := range statuses {
 		res = append(res, dto.ProfileDeploymentStatusResponse{
@@ -486,7 +486,7 @@ func (h *profileHandlerImpl) GetDeploymentStatus(c *gin.Context) {
 			UpdatedAt:    s.UpdatedAt,
 		})
 	}
-	
+
 	response.OK(c, res, "")
 }
 
@@ -497,7 +497,7 @@ func (h *profileHandlerImpl) Repush(c *gin.Context) {
 		response.WriteErrorResponse(c, apperror.ErrBadRequest.WithMessage("Invalid ID"))
 		return
 	}
-	
+
 	if err := h.profileService.Repush(c.Request.Context(), uint(id)); err != nil {
 		response.WriteErrorResponse(c, err)
 		return
@@ -512,7 +512,7 @@ func (h *profileHandlerImpl) Duplicate(c *gin.Context) {
 		response.WriteErrorResponse(c, apperror.ErrBadRequest.WithMessage("Invalid ID"))
 		return
 	}
-	
+
 	p, err := h.profileService.Duplicate(c.Request.Context(), uint(id))
 	if err != nil {
 		response.WriteErrorResponse(c, err)
@@ -520,7 +520,6 @@ func (h *profileHandlerImpl) Duplicate(c *gin.Context) {
 	}
 	response.Created(c, mapProfileToResponse(p), "Profile duplicated successfully")
 }
-
 
 func mapProfileToResponse(p *ent.Profile) dto.ProfileResponse {
 	return dto.ProfileResponse{

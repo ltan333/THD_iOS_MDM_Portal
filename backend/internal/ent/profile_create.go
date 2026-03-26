@@ -73,37 +73,37 @@ func (_c *ProfileCreate) SetNillableStatus(v *profile.Status) *ProfileCreate {
 }
 
 // SetSecuritySettings sets the "security_settings" field.
-func (_c *ProfileCreate) SetSecuritySettings(v map[string]interface{}) *ProfileCreate {
+func (_c *ProfileCreate) SetSecuritySettings(v map[string]any) *ProfileCreate {
 	_c.mutation.SetSecuritySettings(v)
 	return _c
 }
 
 // SetNetworkConfig sets the "network_config" field.
-func (_c *ProfileCreate) SetNetworkConfig(v map[string]interface{}) *ProfileCreate {
+func (_c *ProfileCreate) SetNetworkConfig(v map[string]any) *ProfileCreate {
 	_c.mutation.SetNetworkConfig(v)
 	return _c
 }
 
 // SetRestrictions sets the "restrictions" field.
-func (_c *ProfileCreate) SetRestrictions(v map[string]interface{}) *ProfileCreate {
+func (_c *ProfileCreate) SetRestrictions(v map[string]any) *ProfileCreate {
 	_c.mutation.SetRestrictions(v)
 	return _c
 }
 
 // SetContentFilter sets the "content_filter" field.
-func (_c *ProfileCreate) SetContentFilter(v map[string]interface{}) *ProfileCreate {
+func (_c *ProfileCreate) SetContentFilter(v map[string]any) *ProfileCreate {
 	_c.mutation.SetContentFilter(v)
 	return _c
 }
 
 // SetComplianceRules sets the "compliance_rules" field.
-func (_c *ProfileCreate) SetComplianceRules(v map[string]interface{}) *ProfileCreate {
+func (_c *ProfileCreate) SetComplianceRules(v map[string]any) *ProfileCreate {
 	_c.mutation.SetComplianceRules(v)
 	return _c
 }
 
 // SetPayloads sets the "payloads" field.
-func (_c *ProfileCreate) SetPayloads(v map[string]interface{}) *ProfileCreate {
+func (_c *ProfileCreate) SetPayloads(v map[string]any) *ProfileCreate {
 	_c.mutation.SetPayloads(v)
 	return _c
 }

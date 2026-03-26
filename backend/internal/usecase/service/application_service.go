@@ -32,7 +32,7 @@ type CreateAppVersionCommand struct {
 	MinimumOSVersion string
 	FileURL          string
 	Size             int64
-	Metadata         map[string]interface{}
+	Metadata         map[string]any
 }
 
 type CreateAppDeploymentCommand struct {
