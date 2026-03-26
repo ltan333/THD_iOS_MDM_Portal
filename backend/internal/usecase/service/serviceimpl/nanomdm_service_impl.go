@@ -107,21 +107,6 @@ func (s *nanomdmServiceImpl) handleResponse(resp *http.Response, target any) err
 	return apperror.ErrBadRequest.WithMessage(errMsg)
 }
 
-func (s *nanomdmServiceImpl) DefineDEPProfile(ctx context.Context, depName string, profile any) (string, error) {
-	resp, err := s.doRequest(ctx, http.MethodPost, s.depBaseURL, "/v1/dep/profiles", profile, nil, s.depUsername, s.depPassword)
-	if err != nil {
-		return "", err
-	}
-
-	var result struct {
-		ProfileUUID string `json:"profile_uuid"`
-	}
-	if err := s.handleResponse(resp, &result); err != nil {
-		return "", err
-	}
-	return result.ProfileUUID, nil
-}
-
 func (s *nanomdmServiceImpl) GetDEPProfile(ctx context.Context, depName, profileUUID string) (any, error) {
 	query := url.Values{}
 	query.Set("profile_uuid", profileUUID)
@@ -135,19 +120,6 @@ func (s *nanomdmServiceImpl) GetDEPProfile(ctx context.Context, depName, profile
 		return nil, err
 	}
 	return &result, nil
-}
-
-func (s *nanomdmServiceImpl) ListDEPProfiles(ctx context.Context, depName string) (any, error) {
-	resp, err := s.doRequest(ctx, http.MethodGet, s.depBaseURL, "/v1/dep/profiles", nil, nil, s.depUsername, s.depPassword)
-	if err != nil {
-		return nil, err
-	}
-
-	var result any
-	if err := s.handleResponse(resp, &result); err != nil {
-		return nil, err
-	}
-	return result, nil
 }
 
 func (s *nanomdmServiceImpl) SyncDEPDevices(ctx context.Context, depName string, cursor string) (any, error) {
@@ -186,13 +158,25 @@ func (s *nanomdmServiceImpl) DisownDEPDevices(ctx context.Context, depName strin
 }
 
 func (s *nanomdmServiceImpl) UploadDEPToken(ctx context.Context, depName string, tokenData []byte) (any, error) {
-	resp, err := s.doRequest(ctx, http.MethodPut, s.depBaseURL, fmt.Sprintf("/v1/tokenpki/%s", depName), tokenData, nil, s.depUsername, s.depPassword)
+	// Custom request to set proper Content-Type for PKCS7 data
+	u, err := url.Parse(fmt.Sprintf("%s/v1/tokenpki/%s", s.depBaseURL, depName))
 	if err != nil {
 		return nil, err
 	}
 
-	// For token upload, NanoDEP might set Content-Type header manually in doRequest,
-	// but I updated doRequest to handle []byte body correctly.
+	req, err := http.NewRequestWithContext(ctx, http.MethodPut, u.String(), bytes.NewReader(tokenData))
+	if err != nil {
+		return nil, err
+	}
+
+	req.SetBasicAuth(s.depUsername, s.depPassword)
+	req.Header.Set("User-Agent", "MDM-Portal/1.0")
+	req.Header.Set("Content-Type", "application/pkcs7-mime")
+
+	resp, err := s.client.Do(req)
+	if err != nil {
+		return nil, err
+	}
 
 	var result any
 	if err := s.handleResponse(resp, &result); err != nil {
