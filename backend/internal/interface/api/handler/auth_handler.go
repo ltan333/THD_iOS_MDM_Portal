@@ -98,7 +98,14 @@ func (h *authHandlerImpl) Refresh(c *gin.Context) {
 // @Security BearerAuth
 // @Router /v1/auth/logout [post]
 func (h *authHandlerImpl) Logout(c *gin.Context) {
-	if err := h.authService.Logout(c.Request.Context()); err != nil {
+	// Extract token from Authorization header
+	token := middleware.GetToken(c)
+	if token == "" {
+		response.WriteErrorResponse(c, apperror.ErrUnauthorized)
+		return
+	}
+
+	if err := h.authService.Logout(c.Request.Context(), token); err != nil {
 		response.WriteErrorResponse(c, err)
 		return
 	}
