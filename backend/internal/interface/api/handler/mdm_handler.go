@@ -37,7 +37,7 @@ func NewMDMHandler(client *ent.Client, mdmService service.NanoMDMService) MDMHan
 // PushCert godoc
 // @Summary Upload APNs certificate and private key
 // @Description Upload APNs certificate and private key. Concatenated PEM format.
-// @Tags MDM
+// @Tags MDM Setup
 // @Accept text/plain
 // @Produce json
 // @Param data body string true "PEM-encoded certificate and private key"
@@ -66,7 +66,7 @@ func (h *mdmHandler) PushCert(c *gin.Context) {
 // GetCert godoc
 // @Summary Retrieve APNs push certificate info
 // @Description Retrieve the topic and expiry of the stored APNs push certificate.
-// @Tags MDM
+// @Tags MDM Setup
 // @Produce json
 // @Param topic query string true "APNs topic"
 // @Success 200 {object} response.APIResponse[dto.PushCertResponse]
@@ -94,7 +94,7 @@ func (h *mdmHandler) GetCert(c *gin.Context) {
 // Push godoc
 // @Summary Send APNs push notifications
 // @Description Send APNs push notifications to MDM enrollments.
-// @Tags MDM
+// @Tags MDM Setup
 // @Produce json
 // @Param id path string true "Enrollment ID(s) comma-separated"
 // @Success 200 {object} response.APIResponse[dto.APIResult]
@@ -116,7 +116,7 @@ func (h *mdmHandler) Push(c *gin.Context) {
 // EnqueueCommand godoc
 // @Summary Enqueue MDM commands
 // @Description Enqueue MDM commands to MDM enrollments and (optionally) send APNs push notifications.
-// @Tags MDM
+// @Tags MDM Setup
 // @Accept text/plain
 // @Produce json
 // @Param id path string true "Enrollment ID"
@@ -147,7 +147,7 @@ func (h *mdmHandler) EnqueueCommand(c *gin.Context) {
 // EscrowKeyUnlock godoc
 // @Summary Perform an Escrow Key Unlock
 // @Description Perform an Escrow Key Unlock against Apple's API.
-// @Tags MDM
+// @Tags MDM Setup
 // @Accept x-www-form-urlencoded
 // @Produce json
 // @Param topic formData string true "APNs Push topic"
@@ -182,7 +182,7 @@ func (h *mdmHandler) EscrowKeyUnlock(c *gin.Context) {
 // GetVersion godoc
 // @Summary Returns the running NanoMDM version
 // @Description Returns the running NanoMDM version.
-// @Tags MDM
+// @Tags MDM Setup
 // @Produce json
 // @Success 200 {object} response.APIResponse[dto.NanoMDMVersionResponse]
 // @Router /api/v1/mdm/version [get]

@@ -20,15 +20,15 @@ import (
 )
 
 type profileServiceImpl struct {
-	client    *ent.Client
-	generator service.ProfileGenerator
+	client     *ent.Client
+	generator  service.ProfileGenerator
 	mdmService service.NanoMDMService
 }
 
 func NewProfileService(client *ent.Client, generator service.ProfileGenerator, mdmService service.NanoMDMService) service.ProfileService {
 	return &profileServiceImpl{
-		client:    client,
-		generator: generator,
+		client:     client,
+		generator:  generator,
 		mdmService: mdmService,
 	}
 }
@@ -487,7 +487,7 @@ func (s *profileServiceImpl) Repush(ctx context.Context, profileID uint) error {
 			tlog.Error("Failed to enqueue InstallProfile", zap.String("udid", udid), zap.Error(err))
 			continue
 		}
-		
+
 		// 5. Trigger Push
 		_, _ = s.mdmService.Push(ctx, []string{udid})
 	}
@@ -545,6 +545,53 @@ func (s *profileServiceImpl) DeployToDevice(ctx context.Context, deviceID string
 		// 4. Trigger Push
 		_, _ = s.mdmService.Push(ctx, []string{deviceID})
 	}
+
+	return nil
+}
+
+func (s *profileServiceImpl) InstallOnDevice(ctx context.Context, profileID uint, deviceID string) error {
+	// 1. Get the profile
+	p, err := s.client.Profile.Get(ctx, profileID)
+	if ent.IsNotFound(err) {
+		return apperror.ErrNotFound.WithMessage("Profile not found")
+	}
+	if err != nil {
+		return apperror.ErrInternalServerError.WithMessage("Error fetching profile").WithError(err)
+	}
+
+	// 2. Generate XML
+	xmlData, err := s.generator.GenerateXML(ctx, p)
+	if err != nil {
+		return apperror.ErrInternalServerError.WithMessage("Error generating profile XML").WithError(err)
+	}
+
+	// 3. Enqueue InstallProfile command
+	installProfileXML := `<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>Command</key>
+	<dict>
+		<key>Payload</key>
+		<data>%s</data>
+		<key>RequestType</key>
+		<string>InstallProfile</string>
+	</dict>
+	<key>CommandUUID</key>
+	<string>InstallProfile-%d-%s</string>
+</dict>
+</plist>`
+
+	encodedProfile := base64.StdEncoding.EncodeToString(xmlData)
+	finalXML := fmt.Sprintf(installProfileXML, encodedProfile, p.ID, deviceID)
+
+	_, err = s.mdmService.EnqueueCommand(ctx, deviceID, []byte(finalXML))
+	if err != nil {
+		return apperror.ErrInternalServerError.WithMessage("Error enqueueing InstallProfile command").WithError(err)
+	}
+
+	// 4. Trigger Push
+	_, _ = s.mdmService.Push(ctx, []string{deviceID})
 
 	return nil
 }
