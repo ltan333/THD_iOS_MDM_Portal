@@ -38,7 +38,8 @@ func setupDependencies(cfg *config.Config) *gin.Engine {
 		cfg.JWT.RefreshExpiryHours,
 	)
 	authzService := serviceimpl.NewAuthorizationService(enforcer)
-	authService := serviceimpl.NewAuthService(userRepo, jwtService, authzService)
+	redisService := serviceimpl.NewRedisService(cfg.Redis)
+	authService := serviceimpl.NewAuthService(userRepo, jwtService, authzService, redisService)
 	userService := serviceimpl.NewUserService(userRepo, authzService)
 	nanocmdService := serviceimpl.NewNanoCMDService(cfg.NanoCMD.BaseURL, cfg.NanoCMD.Username, cfg.NanoCMD.Password)
 	nanomdmService := serviceimpl.NewNanoMDMService(
@@ -63,7 +64,7 @@ func setupDependencies(cfg *config.Config) *gin.Engine {
 
 	// Middleware
 	origins := strings.Join(cfg.CORSAllowedOrigins, ",")
-	mw := middleware.New(jwtService, authzService, origins)
+	mw := middleware.New(jwtService, authzService, redisService, origins)
 
 	// Handlers
 	authHandler := handler.NewAuthHandler(authService, userService, authzService)

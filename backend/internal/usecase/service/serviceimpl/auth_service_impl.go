@@ -2,6 +2,8 @@ package serviceimpl
 
 import (
 	"context"
+	"fmt"
+	"time"
 
 	"github.com/thienel/tlog"
 	"go.uber.org/zap"
@@ -18,14 +20,21 @@ type authServiceImpl struct {
 	userRepo     repository.UserRepository
 	jwtService   service.JWTService
 	authzService service.AuthorizationService
+	redisService service.RedisService
 }
 
 // NewAuthService creates a new auth service
-func NewAuthService(userRepo repository.UserRepository, jwtService service.JWTService, authzService service.AuthorizationService) service.AuthService {
+func NewAuthService(
+	userRepo repository.UserRepository,
+	jwtService service.JWTService,
+	authzService service.AuthorizationService,
+	redisService service.RedisService,
+) service.AuthService {
 	return &authServiceImpl{
 		userRepo:     userRepo,
 		jwtService:   jwtService,
 		authzService: authzService,
+		redisService: redisService,
 	}
 }
 
@@ -84,10 +93,20 @@ func (s *authServiceImpl) Login(ctx context.Context, username, password string) 
 	}, nil
 }
 
-func (s *authServiceImpl) Logout(ctx context.Context) error {
-	// For stateless JWT, logout is handled at the handler level by clearing cookies
-	// If you need blacklist/revocation, implement it here with Redis
-	return nil
+func (s *authServiceImpl) Logout(ctx context.Context, token string) error {
+	// Calculate remaining time for the token to set TTL in Redis
+	_, err := s.jwtService.ValidateToken(token)
+	if err != nil {
+		// Token already invalid or expired, no need to blacklist
+		return nil
+	}
+
+	// For now, let's just use the RefreshExpiry as a safe maximum
+	ttl := time.Duration(s.jwtService.GetRefreshExpirySeconds()) * time.Second
+
+	// Mark token as blacklisted in Redis
+	key := fmt.Sprintf("blacklist:%s", token)
+	return s.redisService.Set(ctx, key, "true", ttl)
 }
 
 func (s *authServiceImpl) Refresh(ctx context.Context, refreshToken string) (*dto.LoginResponse, error) {

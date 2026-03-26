@@ -27,6 +27,14 @@ type DatabaseConfig struct {
 	TimeZone string `env:"DB_TIMEZONE"`
 }
 
+// RedisConfig holds Redis configuration
+type RedisConfig struct {
+	Host     string `env:"REDIS_HOST" env-default:"localhost"`
+	Port     int    `env:"REDIS_PORT" env-default:"6379"`
+	Password string `env:"REDIS_PASSWORD"`
+	DB       int    `env:"REDIS_DB" env-default:"0"`
+}
+
 // JWTConfig holds JWT authentication configuration
 type JWTConfig struct {
 	Secret              string `env:"JWT_SECRET"`
@@ -95,6 +103,7 @@ type Config struct {
 	NanoCMD  NanoCMDConfig
 	NanoMDM  NanoMDMConfig
 	Seed     SeedConfig
+	Redis    RedisConfig
 
 	CORSAllowedOrigins []string `env:"CORS_ALLOWED_ORIGINS"`
 }
