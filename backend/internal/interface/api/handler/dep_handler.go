@@ -13,17 +13,19 @@ import (
 	apperror "github.com/thienel/go-backend-template/pkg/error"
 	"github.com/thienel/go-backend-template/pkg/query"
 	"github.com/thienel/go-backend-template/pkg/response"
+	"github.com/thienel/tlog"
+	"go.uber.org/zap"
 )
 
 type DEPHandler interface {
 	PutTokenPKI(c *gin.Context)
 	GetTokenPKI(c *gin.Context)
 	GetToken(c *gin.Context)
-	SyncDevices(c *gin.Context)
 	DefineProfile(c *gin.Context)
 	GetProfile(c *gin.Context)
 	ListProfiles(c *gin.Context)
 	DisownDevice(c *gin.Context)
+	SyncDevices(c *gin.Context)
 
 	// New methods from apidog / NanoDEP spec
 	ListNames(c *gin.Context)
@@ -45,6 +47,7 @@ type depHandler struct {
 	authzService      service.AuthorizationService
 	mdmService        service.NanoMDMService
 	depProfileService service.DepProfileService
+	deviceService     service.DeviceService
 }
 
 func NewDEPHandler(
@@ -52,12 +55,14 @@ func NewDEPHandler(
 	authzService service.AuthorizationService,
 	mdmService service.NanoMDMService,
 	depProfileService service.DepProfileService,
+	deviceService service.DeviceService,
 ) DEPHandler {
 	return &depHandler{
 		client:            client,
 		authzService:      authzService,
 		mdmService:        mdmService,
 		depProfileService: depProfileService,
+		deviceService:     deviceService,
 	}
 }
 
@@ -195,7 +200,18 @@ func (h *depHandler) SyncDevices(c *gin.Context) {
 		return
 	}
 
-	response.OK(c, result, "Sync initiated successfully")
+	// Automatically upsert devices into local database
+	if result != nil {
+		if resMap, ok := result.(map[string]any); ok {
+			if devices, ok := resMap["devices"].([]any); ok {
+				if err := h.deviceService.UpsertFromDEP(c.Request.Context(), devices); err != nil {
+					tlog.Error("Failed to upsert DEP devices", zap.Error(err))
+				}
+			}
+		}
+	}
+
+	response.OK(c, result, "Sync initiated and devices updated successfully")
 }
 
 // DefineProfile godoc

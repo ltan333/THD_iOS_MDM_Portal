@@ -53,4 +53,10 @@ type DeviceService interface {
 	Delete(ctx context.Context, id string) error
 	GetStats(ctx context.Context) (*dto.DeviceStatsResponse, error)
 	Export(ctx context.Context, format string) ([]byte, error)
+
+	// HandleWebhook processes MDM/NanoCMD webhook events
+	HandleWebhook(ctx context.Context, payload *dto.NanoCMDWebhook) error
+
+	// UpsertFromDEP handles syncing multiple devices from DEP
+	UpsertFromDEP(ctx context.Context, devices []any) error
 }

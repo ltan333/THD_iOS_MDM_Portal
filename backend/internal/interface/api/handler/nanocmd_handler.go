@@ -29,12 +29,14 @@ type NanoCMDHandler interface {
 }
 
 type nanocmdHandler struct {
-	service service.NanoCMDService
+	service       service.NanoCMDService
+	deviceService service.DeviceService
 }
 
-func NewNanoCMDHandler(svc service.NanoCMDService) NanoCMDHandler {
+func NewNanoCMDHandler(svc service.NanoCMDService, deviceService service.DeviceService) NanoCMDHandler {
 	return &nanocmdHandler{
-		service: svc,
+		service:       svc,
+		deviceService: deviceService,
 	}
 }
 
@@ -341,6 +343,12 @@ func (h *nanocmdHandler) Webhook(c *gin.Context) {
 
 	// Process webhook logic here (e.g., update device status)
 	tlog.Info("Received NanoCMD webhook", zap.String("topic", webhook.Topic))
+
+	if err := h.deviceService.HandleWebhook(c.Request.Context(), &webhook); err != nil {
+		tlog.Error("Failed to handle device webhook", zap.Error(err))
+		// We don't necessarily want to return 500 to the webhook provider if our local DB update fails
+		// but for debugging purposes it might be better to know.
+	}
 
 	response.OK[any](c, nil, "Webhook processed successfully")
 }
