@@ -45,7 +45,7 @@ func NewDeviceHandler(deviceService service.DeviceService, mdmService service.Na
 // @Tags Devices
 // @Produce json
 // @Security BearerAuth
-// @Router /v1/devices [get]
+// @Router /api/v1/devices [get]
 func (h *deviceHandlerImpl) List(c *gin.Context) {
 	params := make(map[string]string)
 	for k, v := range c.Request.URL.Query() {
@@ -85,7 +85,7 @@ func (h *deviceHandlerImpl) List(c *gin.Context) {
 // @Produce json
 // @Param id path string true "Device ID"
 // @Security BearerAuth
-// @Router /v1/devices/{id} [get]
+// @Router /api/v1/devices/{id} [get]
 func (h *deviceHandlerImpl) GetByID(c *gin.Context) {
 	id := c.Param("id")
 	if id == "" {
@@ -108,7 +108,7 @@ func (h *deviceHandlerImpl) GetByID(c *gin.Context) {
 // @Produce text/csv
 // @Param format query string false "Format (csv or json)"
 // @Security BearerAuth
-// @Router /v1/devices/export [get]
+// @Router /api/v1/devices/export [get]
 func (h *deviceHandlerImpl) Export(c *gin.Context) {
 	format := c.Query("format")
 	if format == "" {
@@ -136,7 +136,7 @@ func (h *deviceHandlerImpl) Export(c *gin.Context) {
 // @Produce json
 // @Param id path string true "Device ID"
 // @Security BearerAuth
-// @Router /v1/devices/{id}/lock [post]
+// @Router /api/v1/devices/{id}/lock [post]
 func (h *deviceHandlerImpl) Lock(c *gin.Context) {
 	id := c.Param("id")
 	if id == "" {
@@ -174,7 +174,7 @@ func (h *deviceHandlerImpl) Lock(c *gin.Context) {
 // @Produce json
 // @Param id path string true "Device ID"
 // @Security BearerAuth
-// @Router /v1/devices/{id}/wipe [post]
+// @Router /api/v1/devices/{id}/wipe [post]
 func (h *deviceHandlerImpl) Wipe(c *gin.Context) {
 	id := c.Param("id")
 	if id == "" {

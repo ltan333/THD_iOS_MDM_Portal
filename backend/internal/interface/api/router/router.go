@@ -73,7 +73,7 @@ func SetupRouter(
 	router := gin.New()
 	router.Use(gin.Recovery(), mw.CORS(), tlog.GinMiddleware(tlog.WithSkipPaths("/health")))
 
-	// Health check
+	// Health check - system endpoint, keep at root level
 	router.GET("/health", func(c *gin.Context) {
 		c.JSON(200, gin.H{"status": "ok"})
 	})
@@ -104,13 +104,12 @@ func SetupRouter(
 			routes.registerReportRoutes(protected)
 			routes.registerSettingRoutes(protected)
 		}
+
+		// NanoCMD Webhook (Public) - now consistently in v1
+		v1.POST("/nanocmd/webhook", routes.nanocmd.Webhook)
 	}
 
-	// NanoCMD Webhook (Public) - keeping at root /api/v1 or root?
-	// Spec shows it might be useful to keep it as /api/v1/nanocmd/webhook
-	v1.POST("/nanocmd/webhook", routes.nanocmd.Webhook)
-
-	// Swagger documentation
+	// Swagger documentation - keep at root level for convenience
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	return router

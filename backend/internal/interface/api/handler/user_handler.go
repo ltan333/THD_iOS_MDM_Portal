@@ -60,7 +60,7 @@ func NewUserHandler(userService service.UserService, authzService service.Author
 // @Success 200 {object} response.APIResponse[dto.ListResponse[dto.UserResponse]]
 // @Failure 401 {object} response.APIResponse[any]
 // @Security BearerAuth
-// @Router /v1/users [get]
+// @Router /api/v1/users [get]
 func (h *userHandlerImpl) List(c *gin.Context) {
 	params := make(map[string]string)
 	for key, values := range c.Request.URL.Query() {
@@ -106,7 +106,7 @@ func (h *userHandlerImpl) List(c *gin.Context) {
 // @Failure 401 {object} response.APIResponse[any]
 // @Failure 404 {object} response.APIResponse[any]
 // @Security BearerAuth
-// @Router /v1/users/{id} [get]
+// @Router /api/v1/users/{id} [get]
 func (h *userHandlerImpl) GetByID(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
 	if err != nil {
@@ -135,7 +135,7 @@ func (h *userHandlerImpl) GetByID(c *gin.Context) {
 // @Failure 401 {object} response.APIResponse[any]
 // @Failure 409 {object} response.APIResponse[any]
 // @Security BearerAuth
-// @Router /v1/users [post]
+// @Router /api/v1/users [post]
 func (h *userHandlerImpl) Create(c *gin.Context) {
 	var req dto.CreateUserRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -170,7 +170,7 @@ func (h *userHandlerImpl) Create(c *gin.Context) {
 // @Failure 401 {object} response.APIResponse[any]
 // @Failure 404 {object} response.APIResponse[any]
 // @Security BearerAuth
-// @Router /v1/users/{id} [put]
+// @Router /api/v1/users/{id} [put]
 func (h *userHandlerImpl) Update(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
 	if err != nil {
@@ -209,7 +209,7 @@ func (h *userHandlerImpl) Update(c *gin.Context) {
 // @Failure 401 {object} response.APIResponse[any]
 // @Failure 404 {object} response.APIResponse[any]
 // @Security BearerAuth
-// @Router /v1/users/{id} [delete]
+// @Router /api/v1/users/{id} [delete]
 func (h *userHandlerImpl) Delete(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
 	if err != nil {

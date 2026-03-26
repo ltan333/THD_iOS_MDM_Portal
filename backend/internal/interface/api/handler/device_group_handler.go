@@ -41,7 +41,7 @@ func NewDeviceGroupHandler(groupService service.DeviceGroupService) DeviceGroupH
 // @Tags DeviceGroups
 // @Produce json
 // @Security BearerAuth
-// @Router /v1/device-groups [get]
+// @Router /api/v1/device-groups [get]
 func (h *deviceGroupHandlerImpl) List(c *gin.Context) {
 	params := make(map[string]string)
 	for k, v := range c.Request.URL.Query() {
@@ -81,7 +81,7 @@ func (h *deviceGroupHandlerImpl) List(c *gin.Context) {
 // @Produce json
 // @Param id path int true "Group ID"
 // @Security BearerAuth
-// @Router /v1/device-groups/{id} [get]
+// @Router /api/v1/device-groups/{id} [get]
 func (h *deviceGroupHandlerImpl) GetByID(c *gin.Context) {
 	idStr := c.Param("id")
 	id, err := strconv.ParseUint(idStr, 10, 32)
@@ -106,7 +106,7 @@ func (h *deviceGroupHandlerImpl) GetByID(c *gin.Context) {
 // @Accept json
 // @Param request body dto.CreateDeviceGroupRequest true "Group info"
 // @Security BearerAuth
-// @Router /v1/device-groups [post]
+// @Router /api/v1/device-groups [post]
 func (h *deviceGroupHandlerImpl) Create(c *gin.Context) {
 	var req dto.CreateDeviceGroupRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -134,7 +134,7 @@ func (h *deviceGroupHandlerImpl) Create(c *gin.Context) {
 // @Param id path int true "Group ID"
 // @Param request body dto.UpdateDeviceGroupRequest true "Group info"
 // @Security BearerAuth
-// @Router /v1/device-groups/{id} [put]
+// @Router /api/v1/device-groups/{id} [put]
 func (h *deviceGroupHandlerImpl) Update(c *gin.Context) {
 	idStr := c.Param("id")
 	id, err := strconv.ParseUint(idStr, 10, 32)
@@ -168,7 +168,7 @@ func (h *deviceGroupHandlerImpl) Update(c *gin.Context) {
 // @Produce json
 // @Param id path int true "Group ID"
 // @Security BearerAuth
-// @Router /v1/device-groups/{id} [delete]
+// @Router /api/v1/device-groups/{id} [delete]
 func (h *deviceGroupHandlerImpl) Delete(c *gin.Context) {
 	idStr := c.Param("id")
 	id, err := strconv.ParseUint(idStr, 10, 32)
@@ -193,7 +193,7 @@ func (h *deviceGroupHandlerImpl) Delete(c *gin.Context) {
 // @Param id path int true "Group ID"
 // @Param request body dto.ManageGroupDevicesRequest true "Device IDs"
 // @Security BearerAuth
-// @Router /v1/device-groups/{id}/devices [post]
+// @Router /api/v1/device-groups/{id}/devices [post]
 func (h *deviceGroupHandlerImpl) AddDevices(c *gin.Context) {
 	idStr := c.Param("id")
 	id, err := strconv.ParseUint(idStr, 10, 32)
@@ -223,7 +223,7 @@ func (h *deviceGroupHandlerImpl) AddDevices(c *gin.Context) {
 // @Param id path int true "Group ID"
 // @Param deviceId path string true "Device ID"
 // @Security BearerAuth
-// @Router /v1/device-groups/{id}/devices/{deviceId} [delete]
+// @Router /api/v1/device-groups/{id}/devices/{deviceId} [delete]
 func (h *deviceGroupHandlerImpl) RemoveDevice(c *gin.Context) {
 	idStr := c.Param("id")
 	id, err := strconv.ParseUint(idStr, 10, 32)

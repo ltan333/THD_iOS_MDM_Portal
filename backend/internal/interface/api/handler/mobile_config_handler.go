@@ -152,7 +152,7 @@ func toMobileConfigListResponse(mc *ent.MobileConfig) dto.MobileConfigResponse {
 // @Failure 403 {object} APIErrorResponse
 // @Failure 409 {object} APIErrorResponse
 // @Failure 500 {object} APIErrorResponse
-// @Router /api/mobile-configs [post]
+// @Router /api/v1/mobile-configs [post]
 func (m *mobileConfigHandlerImpl) Create(c *gin.Context) {
 	var req dto.CreateMobileConfigRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -229,7 +229,7 @@ func (m *mobileConfigHandlerImpl) Create(c *gin.Context) {
 // @Failure 404 {object} APIErrorResponse
 // @Failure 409 {object} APIErrorResponse
 // @Failure 500 {object} APIErrorResponse
-// @Router /api/mobile-configs/{id} [put]
+// @Router /api/v1/mobile-configs/{id} [put]
 func (m *mobileConfigHandlerImpl) Update(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
 	if err != nil {
@@ -286,7 +286,7 @@ func (m *mobileConfigHandlerImpl) Update(c *gin.Context) {
 // @Failure 403 {object} APIErrorResponse
 // @Failure 404 {object} APIErrorResponse
 // @Failure 500 {object} APIErrorResponse
-// @Router /api/mobile-configs/{id} [delete]
+// @Router /api/v1/mobile-configs/{id} [delete]
 func (m *mobileConfigHandlerImpl) Delete(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
 	if err != nil {
@@ -429,7 +429,7 @@ func validateCreateMobileConfigRequest(req dto.CreateMobileConfigRequest) []resp
 // @Failure 400 {object} APIErrorResponse
 // @Failure 404 {object} APIErrorResponse
 // @Failure 500 {object} APIErrorResponse
-// @Router /api/mobile-configs/{id}/xml [get]
+// @Router /api/v1/mobile-configs/{id}/xml [get]
 func (m *mobileConfigHandlerImpl) GetXML(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
 	if err != nil {

@@ -80,7 +80,7 @@ func NewDEPHandler(
 // @Failure 401 {object} response.APIResponse[any]
 // @Failure 500 {object} response.APIResponse[any]
 // @Security BearerAuth
-// @Router /v1/dep/tokenpki/{name} [put]
+// @Router /api/v1/dep/tokenpki/{name} [put]
 func (h *depHandler) PutTokenPKI(c *gin.Context) {
 	name := c.Param("name")
 	if name == "" {
@@ -116,7 +116,7 @@ func (h *depHandler) PutTokenPKI(c *gin.Context) {
 // @Failure 401 {object} response.APIResponse[any]
 // @Failure 500 {object} response.APIResponse[any]
 // @Security BearerAuth
-// @Router /v1/dep/tokenpki/{name} [get]
+// @Router /api/v1/dep/tokenpki/{name} [get]
 func (h *depHandler) GetTokenPKI(c *gin.Context) {
 	name := c.Param("name")
 	cn := c.Query("cn")
@@ -148,7 +148,7 @@ func (h *depHandler) GetTokenPKI(c *gin.Context) {
 // @Failure 401 {object} response.APIResponse[any]
 // @Failure 404 {object} response.APIResponse[any]
 // @Security BearerAuth
-// @Router /v1/dep/token/{name} [get]
+// @Router /api/v1/dep/token/{name} [get]
 func (h *depHandler) GetToken(c *gin.Context) {
 	name := c.Param("name")
 	if name == "" {
@@ -186,7 +186,7 @@ func (h *depHandler) GetToken(c *gin.Context) {
 // @Param name path string false "DEP name (default: 'default')"
 // @Param cursor query string false "Sync cursor"
 // @Security BearerAuth
-// @Router /v1/dep/proxy/{name}/devices/sync [post]
+// @Router /api/v1/dep/proxy/{name}/devices/sync [post]
 func (h *depHandler) SyncDevices(c *gin.Context) {
 	depName := c.Param("name")
 	if depName == "" {
@@ -225,7 +225,7 @@ func (h *depHandler) SyncDevices(c *gin.Context) {
 // @Success 200 {object} response.APIResponse[dto.DEPProfileResponse]
 // @Failure 401 {object} response.APIResponse[any]
 // @Security BearerAuth
-// @Router /v1/dep/proxy/{name}/profile [post]
+// @Router /api/v1/dep/proxy/{name}/profile [post]
 func (h *depHandler) DefineProfile(c *gin.Context) {
 	depName := c.Param("name")
 	if depName == "" {
@@ -257,7 +257,7 @@ func (h *depHandler) DefineProfile(c *gin.Context) {
 // @Success 200 {object} response.APIResponse[any]
 // @Failure 401 {object} response.APIResponse[any]
 // @Security BearerAuth
-// @Router /v1/dep/proxy/{name}/profile [get]
+// @Router /api/v1/dep/proxy/{name}/profile [get]
 func (h *depHandler) GetProfile(c *gin.Context) {
 	depName := c.Param("name")
 	if depName == "" {
@@ -282,7 +282,7 @@ func (h *depHandler) GetProfile(c *gin.Context) {
 // @Success 200 {object} response.APIResponse[any]
 // @Failure 401 {object} response.APIResponse[any]
 // @Security BearerAuth
-// @Router /v1/dep/profiles [get]
+// @Router /api/v1/dep/profiles [get]
 func (h *depHandler) ListProfiles(c *gin.Context) {
 	// For simplicity, we use hardcoded offset/limit or get from query
 	profiles, _, err := h.depProfileService.ListProfiles(c.Request.Context(), 0, 100, query.QueryOptions{})
@@ -303,7 +303,7 @@ func (h *depHandler) ListProfiles(c *gin.Context) {
 // @Param name path string true "DEP name"
 // @Param request body dto.DEPDevicesRequest true "Devices list to disown"
 // @Security BearerAuth
-// @Router /v1/dep/proxy/{name}/devices/disown [post]
+// @Router /api/v1/dep/proxy/{name}/devices/disown [post]
 func (h *depHandler) DisownDevice(c *gin.Context) {
 	depName := c.Param("name")
 	if depName == "" {
@@ -338,7 +338,7 @@ func (h *depHandler) DisownDevice(c *gin.Context) {
 // @Failure 400 {object} response.APIResponse[any]
 // @Failure 500 {object} response.APIResponse[any]
 // @Security BearerAuth
-// @Router /v1/dep/dep_names [get]
+// @Router /api/v1/dep/dep_names [get]
 func (h *depHandler) ListNames(c *gin.Context) {
 	depNames := c.QueryArray("dep_name")
 	limitStr := c.DefaultQuery("limit", "100")
@@ -366,7 +366,7 @@ func (h *depHandler) ListNames(c *gin.Context) {
 // @Success 200 {object} response.APIResponse[dto.DEPConfig]
 // @Failure 401 {object} response.APIResponse[any]
 // @Security BearerAuth
-// @Router /v1/dep/config/{name} [get]
+// @Router /api/v1/dep/config/{name} [get]
 func (h *depHandler) GetConfig(c *gin.Context) {
 	name := c.Param("name")
 	result, err := h.mdmService.GetDEPConfig(c.Request.Context(), name)
@@ -388,7 +388,7 @@ func (h *depHandler) GetConfig(c *gin.Context) {
 // @Success 200 {object} response.APIResponse[dto.DEPConfig]
 // @Failure 401 {object} response.APIResponse[any]
 // @Security BearerAuth
-// @Router /v1/dep/config/{name} [put]
+// @Router /api/v1/dep/config/{name} [put]
 func (h *depHandler) PutConfig(c *gin.Context) {
 	name := c.Param("name")
 	var req dto.DEPConfig
@@ -414,7 +414,7 @@ func (h *depHandler) PutConfig(c *gin.Context) {
 // @Success 200 {object} response.APIResponse[dto.AssignerProfileUUID]
 // @Failure 401 {object} response.APIResponse[any]
 // @Security BearerAuth
-// @Router /v1/dep/assigner/{name} [get]
+// @Router /api/v1/dep/assigner/{name} [get]
 func (h *depHandler) GetAssigner(c *gin.Context) {
 	name := c.Param("name")
 	result, err := h.mdmService.GetDEPAssigner(c.Request.Context(), name)
@@ -436,7 +436,7 @@ func (h *depHandler) GetAssigner(c *gin.Context) {
 // @Failure 400 {object} response.APIResponse[any]
 // @Failure 401 {object} response.APIResponse[any]
 // @Security BearerAuth
-// @Router /v1/dep/assigner/{name} [put]
+// @Router /api/v1/dep/assigner/{name} [put]
 func (h *depHandler) SetAssigner(c *gin.Context) {
 	name := c.Param("name")
 	uuid := c.Query("profile_uuid")
@@ -459,7 +459,7 @@ func (h *depHandler) SetAssigner(c *gin.Context) {
 // @Produce json
 // @Param name path string true "DEP name"
 // @Security BearerAuth
-// @Router /v1/dep/proxy/{name}/account [get]
+// @Router /api/v1/dep/proxy/{name}/account [get]
 func (h *depHandler) GetAccount(c *gin.Context) {
 	name := c.Param("name")
 	if name == "" {
@@ -484,7 +484,7 @@ func (h *depHandler) GetAccount(c *gin.Context) {
 // @Param request body dto.DEPDevicesRequest false "Devices list"
 // @Param cursor query string false "Pagination cursor"
 // @Security BearerAuth
-// @Router /v1/dep/proxy/{name}/devices [post]
+// @Router /api/v1/dep/proxy/{name}/devices [post]
 func (h *depHandler) GetDevices(c *gin.Context) {
 	name := c.Param("name")
 	if name == "" {
@@ -515,7 +515,7 @@ func (h *depHandler) GetDevices(c *gin.Context) {
 // @Success 200 {object} response.APIResponse[dto.OAuth1Tokens]
 // @Failure 401 {object} response.APIResponse[any]
 // @Security BearerAuth
-// @Router /v1/dep/tokens/{name} [get]
+// @Router /api/v1/dep/tokens/{name} [get]
 func (h *depHandler) GetTokens(c *gin.Context) {
 	name := c.Param("name")
 	result, err := h.mdmService.GetDEPTokens(c.Request.Context(), name)
@@ -537,7 +537,7 @@ func (h *depHandler) GetTokens(c *gin.Context) {
 // @Success 200 {object} response.APIResponse[dto.OAuth1Tokens]
 // @Failure 401 {object} response.APIResponse[any]
 // @Security BearerAuth
-// @Router /v1/dep/tokens/{name} [put]
+// @Router /api/v1/dep/tokens/{name} [put]
 func (h *depHandler) UpdateTokens(c *gin.Context) {
 	name := c.Param("name")
 	var tokens dto.OAuth1Tokens
@@ -563,7 +563,7 @@ func (h *depHandler) UpdateTokens(c *gin.Context) {
 // @Param server_uuid query string false "MDM server UUID"
 // @Success 200 {string} string "JWT"
 // @Security BearerAuth
-// @Router /v1/dep/maidjwt/{name} [get]
+// @Router /api/v1/dep/maidjwt/{name} [get]
 func (h *depHandler) GetMAIDJWT(c *gin.Context) {
 	name := c.Param("name")
 	serverUUID := c.Query("server_uuid")
@@ -588,7 +588,7 @@ func (h *depHandler) GetMAIDJWT(c *gin.Context) {
 // @Param raw query string false "Dash-separated human readable form"
 // @Success 200 {object} response.APIResponse[dto.BypassCodeResponse]
 // @Security BearerAuth
-// @Router /v1/dep/bypasscode [get]
+// @Router /api/v1/dep/bypasscode [get]
 func (h *depHandler) GetBypassCode(c *gin.Context) {
 	code := c.Query("code")
 	raw := c.Query("raw")
@@ -607,7 +607,7 @@ func (h *depHandler) GetBypassCode(c *gin.Context) {
 // @Tags DEP
 // @Produce json
 // @Success 200 {object} response.APIResponse[dto.NanoDEPVersionResponse]
-// @Router /v1/dep/version [get]
+// @Router /api/v1/dep/version [get]
 func (h *depHandler) GetVersion(c *gin.Context) {
 	resp, err := h.mdmService.GetDEPVersion(c.Request.Context())
 	if err != nil {

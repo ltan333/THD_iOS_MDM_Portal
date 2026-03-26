@@ -39,7 +39,7 @@ func NewReportHandler(reportService service.ReportService) ReportHandler {
 // @Success 200 {string} string "CSV Data"
 // @Failure 401 {object} response.APIResponse[any]
 // @Failure 500 {object} response.APIResponse[any]
-// @Router /reports/devices/export [get]
+// @Router /api/v1/reports/devices/export [get]
 func (h *reportHandlerImpl) ExportDevices(c *gin.Context) {
 	params := make(map[string]string)
 	for k, v := range c.Request.URL.Query() {
@@ -70,7 +70,7 @@ func (h *reportHandlerImpl) ExportDevices(c *gin.Context) {
 // @Success 200 {string} string "CSV Data"
 // @Failure 401 {object} response.APIResponse[any]
 // @Failure 500 {object} response.APIResponse[any]
-// @Router /reports/alerts/export [get]
+// @Router /api/v1/reports/alerts/export [get]
 func (h *reportHandlerImpl) ExportAlerts(c *gin.Context) {
 	params := make(map[string]string)
 	for k, v := range c.Request.URL.Query() {
@@ -101,7 +101,7 @@ func (h *reportHandlerImpl) ExportAlerts(c *gin.Context) {
 // @Success 200 {string} string "CSV Data"
 // @Failure 401 {object} response.APIResponse[any]
 // @Failure 500 {object} response.APIResponse[any]
-// @Router /reports/applications/export [get]
+// @Router /api/v1/reports/applications/export [get]
 func (h *reportHandlerImpl) ExportApplications(c *gin.Context) {
 	params := make(map[string]string)
 	for k, v := range c.Request.URL.Query() {

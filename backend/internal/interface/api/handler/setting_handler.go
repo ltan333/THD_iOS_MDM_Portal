@@ -35,7 +35,7 @@ func NewSettingHandler(settingService service.SettingService) SettingHandler {
 // @Success 200 {object} response.APIResponse[[]dto.SettingResponse]
 // @Failure 401 {object} response.APIResponse[any]
 // @Failure 500 {object} response.APIResponse[any]
-// @Router /settings [get]
+// @Router /api/v1/settings [get]
 func (h *settingHandlerImpl) List(c *gin.Context) {
 	settings, err := h.settingService.List(c.Request.Context())
 	if err != nil {
@@ -62,7 +62,7 @@ func (h *settingHandlerImpl) List(c *gin.Context) {
 // @Failure 401 {object} response.APIResponse[any]
 // @Failure 404 {object} response.APIResponse[any]
 // @Failure 500 {object} response.APIResponse[any]
-// @Router /settings/{key} [get]
+// @Router /api/v1/settings/{key} [get]
 func (h *settingHandlerImpl) GetByKey(c *gin.Context) {
 	key := c.Param("key")
 
@@ -87,7 +87,7 @@ func (h *settingHandlerImpl) GetByKey(c *gin.Context) {
 // @Failure 400 {object} response.APIResponse[any]
 // @Failure 401 {object} response.APIResponse[any]
 // @Failure 500 {object} response.APIResponse[any]
-// @Router /settings [post]
+// @Router /api/v1/settings [post]
 func (h *settingHandlerImpl) Create(c *gin.Context) {
 	var req dto.CreateSettingRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -122,7 +122,7 @@ func (h *settingHandlerImpl) Create(c *gin.Context) {
 // @Failure 401 {object} response.APIResponse[any]
 // @Failure 404 {object} response.APIResponse[any]
 // @Failure 500 {object} response.APIResponse[any]
-// @Router /settings/{key} [put]
+// @Router /api/v1/settings/{key} [put]
 func (h *settingHandlerImpl) Update(c *gin.Context) {
 	key := c.Param("key")
 
@@ -155,7 +155,7 @@ func (h *settingHandlerImpl) Update(c *gin.Context) {
 // @Success 200 {object} response.APIResponse[any]
 // @Failure 401 {object} response.APIResponse[any]
 // @Failure 500 {object} response.APIResponse[any]
-// @Router /settings/{key} [delete]
+// @Router /api/v1/settings/{key} [delete]
 func (h *settingHandlerImpl) Delete(c *gin.Context) {
 	key := c.Param("key")
 

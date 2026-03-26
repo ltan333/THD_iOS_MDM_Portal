@@ -66,7 +66,7 @@ func NewAlertHandler(alertService service.AlertService, alertRuleService service
 // @Produce json
 // @Security BearerAuth
 // @Success 200 {object} response.APIResponse[any]
-// @Router /alerts [get]
+// @Router /api/v1/alerts [get]
 func (h *alertHandlerImpl) List(c *gin.Context) {
 	params := make(map[string]string)
 	for k, v := range c.Request.URL.Query() {
@@ -106,7 +106,7 @@ func (h *alertHandlerImpl) List(c *gin.Context) {
 // @Produce json
 // @Security BearerAuth
 // @Success 200 {object} response.APIResponse[any]
-// @Router /alerts/{id} [get]
+// @Router /api/v1/alerts/{id} [get]
 func (h *alertHandlerImpl) GetByID(c *gin.Context) {
 	idStr := c.Param("id")
 	id, err := strconv.ParseUint(idStr, 10, 32)
@@ -131,7 +131,7 @@ func (h *alertHandlerImpl) GetByID(c *gin.Context) {
 // @Produce json
 // @Security BearerAuth
 // @Success 201 {object} response.APIResponse[any]
-// @Router /alerts [post]
+// @Router /api/v1/alerts [post]
 func (h *alertHandlerImpl) Create(c *gin.Context) {
 	var req dto.CreateAlertRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -161,7 +161,7 @@ func (h *alertHandlerImpl) Create(c *gin.Context) {
 // @Produce json
 // @Security BearerAuth
 // @Success 200 {object} response.APIResponse[any]
-// @Router /alerts/{id}/acknowledge [put]
+// @Router /api/v1/alerts/{id}/acknowledge [put]
 func (h *alertHandlerImpl) Acknowledge(c *gin.Context) {
 	idStr := c.Param("id")
 	id, err := strconv.ParseUint(idStr, 10, 32)
@@ -184,7 +184,7 @@ func (h *alertHandlerImpl) Acknowledge(c *gin.Context) {
 // @Produce json
 // @Security BearerAuth
 // @Success 200 {object} response.APIResponse[any]
-// @Router /alerts/{id}/resolve [put]
+// @Router /api/v1/alerts/{id}/resolve [put]
 func (h *alertHandlerImpl) Resolve(c *gin.Context) {
 	idStr := c.Param("id")
 	id, err := strconv.ParseUint(idStr, 10, 32)
@@ -208,7 +208,7 @@ func (h *alertHandlerImpl) Resolve(c *gin.Context) {
 // @Produce json
 // @Security BearerAuth
 // @Success 200 {object} response.APIResponse[any]
-// @Router /alerts/bulk-resolve [post]
+// @Router /api/v1/alerts/bulk-resolve [post]
 func (h *alertHandlerImpl) BulkResolve(c *gin.Context) {
 	var req dto.BulkResolveAlertsRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -230,7 +230,7 @@ func (h *alertHandlerImpl) BulkResolve(c *gin.Context) {
 // @Produce json
 // @Security BearerAuth
 // @Success 200 {object} response.APIResponse[any]
-// @Router /alerts/stats [get]
+// @Router /api/v1/alerts/stats [get]
 func (h *alertHandlerImpl) GetStats(c *gin.Context) {
 	stats, err := h.alertService.GetStats(c.Request.Context())
 	if err != nil {
@@ -247,7 +247,7 @@ func (h *alertHandlerImpl) GetStats(c *gin.Context) {
 // @Produce json
 // @Security BearerAuth
 // @Success 200 {object} response.APIResponse[any]
-// @Router /alerts/{id}/actions/lock [post]
+// @Router /api/v1/alerts/{id}/actions/lock [post]
 func (h *alertHandlerImpl) LockDevice(c *gin.Context) {
 	idStr := c.Param("id")
 	id, err := strconv.ParseUint(idStr, 10, 32)
@@ -269,7 +269,7 @@ func (h *alertHandlerImpl) LockDevice(c *gin.Context) {
 // @Produce json
 // @Security BearerAuth
 // @Success 200 {object} response.APIResponse[any]
-// @Router /alerts/{id}/actions/wipe [post]
+// @Router /api/v1/alerts/{id}/actions/wipe [post]
 func (h *alertHandlerImpl) WipeDevice(c *gin.Context) {
 	idStr := c.Param("id")
 	id, err := strconv.ParseUint(idStr, 10, 32)
@@ -292,7 +292,7 @@ func (h *alertHandlerImpl) WipeDevice(c *gin.Context) {
 // @Produce json
 // @Security BearerAuth
 // @Success 200 {object} response.APIResponse[any]
-// @Router /alerts/{id}/actions/push-policy [post]
+// @Router /api/v1/alerts/{id}/actions/push-policy [post]
 func (h *alertHandlerImpl) PushPolicy(c *gin.Context) {
 	idStr := c.Param("id")
 	id, err := strconv.ParseUint(idStr, 10, 32)
@@ -321,7 +321,7 @@ func (h *alertHandlerImpl) PushPolicy(c *gin.Context) {
 // @Produce json
 // @Security BearerAuth
 // @Success 200 {object} response.APIResponse[any]
-// @Router /alerts/{id}/actions/message [post]
+// @Router /api/v1/alerts/{id}/actions/message [post]
 func (h *alertHandlerImpl) SendMessage(c *gin.Context) {
 	idStr := c.Param("id")
 	id, err := strconv.ParseUint(idStr, 10, 32)
@@ -351,7 +351,7 @@ func (h *alertHandlerImpl) SendMessage(c *gin.Context) {
 // @Produce json
 // @Security BearerAuth
 // @Success 200 {object} response.APIResponse[any]
-// @Router /alerts/rules [get]
+// @Router /api/v1/alerts/rules [get]
 func (h *alertHandlerImpl) ListRules(c *gin.Context) {
 	params := make(map[string]string)
 	for k, v := range c.Request.URL.Query() {
@@ -391,7 +391,7 @@ func (h *alertHandlerImpl) ListRules(c *gin.Context) {
 // @Produce json
 // @Security BearerAuth
 // @Success 200 {object} response.APIResponse[any]
-// @Router /alerts/rules/{id} [get]
+// @Router /api/v1/alerts/rules/{id} [get]
 func (h *alertHandlerImpl) GetRuleByID(c *gin.Context) {
 	idStr := c.Param("id")
 	id, err := strconv.ParseUint(idStr, 10, 32)
@@ -416,7 +416,7 @@ func (h *alertHandlerImpl) GetRuleByID(c *gin.Context) {
 // @Produce json
 // @Security BearerAuth
 // @Success 201 {object} response.APIResponse[any]
-// @Router /alerts/rules [post]
+// @Router /api/v1/alerts/rules [post]
 func (h *alertHandlerImpl) CreateRule(c *gin.Context) {
 	var req dto.CreateAlertRuleRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -451,7 +451,7 @@ func (h *alertHandlerImpl) CreateRule(c *gin.Context) {
 // @Produce json
 // @Security BearerAuth
 // @Success 200 {object} response.APIResponse[any]
-// @Router /alerts/rules/{id} [put]
+// @Router /api/v1/alerts/rules/{id} [put]
 func (h *alertHandlerImpl) UpdateRule(c *gin.Context) {
 	idStr := c.Param("id")
 	id, err := strconv.ParseUint(idStr, 10, 32)
@@ -488,7 +488,7 @@ func (h *alertHandlerImpl) UpdateRule(c *gin.Context) {
 // @Produce json
 // @Security BearerAuth
 // @Success 200 {object} response.APIResponse[any]
-// @Router /alerts/rules/{id} [delete]
+// @Router /api/v1/alerts/rules/{id} [delete]
 func (h *alertHandlerImpl) DeleteRule(c *gin.Context) {
 	idStr := c.Param("id")
 	id, err := strconv.ParseUint(idStr, 10, 32)
@@ -511,7 +511,7 @@ func (h *alertHandlerImpl) DeleteRule(c *gin.Context) {
 // @Produce json
 // @Security BearerAuth
 // @Success 200 {object} response.APIResponse[any]
-// @Router /alerts/rules/{id}/toggle [put]
+// @Router /api/v1/alerts/rules/{id}/toggle [put]
 func (h *alertHandlerImpl) ToggleRule(c *gin.Context) {
 	idStr := c.Param("id")
 	id, err := strconv.ParseUint(idStr, 10, 32)
