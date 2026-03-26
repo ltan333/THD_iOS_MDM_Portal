@@ -9,6 +9,8 @@ import (
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
+	"github.com/thienel/go-backend-template/internal/ent/device"
+	"github.com/thienel/go-backend-template/internal/ent/devicegroup"
 	"github.com/thienel/go-backend-template/internal/ent/profile"
 	"github.com/thienel/go-backend-template/internal/ent/profileassignment"
 )
@@ -22,8 +24,12 @@ type ProfileAssignment struct {
 	ProfileID uint `json:"profile_id,omitempty"`
 	// TargetType holds the value of the "target_type" field.
 	TargetType profileassignment.TargetType `json:"target_type,omitempty"`
-	// TargetID holds the value of the "target_id" field.
+	// Deprecated: Use edges instead
 	TargetID string `json:"target_id,omitempty"`
+	// DeviceID holds the value of the "device_id" field.
+	DeviceID *string `json:"device_id,omitempty"`
+	// GroupID holds the value of the "group_id" field.
+	GroupID *uint `json:"group_id,omitempty"`
 	// ScheduleType holds the value of the "schedule_type" field.
 	ScheduleType profileassignment.ScheduleType `json:"schedule_type,omitempty"`
 	// ScheduledAt holds the value of the "scheduled_at" field.
@@ -40,9 +46,13 @@ type ProfileAssignment struct {
 type ProfileAssignmentEdges struct {
 	// Profile holds the value of the profile edge.
 	Profile *Profile `json:"profile,omitempty"`
+	// Device holds the value of the device edge.
+	Device *Device `json:"device,omitempty"`
+	// Group holds the value of the group edge.
+	Group *DeviceGroup `json:"group,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [1]bool
+	loadedTypes [3]bool
 }
 
 // ProfileOrErr returns the Profile value or an error if the edge
@@ -56,14 +66,36 @@ func (e ProfileAssignmentEdges) ProfileOrErr() (*Profile, error) {
 	return nil, &NotLoadedError{edge: "profile"}
 }
 
+// DeviceOrErr returns the Device value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e ProfileAssignmentEdges) DeviceOrErr() (*Device, error) {
+	if e.Device != nil {
+		return e.Device, nil
+	} else if e.loadedTypes[1] {
+		return nil, &NotFoundError{label: device.Label}
+	}
+	return nil, &NotLoadedError{edge: "device"}
+}
+
+// GroupOrErr returns the Group value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e ProfileAssignmentEdges) GroupOrErr() (*DeviceGroup, error) {
+	if e.Group != nil {
+		return e.Group, nil
+	} else if e.loadedTypes[2] {
+		return nil, &NotFoundError{label: devicegroup.Label}
+	}
+	return nil, &NotLoadedError{edge: "group"}
+}
+
 // scanValues returns the types for scanning values from sql.Rows.
 func (*ProfileAssignment) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case profileassignment.FieldID, profileassignment.FieldProfileID:
+		case profileassignment.FieldID, profileassignment.FieldProfileID, profileassignment.FieldGroupID:
 			values[i] = new(sql.NullInt64)
-		case profileassignment.FieldTargetType, profileassignment.FieldTargetID, profileassignment.FieldScheduleType:
+		case profileassignment.FieldTargetType, profileassignment.FieldTargetID, profileassignment.FieldDeviceID, profileassignment.FieldScheduleType:
 			values[i] = new(sql.NullString)
 		case profileassignment.FieldScheduledAt, profileassignment.FieldCreatedAt:
 			values[i] = new(sql.NullTime)
@@ -106,6 +138,20 @@ func (_m *ProfileAssignment) assignValues(columns []string, values []any) error 
 			} else if value.Valid {
 				_m.TargetID = value.String
 			}
+		case profileassignment.FieldDeviceID:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field device_id", values[i])
+			} else if value.Valid {
+				_m.DeviceID = new(string)
+				*_m.DeviceID = value.String
+			}
+		case profileassignment.FieldGroupID:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field group_id", values[i])
+			} else if value.Valid {
+				_m.GroupID = new(uint)
+				*_m.GroupID = uint(value.Int64)
+			}
 		case profileassignment.FieldScheduleType:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field schedule_type", values[i])
@@ -143,6 +189,16 @@ func (_m *ProfileAssignment) QueryProfile() *ProfileQuery {
 	return NewProfileAssignmentClient(_m.config).QueryProfile(_m)
 }
 
+// QueryDevice queries the "device" edge of the ProfileAssignment entity.
+func (_m *ProfileAssignment) QueryDevice() *DeviceQuery {
+	return NewProfileAssignmentClient(_m.config).QueryDevice(_m)
+}
+
+// QueryGroup queries the "group" edge of the ProfileAssignment entity.
+func (_m *ProfileAssignment) QueryGroup() *DeviceGroupQuery {
+	return NewProfileAssignmentClient(_m.config).QueryGroup(_m)
+}
+
 // Update returns a builder for updating this ProfileAssignment.
 // Note that you need to call ProfileAssignment.Unwrap() before calling this method if this ProfileAssignment
 // was returned from a transaction, and the transaction was committed or rolled back.
@@ -174,6 +230,16 @@ func (_m *ProfileAssignment) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("target_id=")
 	builder.WriteString(_m.TargetID)
+	builder.WriteString(", ")
+	if v := _m.DeviceID; v != nil {
+		builder.WriteString("device_id=")
+		builder.WriteString(*v)
+	}
+	builder.WriteString(", ")
+	if v := _m.GroupID; v != nil {
+		builder.WriteString("group_id=")
+		builder.WriteString(fmt.Sprintf("%v", *v))
+	}
 	builder.WriteString(", ")
 	builder.WriteString("schedule_type=")
 	builder.WriteString(fmt.Sprintf("%v", _m.ScheduleType))

@@ -11,6 +11,7 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/thienel/go-backend-template/internal/ent/device"
 	"github.com/thienel/go-backend-template/internal/ent/predicate"
 	"github.com/thienel/go-backend-template/internal/ent/profile"
 	"github.com/thienel/go-backend-template/internal/ent/profiledeploymentstatus"
@@ -122,6 +123,11 @@ func (_u *ProfileDeploymentStatusUpdate) SetProfile(v *Profile) *ProfileDeployme
 	return _u.SetProfileID(v.ID)
 }
 
+// SetDevice sets the "device" edge to the Device entity.
+func (_u *ProfileDeploymentStatusUpdate) SetDevice(v *Device) *ProfileDeploymentStatusUpdate {
+	return _u.SetDeviceID(v.ID)
+}
+
 // Mutation returns the ProfileDeploymentStatusMutation object of the builder.
 func (_u *ProfileDeploymentStatusUpdate) Mutation() *ProfileDeploymentStatusMutation {
 	return _u.mutation
@@ -130,6 +136,12 @@ func (_u *ProfileDeploymentStatusUpdate) Mutation() *ProfileDeploymentStatusMuta
 // ClearProfile clears the "profile" edge to the Profile entity.
 func (_u *ProfileDeploymentStatusUpdate) ClearProfile() *ProfileDeploymentStatusUpdate {
 	_u.mutation.ClearProfile()
+	return _u
+}
+
+// ClearDevice clears the "device" edge to the Device entity.
+func (_u *ProfileDeploymentStatusUpdate) ClearDevice() *ProfileDeploymentStatusUpdate {
+	_u.mutation.ClearDevice()
 	return _u
 }
 
@@ -184,6 +196,9 @@ func (_u *ProfileDeploymentStatusUpdate) check() error {
 	if _u.mutation.ProfileCleared() && len(_u.mutation.ProfileIDs()) > 0 {
 		return errors.New(`ent: clearing a required unique edge "ProfileDeploymentStatus.profile"`)
 	}
+	if _u.mutation.DeviceCleared() && len(_u.mutation.DeviceIDs()) > 0 {
+		return errors.New(`ent: clearing a required unique edge "ProfileDeploymentStatus.device"`)
+	}
 	return nil
 }
 
@@ -198,9 +213,6 @@ func (_u *ProfileDeploymentStatusUpdate) sqlSave(ctx context.Context) (_node int
 				ps[i](selector)
 			}
 		}
-	}
-	if value, ok := _u.mutation.DeviceID(); ok {
-		_spec.SetField(profiledeploymentstatus.FieldDeviceID, field.TypeString, value)
 	}
 	if value, ok := _u.mutation.Status(); ok {
 		_spec.SetField(profiledeploymentstatus.FieldStatus, field.TypeEnum, value)
@@ -242,6 +254,35 @@ func (_u *ProfileDeploymentStatusUpdate) sqlSave(ctx context.Context) (_node int
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(profile.FieldID, field.TypeUint),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.DeviceCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   profiledeploymentstatus.DeviceTable,
+			Columns: []string{profiledeploymentstatus.DeviceColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(device.FieldID, field.TypeString),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.DeviceIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   profiledeploymentstatus.DeviceTable,
+			Columns: []string{profiledeploymentstatus.DeviceColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(device.FieldID, field.TypeString),
 			},
 		}
 		for _, k := range nodes {
@@ -362,6 +403,11 @@ func (_u *ProfileDeploymentStatusUpdateOne) SetProfile(v *Profile) *ProfileDeplo
 	return _u.SetProfileID(v.ID)
 }
 
+// SetDevice sets the "device" edge to the Device entity.
+func (_u *ProfileDeploymentStatusUpdateOne) SetDevice(v *Device) *ProfileDeploymentStatusUpdateOne {
+	return _u.SetDeviceID(v.ID)
+}
+
 // Mutation returns the ProfileDeploymentStatusMutation object of the builder.
 func (_u *ProfileDeploymentStatusUpdateOne) Mutation() *ProfileDeploymentStatusMutation {
 	return _u.mutation
@@ -370,6 +416,12 @@ func (_u *ProfileDeploymentStatusUpdateOne) Mutation() *ProfileDeploymentStatusM
 // ClearProfile clears the "profile" edge to the Profile entity.
 func (_u *ProfileDeploymentStatusUpdateOne) ClearProfile() *ProfileDeploymentStatusUpdateOne {
 	_u.mutation.ClearProfile()
+	return _u
+}
+
+// ClearDevice clears the "device" edge to the Device entity.
+func (_u *ProfileDeploymentStatusUpdateOne) ClearDevice() *ProfileDeploymentStatusUpdateOne {
+	_u.mutation.ClearDevice()
 	return _u
 }
 
@@ -437,6 +489,9 @@ func (_u *ProfileDeploymentStatusUpdateOne) check() error {
 	if _u.mutation.ProfileCleared() && len(_u.mutation.ProfileIDs()) > 0 {
 		return errors.New(`ent: clearing a required unique edge "ProfileDeploymentStatus.profile"`)
 	}
+	if _u.mutation.DeviceCleared() && len(_u.mutation.DeviceIDs()) > 0 {
+		return errors.New(`ent: clearing a required unique edge "ProfileDeploymentStatus.device"`)
+	}
 	return nil
 }
 
@@ -468,9 +523,6 @@ func (_u *ProfileDeploymentStatusUpdateOne) sqlSave(ctx context.Context) (_node 
 				ps[i](selector)
 			}
 		}
-	}
-	if value, ok := _u.mutation.DeviceID(); ok {
-		_spec.SetField(profiledeploymentstatus.FieldDeviceID, field.TypeString, value)
 	}
 	if value, ok := _u.mutation.Status(); ok {
 		_spec.SetField(profiledeploymentstatus.FieldStatus, field.TypeEnum, value)
@@ -512,6 +564,35 @@ func (_u *ProfileDeploymentStatusUpdateOne) sqlSave(ctx context.Context) (_node 
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(profile.FieldID, field.TypeUint),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.DeviceCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   profiledeploymentstatus.DeviceTable,
+			Columns: []string{profiledeploymentstatus.DeviceColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(device.FieldID, field.TypeString),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.DeviceIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   profiledeploymentstatus.DeviceTable,
+			Columns: []string{profiledeploymentstatus.DeviceColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(device.FieldID, field.TypeString),
 			},
 		}
 		for _, k := range nodes {

@@ -11,6 +11,8 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/thienel/go-backend-template/internal/ent/device"
+	"github.com/thienel/go-backend-template/internal/ent/devicegroup"
 	"github.com/thienel/go-backend-template/internal/ent/predicate"
 	"github.com/thienel/go-backend-template/internal/ent/profile"
 	"github.com/thienel/go-backend-template/internal/ent/profileassignment"
@@ -71,6 +73,52 @@ func (_u *ProfileAssignmentUpdate) SetNillableTargetID(v *string) *ProfileAssign
 	return _u
 }
 
+// ClearTargetID clears the value of the "target_id" field.
+func (_u *ProfileAssignmentUpdate) ClearTargetID() *ProfileAssignmentUpdate {
+	_u.mutation.ClearTargetID()
+	return _u
+}
+
+// SetDeviceID sets the "device_id" field.
+func (_u *ProfileAssignmentUpdate) SetDeviceID(v string) *ProfileAssignmentUpdate {
+	_u.mutation.SetDeviceID(v)
+	return _u
+}
+
+// SetNillableDeviceID sets the "device_id" field if the given value is not nil.
+func (_u *ProfileAssignmentUpdate) SetNillableDeviceID(v *string) *ProfileAssignmentUpdate {
+	if v != nil {
+		_u.SetDeviceID(*v)
+	}
+	return _u
+}
+
+// ClearDeviceID clears the value of the "device_id" field.
+func (_u *ProfileAssignmentUpdate) ClearDeviceID() *ProfileAssignmentUpdate {
+	_u.mutation.ClearDeviceID()
+	return _u
+}
+
+// SetGroupID sets the "group_id" field.
+func (_u *ProfileAssignmentUpdate) SetGroupID(v uint) *ProfileAssignmentUpdate {
+	_u.mutation.SetGroupID(v)
+	return _u
+}
+
+// SetNillableGroupID sets the "group_id" field if the given value is not nil.
+func (_u *ProfileAssignmentUpdate) SetNillableGroupID(v *uint) *ProfileAssignmentUpdate {
+	if v != nil {
+		_u.SetGroupID(*v)
+	}
+	return _u
+}
+
+// ClearGroupID clears the value of the "group_id" field.
+func (_u *ProfileAssignmentUpdate) ClearGroupID() *ProfileAssignmentUpdate {
+	_u.mutation.ClearGroupID()
+	return _u
+}
+
 // SetScheduleType sets the "schedule_type" field.
 func (_u *ProfileAssignmentUpdate) SetScheduleType(v profileassignment.ScheduleType) *ProfileAssignmentUpdate {
 	_u.mutation.SetScheduleType(v)
@@ -110,6 +158,16 @@ func (_u *ProfileAssignmentUpdate) SetProfile(v *Profile) *ProfileAssignmentUpda
 	return _u.SetProfileID(v.ID)
 }
 
+// SetDevice sets the "device" edge to the Device entity.
+func (_u *ProfileAssignmentUpdate) SetDevice(v *Device) *ProfileAssignmentUpdate {
+	return _u.SetDeviceID(v.ID)
+}
+
+// SetGroup sets the "group" edge to the DeviceGroup entity.
+func (_u *ProfileAssignmentUpdate) SetGroup(v *DeviceGroup) *ProfileAssignmentUpdate {
+	return _u.SetGroupID(v.ID)
+}
+
 // Mutation returns the ProfileAssignmentMutation object of the builder.
 func (_u *ProfileAssignmentUpdate) Mutation() *ProfileAssignmentMutation {
 	return _u.mutation
@@ -118,6 +176,18 @@ func (_u *ProfileAssignmentUpdate) Mutation() *ProfileAssignmentMutation {
 // ClearProfile clears the "profile" edge to the Profile entity.
 func (_u *ProfileAssignmentUpdate) ClearProfile() *ProfileAssignmentUpdate {
 	_u.mutation.ClearProfile()
+	return _u
+}
+
+// ClearDevice clears the "device" edge to the Device entity.
+func (_u *ProfileAssignmentUpdate) ClearDevice() *ProfileAssignmentUpdate {
+	_u.mutation.ClearDevice()
+	return _u
+}
+
+// ClearGroup clears the "group" edge to the DeviceGroup entity.
+func (_u *ProfileAssignmentUpdate) ClearGroup() *ProfileAssignmentUpdate {
+	_u.mutation.ClearGroup()
 	return _u
 }
 
@@ -155,11 +225,6 @@ func (_u *ProfileAssignmentUpdate) check() error {
 			return &ValidationError{Name: "target_type", err: fmt.Errorf(`ent: validator failed for field "ProfileAssignment.target_type": %w`, err)}
 		}
 	}
-	if v, ok := _u.mutation.TargetID(); ok {
-		if err := profileassignment.TargetIDValidator(v); err != nil {
-			return &ValidationError{Name: "target_id", err: fmt.Errorf(`ent: validator failed for field "ProfileAssignment.target_id": %w`, err)}
-		}
-	}
 	if v, ok := _u.mutation.ScheduleType(); ok {
 		if err := profileassignment.ScheduleTypeValidator(v); err != nil {
 			return &ValidationError{Name: "schedule_type", err: fmt.Errorf(`ent: validator failed for field "ProfileAssignment.schedule_type": %w`, err)}
@@ -188,6 +253,9 @@ func (_u *ProfileAssignmentUpdate) sqlSave(ctx context.Context) (_node int, err 
 	}
 	if value, ok := _u.mutation.TargetID(); ok {
 		_spec.SetField(profileassignment.FieldTargetID, field.TypeString, value)
+	}
+	if _u.mutation.TargetIDCleared() {
+		_spec.ClearField(profileassignment.FieldTargetID, field.TypeString)
 	}
 	if value, ok := _u.mutation.ScheduleType(); ok {
 		_spec.SetField(profileassignment.FieldScheduleType, field.TypeEnum, value)
@@ -220,6 +288,64 @@ func (_u *ProfileAssignmentUpdate) sqlSave(ctx context.Context) (_node int, err 
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(profile.FieldID, field.TypeUint),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.DeviceCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   profileassignment.DeviceTable,
+			Columns: []string{profileassignment.DeviceColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(device.FieldID, field.TypeString),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.DeviceIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   profileassignment.DeviceTable,
+			Columns: []string{profileassignment.DeviceColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(device.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.GroupCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   profileassignment.GroupTable,
+			Columns: []string{profileassignment.GroupColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(devicegroup.FieldID, field.TypeUint),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.GroupIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   profileassignment.GroupTable,
+			Columns: []string{profileassignment.GroupColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(devicegroup.FieldID, field.TypeUint),
 			},
 		}
 		for _, k := range nodes {
@@ -289,6 +415,52 @@ func (_u *ProfileAssignmentUpdateOne) SetNillableTargetID(v *string) *ProfileAss
 	return _u
 }
 
+// ClearTargetID clears the value of the "target_id" field.
+func (_u *ProfileAssignmentUpdateOne) ClearTargetID() *ProfileAssignmentUpdateOne {
+	_u.mutation.ClearTargetID()
+	return _u
+}
+
+// SetDeviceID sets the "device_id" field.
+func (_u *ProfileAssignmentUpdateOne) SetDeviceID(v string) *ProfileAssignmentUpdateOne {
+	_u.mutation.SetDeviceID(v)
+	return _u
+}
+
+// SetNillableDeviceID sets the "device_id" field if the given value is not nil.
+func (_u *ProfileAssignmentUpdateOne) SetNillableDeviceID(v *string) *ProfileAssignmentUpdateOne {
+	if v != nil {
+		_u.SetDeviceID(*v)
+	}
+	return _u
+}
+
+// ClearDeviceID clears the value of the "device_id" field.
+func (_u *ProfileAssignmentUpdateOne) ClearDeviceID() *ProfileAssignmentUpdateOne {
+	_u.mutation.ClearDeviceID()
+	return _u
+}
+
+// SetGroupID sets the "group_id" field.
+func (_u *ProfileAssignmentUpdateOne) SetGroupID(v uint) *ProfileAssignmentUpdateOne {
+	_u.mutation.SetGroupID(v)
+	return _u
+}
+
+// SetNillableGroupID sets the "group_id" field if the given value is not nil.
+func (_u *ProfileAssignmentUpdateOne) SetNillableGroupID(v *uint) *ProfileAssignmentUpdateOne {
+	if v != nil {
+		_u.SetGroupID(*v)
+	}
+	return _u
+}
+
+// ClearGroupID clears the value of the "group_id" field.
+func (_u *ProfileAssignmentUpdateOne) ClearGroupID() *ProfileAssignmentUpdateOne {
+	_u.mutation.ClearGroupID()
+	return _u
+}
+
 // SetScheduleType sets the "schedule_type" field.
 func (_u *ProfileAssignmentUpdateOne) SetScheduleType(v profileassignment.ScheduleType) *ProfileAssignmentUpdateOne {
 	_u.mutation.SetScheduleType(v)
@@ -328,6 +500,16 @@ func (_u *ProfileAssignmentUpdateOne) SetProfile(v *Profile) *ProfileAssignmentU
 	return _u.SetProfileID(v.ID)
 }
 
+// SetDevice sets the "device" edge to the Device entity.
+func (_u *ProfileAssignmentUpdateOne) SetDevice(v *Device) *ProfileAssignmentUpdateOne {
+	return _u.SetDeviceID(v.ID)
+}
+
+// SetGroup sets the "group" edge to the DeviceGroup entity.
+func (_u *ProfileAssignmentUpdateOne) SetGroup(v *DeviceGroup) *ProfileAssignmentUpdateOne {
+	return _u.SetGroupID(v.ID)
+}
+
 // Mutation returns the ProfileAssignmentMutation object of the builder.
 func (_u *ProfileAssignmentUpdateOne) Mutation() *ProfileAssignmentMutation {
 	return _u.mutation
@@ -336,6 +518,18 @@ func (_u *ProfileAssignmentUpdateOne) Mutation() *ProfileAssignmentMutation {
 // ClearProfile clears the "profile" edge to the Profile entity.
 func (_u *ProfileAssignmentUpdateOne) ClearProfile() *ProfileAssignmentUpdateOne {
 	_u.mutation.ClearProfile()
+	return _u
+}
+
+// ClearDevice clears the "device" edge to the Device entity.
+func (_u *ProfileAssignmentUpdateOne) ClearDevice() *ProfileAssignmentUpdateOne {
+	_u.mutation.ClearDevice()
+	return _u
+}
+
+// ClearGroup clears the "group" edge to the DeviceGroup entity.
+func (_u *ProfileAssignmentUpdateOne) ClearGroup() *ProfileAssignmentUpdateOne {
+	_u.mutation.ClearGroup()
 	return _u
 }
 
@@ -386,11 +580,6 @@ func (_u *ProfileAssignmentUpdateOne) check() error {
 			return &ValidationError{Name: "target_type", err: fmt.Errorf(`ent: validator failed for field "ProfileAssignment.target_type": %w`, err)}
 		}
 	}
-	if v, ok := _u.mutation.TargetID(); ok {
-		if err := profileassignment.TargetIDValidator(v); err != nil {
-			return &ValidationError{Name: "target_id", err: fmt.Errorf(`ent: validator failed for field "ProfileAssignment.target_id": %w`, err)}
-		}
-	}
 	if v, ok := _u.mutation.ScheduleType(); ok {
 		if err := profileassignment.ScheduleTypeValidator(v); err != nil {
 			return &ValidationError{Name: "schedule_type", err: fmt.Errorf(`ent: validator failed for field "ProfileAssignment.schedule_type": %w`, err)}
@@ -437,6 +626,9 @@ func (_u *ProfileAssignmentUpdateOne) sqlSave(ctx context.Context) (_node *Profi
 	if value, ok := _u.mutation.TargetID(); ok {
 		_spec.SetField(profileassignment.FieldTargetID, field.TypeString, value)
 	}
+	if _u.mutation.TargetIDCleared() {
+		_spec.ClearField(profileassignment.FieldTargetID, field.TypeString)
+	}
 	if value, ok := _u.mutation.ScheduleType(); ok {
 		_spec.SetField(profileassignment.FieldScheduleType, field.TypeEnum, value)
 	}
@@ -468,6 +660,64 @@ func (_u *ProfileAssignmentUpdateOne) sqlSave(ctx context.Context) (_node *Profi
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(profile.FieldID, field.TypeUint),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.DeviceCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   profileassignment.DeviceTable,
+			Columns: []string{profileassignment.DeviceColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(device.FieldID, field.TypeString),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.DeviceIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   profileassignment.DeviceTable,
+			Columns: []string{profileassignment.DeviceColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(device.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.GroupCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   profileassignment.GroupTable,
+			Columns: []string{profileassignment.GroupColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(devicegroup.FieldID, field.TypeUint),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.GroupIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   profileassignment.GroupTable,
+			Columns: []string{profileassignment.GroupColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(devicegroup.FieldID, field.TypeUint),
 			},
 		}
 		for _, k := range nodes {

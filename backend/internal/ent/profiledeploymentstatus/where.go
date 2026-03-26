@@ -418,6 +418,29 @@ func HasProfileWith(preds ...predicate.Profile) predicate.ProfileDeploymentStatu
 	})
 }
 
+// HasDevice applies the HasEdge predicate on the "device" edge.
+func HasDevice() predicate.ProfileDeploymentStatus {
+	return predicate.ProfileDeploymentStatus(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, DeviceTable, DeviceColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasDeviceWith applies the HasEdge predicate on the "device" edge with a given conditions (other predicates).
+func HasDeviceWith(preds ...predicate.Device) predicate.ProfileDeploymentStatus {
+	return predicate.ProfileDeploymentStatus(func(s *sql.Selector) {
+		step := newDeviceStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // And groups predicates with the AND operator between them.
 func And(predicates ...predicate.ProfileDeploymentStatus) predicate.ProfileDeploymentStatus {
 	return predicate.ProfileDeploymentStatus(sql.AndPredicates(predicates...))

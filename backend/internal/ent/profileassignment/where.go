@@ -65,6 +65,16 @@ func TargetID(v string) predicate.ProfileAssignment {
 	return predicate.ProfileAssignment(sql.FieldEQ(FieldTargetID, v))
 }
 
+// DeviceID applies equality check predicate on the "device_id" field. It's identical to DeviceIDEQ.
+func DeviceID(v string) predicate.ProfileAssignment {
+	return predicate.ProfileAssignment(sql.FieldEQ(FieldDeviceID, v))
+}
+
+// GroupID applies equality check predicate on the "group_id" field. It's identical to GroupIDEQ.
+func GroupID(v uint) predicate.ProfileAssignment {
+	return predicate.ProfileAssignment(sql.FieldEQ(FieldGroupID, v))
+}
+
 // ScheduledAt applies equality check predicate on the "scheduled_at" field. It's identical to ScheduledAtEQ.
 func ScheduledAt(v time.Time) predicate.ProfileAssignment {
 	return predicate.ProfileAssignment(sql.FieldEQ(FieldScheduledAt, v))
@@ -170,6 +180,16 @@ func TargetIDHasSuffix(v string) predicate.ProfileAssignment {
 	return predicate.ProfileAssignment(sql.FieldHasSuffix(FieldTargetID, v))
 }
 
+// TargetIDIsNil applies the IsNil predicate on the "target_id" field.
+func TargetIDIsNil() predicate.ProfileAssignment {
+	return predicate.ProfileAssignment(sql.FieldIsNull(FieldTargetID))
+}
+
+// TargetIDNotNil applies the NotNil predicate on the "target_id" field.
+func TargetIDNotNil() predicate.ProfileAssignment {
+	return predicate.ProfileAssignment(sql.FieldNotNull(FieldTargetID))
+}
+
 // TargetIDEqualFold applies the EqualFold predicate on the "target_id" field.
 func TargetIDEqualFold(v string) predicate.ProfileAssignment {
 	return predicate.ProfileAssignment(sql.FieldEqualFold(FieldTargetID, v))
@@ -178,6 +198,111 @@ func TargetIDEqualFold(v string) predicate.ProfileAssignment {
 // TargetIDContainsFold applies the ContainsFold predicate on the "target_id" field.
 func TargetIDContainsFold(v string) predicate.ProfileAssignment {
 	return predicate.ProfileAssignment(sql.FieldContainsFold(FieldTargetID, v))
+}
+
+// DeviceIDEQ applies the EQ predicate on the "device_id" field.
+func DeviceIDEQ(v string) predicate.ProfileAssignment {
+	return predicate.ProfileAssignment(sql.FieldEQ(FieldDeviceID, v))
+}
+
+// DeviceIDNEQ applies the NEQ predicate on the "device_id" field.
+func DeviceIDNEQ(v string) predicate.ProfileAssignment {
+	return predicate.ProfileAssignment(sql.FieldNEQ(FieldDeviceID, v))
+}
+
+// DeviceIDIn applies the In predicate on the "device_id" field.
+func DeviceIDIn(vs ...string) predicate.ProfileAssignment {
+	return predicate.ProfileAssignment(sql.FieldIn(FieldDeviceID, vs...))
+}
+
+// DeviceIDNotIn applies the NotIn predicate on the "device_id" field.
+func DeviceIDNotIn(vs ...string) predicate.ProfileAssignment {
+	return predicate.ProfileAssignment(sql.FieldNotIn(FieldDeviceID, vs...))
+}
+
+// DeviceIDGT applies the GT predicate on the "device_id" field.
+func DeviceIDGT(v string) predicate.ProfileAssignment {
+	return predicate.ProfileAssignment(sql.FieldGT(FieldDeviceID, v))
+}
+
+// DeviceIDGTE applies the GTE predicate on the "device_id" field.
+func DeviceIDGTE(v string) predicate.ProfileAssignment {
+	return predicate.ProfileAssignment(sql.FieldGTE(FieldDeviceID, v))
+}
+
+// DeviceIDLT applies the LT predicate on the "device_id" field.
+func DeviceIDLT(v string) predicate.ProfileAssignment {
+	return predicate.ProfileAssignment(sql.FieldLT(FieldDeviceID, v))
+}
+
+// DeviceIDLTE applies the LTE predicate on the "device_id" field.
+func DeviceIDLTE(v string) predicate.ProfileAssignment {
+	return predicate.ProfileAssignment(sql.FieldLTE(FieldDeviceID, v))
+}
+
+// DeviceIDContains applies the Contains predicate on the "device_id" field.
+func DeviceIDContains(v string) predicate.ProfileAssignment {
+	return predicate.ProfileAssignment(sql.FieldContains(FieldDeviceID, v))
+}
+
+// DeviceIDHasPrefix applies the HasPrefix predicate on the "device_id" field.
+func DeviceIDHasPrefix(v string) predicate.ProfileAssignment {
+	return predicate.ProfileAssignment(sql.FieldHasPrefix(FieldDeviceID, v))
+}
+
+// DeviceIDHasSuffix applies the HasSuffix predicate on the "device_id" field.
+func DeviceIDHasSuffix(v string) predicate.ProfileAssignment {
+	return predicate.ProfileAssignment(sql.FieldHasSuffix(FieldDeviceID, v))
+}
+
+// DeviceIDIsNil applies the IsNil predicate on the "device_id" field.
+func DeviceIDIsNil() predicate.ProfileAssignment {
+	return predicate.ProfileAssignment(sql.FieldIsNull(FieldDeviceID))
+}
+
+// DeviceIDNotNil applies the NotNil predicate on the "device_id" field.
+func DeviceIDNotNil() predicate.ProfileAssignment {
+	return predicate.ProfileAssignment(sql.FieldNotNull(FieldDeviceID))
+}
+
+// DeviceIDEqualFold applies the EqualFold predicate on the "device_id" field.
+func DeviceIDEqualFold(v string) predicate.ProfileAssignment {
+	return predicate.ProfileAssignment(sql.FieldEqualFold(FieldDeviceID, v))
+}
+
+// DeviceIDContainsFold applies the ContainsFold predicate on the "device_id" field.
+func DeviceIDContainsFold(v string) predicate.ProfileAssignment {
+	return predicate.ProfileAssignment(sql.FieldContainsFold(FieldDeviceID, v))
+}
+
+// GroupIDEQ applies the EQ predicate on the "group_id" field.
+func GroupIDEQ(v uint) predicate.ProfileAssignment {
+	return predicate.ProfileAssignment(sql.FieldEQ(FieldGroupID, v))
+}
+
+// GroupIDNEQ applies the NEQ predicate on the "group_id" field.
+func GroupIDNEQ(v uint) predicate.ProfileAssignment {
+	return predicate.ProfileAssignment(sql.FieldNEQ(FieldGroupID, v))
+}
+
+// GroupIDIn applies the In predicate on the "group_id" field.
+func GroupIDIn(vs ...uint) predicate.ProfileAssignment {
+	return predicate.ProfileAssignment(sql.FieldIn(FieldGroupID, vs...))
+}
+
+// GroupIDNotIn applies the NotIn predicate on the "group_id" field.
+func GroupIDNotIn(vs ...uint) predicate.ProfileAssignment {
+	return predicate.ProfileAssignment(sql.FieldNotIn(FieldGroupID, vs...))
+}
+
+// GroupIDIsNil applies the IsNil predicate on the "group_id" field.
+func GroupIDIsNil() predicate.ProfileAssignment {
+	return predicate.ProfileAssignment(sql.FieldIsNull(FieldGroupID))
+}
+
+// GroupIDNotNil applies the NotNil predicate on the "group_id" field.
+func GroupIDNotNil() predicate.ProfileAssignment {
+	return predicate.ProfileAssignment(sql.FieldNotNull(FieldGroupID))
 }
 
 // ScheduleTypeEQ applies the EQ predicate on the "schedule_type" field.
@@ -305,6 +430,52 @@ func HasProfile() predicate.ProfileAssignment {
 func HasProfileWith(preds ...predicate.Profile) predicate.ProfileAssignment {
 	return predicate.ProfileAssignment(func(s *sql.Selector) {
 		step := newProfileStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasDevice applies the HasEdge predicate on the "device" edge.
+func HasDevice() predicate.ProfileAssignment {
+	return predicate.ProfileAssignment(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, DeviceTable, DeviceColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasDeviceWith applies the HasEdge predicate on the "device" edge with a given conditions (other predicates).
+func HasDeviceWith(preds ...predicate.Device) predicate.ProfileAssignment {
+	return predicate.ProfileAssignment(func(s *sql.Selector) {
+		step := newDeviceStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasGroup applies the HasEdge predicate on the "group" edge.
+func HasGroup() predicate.ProfileAssignment {
+	return predicate.ProfileAssignment(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, GroupTable, GroupColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasGroupWith applies the HasEdge predicate on the "group" edge with a given conditions (other predicates).
+func HasGroupWith(preds ...predicate.DeviceGroup) predicate.ProfileAssignment {
+	return predicate.ProfileAssignment(func(s *sql.Selector) {
+		step := newGroupStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)

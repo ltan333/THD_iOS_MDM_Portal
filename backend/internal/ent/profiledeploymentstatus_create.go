@@ -10,6 +10,7 @@ import (
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/thienel/go-backend-template/internal/ent/device"
 	"github.com/thienel/go-backend-template/internal/ent/profile"
 	"github.com/thienel/go-backend-template/internal/ent/profiledeploymentstatus"
 )
@@ -114,6 +115,11 @@ func (_c *ProfileDeploymentStatusCreate) SetProfile(v *Profile) *ProfileDeployme
 	return _c.SetProfileID(v.ID)
 }
 
+// SetDevice sets the "device" edge to the Device entity.
+func (_c *ProfileDeploymentStatusCreate) SetDevice(v *Device) *ProfileDeploymentStatusCreate {
+	return _c.SetDeviceID(v.ID)
+}
+
 // Mutation returns the ProfileDeploymentStatusMutation object of the builder.
 func (_c *ProfileDeploymentStatusCreate) Mutation() *ProfileDeploymentStatusMutation {
 	return _c.mutation
@@ -193,6 +199,9 @@ func (_c *ProfileDeploymentStatusCreate) check() error {
 	if len(_c.mutation.ProfileIDs()) == 0 {
 		return &ValidationError{Name: "profile", err: errors.New(`ent: missing required edge "ProfileDeploymentStatus.profile"`)}
 	}
+	if len(_c.mutation.DeviceIDs()) == 0 {
+		return &ValidationError{Name: "device", err: errors.New(`ent: missing required edge "ProfileDeploymentStatus.device"`)}
+	}
 	return nil
 }
 
@@ -224,10 +233,6 @@ func (_c *ProfileDeploymentStatusCreate) createSpec() (*ProfileDeploymentStatus,
 	if id, ok := _c.mutation.ID(); ok {
 		_node.ID = id
 		_spec.ID.Value = id
-	}
-	if value, ok := _c.mutation.DeviceID(); ok {
-		_spec.SetField(profiledeploymentstatus.FieldDeviceID, field.TypeString, value)
-		_node.DeviceID = value
 	}
 	if value, ok := _c.mutation.Status(); ok {
 		_spec.SetField(profiledeploymentstatus.FieldStatus, field.TypeEnum, value)
@@ -264,6 +269,23 @@ func (_c *ProfileDeploymentStatusCreate) createSpec() (*ProfileDeploymentStatus,
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_node.ProfileID = nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.DeviceIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   profiledeploymentstatus.DeviceTable,
+			Columns: []string{profiledeploymentstatus.DeviceColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(device.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.DeviceID = nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec

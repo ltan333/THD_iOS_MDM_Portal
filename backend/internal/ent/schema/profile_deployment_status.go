@@ -44,5 +44,9 @@ func (ProfileDeploymentStatus) Edges() []ent.Edge {
 			Unique().
 			Required().
 			Field("profile_id"),
+		edge.To("device", Device.Type).
+			Unique().
+			Required().
+			Field("device_id"),
 	}
 }

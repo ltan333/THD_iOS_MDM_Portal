@@ -16165,6 +16165,10 @@ type ProfileAssignmentMutation struct {
 	clearedFields  map[string]struct{}
 	profile        *uint
 	clearedprofile bool
+	device         *string
+	cleareddevice  bool
+	group          *uint
+	clearedgroup   bool
 	done           bool
 	oldValue       func(context.Context) (*ProfileAssignment, error)
 	predicates     []predicate.ProfileAssignment
@@ -16377,9 +16381,120 @@ func (m *ProfileAssignmentMutation) OldTargetID(ctx context.Context) (v string, 
 	return oldValue.TargetID, nil
 }
 
+// ClearTargetID clears the value of the "target_id" field.
+func (m *ProfileAssignmentMutation) ClearTargetID() {
+	m.target_id = nil
+	m.clearedFields[profileassignment.FieldTargetID] = struct{}{}
+}
+
+// TargetIDCleared returns if the "target_id" field was cleared in this mutation.
+func (m *ProfileAssignmentMutation) TargetIDCleared() bool {
+	_, ok := m.clearedFields[profileassignment.FieldTargetID]
+	return ok
+}
+
 // ResetTargetID resets all changes to the "target_id" field.
 func (m *ProfileAssignmentMutation) ResetTargetID() {
 	m.target_id = nil
+	delete(m.clearedFields, profileassignment.FieldTargetID)
+}
+
+// SetDeviceID sets the "device_id" field.
+func (m *ProfileAssignmentMutation) SetDeviceID(s string) {
+	m.device = &s
+}
+
+// DeviceID returns the value of the "device_id" field in the mutation.
+func (m *ProfileAssignmentMutation) DeviceID() (r string, exists bool) {
+	v := m.device
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDeviceID returns the old "device_id" field's value of the ProfileAssignment entity.
+// If the ProfileAssignment object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ProfileAssignmentMutation) OldDeviceID(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDeviceID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDeviceID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDeviceID: %w", err)
+	}
+	return oldValue.DeviceID, nil
+}
+
+// ClearDeviceID clears the value of the "device_id" field.
+func (m *ProfileAssignmentMutation) ClearDeviceID() {
+	m.device = nil
+	m.clearedFields[profileassignment.FieldDeviceID] = struct{}{}
+}
+
+// DeviceIDCleared returns if the "device_id" field was cleared in this mutation.
+func (m *ProfileAssignmentMutation) DeviceIDCleared() bool {
+	_, ok := m.clearedFields[profileassignment.FieldDeviceID]
+	return ok
+}
+
+// ResetDeviceID resets all changes to the "device_id" field.
+func (m *ProfileAssignmentMutation) ResetDeviceID() {
+	m.device = nil
+	delete(m.clearedFields, profileassignment.FieldDeviceID)
+}
+
+// SetGroupID sets the "group_id" field.
+func (m *ProfileAssignmentMutation) SetGroupID(u uint) {
+	m.group = &u
+}
+
+// GroupID returns the value of the "group_id" field in the mutation.
+func (m *ProfileAssignmentMutation) GroupID() (r uint, exists bool) {
+	v := m.group
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldGroupID returns the old "group_id" field's value of the ProfileAssignment entity.
+// If the ProfileAssignment object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ProfileAssignmentMutation) OldGroupID(ctx context.Context) (v *uint, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldGroupID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldGroupID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldGroupID: %w", err)
+	}
+	return oldValue.GroupID, nil
+}
+
+// ClearGroupID clears the value of the "group_id" field.
+func (m *ProfileAssignmentMutation) ClearGroupID() {
+	m.group = nil
+	m.clearedFields[profileassignment.FieldGroupID] = struct{}{}
+}
+
+// GroupIDCleared returns if the "group_id" field was cleared in this mutation.
+func (m *ProfileAssignmentMutation) GroupIDCleared() bool {
+	_, ok := m.clearedFields[profileassignment.FieldGroupID]
+	return ok
+}
+
+// ResetGroupID resets all changes to the "group_id" field.
+func (m *ProfileAssignmentMutation) ResetGroupID() {
+	m.group = nil
+	delete(m.clearedFields, profileassignment.FieldGroupID)
 }
 
 // SetScheduleType sets the "schedule_type" field.
@@ -16530,6 +16645,60 @@ func (m *ProfileAssignmentMutation) ResetProfile() {
 	m.clearedprofile = false
 }
 
+// ClearDevice clears the "device" edge to the Device entity.
+func (m *ProfileAssignmentMutation) ClearDevice() {
+	m.cleareddevice = true
+	m.clearedFields[profileassignment.FieldDeviceID] = struct{}{}
+}
+
+// DeviceCleared reports if the "device" edge to the Device entity was cleared.
+func (m *ProfileAssignmentMutation) DeviceCleared() bool {
+	return m.DeviceIDCleared() || m.cleareddevice
+}
+
+// DeviceIDs returns the "device" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// DeviceID instead. It exists only for internal usage by the builders.
+func (m *ProfileAssignmentMutation) DeviceIDs() (ids []string) {
+	if id := m.device; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetDevice resets all changes to the "device" edge.
+func (m *ProfileAssignmentMutation) ResetDevice() {
+	m.device = nil
+	m.cleareddevice = false
+}
+
+// ClearGroup clears the "group" edge to the DeviceGroup entity.
+func (m *ProfileAssignmentMutation) ClearGroup() {
+	m.clearedgroup = true
+	m.clearedFields[profileassignment.FieldGroupID] = struct{}{}
+}
+
+// GroupCleared reports if the "group" edge to the DeviceGroup entity was cleared.
+func (m *ProfileAssignmentMutation) GroupCleared() bool {
+	return m.GroupIDCleared() || m.clearedgroup
+}
+
+// GroupIDs returns the "group" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// GroupID instead. It exists only for internal usage by the builders.
+func (m *ProfileAssignmentMutation) GroupIDs() (ids []uint) {
+	if id := m.group; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetGroup resets all changes to the "group" edge.
+func (m *ProfileAssignmentMutation) ResetGroup() {
+	m.group = nil
+	m.clearedgroup = false
+}
+
 // Where appends a list predicates to the ProfileAssignmentMutation builder.
 func (m *ProfileAssignmentMutation) Where(ps ...predicate.ProfileAssignment) {
 	m.predicates = append(m.predicates, ps...)
@@ -16564,7 +16733,7 @@ func (m *ProfileAssignmentMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *ProfileAssignmentMutation) Fields() []string {
-	fields := make([]string, 0, 6)
+	fields := make([]string, 0, 8)
 	if m.profile != nil {
 		fields = append(fields, profileassignment.FieldProfileID)
 	}
@@ -16573,6 +16742,12 @@ func (m *ProfileAssignmentMutation) Fields() []string {
 	}
 	if m.target_id != nil {
 		fields = append(fields, profileassignment.FieldTargetID)
+	}
+	if m.device != nil {
+		fields = append(fields, profileassignment.FieldDeviceID)
+	}
+	if m.group != nil {
+		fields = append(fields, profileassignment.FieldGroupID)
 	}
 	if m.schedule_type != nil {
 		fields = append(fields, profileassignment.FieldScheduleType)
@@ -16597,6 +16772,10 @@ func (m *ProfileAssignmentMutation) Field(name string) (ent.Value, bool) {
 		return m.TargetType()
 	case profileassignment.FieldTargetID:
 		return m.TargetID()
+	case profileassignment.FieldDeviceID:
+		return m.DeviceID()
+	case profileassignment.FieldGroupID:
+		return m.GroupID()
 	case profileassignment.FieldScheduleType:
 		return m.ScheduleType()
 	case profileassignment.FieldScheduledAt:
@@ -16618,6 +16797,10 @@ func (m *ProfileAssignmentMutation) OldField(ctx context.Context, name string) (
 		return m.OldTargetType(ctx)
 	case profileassignment.FieldTargetID:
 		return m.OldTargetID(ctx)
+	case profileassignment.FieldDeviceID:
+		return m.OldDeviceID(ctx)
+	case profileassignment.FieldGroupID:
+		return m.OldGroupID(ctx)
 	case profileassignment.FieldScheduleType:
 		return m.OldScheduleType(ctx)
 	case profileassignment.FieldScheduledAt:
@@ -16653,6 +16836,20 @@ func (m *ProfileAssignmentMutation) SetField(name string, value ent.Value) error
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetTargetID(v)
+		return nil
+	case profileassignment.FieldDeviceID:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDeviceID(v)
+		return nil
+	case profileassignment.FieldGroupID:
+		v, ok := value.(uint)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetGroupID(v)
 		return nil
 	case profileassignment.FieldScheduleType:
 		v, ok := value.(profileassignment.ScheduleType)
@@ -16708,6 +16905,15 @@ func (m *ProfileAssignmentMutation) AddField(name string, value ent.Value) error
 // mutation.
 func (m *ProfileAssignmentMutation) ClearedFields() []string {
 	var fields []string
+	if m.FieldCleared(profileassignment.FieldTargetID) {
+		fields = append(fields, profileassignment.FieldTargetID)
+	}
+	if m.FieldCleared(profileassignment.FieldDeviceID) {
+		fields = append(fields, profileassignment.FieldDeviceID)
+	}
+	if m.FieldCleared(profileassignment.FieldGroupID) {
+		fields = append(fields, profileassignment.FieldGroupID)
+	}
 	if m.FieldCleared(profileassignment.FieldScheduledAt) {
 		fields = append(fields, profileassignment.FieldScheduledAt)
 	}
@@ -16725,6 +16931,15 @@ func (m *ProfileAssignmentMutation) FieldCleared(name string) bool {
 // error if the field is not defined in the schema.
 func (m *ProfileAssignmentMutation) ClearField(name string) error {
 	switch name {
+	case profileassignment.FieldTargetID:
+		m.ClearTargetID()
+		return nil
+	case profileassignment.FieldDeviceID:
+		m.ClearDeviceID()
+		return nil
+	case profileassignment.FieldGroupID:
+		m.ClearGroupID()
+		return nil
 	case profileassignment.FieldScheduledAt:
 		m.ClearScheduledAt()
 		return nil
@@ -16745,6 +16960,12 @@ func (m *ProfileAssignmentMutation) ResetField(name string) error {
 	case profileassignment.FieldTargetID:
 		m.ResetTargetID()
 		return nil
+	case profileassignment.FieldDeviceID:
+		m.ResetDeviceID()
+		return nil
+	case profileassignment.FieldGroupID:
+		m.ResetGroupID()
+		return nil
 	case profileassignment.FieldScheduleType:
 		m.ResetScheduleType()
 		return nil
@@ -16760,9 +16981,15 @@ func (m *ProfileAssignmentMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *ProfileAssignmentMutation) AddedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 3)
 	if m.profile != nil {
 		edges = append(edges, profileassignment.EdgeProfile)
+	}
+	if m.device != nil {
+		edges = append(edges, profileassignment.EdgeDevice)
+	}
+	if m.group != nil {
+		edges = append(edges, profileassignment.EdgeGroup)
 	}
 	return edges
 }
@@ -16775,13 +17002,21 @@ func (m *ProfileAssignmentMutation) AddedIDs(name string) []ent.Value {
 		if id := m.profile; id != nil {
 			return []ent.Value{*id}
 		}
+	case profileassignment.EdgeDevice:
+		if id := m.device; id != nil {
+			return []ent.Value{*id}
+		}
+	case profileassignment.EdgeGroup:
+		if id := m.group; id != nil {
+			return []ent.Value{*id}
+		}
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *ProfileAssignmentMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 3)
 	return edges
 }
 
@@ -16793,9 +17028,15 @@ func (m *ProfileAssignmentMutation) RemovedIDs(name string) []ent.Value {
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *ProfileAssignmentMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 3)
 	if m.clearedprofile {
 		edges = append(edges, profileassignment.EdgeProfile)
+	}
+	if m.cleareddevice {
+		edges = append(edges, profileassignment.EdgeDevice)
+	}
+	if m.clearedgroup {
+		edges = append(edges, profileassignment.EdgeGroup)
 	}
 	return edges
 }
@@ -16806,6 +17047,10 @@ func (m *ProfileAssignmentMutation) EdgeCleared(name string) bool {
 	switch name {
 	case profileassignment.EdgeProfile:
 		return m.clearedprofile
+	case profileassignment.EdgeDevice:
+		return m.cleareddevice
+	case profileassignment.EdgeGroup:
+		return m.clearedgroup
 	}
 	return false
 }
@@ -16816,6 +17061,12 @@ func (m *ProfileAssignmentMutation) ClearEdge(name string) error {
 	switch name {
 	case profileassignment.EdgeProfile:
 		m.ClearProfile()
+		return nil
+	case profileassignment.EdgeDevice:
+		m.ClearDevice()
+		return nil
+	case profileassignment.EdgeGroup:
+		m.ClearGroup()
 		return nil
 	}
 	return fmt.Errorf("unknown ProfileAssignment unique edge %s", name)
@@ -16828,6 +17079,12 @@ func (m *ProfileAssignmentMutation) ResetEdge(name string) error {
 	case profileassignment.EdgeProfile:
 		m.ResetProfile()
 		return nil
+	case profileassignment.EdgeDevice:
+		m.ResetDevice()
+		return nil
+	case profileassignment.EdgeGroup:
+		m.ResetGroup()
+		return nil
 	}
 	return fmt.Errorf("unknown ProfileAssignment edge %s", name)
 }
@@ -16838,7 +17095,6 @@ type ProfileDeploymentStatusMutation struct {
 	op             Op
 	typ            string
 	id             *uint
-	device_id      *string
 	status         *profiledeploymentstatus.Status
 	error_message  *string
 	applied_at     *time.Time
@@ -16847,6 +17103,8 @@ type ProfileDeploymentStatusMutation struct {
 	clearedFields  map[string]struct{}
 	profile        *uint
 	clearedprofile bool
+	device         *string
+	cleareddevice  bool
 	done           bool
 	oldValue       func(context.Context) (*ProfileDeploymentStatus, error)
 	predicates     []predicate.ProfileDeploymentStatus
@@ -16994,12 +17252,12 @@ func (m *ProfileDeploymentStatusMutation) ResetProfileID() {
 
 // SetDeviceID sets the "device_id" field.
 func (m *ProfileDeploymentStatusMutation) SetDeviceID(s string) {
-	m.device_id = &s
+	m.device = &s
 }
 
 // DeviceID returns the value of the "device_id" field in the mutation.
 func (m *ProfileDeploymentStatusMutation) DeviceID() (r string, exists bool) {
-	v := m.device_id
+	v := m.device
 	if v == nil {
 		return
 	}
@@ -17025,7 +17283,7 @@ func (m *ProfileDeploymentStatusMutation) OldDeviceID(ctx context.Context) (v st
 
 // ResetDeviceID resets all changes to the "device_id" field.
 func (m *ProfileDeploymentStatusMutation) ResetDeviceID() {
-	m.device_id = nil
+	m.device = nil
 }
 
 // SetStatus sets the "status" field.
@@ -17261,6 +17519,33 @@ func (m *ProfileDeploymentStatusMutation) ResetProfile() {
 	m.clearedprofile = false
 }
 
+// ClearDevice clears the "device" edge to the Device entity.
+func (m *ProfileDeploymentStatusMutation) ClearDevice() {
+	m.cleareddevice = true
+	m.clearedFields[profiledeploymentstatus.FieldDeviceID] = struct{}{}
+}
+
+// DeviceCleared reports if the "device" edge to the Device entity was cleared.
+func (m *ProfileDeploymentStatusMutation) DeviceCleared() bool {
+	return m.cleareddevice
+}
+
+// DeviceIDs returns the "device" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// DeviceID instead. It exists only for internal usage by the builders.
+func (m *ProfileDeploymentStatusMutation) DeviceIDs() (ids []string) {
+	if id := m.device; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetDevice resets all changes to the "device" edge.
+func (m *ProfileDeploymentStatusMutation) ResetDevice() {
+	m.device = nil
+	m.cleareddevice = false
+}
+
 // Where appends a list predicates to the ProfileDeploymentStatusMutation builder.
 func (m *ProfileDeploymentStatusMutation) Where(ps ...predicate.ProfileDeploymentStatus) {
 	m.predicates = append(m.predicates, ps...)
@@ -17299,7 +17584,7 @@ func (m *ProfileDeploymentStatusMutation) Fields() []string {
 	if m.profile != nil {
 		fields = append(fields, profiledeploymentstatus.FieldProfileID)
 	}
-	if m.device_id != nil {
+	if m.device != nil {
 		fields = append(fields, profiledeploymentstatus.FieldDeviceID)
 	}
 	if m.status != nil {
@@ -17514,9 +17799,12 @@ func (m *ProfileDeploymentStatusMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *ProfileDeploymentStatusMutation) AddedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
 	if m.profile != nil {
 		edges = append(edges, profiledeploymentstatus.EdgeProfile)
+	}
+	if m.device != nil {
+		edges = append(edges, profiledeploymentstatus.EdgeDevice)
 	}
 	return edges
 }
@@ -17529,13 +17817,17 @@ func (m *ProfileDeploymentStatusMutation) AddedIDs(name string) []ent.Value {
 		if id := m.profile; id != nil {
 			return []ent.Value{*id}
 		}
+	case profiledeploymentstatus.EdgeDevice:
+		if id := m.device; id != nil {
+			return []ent.Value{*id}
+		}
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *ProfileDeploymentStatusMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
 	return edges
 }
 
@@ -17547,9 +17839,12 @@ func (m *ProfileDeploymentStatusMutation) RemovedIDs(name string) []ent.Value {
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *ProfileDeploymentStatusMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
 	if m.clearedprofile {
 		edges = append(edges, profiledeploymentstatus.EdgeProfile)
+	}
+	if m.cleareddevice {
+		edges = append(edges, profiledeploymentstatus.EdgeDevice)
 	}
 	return edges
 }
@@ -17560,6 +17855,8 @@ func (m *ProfileDeploymentStatusMutation) EdgeCleared(name string) bool {
 	switch name {
 	case profiledeploymentstatus.EdgeProfile:
 		return m.clearedprofile
+	case profiledeploymentstatus.EdgeDevice:
+		return m.cleareddevice
 	}
 	return false
 }
@@ -17571,6 +17868,9 @@ func (m *ProfileDeploymentStatusMutation) ClearEdge(name string) error {
 	case profiledeploymentstatus.EdgeProfile:
 		m.ClearProfile()
 		return nil
+	case profiledeploymentstatus.EdgeDevice:
+		m.ClearDevice()
+		return nil
 	}
 	return fmt.Errorf("unknown ProfileDeploymentStatus unique edge %s", name)
 }
@@ -17581,6 +17881,9 @@ func (m *ProfileDeploymentStatusMutation) ResetEdge(name string) error {
 	switch name {
 	case profiledeploymentstatus.EdgeProfile:
 		m.ResetProfile()
+		return nil
+	case profiledeploymentstatus.EdgeDevice:
+		m.ResetDevice()
 		return nil
 	}
 	return fmt.Errorf("unknown ProfileDeploymentStatus edge %s", name)

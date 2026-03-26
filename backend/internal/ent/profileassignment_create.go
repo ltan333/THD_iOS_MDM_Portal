@@ -10,6 +10,8 @@ import (
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/thienel/go-backend-template/internal/ent/device"
+	"github.com/thienel/go-backend-template/internal/ent/devicegroup"
 	"github.com/thienel/go-backend-template/internal/ent/profile"
 	"github.com/thienel/go-backend-template/internal/ent/profileassignment"
 )
@@ -36,6 +38,42 @@ func (_c *ProfileAssignmentCreate) SetTargetType(v profileassignment.TargetType)
 // SetTargetID sets the "target_id" field.
 func (_c *ProfileAssignmentCreate) SetTargetID(v string) *ProfileAssignmentCreate {
 	_c.mutation.SetTargetID(v)
+	return _c
+}
+
+// SetNillableTargetID sets the "target_id" field if the given value is not nil.
+func (_c *ProfileAssignmentCreate) SetNillableTargetID(v *string) *ProfileAssignmentCreate {
+	if v != nil {
+		_c.SetTargetID(*v)
+	}
+	return _c
+}
+
+// SetDeviceID sets the "device_id" field.
+func (_c *ProfileAssignmentCreate) SetDeviceID(v string) *ProfileAssignmentCreate {
+	_c.mutation.SetDeviceID(v)
+	return _c
+}
+
+// SetNillableDeviceID sets the "device_id" field if the given value is not nil.
+func (_c *ProfileAssignmentCreate) SetNillableDeviceID(v *string) *ProfileAssignmentCreate {
+	if v != nil {
+		_c.SetDeviceID(*v)
+	}
+	return _c
+}
+
+// SetGroupID sets the "group_id" field.
+func (_c *ProfileAssignmentCreate) SetGroupID(v uint) *ProfileAssignmentCreate {
+	_c.mutation.SetGroupID(v)
+	return _c
+}
+
+// SetNillableGroupID sets the "group_id" field if the given value is not nil.
+func (_c *ProfileAssignmentCreate) SetNillableGroupID(v *uint) *ProfileAssignmentCreate {
+	if v != nil {
+		_c.SetGroupID(*v)
+	}
 	return _c
 }
 
@@ -90,6 +128,16 @@ func (_c *ProfileAssignmentCreate) SetID(v uint) *ProfileAssignmentCreate {
 // SetProfile sets the "profile" edge to the Profile entity.
 func (_c *ProfileAssignmentCreate) SetProfile(v *Profile) *ProfileAssignmentCreate {
 	return _c.SetProfileID(v.ID)
+}
+
+// SetDevice sets the "device" edge to the Device entity.
+func (_c *ProfileAssignmentCreate) SetDevice(v *Device) *ProfileAssignmentCreate {
+	return _c.SetDeviceID(v.ID)
+}
+
+// SetGroup sets the "group" edge to the DeviceGroup entity.
+func (_c *ProfileAssignmentCreate) SetGroup(v *DeviceGroup) *ProfileAssignmentCreate {
+	return _c.SetGroupID(v.ID)
 }
 
 // Mutation returns the ProfileAssignmentMutation object of the builder.
@@ -148,14 +196,6 @@ func (_c *ProfileAssignmentCreate) check() error {
 	if v, ok := _c.mutation.TargetType(); ok {
 		if err := profileassignment.TargetTypeValidator(v); err != nil {
 			return &ValidationError{Name: "target_type", err: fmt.Errorf(`ent: validator failed for field "ProfileAssignment.target_type": %w`, err)}
-		}
-	}
-	if _, ok := _c.mutation.TargetID(); !ok {
-		return &ValidationError{Name: "target_id", err: errors.New(`ent: missing required field "ProfileAssignment.target_id"`)}
-	}
-	if v, ok := _c.mutation.TargetID(); ok {
-		if err := profileassignment.TargetIDValidator(v); err != nil {
-			return &ValidationError{Name: "target_id", err: fmt.Errorf(`ent: validator failed for field "ProfileAssignment.target_id": %w`, err)}
 		}
 	}
 	if _, ok := _c.mutation.ScheduleType(); !ok {
@@ -239,6 +279,40 @@ func (_c *ProfileAssignmentCreate) createSpec() (*ProfileAssignment, *sqlgraph.C
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_node.ProfileID = nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.DeviceIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   profileassignment.DeviceTable,
+			Columns: []string{profileassignment.DeviceColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(device.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.DeviceID = &nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.GroupIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   profileassignment.GroupTable,
+			Columns: []string{profileassignment.GroupColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(devicegroup.FieldID, field.TypeUint),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.GroupID = &nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec

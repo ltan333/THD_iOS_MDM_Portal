@@ -11,6 +11,7 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/thienel/go-backend-template/internal/ent/device"
 	"github.com/thienel/go-backend-template/internal/ent/predicate"
 	"github.com/thienel/go-backend-template/internal/ent/profile"
 	"github.com/thienel/go-backend-template/internal/ent/profiledeploymentstatus"
@@ -24,6 +25,7 @@ type ProfileDeploymentStatusQuery struct {
 	inters      []Interceptor
 	predicates  []predicate.ProfileDeploymentStatus
 	withProfile *ProfileQuery
+	withDevice  *DeviceQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -75,6 +77,28 @@ func (_q *ProfileDeploymentStatusQuery) QueryProfile() *ProfileQuery {
 			sqlgraph.From(profiledeploymentstatus.Table, profiledeploymentstatus.FieldID, selector),
 			sqlgraph.To(profile.Table, profile.FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, true, profiledeploymentstatus.ProfileTable, profiledeploymentstatus.ProfileColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryDevice chains the current query on the "device" edge.
+func (_q *ProfileDeploymentStatusQuery) QueryDevice() *DeviceQuery {
+	query := (&DeviceClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(profiledeploymentstatus.Table, profiledeploymentstatus.FieldID, selector),
+			sqlgraph.To(device.Table, device.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, profiledeploymentstatus.DeviceTable, profiledeploymentstatus.DeviceColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
@@ -275,6 +299,7 @@ func (_q *ProfileDeploymentStatusQuery) Clone() *ProfileDeploymentStatusQuery {
 		inters:      append([]Interceptor{}, _q.inters...),
 		predicates:  append([]predicate.ProfileDeploymentStatus{}, _q.predicates...),
 		withProfile: _q.withProfile.Clone(),
+		withDevice:  _q.withDevice.Clone(),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
 		path: _q.path,
@@ -289,6 +314,17 @@ func (_q *ProfileDeploymentStatusQuery) WithProfile(opts ...func(*ProfileQuery))
 		opt(query)
 	}
 	_q.withProfile = query
+	return _q
+}
+
+// WithDevice tells the query-builder to eager-load the nodes that are connected to
+// the "device" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *ProfileDeploymentStatusQuery) WithDevice(opts ...func(*DeviceQuery)) *ProfileDeploymentStatusQuery {
+	query := (&DeviceClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withDevice = query
 	return _q
 }
 
@@ -370,8 +406,9 @@ func (_q *ProfileDeploymentStatusQuery) sqlAll(ctx context.Context, hooks ...que
 	var (
 		nodes       = []*ProfileDeploymentStatus{}
 		_spec       = _q.querySpec()
-		loadedTypes = [1]bool{
+		loadedTypes = [2]bool{
 			_q.withProfile != nil,
+			_q.withDevice != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -395,6 +432,12 @@ func (_q *ProfileDeploymentStatusQuery) sqlAll(ctx context.Context, hooks ...que
 	if query := _q.withProfile; query != nil {
 		if err := _q.loadProfile(ctx, query, nodes, nil,
 			func(n *ProfileDeploymentStatus, e *Profile) { n.Edges.Profile = e }); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withDevice; query != nil {
+		if err := _q.loadDevice(ctx, query, nodes, nil,
+			func(n *ProfileDeploymentStatus, e *Device) { n.Edges.Device = e }); err != nil {
 			return nil, err
 		}
 	}
@@ -430,6 +473,35 @@ func (_q *ProfileDeploymentStatusQuery) loadProfile(ctx context.Context, query *
 	}
 	return nil
 }
+func (_q *ProfileDeploymentStatusQuery) loadDevice(ctx context.Context, query *DeviceQuery, nodes []*ProfileDeploymentStatus, init func(*ProfileDeploymentStatus), assign func(*ProfileDeploymentStatus, *Device)) error {
+	ids := make([]string, 0, len(nodes))
+	nodeids := make(map[string][]*ProfileDeploymentStatus)
+	for i := range nodes {
+		fk := nodes[i].DeviceID
+		if _, ok := nodeids[fk]; !ok {
+			ids = append(ids, fk)
+		}
+		nodeids[fk] = append(nodeids[fk], nodes[i])
+	}
+	if len(ids) == 0 {
+		return nil
+	}
+	query.Where(device.IDIn(ids...))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nodeids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "device_id" returned %v`, n.ID)
+		}
+		for i := range nodes {
+			assign(nodes[i], n)
+		}
+	}
+	return nil
+}
 
 func (_q *ProfileDeploymentStatusQuery) sqlCount(ctx context.Context) (int, error) {
 	_spec := _q.querySpec()
@@ -458,6 +530,9 @@ func (_q *ProfileDeploymentStatusQuery) querySpec() *sqlgraph.QuerySpec {
 		}
 		if _q.withProfile != nil {
 			_spec.Node.AddColumnOnce(profiledeploymentstatus.FieldProfileID)
+		}
+		if _q.withDevice != nil {
+			_spec.Node.AddColumnOnce(profiledeploymentstatus.FieldDeviceID)
 		}
 	}
 	if ps := _q.predicates; len(ps) > 0 {

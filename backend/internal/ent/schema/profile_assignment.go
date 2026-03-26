@@ -28,7 +28,9 @@ func (ProfileAssignment) Fields() []ent.Field {
 		field.Uint("id"),
 		field.Uint("profile_id"),
 		field.Enum("target_type").Values("device", "group", "user"),
-		field.String("target_id").NotEmpty(), // Can be device ID (string) or group/user ID (uint as string)
+		field.String("target_id").Optional().Comment("Deprecated: Use edges instead"),
+		field.String("device_id").Optional().Nillable(),
+		field.Uint("group_id").Optional().Nillable(),
 		field.Enum("schedule_type").Values("immediate", "scheduled").Default("immediate"),
 		field.Time("scheduled_at").Optional().Nillable(),
 		field.Time("created_at").Default(time.Now).Immutable(),
@@ -43,5 +45,11 @@ func (ProfileAssignment) Edges() []ent.Edge {
 			Unique().
 			Required().
 			Field("profile_id"),
+		edge.To("device", Device.Type).
+			Unique().
+			Field("device_id"),
+		edge.To("group", DeviceGroup.Type).
+			Unique().
+			Field("group_id"),
 	}
 }

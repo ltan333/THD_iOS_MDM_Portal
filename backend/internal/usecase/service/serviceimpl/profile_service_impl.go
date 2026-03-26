@@ -153,7 +153,41 @@ func (s *profileServiceImpl) Update(ctx context.Context, cmd service.UpdateProfi
 		return nil, apperror.ErrValidation.WithMessage("ID profile là bắt buộc")
 	}
 
-	update := s.client.Profile.UpdateOneID(cmd.ID)
+	// 1. Lấy dữ liệu hiện tại để tạo bản sao lưu (Version Snapshot)
+	old, err := s.client.Profile.Get(ctx, cmd.ID)
+	if ent.IsNotFound(err) {
+		return nil, apperror.ErrNotFound.WithMessage("Profile không tồn tại")
+	}
+	if err != nil {
+		return nil, apperror.ErrInternalServerError.WithMessage("Lỗi khi truy xuất dữ liệu cũ").WithError(err)
+	}
+
+	// 2. Tạo bản ghi version mới
+	snapshotData := map[string]interface{}{
+		"name":              old.Name,
+		"platform":          string(old.Platform),
+		"scope":             string(old.Scope),
+		"security_settings": old.SecuritySettings,
+		"network_config":    old.NetworkConfig,
+		"restrictions":      old.Restrictions,
+		"content_filter":    old.ContentFilter,
+		"compliance_rules":  old.ComplianceRules,
+		"payloads":          old.Payloads,
+	}
+
+	_, err = s.client.ProfileVersion.Create().
+		SetProfileID(old.ID).
+		SetVersion(old.Version).
+		SetData(snapshotData).
+		SetChangeNotes("Cập nhật tự động tăng version").
+		Save(ctx)
+	if err != nil {
+		return nil, apperror.ErrInternalServerError.WithMessage("Lỗi khi tạo bản sao lưu version").WithError(err)
+	}
+
+	// 3. Cập nhật dữ liệu mới và tăng version
+	update := s.client.Profile.UpdateOneID(cmd.ID).
+		SetVersion(old.Version + 1)
 
 	if cmd.Name != nil && strings.TrimSpace(*cmd.Name) != "" {
 		exists, _ := s.client.Profile.Query().
@@ -185,11 +219,11 @@ func (s *profileServiceImpl) Update(ctx context.Context, cmd service.UpdateProfi
 	if cmd.ComplianceRules != nil {
 		update = update.SetComplianceRules(cmd.ComplianceRules)
 	}
+	if cmd.Payloads != nil {
+		update = update.SetPayloads(cmd.Payloads)
+	}
 
 	p, err := update.Save(ctx)
-	if ent.IsNotFound(err) {
-		return nil, apperror.ErrNotFound.WithMessage("Profile không tồn tại")
-	}
 	if err != nil {
 		return nil, apperror.ErrInternalServerError.WithMessage("Lỗi khi cập nhật profile").WithError(err)
 	}
@@ -297,13 +331,20 @@ func (s *profileServiceImpl) UpdateComplianceRules(ctx context.Context, id uint,
 }
 
 func (s *profileServiceImpl) Assign(ctx context.Context, cmd service.AssignProfileCommand) error {
-	_, err := s.client.ProfileAssignment.Create().
+	create := s.client.ProfileAssignment.Create().
 		SetProfileID(cmd.ProfileID).
 		SetTargetType(profileassignment.TargetType(cmd.TargetType)).
-		SetTargetID(cmd.TargetID).
 		SetScheduleType(profileassignment.ScheduleType(cmd.ScheduleType)).
-		SetNillableScheduledAt(cmd.ScheduledAt).
-		Save(ctx)
+		SetNillableScheduledAt(cmd.ScheduledAt)
+
+	if cmd.DeviceID != nil {
+		create = create.SetDeviceID(*cmd.DeviceID)
+	}
+	if cmd.GroupID != nil {
+		create = create.SetGroupID(*cmd.GroupID)
+	}
+
+	_, err := create.Save(ctx)
 	if err != nil {
 		return apperror.ErrInternalServerError.WithMessage("Lỗi khi gán profile").WithError(err)
 	}

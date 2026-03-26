@@ -21,6 +21,10 @@ const (
 	FieldTargetType = "target_type"
 	// FieldTargetID holds the string denoting the target_id field in the database.
 	FieldTargetID = "target_id"
+	// FieldDeviceID holds the string denoting the device_id field in the database.
+	FieldDeviceID = "device_id"
+	// FieldGroupID holds the string denoting the group_id field in the database.
+	FieldGroupID = "group_id"
 	// FieldScheduleType holds the string denoting the schedule_type field in the database.
 	FieldScheduleType = "schedule_type"
 	// FieldScheduledAt holds the string denoting the scheduled_at field in the database.
@@ -29,6 +33,10 @@ const (
 	FieldCreatedAt = "created_at"
 	// EdgeProfile holds the string denoting the profile edge name in mutations.
 	EdgeProfile = "profile"
+	// EdgeDevice holds the string denoting the device edge name in mutations.
+	EdgeDevice = "device"
+	// EdgeGroup holds the string denoting the group edge name in mutations.
+	EdgeGroup = "group"
 	// Table holds the table name of the profileassignment in the database.
 	Table = "profile_assignments"
 	// ProfileTable is the table that holds the profile relation/edge.
@@ -38,6 +46,20 @@ const (
 	ProfileInverseTable = "profiles"
 	// ProfileColumn is the table column denoting the profile relation/edge.
 	ProfileColumn = "profile_id"
+	// DeviceTable is the table that holds the device relation/edge.
+	DeviceTable = "profile_assignments"
+	// DeviceInverseTable is the table name for the Device entity.
+	// It exists in this package in order to avoid circular dependency with the "device" package.
+	DeviceInverseTable = "devices"
+	// DeviceColumn is the table column denoting the device relation/edge.
+	DeviceColumn = "device_id"
+	// GroupTable is the table that holds the group relation/edge.
+	GroupTable = "profile_assignments"
+	// GroupInverseTable is the table name for the DeviceGroup entity.
+	// It exists in this package in order to avoid circular dependency with the "devicegroup" package.
+	GroupInverseTable = "device_groups"
+	// GroupColumn is the table column denoting the group relation/edge.
+	GroupColumn = "group_id"
 )
 
 // Columns holds all SQL columns for profileassignment fields.
@@ -46,6 +68,8 @@ var Columns = []string{
 	FieldProfileID,
 	FieldTargetType,
 	FieldTargetID,
+	FieldDeviceID,
+	FieldGroupID,
 	FieldScheduleType,
 	FieldScheduledAt,
 	FieldCreatedAt,
@@ -62,8 +86,6 @@ func ValidColumn(column string) bool {
 }
 
 var (
-	// TargetIDValidator is a validator for the "target_id" field. It is called by the builders before save.
-	TargetIDValidator func(string) error
 	// DefaultCreatedAt holds the default value on creation for the "created_at" field.
 	DefaultCreatedAt func() time.Time
 )
@@ -141,6 +163,16 @@ func ByTargetID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldTargetID, opts...).ToFunc()
 }
 
+// ByDeviceID orders the results by the device_id field.
+func ByDeviceID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldDeviceID, opts...).ToFunc()
+}
+
+// ByGroupID orders the results by the group_id field.
+func ByGroupID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldGroupID, opts...).ToFunc()
+}
+
 // ByScheduleType orders the results by the schedule_type field.
 func ByScheduleType(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldScheduleType, opts...).ToFunc()
@@ -162,10 +194,38 @@ func ByProfileField(field string, opts ...sql.OrderTermOption) OrderOption {
 		sqlgraph.OrderByNeighborTerms(s, newProfileStep(), sql.OrderByField(field, opts...))
 	}
 }
+
+// ByDeviceField orders the results by device field.
+func ByDeviceField(field string, opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newDeviceStep(), sql.OrderByField(field, opts...))
+	}
+}
+
+// ByGroupField orders the results by group field.
+func ByGroupField(field string, opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newGroupStep(), sql.OrderByField(field, opts...))
+	}
+}
 func newProfileStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(ProfileInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.M2O, true, ProfileTable, ProfileColumn),
+	)
+}
+func newDeviceStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(DeviceInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, false, DeviceTable, DeviceColumn),
+	)
+}
+func newGroupStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(GroupInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, false, GroupTable, GroupColumn),
 	)
 }
