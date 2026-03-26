@@ -9,5 +9,6 @@ import (
 // AuthService defines authentication service interface
 type AuthService interface {
 	Login(ctx context.Context, username, password string) (*dto.LoginResponse, error)
+	Refresh(ctx context.Context, refreshToken string) (*dto.LoginResponse, error)
 	Logout(ctx context.Context) error
 }

@@ -657,6 +657,13 @@ definitions:
       value:
         type: string
     type: object
+  github_com_thienel_go-backend-template_internal_interface_api_dto.TokenRefreshRequest:
+    properties:
+      refresh_token:
+        type: string
+    required:
+    - refresh_token
+    type: object
   github_com_thienel_go-backend-template_internal_interface_api_dto.UpdateDeviceGroupRequest:
     properties:
       description:
@@ -2294,6 +2301,36 @@ paths:
       security:
       - BearerAuth: []
       summary: Get current user info
+      tags:
+      - Authentication
+  /v1/auth/refresh:
+    post:
+      consumes:
+      - application/json
+      description: Refresh existing access token using a valid refresh token
+      parameters:
+      - description: Refresh token
+        in: body
+        name: refresh
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_thienel_go-backend-template_internal_interface_api_dto.TokenRefreshRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_LoginResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+      summary: Refresh access token
       tags:
       - Authentication
   /v1/dep/assigner/{name}:
