@@ -1,0 +1,331 @@
+openapi: 3.0.0
+info:
+  version: 0.1.0
+  title: NanoMDM API
+servers:
+  - url: http://[::1]:9000/
+paths:
+  /v1/pushcert:
+    get:
+      description: Retrieve the topic and expiry of the stored APNs push certificate.
+      security:
+        - basicAuth: []
+      parameters:
+        - in: query
+          name: topic
+          required: true
+          schema:
+            type: string
+            example: 'com.apple.mgmt.External.e3b8ceac-1f18-2c8e-8a63-dd17d99435d9'
+          description: The APNs topic identifying which push certificate to retrieve.
+      responses:
+        '200':
+          description: The topic and expiry of the stored APNs certificate are returned.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PushCertResponse'
+        '400':
+          description: Missing or invalid topic query parameter.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '500':
+          description: Server error retrieving or parsing the stored APNs certificate.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    put:
+      description: Upload APNs certificate and private key.
+      security:
+        - basicAuth: []
+      requestBody:
+        description: The request body includes the APNs certificate and private key in PEM-encoded format concatenated together *without* any wrapping or container formats like JSON. The private key must *not* be encrypted.
+        required: true
+        content:
+          text/plain:
+            schema:
+              type: string
+            example: |-
+              -----BEGIN CERTIFICATE-----
+              MIIFdjCCBF6gAwIBAgIIZ7SjAeWsGIwwDQYJKoZIhvcNAQELBQAwgYwxQDA+BgNV
+              [..snip..]
+              lL5jy74l8Za59w==
+              -----END CERTIFICATE-----
+              -----BEGIN RSA PRIVATE KEY-----
+              MIIEogIBAAKCAQEAyfyVbzvN3t0RZgemV2YNGByPjIC3nAyMeabAg/xh/RlqS1uY
+              [..snip..]
+              ThmdpyJ76efnVCpgta/av0LZ6S9914MJpw2ff6H2Ou3y54Jy/94=
+              -----END RSA PRIVATE KEY-----
+      responses:
+        '200':
+          description: The topic and expiry of the APNs certificate are returned.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PushCertResponse'
+        '400':
+          description: Error(s) with the uploaded APNs certificate or private key.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '500':
+          description: Server errors reading HTTP request or storing APNs certificate or private key.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /v1/push/{id*}:
+    get:
+      description: Send APNs push notifications to MDM enrollments
+      security:
+        - basicAuth: []
+      responses:
+        '200':
+          $ref: '#/components/responses/APIResultOK'
+        '207':
+          $ref: '#/components/responses/APIResultSomeFailed'
+        '500':
+          $ref: '#/components/responses/APIResultAllFailed'
+        '401':
+           $ref: '#/components/responses/UnauthorizedError'
+      parameters:
+        - $ref: '#/components/parameters/idParam'
+  /v1/enqueue/{id*}:
+    put:
+      description: Enqueue MDM commands to MDM enrollments and (optionally) send APNs push notifications
+      security:
+        - basicAuth: []
+      requestBody:
+        description: The request body is an XML-encoded MDM command plist.
+        required: true
+        content:
+          text/plain:
+            # Apple plists can't cleanly be represented in OpenAPI specification so we have to fake the Content-Type as text/plain.
+            schema:
+              type: string
+            example: |-
+              <?xml version="1.0" encoding="UTF-8"?>
+              <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+              <plist version="1.0">
+              <dict>
+                <key>Command</key>
+                <dict>
+                  <key>RequestType</key>
+                  <string>ProfileList</string>
+                </dict>
+                <key>CommandUUID</key>
+                <string>fedd659e-fc3c-4e35-8bb1-c8f51ae542a5</string>
+              </dict>
+              </plist>
+      responses:
+        '200':
+          $ref: '#/components/responses/APIResultOK'
+        '207':
+          $ref: '#/components/responses/APIResultSomeFailed'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '500':
+          description:  One of two modes. One mode is an error reading HTTP body from request (which will return no content nor content-type). Otherwise all enqueue requests failed. Returns JSON API response object including errors.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResult'
+      parameters:
+        - $ref: '#/components/parameters/idParam'
+        - in: query
+          name: nopush
+          schema:
+            type: string
+            example: '1'
+  /v1/escrowkeyunlock:
+    post:
+      description: "Perform an Escrow Key Unlock against Apple's API. Uses the APNs certificate of the provided topic for mTLS authentication. Note that despite all parameters being in the HTTP body (form) this endpoint moves the appropriate parameters to the URL query parameters per Apple's documentation. The response body, status, and headers are handed straight through from the Apple endpoint."
+      externalDocs:
+        description: Creating and Using Bypass Codes
+        url: https://developer.apple.com/documentation/devicemanagement/creating-and-using-bypass-codes
+      security:
+        - basicAuth: []
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required:
+                - topic
+                - serial
+                - productType
+                - escrowKey
+                - orgName
+                - guid
+              properties:
+                topic:
+                  type: string
+                  description: APNs Push topic. The certificate keypair that matches this topic is used for mTLS authentication to the Apple Escrow Key Unlock endpoint.
+                  example: "com.apple.mgmt.External.f3abfeac-1f27-4c8e-8a63-dd17555d35d9"
+                serial:
+                  description: The deviceʼs serial number (required).
+                  type: string
+                  example: "C8TJ500QF1MN"
+                imei:
+                  description: The device’s IMEI (omit for non-cellular devices).
+                  type: string
+                imei2:
+                  description: The device’s secondary IMEI (omit for non-cellular and single-SIM devices).
+                  type: string
+                meid:
+                  description: The device’s MEID (omit for non-cellular devices).
+                  type: string
+                productType:
+                  description: "Example: iPad4,1 (required)."
+                  type: string
+                  example: "iPad4,1"
+                escrowKey:
+                  description: Dash-separated "human readable" form of the Activation Lock Bypass Code.
+                  type: string
+                  minLength: 31
+                  example: "3UM43-PUYVY-QYD1-UVCC-HEHJ-FKA4"
+                orgName:
+                  description: "The client-supplied value for auditing purposes: a string that identifies the name of the organization."
+                  type: string
+                  example: "Acme Inc"
+                guid:
+                  description: "The client-supplied value for auditing purposes: a string that identifies the user requesting the removal (such as email, LDAP ID, or name)."
+                  type: string
+                  example: "123456"
+      responses:
+        '200':
+          description: Success.
+        '400':
+          description: "Failure: bad request; likely cause is a malformed request query or body."
+        '404':
+          description: "Failure: device is not found, or escrowKey is invalid."
+        '500':
+          description: "Unexpected server error; try again later."
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+  /version:
+    get:
+      description: Returns the running NanoMDM version
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema: 
+                type: object
+                properties: 
+                  version:
+                    type: string
+                example:
+                  version: "v0.1.0"
+components:
+  parameters:
+    idParam:
+      name: id*
+      in: path
+      description: Enrollment ID(s) of device- or user-channel enrollments. Typically a UUID-looking identifier.
+      required: true
+      explode: true
+      style: simple
+      schema:
+        type: array
+        items:
+          type: string
+        minItems: 1
+        example: ['299BD49-1A0C-422C-B285-2E4FF087C673', 'E2E4A8EB-45EE-488D-B9D7-4CC3B1C40699']
+  securitySchemes:
+    basicAuth:
+      type: http
+      scheme: basic
+  responses:
+    UnauthorizedError:
+      description: API key is missing or invalid.
+      headers:
+        WWW-Authenticate:
+          schema:
+            type: string
+    APIResultOK:
+      description: All requests succeeded. Returns JSON API response object.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIResult'
+    APIResultSomeFailed:
+      description: Some requests succeeded and some failed. Returns JSON API response object including errors.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIResult'
+    APIResultAllFailed:
+      description:  All requests failed. Returns JSON API response object including errors.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIResult'
+  schemas:
+    APIResult:
+      type: object
+      properties:
+        no_push:
+          type: boolean
+          default: false
+        push_error:
+          type: string
+        command_error:
+          type: string
+        command_uuid:
+          type: string
+          example: 'c7fc0872-f22f-4823-8ae0-f3d0174fb48a'
+          format: uuid
+        request_type:
+          type: string
+        status:
+          type: object
+          properties:
+            $id:
+              type: object
+              properties:
+                push_error:
+                  type: string
+                push_result:
+                  type: string
+                  format: uuid
+                  example: '6E14E52F-7F07-42C7-8367-4D81441DC85F'
+                  description: Push UUID from Apple Push Notification service servers.
+                command_error:
+                  type: string
+    PushCertResponse:
+      type: object
+      description: APNs push certificate and key upload response.
+      required:
+        - topic
+        - not_after
+      properties:
+        topic:
+          type: string
+          description: The "topic" (UID attribute) from the uploaded APNs certificate.
+          example: 'com.apple.mgmt.External.e3b8ceac-1f18-2c8e-8a63-dd17d99435d9'
+        not_after:
+          type: string
+          format: date-time
+          description: Expiration date of the uploaded APNs certificate.
+          example: '2026-01-07T04:04:46Z'
+    ErrorResponse:
+      type: object
+      description: Error response.
+      required:
+        - error
+      properties:
+        error:
+          type: string
+          description: Error response string.
+          example: The sun is shining.
