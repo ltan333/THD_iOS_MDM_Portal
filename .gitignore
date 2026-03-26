@@ -37,6 +37,7 @@ Thumbs.db
 
 MDM.apidog.json
 /logs
-*/.log
+*/*.log
 /cert
 schema.sql
+logs/app.log
