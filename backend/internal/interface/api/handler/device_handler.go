@@ -7,6 +7,7 @@ import (
 	"github.com/thienel/go-backend-template/internal/interface/api/dto"
 	"github.com/thienel/go-backend-template/internal/usecase/service"
 	apperror "github.com/thienel/go-backend-template/pkg/error"
+	"github.com/thienel/go-backend-template/pkg/mdmcmd"
 	"github.com/thienel/go-backend-template/pkg/query"
 	"github.com/thienel/go-backend-template/pkg/response"
 )
@@ -26,17 +27,31 @@ type DeviceHandler interface {
 	Export(c *gin.Context)
 	Lock(c *gin.Context)
 	Wipe(c *gin.Context)
+	Restart(c *gin.Context)
+	Shutdown(c *gin.Context)
+	InstallProfile(c *gin.Context)
+	RemoveProfile(c *gin.Context)
+	RequestInfo(c *gin.Context)
 }
 
 type deviceHandlerImpl struct {
-	deviceService service.DeviceService
-	mdmService    service.NanoMDMService
+	deviceService  service.DeviceService
+	mdmService     service.NanoMDMService
+	profileService service.ProfileService
+	cmdBuilder     *mdmcmd.CommandBuilder
 }
 
-func NewDeviceHandler(deviceService service.DeviceService, mdmService service.NanoMDMService) DeviceHandler {
+func NewDeviceHandler(
+	deviceService service.DeviceService,
+	mdmService service.NanoMDMService,
+	profileService service.ProfileService,
+	cmdBuilder *mdmcmd.CommandBuilder,
+) DeviceHandler {
 	return &deviceHandlerImpl{
-		deviceService: deviceService,
-		mdmService:    mdmService,
+		deviceService:  deviceService,
+		mdmService:     mdmService,
+		profileService: profileService,
+		cmdBuilder:     cmdBuilder,
 	}
 }
 
@@ -131,79 +146,292 @@ func (h *deviceHandlerImpl) Export(c *gin.Context) {
 }
 
 // @Summary Lock device
-// @Description Queues MDM device lock command
-// @Tags Devices
+// @Description Queues MDM device lock command with optional PIN, message, and phone number
+// @Tags Device Actions
+// @Accept json
 // @Produce json
-// @Param id path string true "Device ID"
+// @Param id path string true "Device ID (UDID)"
+// @Param request body dto.DeviceLockRequest false "Lock options"
+// @Success 200 {object} response.APIResponse[dto.APIResult]
+// @Failure 400 {object} response.APIResponse[any]
+// @Failure 401 {object} response.APIResponse[any]
+// @Failure 500 {object} response.APIResponse[any]
 // @Security BearerAuth
 // @Router /api/v1/devices/{id}/lock [post]
 func (h *deviceHandlerImpl) Lock(c *gin.Context) {
 	id := c.Param("id")
 	if id == "" {
-		response.WriteErrorResponse(c, apperror.ErrBadRequest.WithMessage("Thiếu tham số ID"))
+		response.WriteErrorResponse(c, apperror.ErrBadRequest.WithMessage("Device ID is required"))
 		return
 	}
 
-	// Simple DeviceLock XML command
-	cmdXML := `<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-<plist version="1.0">
-<dict>
-	<key>Command</key>
-	<dict>
-		<key>RequestType</key>
-		<string>DeviceLock</string>
-	</dict>
-	<key>CommandUUID</key>
-	<string>Lock-` + id + `</string>
-</dict>
-</plist>`
+	var req dto.DeviceLockRequest
+	_ = c.ShouldBindJSON(&req) // Optional body
 
-	result, err := h.mdmService.EnqueueCommand(c.Request.Context(), id, []byte(cmdXML))
+	opts := &mdmcmd.DeviceLockOptions{
+		PIN:         req.PIN,
+		Message:     req.Message,
+		PhoneNumber: req.PhoneNumber,
+	}
+
+	cmdData, _, err := h.cmdBuilder.DeviceLock(opts)
+	if err != nil {
+		response.WriteErrorResponse(c, apperror.ErrInternalServerError.WithError(err))
+		return
+	}
+
+	result, err := h.mdmService.EnqueueCommand(c.Request.Context(), id, cmdData)
 	if err != nil {
 		response.WriteErrorResponse(c, err)
 		return
 	}
 
-	response.OK(c, result, "Lệnh Lock đã được đẩy vào hàng đợi")
+	response.OK(c, result, "Lock command queued successfully")
 }
 
 // @Summary Wipe device
-// @Description Queues MDM erase device command
-// @Tags Devices
+// @Description Queues MDM erase device command with optional parameters
+// @Tags Device Actions
+// @Accept json
 // @Produce json
-// @Param id path string true "Device ID"
+// @Param id path string true "Device ID (UDID)"
+// @Param request body dto.DeviceWipeRequest false "Wipe options"
+// @Success 200 {object} response.APIResponse[dto.APIResult]
+// @Failure 400 {object} response.APIResponse[any]
+// @Failure 401 {object} response.APIResponse[any]
+// @Failure 500 {object} response.APIResponse[any]
 // @Security BearerAuth
 // @Router /api/v1/devices/{id}/wipe [post]
 func (h *deviceHandlerImpl) Wipe(c *gin.Context) {
 	id := c.Param("id")
 	if id == "" {
-		response.WriteErrorResponse(c, apperror.ErrBadRequest.WithMessage("Thiếu tham số ID"))
+		response.WriteErrorResponse(c, apperror.ErrBadRequest.WithMessage("Device ID is required"))
 		return
 	}
 
-	// Simple EraseDevice XML command
-	cmdXML := `<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-<plist version="1.0">
-<dict>
-	<key>Command</key>
-	<dict>
-		<key>RequestType</key>
-		<string>EraseDevice</string>
-	</dict>
-	<key>CommandUUID</key>
-	<string>Wipe-` + id + `</string>
-</dict>
-</plist>`
+	var req dto.DeviceWipeRequest
+	_ = c.ShouldBindJSON(&req) // Optional body
 
-	result, err := h.mdmService.EnqueueCommand(c.Request.Context(), id, []byte(cmdXML))
+	opts := &mdmcmd.EraseDeviceOptions{
+		PIN:                    req.PIN,
+		PreserveDataPlan:       req.PreserveDataPlan,
+		DisallowProximitySetup: req.DisallowProximitySetup,
+		ObliterationBehavior:   req.ObliterationBehavior,
+	}
+
+	cmdData, _, err := h.cmdBuilder.EraseDevice(opts)
+	if err != nil {
+		response.WriteErrorResponse(c, apperror.ErrInternalServerError.WithError(err))
+		return
+	}
+
+	result, err := h.mdmService.EnqueueCommand(c.Request.Context(), id, cmdData)
 	if err != nil {
 		response.WriteErrorResponse(c, err)
 		return
 	}
 
-	response.OK(c, result, "Lệnh Wipe đã được đẩy vào hàng đợi")
+	response.OK(c, result, "Wipe command queued successfully")
+}
+
+// @Summary Restart device
+// @Description Queues MDM restart device command
+// @Tags Device Actions
+// @Accept json
+// @Produce json
+// @Param id path string true "Device ID (UDID)"
+// @Param request body dto.DeviceRestartRequest false "Restart options"
+// @Success 200 {object} response.APIResponse[dto.APIResult]
+// @Failure 400 {object} response.APIResponse[any]
+// @Failure 401 {object} response.APIResponse[any]
+// @Failure 500 {object} response.APIResponse[any]
+// @Security BearerAuth
+// @Router /api/v1/devices/{id}/restart [post]
+func (h *deviceHandlerImpl) Restart(c *gin.Context) {
+	id := c.Param("id")
+	if id == "" {
+		response.WriteErrorResponse(c, apperror.ErrBadRequest.WithMessage("Device ID is required"))
+		return
+	}
+
+	var req dto.DeviceRestartRequest
+	_ = c.ShouldBindJSON(&req)
+
+	opts := &mdmcmd.RestartDeviceOptions{
+		NotifyUser: req.NotifyUser,
+	}
+
+	cmdData, _, err := h.cmdBuilder.RestartDevice(opts)
+	if err != nil {
+		response.WriteErrorResponse(c, apperror.ErrInternalServerError.WithError(err))
+		return
+	}
+
+	result, err := h.mdmService.EnqueueCommand(c.Request.Context(), id, cmdData)
+	if err != nil {
+		response.WriteErrorResponse(c, err)
+		return
+	}
+
+	response.OK(c, result, "Restart command queued successfully")
+}
+
+// @Summary Shutdown device
+// @Description Queues MDM shutdown device command
+// @Tags Device Actions
+// @Produce json
+// @Param id path string true "Device ID (UDID)"
+// @Success 200 {object} response.APIResponse[dto.APIResult]
+// @Failure 400 {object} response.APIResponse[any]
+// @Failure 401 {object} response.APIResponse[any]
+// @Failure 500 {object} response.APIResponse[any]
+// @Security BearerAuth
+// @Router /api/v1/devices/{id}/shutdown [post]
+func (h *deviceHandlerImpl) Shutdown(c *gin.Context) {
+	id := c.Param("id")
+	if id == "" {
+		response.WriteErrorResponse(c, apperror.ErrBadRequest.WithMessage("Device ID is required"))
+		return
+	}
+
+	cmdData, _, err := h.cmdBuilder.ShutDownDevice()
+	if err != nil {
+		response.WriteErrorResponse(c, apperror.ErrInternalServerError.WithError(err))
+		return
+	}
+
+	result, err := h.mdmService.EnqueueCommand(c.Request.Context(), id, cmdData)
+	if err != nil {
+		response.WriteErrorResponse(c, err)
+		return
+	}
+
+	response.OK(c, result, "Shutdown command queued successfully")
+}
+
+// @Summary Install profile on device
+// @Description Queues MDM install profile command for a specific profile
+// @Tags Device Actions
+// @Accept json
+// @Produce json
+// @Param id path string true "Device ID (UDID)"
+// @Param request body dto.DeviceInstallProfileRequest true "Profile to install"
+// @Success 200 {object} response.APIResponse[dto.APIResult]
+// @Failure 400 {object} response.APIResponse[any]
+// @Failure 401 {object} response.APIResponse[any]
+// @Failure 404 {object} response.APIResponse[any]
+// @Failure 500 {object} response.APIResponse[any]
+// @Security BearerAuth
+// @Router /api/v1/devices/{id}/install-profile [post]
+func (h *deviceHandlerImpl) InstallProfile(c *gin.Context) {
+	id := c.Param("id")
+	if id == "" {
+		response.WriteErrorResponse(c, apperror.ErrBadRequest.WithMessage("Device ID is required"))
+		return
+	}
+
+	var req dto.DeviceInstallProfileRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		response.WriteErrorResponse(c, apperror.ErrBadRequest.WithError(err))
+		return
+	}
+
+	// Use profile service to install profile on device
+	err := h.profileService.InstallOnDevice(c.Request.Context(), req.ProfileID, id)
+	if err != nil {
+		response.WriteErrorResponse(c, err)
+		return
+	}
+
+	response.OK(c, dto.DeviceActionResponse{
+		RequestType: "InstallProfile",
+		Status:      "queued",
+		Message:     "Profile installation queued successfully",
+	}, "Profile installation queued successfully")
+}
+
+// @Summary Remove profile from device
+// @Description Queues MDM remove profile command
+// @Tags Device Actions
+// @Accept json
+// @Produce json
+// @Param id path string true "Device ID (UDID)"
+// @Param request body dto.DeviceRemoveProfileRequest true "Profile to remove"
+// @Success 200 {object} response.APIResponse[dto.APIResult]
+// @Failure 400 {object} response.APIResponse[any]
+// @Failure 401 {object} response.APIResponse[any]
+// @Failure 500 {object} response.APIResponse[any]
+// @Security BearerAuth
+// @Router /api/v1/devices/{id}/remove-profile [post]
+func (h *deviceHandlerImpl) RemoveProfile(c *gin.Context) {
+	id := c.Param("id")
+	if id == "" {
+		response.WriteErrorResponse(c, apperror.ErrBadRequest.WithMessage("Device ID is required"))
+		return
+	}
+
+	var req dto.DeviceRemoveProfileRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		response.WriteErrorResponse(c, apperror.ErrBadRequest.WithError(err))
+		return
+	}
+
+	cmdData, _, err := h.cmdBuilder.RemoveProfile(req.ProfileIdentifier)
+	if err != nil {
+		response.WriteErrorResponse(c, apperror.ErrInternalServerError.WithError(err))
+		return
+	}
+
+	result, err := h.mdmService.EnqueueCommand(c.Request.Context(), id, cmdData)
+	if err != nil {
+		response.WriteErrorResponse(c, err)
+		return
+	}
+
+	response.OK(c, result, "Remove profile command queued successfully")
+}
+
+// @Summary Request device information
+// @Description Queues MDM device information command to query device attributes
+// @Tags Device Actions
+// @Accept json
+// @Produce json
+// @Param id path string true "Device ID (UDID)"
+// @Param request body dto.DeviceInfoRequest false "Information queries"
+// @Success 200 {object} response.APIResponse[dto.APIResult]
+// @Failure 400 {object} response.APIResponse[any]
+// @Failure 401 {object} response.APIResponse[any]
+// @Failure 500 {object} response.APIResponse[any]
+// @Security BearerAuth
+// @Router /api/v1/devices/{id}/request-info [post]
+func (h *deviceHandlerImpl) RequestInfo(c *gin.Context) {
+	id := c.Param("id")
+	if id == "" {
+		response.WriteErrorResponse(c, apperror.ErrBadRequest.WithMessage("Device ID is required"))
+		return
+	}
+
+	var req dto.DeviceInfoRequest
+	_ = c.ShouldBindJSON(&req)
+
+	queries := req.Queries
+	if len(queries) == 0 {
+		queries = mdmcmd.CommonDeviceQueries()
+	}
+
+	cmdData, _, err := h.cmdBuilder.DeviceInformation(queries)
+	if err != nil {
+		response.WriteErrorResponse(c, apperror.ErrInternalServerError.WithError(err))
+		return
+	}
+
+	result, err := h.mdmService.EnqueueCommand(c.Request.Context(), id, cmdData)
+	if err != nil {
+		response.WriteErrorResponse(c, err)
+		return
+	}
+
+	response.OK(c, result, "Device information request queued successfully")
 }
 
 func mapDeviceToResponse(d *ent.Device) dto.DeviceResponse {

@@ -73,5 +73,6 @@ type ProfileService interface {
 	GetDeploymentStatus(ctx context.Context, profileID uint) ([]*ent.ProfileDeploymentStatus, error)
 	Repush(ctx context.Context, profileID uint) error
 	DeployToDevice(ctx context.Context, deviceID string) error
+	InstallOnDevice(ctx context.Context, profileID uint, deviceID string) error
 	Duplicate(ctx context.Context, profileID uint) (*ent.Profile, error)
 }

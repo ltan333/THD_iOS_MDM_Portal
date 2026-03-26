@@ -1022,7 +1022,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "DEP"
+                    "DEP Setup"
                 ],
                 "summary": "Return the assigner profile UUID",
                 "parameters": [
@@ -1060,7 +1060,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "DEP"
+                    "DEP Setup"
                 ],
                 "summary": "Assign a profile UUID for assignment",
                 "parameters": [
@@ -1113,7 +1113,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "DEP"
+                    "DEP Setup"
                 ],
                 "summary": "Generates or decodes an Activation Lock Bypass Code",
                 "parameters": [
@@ -1152,7 +1152,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "DEP"
+                    "DEP Setup"
                 ],
                 "summary": "Return the config for the given DEP name",
                 "parameters": [
@@ -1193,7 +1193,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "DEP"
+                    "DEP Setup"
                 ],
                 "summary": "Set the config for the given DEP name",
                 "parameters": [
@@ -1242,7 +1242,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "DEP"
+                    "DEP Setup"
                 ],
                 "summary": "Query DEP names",
                 "parameters": [
@@ -1310,7 +1310,7 @@ const docTemplate = `{
                     "application/jwt"
                 ],
                 "tags": [
-                    "DEP"
+                    "DEP Setup"
                 ],
                 "summary": "Generate Managed Apple ID Managed Access JWT",
                 "parameters": [
@@ -1350,7 +1350,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "DEP"
+                    "DEP Setup"
                 ],
                 "summary": "List Defined DEP profiles",
                 "responses": {
@@ -1381,7 +1381,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "DEP"
+                    "DEP Setup"
                 ],
                 "summary": "Get DEP account",
                 "parameters": [
@@ -1411,7 +1411,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "DEP"
+                    "DEP Setup"
                 ],
                 "summary": "Get DEP devices",
                 "parameters": [
@@ -1455,7 +1455,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "DEP"
+                    "DEP Setup"
                 ],
                 "summary": "Disown DEP device",
                 "parameters": [
@@ -1491,7 +1491,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "DEP"
+                    "DEP Setup"
                 ],
                 "summary": "Sync DEP devices",
                 "parameters": [
@@ -1523,7 +1523,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "DEP"
+                    "DEP Setup"
                 ],
                 "summary": "Get DEP profile",
                 "parameters": [
@@ -1570,7 +1570,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "DEP"
+                    "DEP Setup"
                 ],
                 "summary": "Define DEP profile",
                 "parameters": [
@@ -1618,7 +1618,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "DEP"
+                    "DEP Setup"
                 ],
                 "summary": "Get DEP token pem",
                 "parameters": [
@@ -1664,7 +1664,7 @@ const docTemplate = `{
                     "application/x-pem-file"
                 ],
                 "tags": [
-                    "DEP"
+                    "DEP Setup"
                 ],
                 "summary": "Generate and retrieve DEP token PKI certificate",
                 "parameters": [
@@ -1729,7 +1729,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "DEP"
+                    "DEP Setup"
                 ],
                 "summary": "Upload and decrypt DEP OAuth1 tokens",
                 "parameters": [
@@ -1796,7 +1796,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "DEP"
+                    "DEP Setup"
                 ],
                 "summary": "Return the DEP OAuth1 tokens",
                 "parameters": [
@@ -1837,7 +1837,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "DEP"
+                    "DEP Setup"
                 ],
                 "summary": "Upload and store DEP OAuth1 tokens",
                 "parameters": [
@@ -1881,7 +1881,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "DEP"
+                    "DEP Setup"
                 ],
                 "summary": "Returns the running NanoDEP version",
                 "responses": {
@@ -2175,6 +2175,76 @@ const docTemplate = `{
                 "responses": {}
             }
         },
+        "/api/v1/devices/{id}/install-profile": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Queues MDM install profile command for a specific profile",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Device Actions"
+                ],
+                "summary": "Install profile on device",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Device ID (UDID)",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Profile to install",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_internal_interface_api_dto.DeviceInstallProfileRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_APIResult"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any"
+                        }
+                    }
+                }
+            }
+        },
         "/api/v1/devices/{id}/lock": {
             "post": {
                 "security": [
@@ -2182,24 +2252,302 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Queues MDM device lock command",
+                "description": "Queues MDM device lock command with optional PIN, message, and phone number",
+                "consumes": [
+                    "application/json"
+                ],
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
-                    "Devices"
+                    "Device Actions"
                 ],
                 "summary": "Lock device",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Device ID",
+                        "description": "Device ID (UDID)",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Lock options",
+                        "name": "request",
+                        "in": "body",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_internal_interface_api_dto.DeviceLockRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_APIResult"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/devices/{id}/remove-profile": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Queues MDM remove profile command",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Device Actions"
+                ],
+                "summary": "Remove profile from device",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Device ID (UDID)",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Profile to remove",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_internal_interface_api_dto.DeviceRemoveProfileRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_APIResult"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/devices/{id}/request-info": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Queues MDM device information command to query device attributes",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Device Actions"
+                ],
+                "summary": "Request device information",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Device ID (UDID)",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Information queries",
+                        "name": "request",
+                        "in": "body",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_internal_interface_api_dto.DeviceInfoRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_APIResult"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/devices/{id}/restart": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Queues MDM restart device command",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Device Actions"
+                ],
+                "summary": "Restart device",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Device ID (UDID)",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Restart options",
+                        "name": "request",
+                        "in": "body",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_internal_interface_api_dto.DeviceRestartRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_APIResult"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/devices/{id}/shutdown": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Queues MDM shutdown device command",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Device Actions"
+                ],
+                "summary": "Shutdown device",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Device ID (UDID)",
                         "name": "id",
                         "in": "path",
                         "required": true
                     }
                 ],
-                "responses": {}
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_APIResult"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any"
+                        }
+                    }
+                }
             }
         },
         "/api/v1/devices/{id}/wipe": {
@@ -2209,24 +2557,60 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Queues MDM erase device command",
+                "description": "Queues MDM erase device command with optional parameters",
+                "consumes": [
+                    "application/json"
+                ],
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
-                    "Devices"
+                    "Device Actions"
                 ],
                 "summary": "Wipe device",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Device ID",
+                        "description": "Device ID (UDID)",
                         "name": "id",
                         "in": "path",
                         "required": true
+                    },
+                    {
+                        "description": "Wipe options",
+                        "name": "request",
+                        "in": "body",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_internal_interface_api_dto.DeviceWipeRequest"
+                        }
                     }
                 ],
-                "responses": {}
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_APIResult"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any"
+                        }
+                    }
+                }
             }
         },
         "/api/v1/mdm/enqueue/{id}": {
@@ -2244,7 +2628,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "MDM"
+                    "MDM Setup"
                 ],
                 "summary": "Enqueue MDM commands",
                 "parameters": [
@@ -2309,7 +2693,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "MDM"
+                    "MDM Setup"
                 ],
                 "summary": "Perform an Escrow Key Unlock",
                 "parameters": [
@@ -2390,7 +2774,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "MDM"
+                    "MDM Setup"
                 ],
                 "summary": "Send APNs push notifications",
                 "parameters": [
@@ -2442,7 +2826,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "MDM"
+                    "MDM Setup"
                 ],
                 "summary": "Retrieve APNs push certificate info",
                 "parameters": [
@@ -2501,7 +2885,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "MDM"
+                    "MDM Setup"
                 ],
                 "summary": "Upload APNs certificate and private key",
                 "parameters": [
@@ -2550,7 +2934,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "MDM"
+                    "MDM Setup"
                 ],
                 "summary": "Returns the running NanoMDM version",
                 "responses": {
@@ -2964,7 +3348,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "NanoCMD"
+                    "NanoCMD Setup"
                 ],
                 "summary": "Retrieve and return a named command plan",
                 "parameters": [
@@ -3023,7 +3407,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "NanoCMD"
+                    "NanoCMD Setup"
                 ],
                 "summary": "Upload a named command plan",
                 "parameters": [
@@ -3081,7 +3465,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "NanoCMD"
+                    "NanoCMD Setup"
                 ],
                 "summary": "Retrieve the event subscription",
                 "parameters": [
@@ -3140,7 +3524,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "NanoCMD"
+                    "NanoCMD Setup"
                 ],
                 "summary": "Store the event subscription",
                 "parameters": [
@@ -3198,7 +3582,7 @@ const docTemplate = `{
                     "application/x-apple-aspen-config"
                 ],
                 "tags": [
-                    "NanoCMD"
+                    "NanoCMD Setup"
                 ],
                 "summary": "Returns the FileVault enable Configuration Profile template",
                 "responses": {
@@ -3229,7 +3613,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "NanoCMD"
+                    "NanoCMD Setup"
                 ],
                 "summary": "Retrieve inventory data for enrollment IDs",
                 "parameters": [
@@ -3285,7 +3669,7 @@ const docTemplate = `{
                     "application/x-apple-aspen-config"
                 ],
                 "tags": [
-                    "NanoCMD"
+                    "NanoCMD Setup"
                 ],
                 "summary": "Fetches the named raw profile",
                 "parameters": [
@@ -3341,7 +3725,7 @@ const docTemplate = `{
                     "application/x-apple-aspen-config"
                 ],
                 "tags": [
-                    "NanoCMD"
+                    "NanoCMD Setup"
                 ],
                 "summary": "Uploads a raw profile",
                 "parameters": [
@@ -3394,7 +3778,7 @@ const docTemplate = `{
                 ],
                 "description": "Deletes the named profile.",
                 "tags": [
-                    "NanoCMD"
+                    "NanoCMD Setup"
                 ],
                 "summary": "Deletes the named profile",
                 "parameters": [
@@ -3449,7 +3833,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "NanoCMD"
+                    "NanoCMD Setup"
                 ],
                 "summary": "Retrieve profile metadata",
                 "parameters": [
@@ -3498,7 +3882,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "NanoCMD"
+                    "NanoCMD Setup"
                 ],
                 "summary": "Returns the running NanoCMD server version",
                 "responses": {
@@ -3529,7 +3913,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "NanoCMD",
+                    "NanoCMD Setup",
                     "Infrastructure"
                 ],
                 "summary": "NanoCMD Webhook",
@@ -3572,7 +3956,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "NanoCMD"
+                    "NanoCMD Setup"
                 ],
                 "summary": "Start a workflow",
                 "parameters": [
@@ -6457,6 +6841,64 @@ const docTemplate = `{
                 }
             }
         },
+        "github_com_thienel_go-backend-template_internal_interface_api_dto.DeviceInfoRequest": {
+            "type": "object",
+            "properties": {
+                "queries": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "github_com_thienel_go-backend-template_internal_interface_api_dto.DeviceInstallProfileRequest": {
+            "type": "object",
+            "required": [
+                "profile_id"
+            ],
+            "properties": {
+                "profile_id": {
+                    "type": "integer"
+                }
+            }
+        },
+        "github_com_thienel_go-backend-template_internal_interface_api_dto.DeviceLockRequest": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string",
+                    "example": "Device is locked by IT"
+                },
+                "phone_number": {
+                    "type": "string",
+                    "example": "+84123456789"
+                },
+                "pin": {
+                    "type": "string",
+                    "example": "123456"
+                }
+            }
+        },
+        "github_com_thienel_go-backend-template_internal_interface_api_dto.DeviceRemoveProfileRequest": {
+            "type": "object",
+            "required": [
+                "profile_identifier"
+            ],
+            "properties": {
+                "profile_identifier": {
+                    "type": "string"
+                }
+            }
+        },
+        "github_com_thienel_go-backend-template_internal_interface_api_dto.DeviceRestartRequest": {
+            "type": "object",
+            "properties": {
+                "notify_user": {
+                    "type": "boolean"
+                }
+            }
+        },
         "github_com_thienel_go-backend-template_internal_interface_api_dto.DeviceStatsResponse": {
             "type": "object",
             "properties": {
@@ -6493,6 +6935,30 @@ const docTemplate = `{
                 },
                 "total": {
                     "type": "integer"
+                }
+            }
+        },
+        "github_com_thienel_go-backend-template_internal_interface_api_dto.DeviceWipeRequest": {
+            "type": "object",
+            "properties": {
+                "disallow_proximity_setup": {
+                    "type": "boolean"
+                },
+                "obliteration_behavior": {
+                    "type": "string",
+                    "enum": [
+                        "Default",
+                        "DoNotObliterate",
+                        "ObliterateWithWarning",
+                        "Always"
+                    ]
+                },
+                "pin": {
+                    "type": "string",
+                    "example": "123456"
+                },
+                "preserve_data_plan": {
+                    "type": "boolean"
                 }
             }
         },
@@ -8138,7 +8604,53 @@ const docTemplate = `{
             "name": "Authorization",
             "in": "header"
         }
-    }
+    },
+    "tags": [
+        {
+            "description": "Client-facing APIs for device management actions (lock, wipe, restart, etc.)",
+            "name": "Device Actions"
+        },
+        {
+            "description": "Client-facing APIs for device listing and information",
+            "name": "Devices"
+        },
+        {
+            "description": "Client-facing APIs for configuration profile management",
+            "name": "Profiles"
+        },
+        {
+            "description": "Client-facing APIs for device group management",
+            "name": "Device Groups"
+        },
+        {
+            "description": "Client-facing APIs for application management",
+            "name": "Applications"
+        },
+        {
+            "description": "Client-facing APIs for dashboard statistics and charts",
+            "name": "Dashboard"
+        },
+        {
+            "description": "Client-facing APIs for alert management",
+            "name": "Alerts"
+        },
+        {
+            "description": "Admin APIs for MDM server configuration (requires admin role)",
+            "name": "MDM Setup"
+        },
+        {
+            "description": "Admin APIs for DEP/ABM configuration (requires admin role)",
+            "name": "DEP Setup"
+        },
+        {
+            "description": "Admin APIs for NanoCMD workflow configuration (requires admin role)",
+            "name": "NanoCMD Setup"
+        },
+        {
+            "description": "Admin APIs for system settings, users, and policies",
+            "name": "System"
+        }
+    ]
 }`
 
 // SwaggerInfo holds exported Swagger Info so clients can modify it

@@ -241,11 +241,19 @@ func (r *routeRegister) registerDashboardRoutes(rg *gin.RouterGroup) {
 func (r *routeRegister) registerDeviceRoutes(rg *gin.RouterGroup) {
 	devices := rg.Group("/devices")
 	{
+		// Read operations
 		devices.GET("", r.device.List)
 		devices.GET("/export", r.device.Export)
 		devices.GET("/:id", r.device.GetByID)
+
+		// Device actions
 		devices.POST("/:id/lock", r.device.Lock)
 		devices.POST("/:id/wipe", r.device.Wipe)
+		devices.POST("/:id/restart", r.device.Restart)
+		devices.POST("/:id/shutdown", r.device.Shutdown)
+		devices.POST("/:id/install-profile", r.device.InstallProfile)
+		devices.POST("/:id/remove-profile", r.device.RemoveProfile)
+		devices.POST("/:id/request-info", r.device.RequestInfo)
 	}
 }
 

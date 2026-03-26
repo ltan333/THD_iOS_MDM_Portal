@@ -425,6 +425,44 @@ definitions:
       total_users:
         type: integer
     type: object
+  github_com_thienel_go-backend-template_internal_interface_api_dto.DeviceInfoRequest:
+    properties:
+      queries:
+        items:
+          type: string
+        type: array
+    type: object
+  github_com_thienel_go-backend-template_internal_interface_api_dto.DeviceInstallProfileRequest:
+    properties:
+      profile_id:
+        type: integer
+    required:
+    - profile_id
+    type: object
+  github_com_thienel_go-backend-template_internal_interface_api_dto.DeviceLockRequest:
+    properties:
+      message:
+        example: Device is locked by IT
+        type: string
+      phone_number:
+        example: "+84123456789"
+        type: string
+      pin:
+        example: "123456"
+        type: string
+    type: object
+  github_com_thienel_go-backend-template_internal_interface_api_dto.DeviceRemoveProfileRequest:
+    properties:
+      profile_identifier:
+        type: string
+    required:
+    - profile_identifier
+    type: object
+  github_com_thienel_go-backend-template_internal_interface_api_dto.DeviceRestartRequest:
+    properties:
+      notify_user:
+        type: boolean
+    type: object
   github_com_thienel_go-backend-template_internal_interface_api_dto.DeviceStatsResponse:
     properties:
       active:
@@ -451,6 +489,23 @@ definitions:
         type: integer
       total:
         type: integer
+    type: object
+  github_com_thienel_go-backend-template_internal_interface_api_dto.DeviceWipeRequest:
+    properties:
+      disallow_proximity_setup:
+        type: boolean
+      obliteration_behavior:
+        enum:
+        - Default
+        - DoNotObliterate
+        - ObliterateWithWarning
+        - Always
+        type: string
+      pin:
+        example: "123456"
+        type: string
+      preserve_data_plan:
+        type: boolean
     type: object
   github_com_thienel_go-backend-template_internal_interface_api_dto.EncryptionSettings:
     properties:
@@ -2160,7 +2215,7 @@ paths:
       - BearerAuth: []
       summary: Return the assigner profile UUID
       tags:
-      - DEP
+      - DEP Setup
     put:
       description: Assign a profile UUID for assignment for the given DEP name.
       parameters:
@@ -2193,7 +2248,7 @@ paths:
       - BearerAuth: []
       summary: Assign a profile UUID for assignment
       tags:
-      - DEP
+      - DEP Setup
   /api/v1/dep/bypasscode:
     get:
       description: Generates (or decodes) an Activation Lock Bypass Code and returns
@@ -2218,7 +2273,7 @@ paths:
       - BearerAuth: []
       summary: Generates or decodes an Activation Lock Bypass Code
       tags:
-      - DEP
+      - DEP Setup
   /api/v1/dep/config/{name}:
     get:
       description: Return the config for the given DEP name.
@@ -2243,7 +2298,7 @@ paths:
       - BearerAuth: []
       summary: Return the config for the given DEP name
       tags:
-      - DEP
+      - DEP Setup
     put:
       consumes:
       - application/json
@@ -2275,7 +2330,7 @@ paths:
       - BearerAuth: []
       summary: Set the config for the given DEP name
       tags:
-      - DEP
+      - DEP Setup
   /api/v1/dep/dep_names:
     get:
       description: Query DEP names with optional filters and pagination.
@@ -2319,7 +2374,7 @@ paths:
       - BearerAuth: []
       summary: Query DEP names
       tags:
-      - DEP
+      - DEP Setup
   /api/v1/dep/maidjwt/{name}:
     get:
       description: Generate Managed Apple ID Managed Access JWT.
@@ -2344,7 +2399,7 @@ paths:
       - BearerAuth: []
       summary: Generate Managed Apple ID Managed Access JWT
       tags:
-      - DEP
+      - DEP Setup
   /api/v1/dep/profiles:
     get:
       description: Fetch all defined DEP profiles from NanoDEP
@@ -2363,7 +2418,7 @@ paths:
       - BearerAuth: []
       summary: List Defined DEP profiles
       tags:
-      - DEP
+      - DEP Setup
   /api/v1/dep/proxy/{name}/account:
     get:
       description: Fetch Apple DEP account info via proxy
@@ -2380,7 +2435,7 @@ paths:
       - BearerAuth: []
       summary: Get DEP account
       tags:
-      - DEP
+      - DEP Setup
   /api/v1/dep/proxy/{name}/devices:
     post:
       consumes:
@@ -2409,7 +2464,7 @@ paths:
       - BearerAuth: []
       summary: Get DEP devices
       tags:
-      - DEP
+      - DEP Setup
   /api/v1/dep/proxy/{name}/devices/disown:
     post:
       consumes:
@@ -2434,7 +2489,7 @@ paths:
       - BearerAuth: []
       summary: Disown DEP device
       tags:
-      - DEP
+      - DEP Setup
   /api/v1/dep/proxy/{name}/devices/sync:
     post:
       description: Initiate a sync with Apple DEP servers to fetch new devices via
@@ -2455,7 +2510,7 @@ paths:
       - BearerAuth: []
       summary: Sync DEP devices
       tags:
-      - DEP
+      - DEP Setup
   /api/v1/dep/proxy/{name}/profile:
     get:
       description: Fetch details of a defined DEP profile via proxy
@@ -2484,7 +2539,7 @@ paths:
       - BearerAuth: []
       summary: Get DEP profile
       tags:
-      - DEP
+      - DEP Setup
     post:
       consumes:
       - application/json
@@ -2515,7 +2570,7 @@ paths:
       - BearerAuth: []
       summary: Define DEP profile
       tags:
-      - DEP
+      - DEP Setup
   /api/v1/dep/token/{name}:
     get:
       description: Get PEM certificate for ABM for a specific name
@@ -2544,7 +2599,7 @@ paths:
       - BearerAuth: []
       summary: Get DEP token pem
       tags:
-      - DEP
+      - DEP Setup
   /api/v1/dep/tokenpki/{name}:
     get:
       description: Generate and store a new X.509 certificate and RSA private key
@@ -2586,7 +2641,7 @@ paths:
       - BearerAuth: []
       summary: Generate and retrieve DEP token PKI certificate
       tags:
-      - DEP
+      - DEP Setup
     put:
       consumes:
       - application/pkcs7-mime
@@ -2631,7 +2686,7 @@ paths:
       - BearerAuth: []
       summary: Upload and decrypt DEP OAuth1 tokens
       tags:
-      - DEP
+      - DEP Setup
   /api/v1/dep/tokens/{name}:
     get:
       description: Return the DEP OAuth1 tokens for the given DEP name.
@@ -2656,7 +2711,7 @@ paths:
       - BearerAuth: []
       summary: Return the DEP OAuth1 tokens
       tags:
-      - DEP
+      - DEP Setup
     put:
       consumes:
       - application/json
@@ -2688,7 +2743,7 @@ paths:
       - BearerAuth: []
       summary: Upload and store DEP OAuth1 tokens
       tags:
-      - DEP
+      - DEP Setup
   /api/v1/dep/version:
     get:
       description: Returns the running NanoDEP version.
@@ -2701,7 +2756,7 @@ paths:
             $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_NanoDEPVersionResponse'
       summary: Returns the running NanoDEP version
       tags:
-      - DEP
+      - DEP Setup
   /api/v1/device-groups:
     get:
       description: Fetch device groups with pagination and filtering
@@ -2864,40 +2919,286 @@ paths:
       summary: Get device by ID
       tags:
       - Devices
-  /api/v1/devices/{id}/lock:
+  /api/v1/devices/{id}/install-profile:
     post:
-      description: Queues MDM device lock command
+      consumes:
+      - application/json
+      description: Queues MDM install profile command for a specific profile
       parameters:
-      - description: Device ID
+      - description: Device ID (UDID)
         in: path
         name: id
         required: true
         type: string
+      - description: Profile to install
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_thienel_go-backend-template_internal_interface_api_dto.DeviceInstallProfileRequest'
       produces:
       - application/json
-      responses: {}
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_APIResult'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+      security:
+      - BearerAuth: []
+      summary: Install profile on device
+      tags:
+      - Device Actions
+  /api/v1/devices/{id}/lock:
+    post:
+      consumes:
+      - application/json
+      description: Queues MDM device lock command with optional PIN, message, and
+        phone number
+      parameters:
+      - description: Device ID (UDID)
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Lock options
+        in: body
+        name: request
+        schema:
+          $ref: '#/definitions/github_com_thienel_go-backend-template_internal_interface_api_dto.DeviceLockRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_APIResult'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
       security:
       - BearerAuth: []
       summary: Lock device
       tags:
-      - Devices
-  /api/v1/devices/{id}/wipe:
+      - Device Actions
+  /api/v1/devices/{id}/remove-profile:
     post:
-      description: Queues MDM erase device command
+      consumes:
+      - application/json
+      description: Queues MDM remove profile command
       parameters:
-      - description: Device ID
+      - description: Device ID (UDID)
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Profile to remove
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_thienel_go-backend-template_internal_interface_api_dto.DeviceRemoveProfileRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_APIResult'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+      security:
+      - BearerAuth: []
+      summary: Remove profile from device
+      tags:
+      - Device Actions
+  /api/v1/devices/{id}/request-info:
+    post:
+      consumes:
+      - application/json
+      description: Queues MDM device information command to query device attributes
+      parameters:
+      - description: Device ID (UDID)
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Information queries
+        in: body
+        name: request
+        schema:
+          $ref: '#/definitions/github_com_thienel_go-backend-template_internal_interface_api_dto.DeviceInfoRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_APIResult'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+      security:
+      - BearerAuth: []
+      summary: Request device information
+      tags:
+      - Device Actions
+  /api/v1/devices/{id}/restart:
+    post:
+      consumes:
+      - application/json
+      description: Queues MDM restart device command
+      parameters:
+      - description: Device ID (UDID)
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Restart options
+        in: body
+        name: request
+        schema:
+          $ref: '#/definitions/github_com_thienel_go-backend-template_internal_interface_api_dto.DeviceRestartRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_APIResult'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+      security:
+      - BearerAuth: []
+      summary: Restart device
+      tags:
+      - Device Actions
+  /api/v1/devices/{id}/shutdown:
+    post:
+      description: Queues MDM shutdown device command
+      parameters:
+      - description: Device ID (UDID)
         in: path
         name: id
         required: true
         type: string
       produces:
       - application/json
-      responses: {}
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_APIResult'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+      security:
+      - BearerAuth: []
+      summary: Shutdown device
+      tags:
+      - Device Actions
+  /api/v1/devices/{id}/wipe:
+    post:
+      consumes:
+      - application/json
+      description: Queues MDM erase device command with optional parameters
+      parameters:
+      - description: Device ID (UDID)
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Wipe options
+        in: body
+        name: request
+        schema:
+          $ref: '#/definitions/github_com_thienel_go-backend-template_internal_interface_api_dto.DeviceWipeRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_APIResult'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
       security:
       - BearerAuth: []
       summary: Wipe device
       tags:
-      - Devices
+      - Device Actions
   /api/v1/devices/export:
     get:
       description: Export devices to CSV or JSON
@@ -2959,7 +3260,7 @@ paths:
       - BearerAuth: []
       summary: Enqueue MDM commands
       tags:
-      - MDM
+      - MDM Setup
   /api/v1/mdm/escrowkeyunlock:
     post:
       consumes:
@@ -3013,7 +3314,7 @@ paths:
             $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
       summary: Perform an Escrow Key Unlock
       tags:
-      - MDM
+      - MDM Setup
   /api/v1/mdm/push/{id}:
     get:
       description: Send APNs push notifications to MDM enrollments.
@@ -3046,7 +3347,7 @@ paths:
       - BearerAuth: []
       summary: Send APNs push notifications
       tags:
-      - MDM
+      - MDM Setup
   /api/v1/mdm/pushcert:
     get:
       description: Retrieve the topic and expiry of the stored APNs push certificate.
@@ -3083,7 +3384,7 @@ paths:
       - BearerAuth: []
       summary: Retrieve APNs push certificate info
       tags:
-      - MDM
+      - MDM Setup
     put:
       consumes:
       - text/plain
@@ -3118,7 +3419,7 @@ paths:
       - BearerAuth: []
       summary: Upload APNs certificate and private key
       tags:
-      - MDM
+      - MDM Setup
   /api/v1/mdm/version:
     get:
       description: Returns the running NanoMDM version.
@@ -3131,7 +3432,7 @@ paths:
             $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_NanoMDMVersionResponse'
       summary: Returns the running NanoMDM version
       tags:
-      - MDM
+      - MDM Setup
   /api/v1/mobile-configs:
     get:
       description: Get a paginated list of Apple mobile configs with filtering and
@@ -3421,7 +3722,7 @@ paths:
       - BearerAuth: []
       summary: Retrieve and return a named command plan
       tags:
-      - NanoCMD
+      - NanoCMD Setup
     put:
       consumes:
       - application/json
@@ -3459,7 +3760,7 @@ paths:
       - BearerAuth: []
       summary: Upload a named command plan
       tags:
-      - NanoCMD
+      - NanoCMD Setup
   /api/v1/nanocmd/event/{name}:
     get:
       description: Retrieve the event subscription.
@@ -3496,7 +3797,7 @@ paths:
       - BearerAuth: []
       summary: Retrieve the event subscription
       tags:
-      - NanoCMD
+      - NanoCMD Setup
     put:
       consumes:
       - application/json
@@ -3534,7 +3835,7 @@ paths:
       - BearerAuth: []
       summary: Store the event subscription
       tags:
-      - NanoCMD
+      - NanoCMD Setup
   /api/v1/nanocmd/fvenable/profiletemplate:
     get:
       description: Returns the FileVault enable Configuration Profile template.
@@ -3553,7 +3854,7 @@ paths:
       - BearerAuth: []
       summary: Returns the FileVault enable Configuration Profile template
       tags:
-      - NanoCMD
+      - NanoCMD Setup
   /api/v1/nanocmd/inventory:
     get:
       description: Retrieve inventory data for enrollment IDs.
@@ -3590,7 +3891,7 @@ paths:
       - BearerAuth: []
       summary: Retrieve inventory data for enrollment IDs
       tags:
-      - NanoCMD
+      - NanoCMD Setup
   /api/v1/nanocmd/profile/{name}:
     delete:
       description: Deletes the named profile.
@@ -3623,7 +3924,7 @@ paths:
       - BearerAuth: []
       summary: Deletes the named profile
       tags:
-      - NanoCMD
+      - NanoCMD Setup
     get:
       description: Fetches the named raw profile.
       parameters:
@@ -3659,7 +3960,7 @@ paths:
       - BearerAuth: []
       summary: Fetches the named raw profile
       tags:
-      - NanoCMD
+      - NanoCMD Setup
     put:
       consumes:
       - application/x-apple-aspen-config
@@ -3695,7 +3996,7 @@ paths:
       - BearerAuth: []
       summary: Uploads a raw profile
       tags:
-      - NanoCMD
+      - NanoCMD Setup
   /api/v1/nanocmd/profiles:
     get:
       description: Retrieve profile metadata.
@@ -3726,7 +4027,7 @@ paths:
       - BearerAuth: []
       summary: Retrieve profile metadata
       tags:
-      - NanoCMD
+      - NanoCMD Setup
   /api/v1/nanocmd/version:
     get:
       description: Get the version of the NanoCMD server
@@ -3745,7 +4046,7 @@ paths:
       - BearerAuth: []
       summary: Returns the running NanoCMD server version
       tags:
-      - NanoCMD
+      - NanoCMD Setup
   /api/v1/nanocmd/webhook:
     post:
       consumes:
@@ -3775,7 +4076,7 @@ paths:
             $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
       summary: NanoCMD Webhook
       tags:
-      - NanoCMD
+      - NanoCMD Setup
       - Infrastructure
   /api/v1/nanocmd/workflow/{name}/start:
     post:
@@ -3822,7 +4123,7 @@ paths:
       - BearerAuth: []
       summary: Start a workflow
       tags:
-      - NanoCMD
+      - NanoCMD Setup
   /api/v1/policies:
     delete:
       consumes:
@@ -5236,3 +5537,27 @@ securityDefinitions:
     name: Authorization
     type: apiKey
 swagger: "2.0"
+tags:
+- description: Client-facing APIs for device management actions (lock, wipe, restart,
+    etc.)
+  name: Device Actions
+- description: Client-facing APIs for device listing and information
+  name: Devices
+- description: Client-facing APIs for configuration profile management
+  name: Profiles
+- description: Client-facing APIs for device group management
+  name: Device Groups
+- description: Client-facing APIs for application management
+  name: Applications
+- description: Client-facing APIs for dashboard statistics and charts
+  name: Dashboard
+- description: Client-facing APIs for alert management
+  name: Alerts
+- description: Admin APIs for MDM server configuration (requires admin role)
+  name: MDM Setup
+- description: Admin APIs for DEP/ABM configuration (requires admin role)
+  name: DEP Setup
+- description: Admin APIs for NanoCMD workflow configuration (requires admin role)
+  name: NanoCMD Setup
+- description: Admin APIs for system settings, users, and policies
+  name: System

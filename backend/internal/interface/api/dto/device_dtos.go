@@ -74,3 +74,51 @@ type DeviceGroupResponse struct {
 type ManageGroupDevicesRequest struct {
 	DeviceIDs []string `json:"device_ids" binding:"required,min=1"`
 }
+
+// Device Action DTOs
+
+// DeviceLockRequest contains optional parameters for the lock device action.
+type DeviceLockRequest struct {
+	PIN         string `json:"pin,omitempty" example:"123456"`
+	Message     string `json:"message,omitempty" example:"Device is locked by IT"`
+	PhoneNumber string `json:"phone_number,omitempty" example:"+84123456789"`
+}
+
+// DeviceWipeRequest contains optional parameters for the wipe device action.
+type DeviceWipeRequest struct {
+	PIN                    string `json:"pin,omitempty" example:"123456"`
+	PreserveDataPlan       bool   `json:"preserve_data_plan,omitempty"`
+	DisallowProximitySetup bool   `json:"disallow_proximity_setup,omitempty"`
+	ObliterationBehavior   string `json:"obliteration_behavior,omitempty" enums:"Default,DoNotObliterate,ObliterateWithWarning,Always"`
+}
+
+// DeviceRestartRequest contains optional parameters for the restart device action.
+type DeviceRestartRequest struct {
+	NotifyUser bool `json:"notify_user,omitempty"`
+}
+
+// DeviceShutdownRequest is a placeholder for shutdown action (no parameters needed).
+type DeviceShutdownRequest struct{}
+
+// DeviceInstallProfileRequest contains parameters to install a profile on a device.
+type DeviceInstallProfileRequest struct {
+	ProfileID uint `json:"profile_id" binding:"required"`
+}
+
+// DeviceRemoveProfileRequest contains parameters to remove a profile from a device.
+type DeviceRemoveProfileRequest struct {
+	ProfileIdentifier string `json:"profile_identifier" binding:"required"`
+}
+
+// DeviceInfoRequest contains optional parameters for requesting device information.
+type DeviceInfoRequest struct {
+	Queries []string `json:"queries,omitempty"`
+}
+
+// DeviceActionResponse is the standard response for device action commands.
+type DeviceActionResponse struct {
+	CommandUUID string `json:"command_uuid"`
+	RequestType string `json:"request_type"`
+	Status      string `json:"status"`
+	Message     string `json:"message,omitempty"`
+}

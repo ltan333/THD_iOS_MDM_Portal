@@ -69,7 +69,7 @@ func NewDEPHandler(
 // PutTokenPKI godoc
 // @Summary Upload and decrypt DEP OAuth1 tokens
 // @Description Decrypt the OAuth1 tokens from the Apple ABM/ASM/BE portal and store them.
-// @Tags DEP
+// @Tags DEP Setup
 // @Accept application/pkcs7-mime
 // @Produce json
 // @Param name path string true "Name of DEP server instance"
@@ -106,7 +106,7 @@ func (h *depHandler) PutTokenPKI(c *gin.Context) {
 // GetTokenPKI godoc
 // @Summary Generate and retrieve DEP token PKI certificate
 // @Description Generate and store a new X.509 certificate and RSA private key for exchanging encrypted DEP OAuth1 tokens.
-// @Tags DEP
+// @Tags DEP Setup
 // @Produce application/x-pem-file
 // @Param name path string true "Name of DEP server instance"
 // @Param cn query string false "Common Name"
@@ -141,7 +141,7 @@ func (h *depHandler) GetTokenPKI(c *gin.Context) {
 // GetToken godoc
 // @Summary Get DEP token pem
 // @Description Get PEM certificate for ABM for a specific name
-// @Tags DEP
+// @Tags DEP Setup
 // @Produce json
 // @Param name path string true "Token name"
 // @Success 200 {object} response.APIResponse[any]
@@ -181,7 +181,7 @@ func (h *depHandler) GetToken(c *gin.Context) {
 // SyncDevices godoc
 // @Summary Sync DEP devices
 // @Description Initiate a sync with Apple DEP servers to fetch new devices via proxy
-// @Tags DEP
+// @Tags DEP Setup
 // @Produce json
 // @Param name path string false "DEP name (default: 'default')"
 // @Param cursor query string false "Sync cursor"
@@ -217,7 +217,7 @@ func (h *depHandler) SyncDevices(c *gin.Context) {
 // DefineProfile godoc
 // @Summary Define DEP profile
 // @Description Create or update a DEP assignment profile via proxy
-// @Tags DEP
+// @Tags DEP Setup
 // @Accept json
 // @Produce json
 // @Param name path string false "DEP name (default: 'default')"
@@ -250,7 +250,7 @@ func (h *depHandler) DefineProfile(c *gin.Context) {
 // GetProfile godoc
 // @Summary Get DEP profile
 // @Description Fetch details of a defined DEP profile via proxy
-// @Tags DEP
+// @Tags DEP Setup
 // @Produce json
 // @Param name path string false "DEP name (default: 'default')"
 // @Param profile_uuid query string true "Profile UUID"
@@ -277,7 +277,7 @@ func (h *depHandler) GetProfile(c *gin.Context) {
 // ListProfiles godoc
 // @Summary List Defined DEP profiles
 // @Description Fetch all defined DEP profiles from NanoDEP
-// @Tags DEP
+// @Tags DEP Setup
 // @Produce json
 // @Success 200 {object} response.APIResponse[any]
 // @Failure 401 {object} response.APIResponse[any]
@@ -297,7 +297,7 @@ func (h *depHandler) ListProfiles(c *gin.Context) {
 // DisownDevice godoc
 // @Summary Disown DEP device
 // @Description Remove a device from DEP management via proxy
-// @Tags DEP
+// @Tags DEP Setup
 // @Accept json
 // @Produce json
 // @Param name path string true "DEP name"
@@ -328,7 +328,7 @@ func (h *depHandler) DisownDevice(c *gin.Context) {
 // ListNames godoc
 // @Summary Query DEP names
 // @Description Query DEP names with optional filters and pagination.
-// @Tags DEP
+// @Tags DEP Setup
 // @Produce json
 // @Param dep_name query []string false "Filter by DEP names"
 // @Param limit query int false "Limits number of results" default(100)
@@ -360,7 +360,7 @@ func (h *depHandler) ListNames(c *gin.Context) {
 // GetConfig godoc
 // @Summary Return the config for the given DEP name
 // @Description Return the config for the given DEP name.
-// @Tags DEP
+// @Tags DEP Setup
 // @Produce json
 // @Param name path string true "Name of DEP server instance"
 // @Success 200 {object} response.APIResponse[dto.DEPConfig]
@@ -380,7 +380,7 @@ func (h *depHandler) GetConfig(c *gin.Context) {
 // PutConfig godoc
 // @Summary Set the config for the given DEP name
 // @Description Set the config for the given DEP name.
-// @Tags DEP
+// @Tags DEP Setup
 // @Accept json
 // @Produce json
 // @Param name path string true "Name of DEP server instance"
@@ -408,7 +408,7 @@ func (h *depHandler) PutConfig(c *gin.Context) {
 // GetAssigner godoc
 // @Summary Return the assigner profile UUID
 // @Description Return the assigner profile UUID for the given DEP name.
-// @Tags DEP
+// @Tags DEP Setup
 // @Produce json
 // @Param name path string true "Name of DEP server instance"
 // @Success 200 {object} response.APIResponse[dto.AssignerProfileUUID]
@@ -428,7 +428,7 @@ func (h *depHandler) GetAssigner(c *gin.Context) {
 // SetAssigner godoc
 // @Summary Assign a profile UUID for assignment
 // @Description Assign a profile UUID for assignment for the given DEP name.
-// @Tags DEP
+// @Tags DEP Setup
 // @Produce json
 // @Param name path string true "Name of DEP server instance"
 // @Param profile_uuid query string true "Profile UUID to assign"
@@ -455,7 +455,7 @@ func (h *depHandler) SetAssigner(c *gin.Context) {
 // GetAccount godoc
 // @Summary Get DEP account
 // @Description Fetch Apple DEP account info via proxy
-// @Tags DEP
+// @Tags DEP Setup
 // @Produce json
 // @Param name path string true "DEP name"
 // @Security BearerAuth
@@ -477,7 +477,7 @@ func (h *depHandler) GetAccount(c *gin.Context) {
 // GetDevices godoc
 // @Summary Get DEP devices
 // @Description Fetch device list or details from Apple via proxy. If devices array is provided in body, fetches details for those serial numbers.
-// @Tags DEP
+// @Tags DEP Setup
 // @Accept json
 // @Produce json
 // @Param name path string true "DEP name"
@@ -509,7 +509,7 @@ func (h *depHandler) GetDevices(c *gin.Context) {
 // GetTokens godoc
 // @Summary Return the DEP OAuth1 tokens
 // @Description Return the DEP OAuth1 tokens for the given DEP name.
-// @Tags DEP
+// @Tags DEP Setup
 // @Produce json
 // @Param name path string true "Name of DEP server instance"
 // @Success 200 {object} response.APIResponse[dto.OAuth1Tokens]
@@ -529,7 +529,7 @@ func (h *depHandler) GetTokens(c *gin.Context) {
 // UpdateTokens godoc
 // @Summary Upload and store DEP OAuth1 tokens
 // @Description Upload and store DEP OAuth1 tokens for the given DEP Name.
-// @Tags DEP
+// @Tags DEP Setup
 // @Accept json
 // @Produce json
 // @Param name path string true "Name of DEP server instance"
@@ -557,7 +557,7 @@ func (h *depHandler) UpdateTokens(c *gin.Context) {
 // GetMAIDJWT godoc
 // @Summary Generate Managed Apple ID Managed Access JWT
 // @Description Generate Managed Apple ID Managed Access JWT.
-// @Tags DEP
+// @Tags DEP Setup
 // @Produce application/jwt
 // @Param name path string true "Name of DEP server instance"
 // @Param server_uuid query string false "MDM server UUID"
@@ -582,7 +582,7 @@ func (h *depHandler) GetMAIDJWT(c *gin.Context) {
 // GetBypassCode godoc
 // @Summary Generates or decodes an Activation Lock Bypass Code
 // @Description Generates (or decodes) an Activation Lock Bypass Code and returns different forms of it.
-// @Tags DEP
+// @Tags DEP Setup
 // @Produce json
 // @Param code query string false "Hex-encoded raw form of bypass code"
 // @Param raw query string false "Dash-separated human readable form"
@@ -604,7 +604,7 @@ func (h *depHandler) GetBypassCode(c *gin.Context) {
 // GetVersion godoc
 // @Summary Returns the running NanoDEP version
 // @Description Returns the running NanoDEP version.
-// @Tags DEP
+// @Tags DEP Setup
 // @Produce json
 // @Success 200 {object} response.APIResponse[dto.NanoDEPVersionResponse]
 // @Router /api/v1/dep/version [get]

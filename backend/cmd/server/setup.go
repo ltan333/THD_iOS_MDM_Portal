@@ -15,6 +15,7 @@ import (
 	"github.com/thienel/go-backend-template/internal/interface/api/router"
 	"github.com/thienel/go-backend-template/internal/usecase/service/serviceimpl"
 	"github.com/thienel/go-backend-template/pkg/config"
+	"github.com/thienel/go-backend-template/pkg/mdmcmd"
 )
 
 // setupDependencies wires up all layers and returns the configured router
@@ -63,6 +64,9 @@ func setupDependencies(cfg *config.Config) *gin.Engine {
 	reportService := serviceimpl.NewReportService(client)
 	settingService := serviceimpl.NewSettingService(client)
 
+	// MDM Command Builder
+	cmdBuilder := mdmcmd.NewBuilder("com.thd.mdm")
+
 	// Middleware
 	origins := strings.Join(cfg.CORSAllowedOrigins, ",")
 	mw := middleware.New(jwtService, authzService, redisService, origins)
@@ -76,7 +80,7 @@ func setupDependencies(cfg *config.Config) *gin.Engine {
 	nanocmdHandler := handler.NewNanoCMDHandler(nanocmdService, deviceService)
 	mobileConfigHandler := handler.NewMobileConfigHandler(mobileConfigService)
 	dashboardHandler := handler.NewDashboardHandler(dashboardService)
-	deviceHandler := handler.NewDeviceHandler(deviceService, nanomdmService)
+	deviceHandler := handler.NewDeviceHandler(deviceService, nanomdmService, profileService, cmdBuilder)
 	deviceGroupHandler := handler.NewDeviceGroupHandler(deviceGroupService)
 	profileHandler := handler.NewProfileHandler(profileService)
 	applicationHandler := handler.NewApplicationHandler(applicationService)
