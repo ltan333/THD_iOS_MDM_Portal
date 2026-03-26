@@ -2143,6 +2143,37 @@ paths:
       summary: Get mobile config by ID
       tags:
       - Mobile Config
+  /api/v1/nanocmd/webhook:
+    post:
+      consumes:
+      - application/json
+      - application/json
+      description: |-
+        Handler for MicroMDM-compatible webhook callback.
+        Endpoint to receive MDM/CMD check-in events and state updates
+      parameters:
+      - description: Webhook payload
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_thienel_go-backend-template_internal_interface_api_dto.NanoCMDWebhook'
+      produces:
+      - application/json
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+      summary: NanoCMD Webhook
+      tags:
+      - NanoCMD
+      - Infrastructure
   /api/v1/profiles:
     get:
       description: Fetch profiles with pagination and filtering
@@ -4759,36 +4790,6 @@ paths:
       security:
       - BearerAuth: []
       summary: Returns the running NanoCMD server version
-      tags:
-      - NanoCMD
-  /v1/nanocmd/webhook:
-    post:
-      consumes:
-      - application/json
-      description: Handler for MicroMDM-compatible webhook callback.
-      parameters:
-      - description: Webhook payload
-        in: body
-        name: webhook
-        required: true
-        schema:
-          $ref: '#/definitions/github_com_thienel_go-backend-template_internal_interface_api_dto.NanoCMDWebhook'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
-      summary: NanoCMD Webhook
       tags:
       - NanoCMD
   /v1/nanocmd/workflow/{name}/start:
