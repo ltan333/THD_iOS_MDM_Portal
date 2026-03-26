@@ -16158,7 +16158,6 @@ type ProfileAssignmentMutation struct {
 	typ            string
 	id             *uint
 	target_type    *profileassignment.TargetType
-	target_id      *string
 	schedule_type  *profileassignment.ScheduleType
 	scheduled_at   *time.Time
 	created_at     *time.Time
@@ -16348,55 +16347,6 @@ func (m *ProfileAssignmentMutation) OldTargetType(ctx context.Context) (v profil
 // ResetTargetType resets all changes to the "target_type" field.
 func (m *ProfileAssignmentMutation) ResetTargetType() {
 	m.target_type = nil
-}
-
-// SetTargetID sets the "target_id" field.
-func (m *ProfileAssignmentMutation) SetTargetID(s string) {
-	m.target_id = &s
-}
-
-// TargetID returns the value of the "target_id" field in the mutation.
-func (m *ProfileAssignmentMutation) TargetID() (r string, exists bool) {
-	v := m.target_id
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldTargetID returns the old "target_id" field's value of the ProfileAssignment entity.
-// If the ProfileAssignment object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *ProfileAssignmentMutation) OldTargetID(ctx context.Context) (v string, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldTargetID is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldTargetID requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldTargetID: %w", err)
-	}
-	return oldValue.TargetID, nil
-}
-
-// ClearTargetID clears the value of the "target_id" field.
-func (m *ProfileAssignmentMutation) ClearTargetID() {
-	m.target_id = nil
-	m.clearedFields[profileassignment.FieldTargetID] = struct{}{}
-}
-
-// TargetIDCleared returns if the "target_id" field was cleared in this mutation.
-func (m *ProfileAssignmentMutation) TargetIDCleared() bool {
-	_, ok := m.clearedFields[profileassignment.FieldTargetID]
-	return ok
-}
-
-// ResetTargetID resets all changes to the "target_id" field.
-func (m *ProfileAssignmentMutation) ResetTargetID() {
-	m.target_id = nil
-	delete(m.clearedFields, profileassignment.FieldTargetID)
 }
 
 // SetDeviceID sets the "device_id" field.
@@ -16733,15 +16683,12 @@ func (m *ProfileAssignmentMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *ProfileAssignmentMutation) Fields() []string {
-	fields := make([]string, 0, 8)
+	fields := make([]string, 0, 7)
 	if m.profile != nil {
 		fields = append(fields, profileassignment.FieldProfileID)
 	}
 	if m.target_type != nil {
 		fields = append(fields, profileassignment.FieldTargetType)
-	}
-	if m.target_id != nil {
-		fields = append(fields, profileassignment.FieldTargetID)
 	}
 	if m.device != nil {
 		fields = append(fields, profileassignment.FieldDeviceID)
@@ -16770,8 +16717,6 @@ func (m *ProfileAssignmentMutation) Field(name string) (ent.Value, bool) {
 		return m.ProfileID()
 	case profileassignment.FieldTargetType:
 		return m.TargetType()
-	case profileassignment.FieldTargetID:
-		return m.TargetID()
 	case profileassignment.FieldDeviceID:
 		return m.DeviceID()
 	case profileassignment.FieldGroupID:
@@ -16795,8 +16740,6 @@ func (m *ProfileAssignmentMutation) OldField(ctx context.Context, name string) (
 		return m.OldProfileID(ctx)
 	case profileassignment.FieldTargetType:
 		return m.OldTargetType(ctx)
-	case profileassignment.FieldTargetID:
-		return m.OldTargetID(ctx)
 	case profileassignment.FieldDeviceID:
 		return m.OldDeviceID(ctx)
 	case profileassignment.FieldGroupID:
@@ -16829,13 +16772,6 @@ func (m *ProfileAssignmentMutation) SetField(name string, value ent.Value) error
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetTargetType(v)
-		return nil
-	case profileassignment.FieldTargetID:
-		v, ok := value.(string)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetTargetID(v)
 		return nil
 	case profileassignment.FieldDeviceID:
 		v, ok := value.(string)
@@ -16905,9 +16841,6 @@ func (m *ProfileAssignmentMutation) AddField(name string, value ent.Value) error
 // mutation.
 func (m *ProfileAssignmentMutation) ClearedFields() []string {
 	var fields []string
-	if m.FieldCleared(profileassignment.FieldTargetID) {
-		fields = append(fields, profileassignment.FieldTargetID)
-	}
 	if m.FieldCleared(profileassignment.FieldDeviceID) {
 		fields = append(fields, profileassignment.FieldDeviceID)
 	}
@@ -16931,9 +16864,6 @@ func (m *ProfileAssignmentMutation) FieldCleared(name string) bool {
 // error if the field is not defined in the schema.
 func (m *ProfileAssignmentMutation) ClearField(name string) error {
 	switch name {
-	case profileassignment.FieldTargetID:
-		m.ClearTargetID()
-		return nil
 	case profileassignment.FieldDeviceID:
 		m.ClearDeviceID()
 		return nil
@@ -16956,9 +16886,6 @@ func (m *ProfileAssignmentMutation) ResetField(name string) error {
 		return nil
 	case profileassignment.FieldTargetType:
 		m.ResetTargetType()
-		return nil
-	case profileassignment.FieldTargetID:
-		m.ResetTargetID()
 		return nil
 	case profileassignment.FieldDeviceID:
 		m.ResetDeviceID()

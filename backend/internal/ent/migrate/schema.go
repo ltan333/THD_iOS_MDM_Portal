@@ -385,7 +385,6 @@ var (
 	ProfileAssignmentsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUint, Increment: true},
 		{Name: "target_type", Type: field.TypeEnum, Enums: []string{"device", "group", "user"}},
-		{Name: "target_id", Type: field.TypeString, Nullable: true},
 		{Name: "schedule_type", Type: field.TypeEnum, Enums: []string{"immediate", "scheduled"}, Default: "immediate"},
 		{Name: "scheduled_at", Type: field.TypeTime, Nullable: true},
 		{Name: "created_at", Type: field.TypeTime},
@@ -401,19 +400,19 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "profile_assignments_profiles_assignments",
-				Columns:    []*schema.Column{ProfileAssignmentsColumns[6]},
+				Columns:    []*schema.Column{ProfileAssignmentsColumns[5]},
 				RefColumns: []*schema.Column{ProfilesColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "profile_assignments_devices_device",
-				Columns:    []*schema.Column{ProfileAssignmentsColumns[7]},
+				Columns:    []*schema.Column{ProfileAssignmentsColumns[6]},
 				RefColumns: []*schema.Column{DevicesColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
 				Symbol:     "profile_assignments_device_groups_group",
-				Columns:    []*schema.Column{ProfileAssignmentsColumns[8]},
+				Columns:    []*schema.Column{ProfileAssignmentsColumns[7]},
 				RefColumns: []*schema.Column{DeviceGroupsColumns[0]},
 				OnDelete:   schema.SetNull,
 			},

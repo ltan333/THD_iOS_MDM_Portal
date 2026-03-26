@@ -28,7 +28,6 @@ func (ProfileAssignment) Fields() []ent.Field {
 		field.Uint("id"),
 		field.Uint("profile_id"),
 		field.Enum("target_type").Values("device", "group", "user"),
-		field.String("target_id").Optional().Comment("Deprecated: Use edges instead"),
 		field.String("device_id").Optional().Nillable(),
 		field.Uint("group_id").Optional().Nillable(),
 		field.Enum("schedule_type").Values("immediate", "scheduled").Default("immediate"),

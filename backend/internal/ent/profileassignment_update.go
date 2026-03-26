@@ -59,26 +59,6 @@ func (_u *ProfileAssignmentUpdate) SetNillableTargetType(v *profileassignment.Ta
 	return _u
 }
 
-// SetTargetID sets the "target_id" field.
-func (_u *ProfileAssignmentUpdate) SetTargetID(v string) *ProfileAssignmentUpdate {
-	_u.mutation.SetTargetID(v)
-	return _u
-}
-
-// SetNillableTargetID sets the "target_id" field if the given value is not nil.
-func (_u *ProfileAssignmentUpdate) SetNillableTargetID(v *string) *ProfileAssignmentUpdate {
-	if v != nil {
-		_u.SetTargetID(*v)
-	}
-	return _u
-}
-
-// ClearTargetID clears the value of the "target_id" field.
-func (_u *ProfileAssignmentUpdate) ClearTargetID() *ProfileAssignmentUpdate {
-	_u.mutation.ClearTargetID()
-	return _u
-}
-
 // SetDeviceID sets the "device_id" field.
 func (_u *ProfileAssignmentUpdate) SetDeviceID(v string) *ProfileAssignmentUpdate {
 	_u.mutation.SetDeviceID(v)
@@ -251,12 +231,6 @@ func (_u *ProfileAssignmentUpdate) sqlSave(ctx context.Context) (_node int, err 
 	if value, ok := _u.mutation.TargetType(); ok {
 		_spec.SetField(profileassignment.FieldTargetType, field.TypeEnum, value)
 	}
-	if value, ok := _u.mutation.TargetID(); ok {
-		_spec.SetField(profileassignment.FieldTargetID, field.TypeString, value)
-	}
-	if _u.mutation.TargetIDCleared() {
-		_spec.ClearField(profileassignment.FieldTargetID, field.TypeString)
-	}
 	if value, ok := _u.mutation.ScheduleType(); ok {
 		_spec.SetField(profileassignment.FieldScheduleType, field.TypeEnum, value)
 	}
@@ -398,26 +372,6 @@ func (_u *ProfileAssignmentUpdateOne) SetNillableTargetType(v *profileassignment
 	if v != nil {
 		_u.SetTargetType(*v)
 	}
-	return _u
-}
-
-// SetTargetID sets the "target_id" field.
-func (_u *ProfileAssignmentUpdateOne) SetTargetID(v string) *ProfileAssignmentUpdateOne {
-	_u.mutation.SetTargetID(v)
-	return _u
-}
-
-// SetNillableTargetID sets the "target_id" field if the given value is not nil.
-func (_u *ProfileAssignmentUpdateOne) SetNillableTargetID(v *string) *ProfileAssignmentUpdateOne {
-	if v != nil {
-		_u.SetTargetID(*v)
-	}
-	return _u
-}
-
-// ClearTargetID clears the value of the "target_id" field.
-func (_u *ProfileAssignmentUpdateOne) ClearTargetID() *ProfileAssignmentUpdateOne {
-	_u.mutation.ClearTargetID()
 	return _u
 }
 
@@ -622,12 +576,6 @@ func (_u *ProfileAssignmentUpdateOne) sqlSave(ctx context.Context) (_node *Profi
 	}
 	if value, ok := _u.mutation.TargetType(); ok {
 		_spec.SetField(profileassignment.FieldTargetType, field.TypeEnum, value)
-	}
-	if value, ok := _u.mutation.TargetID(); ok {
-		_spec.SetField(profileassignment.FieldTargetID, field.TypeString, value)
-	}
-	if _u.mutation.TargetIDCleared() {
-		_spec.ClearField(profileassignment.FieldTargetID, field.TypeString)
 	}
 	if value, ok := _u.mutation.ScheduleType(); ok {
 		_spec.SetField(profileassignment.FieldScheduleType, field.TypeEnum, value)

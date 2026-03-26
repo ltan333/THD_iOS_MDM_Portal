@@ -60,11 +60,6 @@ func ProfileID(v uint) predicate.ProfileAssignment {
 	return predicate.ProfileAssignment(sql.FieldEQ(FieldProfileID, v))
 }
 
-// TargetID applies equality check predicate on the "target_id" field. It's identical to TargetIDEQ.
-func TargetID(v string) predicate.ProfileAssignment {
-	return predicate.ProfileAssignment(sql.FieldEQ(FieldTargetID, v))
-}
-
 // DeviceID applies equality check predicate on the "device_id" field. It's identical to DeviceIDEQ.
 func DeviceID(v string) predicate.ProfileAssignment {
 	return predicate.ProfileAssignment(sql.FieldEQ(FieldDeviceID, v))
@@ -123,81 +118,6 @@ func TargetTypeIn(vs ...TargetType) predicate.ProfileAssignment {
 // TargetTypeNotIn applies the NotIn predicate on the "target_type" field.
 func TargetTypeNotIn(vs ...TargetType) predicate.ProfileAssignment {
 	return predicate.ProfileAssignment(sql.FieldNotIn(FieldTargetType, vs...))
-}
-
-// TargetIDEQ applies the EQ predicate on the "target_id" field.
-func TargetIDEQ(v string) predicate.ProfileAssignment {
-	return predicate.ProfileAssignment(sql.FieldEQ(FieldTargetID, v))
-}
-
-// TargetIDNEQ applies the NEQ predicate on the "target_id" field.
-func TargetIDNEQ(v string) predicate.ProfileAssignment {
-	return predicate.ProfileAssignment(sql.FieldNEQ(FieldTargetID, v))
-}
-
-// TargetIDIn applies the In predicate on the "target_id" field.
-func TargetIDIn(vs ...string) predicate.ProfileAssignment {
-	return predicate.ProfileAssignment(sql.FieldIn(FieldTargetID, vs...))
-}
-
-// TargetIDNotIn applies the NotIn predicate on the "target_id" field.
-func TargetIDNotIn(vs ...string) predicate.ProfileAssignment {
-	return predicate.ProfileAssignment(sql.FieldNotIn(FieldTargetID, vs...))
-}
-
-// TargetIDGT applies the GT predicate on the "target_id" field.
-func TargetIDGT(v string) predicate.ProfileAssignment {
-	return predicate.ProfileAssignment(sql.FieldGT(FieldTargetID, v))
-}
-
-// TargetIDGTE applies the GTE predicate on the "target_id" field.
-func TargetIDGTE(v string) predicate.ProfileAssignment {
-	return predicate.ProfileAssignment(sql.FieldGTE(FieldTargetID, v))
-}
-
-// TargetIDLT applies the LT predicate on the "target_id" field.
-func TargetIDLT(v string) predicate.ProfileAssignment {
-	return predicate.ProfileAssignment(sql.FieldLT(FieldTargetID, v))
-}
-
-// TargetIDLTE applies the LTE predicate on the "target_id" field.
-func TargetIDLTE(v string) predicate.ProfileAssignment {
-	return predicate.ProfileAssignment(sql.FieldLTE(FieldTargetID, v))
-}
-
-// TargetIDContains applies the Contains predicate on the "target_id" field.
-func TargetIDContains(v string) predicate.ProfileAssignment {
-	return predicate.ProfileAssignment(sql.FieldContains(FieldTargetID, v))
-}
-
-// TargetIDHasPrefix applies the HasPrefix predicate on the "target_id" field.
-func TargetIDHasPrefix(v string) predicate.ProfileAssignment {
-	return predicate.ProfileAssignment(sql.FieldHasPrefix(FieldTargetID, v))
-}
-
-// TargetIDHasSuffix applies the HasSuffix predicate on the "target_id" field.
-func TargetIDHasSuffix(v string) predicate.ProfileAssignment {
-	return predicate.ProfileAssignment(sql.FieldHasSuffix(FieldTargetID, v))
-}
-
-// TargetIDIsNil applies the IsNil predicate on the "target_id" field.
-func TargetIDIsNil() predicate.ProfileAssignment {
-	return predicate.ProfileAssignment(sql.FieldIsNull(FieldTargetID))
-}
-
-// TargetIDNotNil applies the NotNil predicate on the "target_id" field.
-func TargetIDNotNil() predicate.ProfileAssignment {
-	return predicate.ProfileAssignment(sql.FieldNotNull(FieldTargetID))
-}
-
-// TargetIDEqualFold applies the EqualFold predicate on the "target_id" field.
-func TargetIDEqualFold(v string) predicate.ProfileAssignment {
-	return predicate.ProfileAssignment(sql.FieldEqualFold(FieldTargetID, v))
-}
-
-// TargetIDContainsFold applies the ContainsFold predicate on the "target_id" field.
-func TargetIDContainsFold(v string) predicate.ProfileAssignment {
-	return predicate.ProfileAssignment(sql.FieldContainsFold(FieldTargetID, v))
 }
 
 // DeviceIDEQ applies the EQ predicate on the "device_id" field.

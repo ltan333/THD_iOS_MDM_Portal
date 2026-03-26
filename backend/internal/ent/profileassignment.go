@@ -24,8 +24,6 @@ type ProfileAssignment struct {
 	ProfileID uint `json:"profile_id,omitempty"`
 	// TargetType holds the value of the "target_type" field.
 	TargetType profileassignment.TargetType `json:"target_type,omitempty"`
-	// Deprecated: Use edges instead
-	TargetID string `json:"target_id,omitempty"`
 	// DeviceID holds the value of the "device_id" field.
 	DeviceID *string `json:"device_id,omitempty"`
 	// GroupID holds the value of the "group_id" field.
@@ -95,7 +93,7 @@ func (*ProfileAssignment) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case profileassignment.FieldID, profileassignment.FieldProfileID, profileassignment.FieldGroupID:
 			values[i] = new(sql.NullInt64)
-		case profileassignment.FieldTargetType, profileassignment.FieldTargetID, profileassignment.FieldDeviceID, profileassignment.FieldScheduleType:
+		case profileassignment.FieldTargetType, profileassignment.FieldDeviceID, profileassignment.FieldScheduleType:
 			values[i] = new(sql.NullString)
 		case profileassignment.FieldScheduledAt, profileassignment.FieldCreatedAt:
 			values[i] = new(sql.NullTime)
@@ -131,12 +129,6 @@ func (_m *ProfileAssignment) assignValues(columns []string, values []any) error 
 				return fmt.Errorf("unexpected type %T for field target_type", values[i])
 			} else if value.Valid {
 				_m.TargetType = profileassignment.TargetType(value.String)
-			}
-		case profileassignment.FieldTargetID:
-			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field target_id", values[i])
-			} else if value.Valid {
-				_m.TargetID = value.String
 			}
 		case profileassignment.FieldDeviceID:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -227,9 +219,6 @@ func (_m *ProfileAssignment) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("target_type=")
 	builder.WriteString(fmt.Sprintf("%v", _m.TargetType))
-	builder.WriteString(", ")
-	builder.WriteString("target_id=")
-	builder.WriteString(_m.TargetID)
 	builder.WriteString(", ")
 	if v := _m.DeviceID; v != nil {
 		builder.WriteString("device_id=")
