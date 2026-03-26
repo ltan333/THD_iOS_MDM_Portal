@@ -46,7 +46,7 @@ func NewMDMHandler(client *ent.Client, mdmService service.NanoMDMService) MDMHan
 // @Failure 401 {object} response.APIResponse[any]
 // @Failure 500 {object} response.APIResponse[any]
 // @Security BearerAuth
-// @Router /v1/mdm/pushcert [put]
+// @Router /api/v1/mdm/pushcert [put]
 func (h *mdmHandler) PushCert(c *gin.Context) {
 	data, err := io.ReadAll(c.Request.Body)
 	if err != nil {
@@ -75,7 +75,7 @@ func (h *mdmHandler) PushCert(c *gin.Context) {
 // @Failure 404 {object} response.APIResponse[any]
 // @Failure 500 {object} response.APIResponse[any]
 // @Security BearerAuth
-// @Router /v1/mdm/pushcert [get]
+// @Router /api/v1/mdm/pushcert [get]
 func (h *mdmHandler) GetCert(c *gin.Context) {
 	topic := c.Query("topic")
 	if topic == "" {
@@ -102,7 +102,7 @@ func (h *mdmHandler) GetCert(c *gin.Context) {
 // @Failure 401 {object} response.APIResponse[any]
 // @Failure 500 {object} response.APIResponse[dto.APIResult]
 // @Security BearerAuth
-// @Router /v1/mdm/push/{id} [get]
+// @Router /api/v1/mdm/push/{id} [get]
 func (h *mdmHandler) Push(c *gin.Context) {
 	ids := strings.Split(c.Param("id"), ",")
 	result, err := h.mdmService.Push(c.Request.Context(), ids)
@@ -127,7 +127,7 @@ func (h *mdmHandler) Push(c *gin.Context) {
 // @Failure 401 {object} response.APIResponse[any]
 // @Failure 500 {object} response.APIResponse[dto.APIResult]
 // @Security BearerAuth
-// @Router /v1/mdm/enqueue/{id} [put]
+// @Router /api/v1/mdm/enqueue/{id} [put]
 func (h *mdmHandler) EnqueueCommand(c *gin.Context) {
 	udid := c.Param("id")
 	data, err := io.ReadAll(c.Request.Body)
@@ -159,7 +159,7 @@ func (h *mdmHandler) EnqueueCommand(c *gin.Context) {
 // @Success 200 {string} string "Success"
 // @Failure 400 {object} response.APIResponse[any]
 // @Failure 401 {object} response.APIResponse[any]
-// @Router /v1/mdm/escrowkeyunlock [post]
+// @Router /api/v1/mdm/escrowkeyunlock [post]
 func (h *mdmHandler) EscrowKeyUnlock(c *gin.Context) {
 	var req dto.EscrowKeyUnlockRequest
 	if err := c.ShouldBind(&req); err != nil {
@@ -185,7 +185,7 @@ func (h *mdmHandler) EscrowKeyUnlock(c *gin.Context) {
 // @Tags MDM
 // @Produce json
 // @Success 200 {object} response.APIResponse[dto.NanoMDMVersionResponse]
-// @Router /v1/mdm/version [get]
+// @Router /api/v1/mdm/version [get]
 func (h *mdmHandler) GetVersion(c *gin.Context) {
 	resp, err := h.mdmService.GetVersion(c.Request.Context())
 	if err != nil {

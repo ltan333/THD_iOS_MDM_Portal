@@ -1537,7 +1537,7 @@ info:
   title: THD iOS MDM Portal API
   version: "1.0"
 paths:
-  /alerts:
+  /api/v1/alerts:
     get:
       description: Fetch tracked system alerts
       produces:
@@ -1567,7 +1567,7 @@ paths:
       summary: Create alert
       tags:
       - alerts
-  /alerts/{id}:
+  /api/v1/alerts/{id}:
     get:
       produces:
       - application/json
@@ -1581,7 +1581,7 @@ paths:
       summary: Get alert by ID
       tags:
       - alerts
-  /alerts/{id}/acknowledge:
+  /api/v1/alerts/{id}/acknowledge:
     put:
       produces:
       - application/json
@@ -1595,7 +1595,7 @@ paths:
       summary: Acknowledge alert
       tags:
       - alerts
-  /alerts/{id}/actions/lock:
+  /api/v1/alerts/{id}/actions/lock:
     post:
       produces:
       - application/json
@@ -1609,7 +1609,7 @@ paths:
       summary: Lock device from alert
       tags:
       - alerts
-  /alerts/{id}/actions/message:
+  /api/v1/alerts/{id}/actions/message:
     post:
       consumes:
       - application/json
@@ -1625,7 +1625,7 @@ paths:
       summary: Send message from alert
       tags:
       - alerts
-  /alerts/{id}/actions/push-policy:
+  /api/v1/alerts/{id}/actions/push-policy:
     post:
       consumes:
       - application/json
@@ -1641,7 +1641,7 @@ paths:
       summary: Push policy from alert
       tags:
       - alerts
-  /alerts/{id}/actions/wipe:
+  /api/v1/alerts/{id}/actions/wipe:
     post:
       produces:
       - application/json
@@ -1655,7 +1655,7 @@ paths:
       summary: Wipe device from alert
       tags:
       - alerts
-  /alerts/{id}/resolve:
+  /api/v1/alerts/{id}/resolve:
     put:
       produces:
       - application/json
@@ -1669,7 +1669,7 @@ paths:
       summary: Resolve alert
       tags:
       - alerts
-  /alerts/bulk-resolve:
+  /api/v1/alerts/bulk-resolve:
     post:
       consumes:
       - application/json
@@ -1685,7 +1685,7 @@ paths:
       summary: Bulk resolve alerts
       tags:
       - alerts
-  /alerts/rules:
+  /api/v1/alerts/rules:
     get:
       produces:
       - application/json
@@ -1714,7 +1714,7 @@ paths:
       summary: Create alert rule
       tags:
       - alert-rules
-  /alerts/rules/{id}:
+  /api/v1/alerts/rules/{id}:
     delete:
       produces:
       - application/json
@@ -1756,7 +1756,7 @@ paths:
       summary: Update alert rule
       tags:
       - alert-rules
-  /alerts/rules/{id}/toggle:
+  /api/v1/alerts/rules/{id}/toggle:
     put:
       produces:
       - application/json
@@ -1770,7 +1770,7 @@ paths:
       summary: Toggle alert rule active status
       tags:
       - alert-rules
-  /alerts/stats:
+  /api/v1/alerts/stats:
     get:
       produces:
       - application/json
@@ -1784,175 +1784,254 @@ paths:
       summary: Get alert stats
       tags:
       - alerts
-  /api/mobile-configs:
+  /api/v1/applications:
+    get:
+      description: Fetch tracked applications with pagination
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+      security:
+      - BearerAuth: []
+      summary: List applications
+      tags:
+      - applications
     post:
       consumes:
       - application/json
-      description: Create a new Apple mobileconfig with payloads and payload properties
-      parameters:
-      - description: Mobile config payload
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/github_com_thienel_go-backend-template_internal_interface_api_dto.CreateMobileConfigRequest'
+      description: Create application
       produces:
       - application/json
       responses:
         "201":
           description: Created
           schema:
-            $ref: '#/definitions/internal_interface_api_handler.MobileConfigSuccessResponse'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/internal_interface_api_handler.APIErrorResponse'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/internal_interface_api_handler.APIErrorResponse'
-        "403":
-          description: Forbidden
-          schema:
-            $ref: '#/definitions/internal_interface_api_handler.APIErrorResponse'
-        "409":
-          description: Conflict
-          schema:
-            $ref: '#/definitions/internal_interface_api_handler.APIErrorResponse'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/internal_interface_api_handler.APIErrorResponse'
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
       security:
       - BearerAuth: []
-      summary: Create mobile config
+      summary: Add a new application tracking record
       tags:
-      - Mobile Config
-  /api/mobile-configs/{id}:
+      - applications
+  /api/v1/applications/{id}:
     delete:
-      description: Delete an existing Apple mobileconfig by ID
-      parameters:
-      - description: Mobile config ID
-        in: path
-        name: id
-        required: true
-        type: integer
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_interface_api_handler.EmptySuccessResponse'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/internal_interface_api_handler.APIErrorResponse'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/internal_interface_api_handler.APIErrorResponse'
-        "403":
-          description: Forbidden
-          schema:
-            $ref: '#/definitions/internal_interface_api_handler.APIErrorResponse'
-        "404":
-          description: Not Found
-          schema:
-            $ref: '#/definitions/internal_interface_api_handler.APIErrorResponse'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/internal_interface_api_handler.APIErrorResponse'
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
       security:
       - BearerAuth: []
-      summary: Delete mobile config
+      summary: Delete application
       tags:
-      - Mobile Config
+      - applications
+    get:
+      description: Fetch details of a specific app
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+      security:
+      - BearerAuth: []
+      summary: Get app block by ID
+      tags:
+      - applications
     put:
       consumes:
       - application/json
-      description: Update an existing Apple mobileconfig with payloads and payload
-        properties
-      parameters:
-      - description: Mobile config ID
-        in: path
-        name: id
-        required: true
-        type: integer
-      - description: Mobile config payload
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/github_com_thienel_go-backend-template_internal_interface_api_dto.UpdateMobileConfigRequest'
+      description: Update application
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_interface_api_handler.MobileConfigSuccessResponse'
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+      security:
+      - BearerAuth: []
+      summary: Update application metadata
+      tags:
+      - applications
+  /api/v1/applications/{id}/versions:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+      security:
+      - BearerAuth: []
+      summary: List application versions
+      tags:
+      - applications
+    post:
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+      security:
+      - BearerAuth: []
+      summary: Upload and create a new version of an app
+      tags:
+      - applications
+  /api/v1/applications/{id}/versions/{versionId}:
+    delete:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+      security:
+      - BearerAuth: []
+      summary: Delete app version
+      tags:
+      - applications
+  /api/v1/applications/{id}/versions/{versionId}/deployments:
+    get:
+      description: Review installation statuses of pushed tools
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+      security:
+      - BearerAuth: []
+      summary: List deployment status
+      tags:
+      - applications
+  /api/v1/applications/deployments:
+    post:
+      consumes:
+      - application/json
+      description: Command the MDM core to push app installations
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+      security:
+      - BearerAuth: []
+      summary: Push app to devices
+      tags:
+      - applications
+  /api/v1/auth/login:
+    post:
+      consumes:
+      - application/json
+      description: Authenticate user and return JWT tokens
+      parameters:
+      - description: Login credentials
+        in: body
+        name: login
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_thienel_go-backend-template_internal_interface_api_dto.LoginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_LoginResponse'
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/internal_interface_api_handler.APIErrorResponse'
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/internal_interface_api_handler.APIErrorResponse'
-        "403":
-          description: Forbidden
-          schema:
-            $ref: '#/definitions/internal_interface_api_handler.APIErrorResponse'
-        "404":
-          description: Not Found
-          schema:
-            $ref: '#/definitions/internal_interface_api_handler.APIErrorResponse'
-        "409":
-          description: Conflict
-          schema:
-            $ref: '#/definitions/internal_interface_api_handler.APIErrorResponse'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/internal_interface_api_handler.APIErrorResponse'
-      security:
-      - BearerAuth: []
-      summary: Update mobile config
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+      summary: User login
       tags:
-      - Mobile Config
-  /api/mobile-configs/{id}/xml:
-    get:
-      description: Generate and return raw Apple mobileconfig XML content by ID
-      parameters:
-      - description: Mobile config ID
-        in: path
-        name: id
-        required: true
-        type: integer
+      - Authentication
+  /api/v1/auth/logout:
+    post:
+      description: Invalidate the current session
       produces:
-      - text/xml
+      - application/json
       responses:
         "200":
-          description: Raw XML
+          description: OK
           schema:
-            type: string
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+      security:
+      - BearerAuth: []
+      summary: User logout
+      tags:
+      - Authentication
+  /api/v1/auth/me:
+    get:
+      description: Return the profile of the currently authenticated user
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_UserResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+      security:
+      - BearerAuth: []
+      summary: Get current user info
+      tags:
+      - Authentication
+  /api/v1/auth/refresh:
+    post:
+      consumes:
+      - application/json
+      description: Refresh existing access token using a valid refresh token
+      parameters:
+      - description: Refresh token
+        in: body
+        name: refresh
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_thienel_go-backend-template_internal_interface_api_dto.TokenRefreshRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_LoginResponse'
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/internal_interface_api_handler.APIErrorResponse'
-        "404":
-          description: Not Found
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+        "401":
+          description: Unauthorized
           schema:
-            $ref: '#/definitions/internal_interface_api_handler.APIErrorResponse'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/internal_interface_api_handler.APIErrorResponse'
-      summary: Export mobile config XML
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+      summary: Refresh access token
       tags:
-      - Mobile Config
+      - Authentication
   /api/v1/dashboard/alerts-summary:
     get:
       description: Get alerts summary including counts by severity and type
@@ -2057,6 +2136,1002 @@ paths:
       summary: Get dashboard statistics
       tags:
       - Dashboard
+  /api/v1/dep/assigner/{name}:
+    get:
+      description: Return the assigner profile UUID for the given DEP name.
+      parameters:
+      - description: Name of DEP server instance
+        in: path
+        name: name
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_AssignerProfileUUID'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+      security:
+      - BearerAuth: []
+      summary: Return the assigner profile UUID
+      tags:
+      - DEP
+    put:
+      description: Assign a profile UUID for assignment for the given DEP name.
+      parameters:
+      - description: Name of DEP server instance
+        in: path
+        name: name
+        required: true
+        type: string
+      - description: Profile UUID to assign
+        in: query
+        name: profile_uuid
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_AssignerProfileUUID'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+      security:
+      - BearerAuth: []
+      summary: Assign a profile UUID for assignment
+      tags:
+      - DEP
+  /api/v1/dep/bypasscode:
+    get:
+      description: Generates (or decodes) an Activation Lock Bypass Code and returns
+        different forms of it.
+      parameters:
+      - description: Hex-encoded raw form of bypass code
+        in: query
+        name: code
+        type: string
+      - description: Dash-separated human readable form
+        in: query
+        name: raw
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_BypassCodeResponse'
+      security:
+      - BearerAuth: []
+      summary: Generates or decodes an Activation Lock Bypass Code
+      tags:
+      - DEP
+  /api/v1/dep/config/{name}:
+    get:
+      description: Return the config for the given DEP name.
+      parameters:
+      - description: Name of DEP server instance
+        in: path
+        name: name
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_DEPConfig'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+      security:
+      - BearerAuth: []
+      summary: Return the config for the given DEP name
+      tags:
+      - DEP
+    put:
+      consumes:
+      - application/json
+      description: Set the config for the given DEP name.
+      parameters:
+      - description: Name of DEP server instance
+        in: path
+        name: name
+        required: true
+        type: string
+      - description: Config details
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_thienel_go-backend-template_internal_interface_api_dto.DEPConfig'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_DEPConfig'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+      security:
+      - BearerAuth: []
+      summary: Set the config for the given DEP name
+      tags:
+      - DEP
+  /api/v1/dep/dep_names:
+    get:
+      description: Query DEP names with optional filters and pagination.
+      parameters:
+      - collectionFormat: csv
+        description: Filter by DEP names
+        in: query
+        items:
+          type: string
+        name: dep_name
+        type: array
+      - default: 100
+        description: Limits number of results
+        in: query
+        name: limit
+        type: integer
+      - description: Offset results
+        in: query
+        name: offset
+        type: integer
+      - description: Pagination cursor
+        in: query
+        name: cursor
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_DEPNamesQueryResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+      security:
+      - BearerAuth: []
+      summary: Query DEP names
+      tags:
+      - DEP
+  /api/v1/dep/maidjwt/{name}:
+    get:
+      description: Generate Managed Apple ID Managed Access JWT.
+      parameters:
+      - description: Name of DEP server instance
+        in: path
+        name: name
+        required: true
+        type: string
+      - description: MDM server UUID
+        in: query
+        name: server_uuid
+        type: string
+      produces:
+      - application/jwt
+      responses:
+        "200":
+          description: JWT
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Generate Managed Apple ID Managed Access JWT
+      tags:
+      - DEP
+  /api/v1/dep/profiles:
+    get:
+      description: Fetch all defined DEP profiles from NanoDEP
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+      security:
+      - BearerAuth: []
+      summary: List Defined DEP profiles
+      tags:
+      - DEP
+  /api/v1/dep/proxy/{name}/account:
+    get:
+      description: Fetch Apple DEP account info via proxy
+      parameters:
+      - description: DEP name
+        in: path
+        name: name
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses: {}
+      security:
+      - BearerAuth: []
+      summary: Get DEP account
+      tags:
+      - DEP
+  /api/v1/dep/proxy/{name}/devices:
+    post:
+      consumes:
+      - application/json
+      description: Fetch device list or details from Apple via proxy. If devices array
+        is provided in body, fetches details for those serial numbers.
+      parameters:
+      - description: DEP name
+        in: path
+        name: name
+        required: true
+        type: string
+      - description: Devices list
+        in: body
+        name: request
+        schema:
+          $ref: '#/definitions/github_com_thienel_go-backend-template_internal_interface_api_dto.DEPDevicesRequest'
+      - description: Pagination cursor
+        in: query
+        name: cursor
+        type: string
+      produces:
+      - application/json
+      responses: {}
+      security:
+      - BearerAuth: []
+      summary: Get DEP devices
+      tags:
+      - DEP
+  /api/v1/dep/proxy/{name}/devices/disown:
+    post:
+      consumes:
+      - application/json
+      description: Remove a device from DEP management via proxy
+      parameters:
+      - description: DEP name
+        in: path
+        name: name
+        required: true
+        type: string
+      - description: Devices list to disown
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_thienel_go-backend-template_internal_interface_api_dto.DEPDevicesRequest'
+      produces:
+      - application/json
+      responses: {}
+      security:
+      - BearerAuth: []
+      summary: Disown DEP device
+      tags:
+      - DEP
+  /api/v1/dep/proxy/{name}/devices/sync:
+    post:
+      description: Initiate a sync with Apple DEP servers to fetch new devices via
+        proxy
+      parameters:
+      - description: 'DEP name (default: ''default'')'
+        in: path
+        name: name
+        type: string
+      - description: Sync cursor
+        in: query
+        name: cursor
+        type: string
+      produces:
+      - application/json
+      responses: {}
+      security:
+      - BearerAuth: []
+      summary: Sync DEP devices
+      tags:
+      - DEP
+  /api/v1/dep/proxy/{name}/profile:
+    get:
+      description: Fetch details of a defined DEP profile via proxy
+      parameters:
+      - description: 'DEP name (default: ''default'')'
+        in: path
+        name: name
+        type: string
+      - description: Profile UUID
+        in: query
+        name: profile_uuid
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+      security:
+      - BearerAuth: []
+      summary: Get DEP profile
+      tags:
+      - DEP
+    post:
+      consumes:
+      - application/json
+      description: Create or update a DEP assignment profile via proxy
+      parameters:
+      - description: 'DEP name (default: ''default'')'
+        in: path
+        name: name
+        type: string
+      - description: Profile details
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_thienel_go-backend-template_internal_interface_api_dto.DEPProfileRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_DEPProfileResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+      security:
+      - BearerAuth: []
+      summary: Define DEP profile
+      tags:
+      - DEP
+  /api/v1/dep/token/{name}:
+    get:
+      description: Get PEM certificate for ABM for a specific name
+      parameters:
+      - description: Token name
+        in: path
+        name: name
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+      security:
+      - BearerAuth: []
+      summary: Get DEP token pem
+      tags:
+      - DEP
+  /api/v1/dep/tokenpki/{name}:
+    get:
+      description: Generate and store a new X.509 certificate and RSA private key
+        for exchanging encrypted DEP OAuth1 tokens.
+      parameters:
+      - description: Name of DEP server instance
+        in: path
+        name: name
+        required: true
+        type: string
+      - description: Common Name
+        in: query
+        name: cn
+        type: string
+      - description: Validity days
+        in: query
+        name: validity_days
+        type: integer
+      produces:
+      - application/x-pem-file
+      responses:
+        "200":
+          description: X.509 certificate PEM
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+      security:
+      - BearerAuth: []
+      summary: Generate and retrieve DEP token PKI certificate
+      tags:
+      - DEP
+    put:
+      consumes:
+      - application/pkcs7-mime
+      description: Decrypt the OAuth1 tokens from the Apple ABM/ASM/BE portal and
+        store them.
+      parameters:
+      - description: Name of DEP server instance
+        in: path
+        name: name
+        required: true
+        type: string
+      - description: Bypass the Consumer Key mismatch check (1 to enable)
+        in: query
+        name: force
+        type: string
+      - description: Contents of the .p7m file from Apple
+        in: body
+        name: token
+        required: true
+        schema:
+          type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_OAuth1Tokens'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+      security:
+      - BearerAuth: []
+      summary: Upload and decrypt DEP OAuth1 tokens
+      tags:
+      - DEP
+  /api/v1/dep/tokens/{name}:
+    get:
+      description: Return the DEP OAuth1 tokens for the given DEP name.
+      parameters:
+      - description: Name of DEP server instance
+        in: path
+        name: name
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_OAuth1Tokens'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+      security:
+      - BearerAuth: []
+      summary: Return the DEP OAuth1 tokens
+      tags:
+      - DEP
+    put:
+      consumes:
+      - application/json
+      description: Upload and store DEP OAuth1 tokens for the given DEP Name.
+      parameters:
+      - description: Name of DEP server instance
+        in: path
+        name: name
+        required: true
+        type: string
+      - description: OAuth1 tokens
+        in: body
+        name: tokens
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_thienel_go-backend-template_internal_interface_api_dto.OAuth1Tokens'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_OAuth1Tokens'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+      security:
+      - BearerAuth: []
+      summary: Upload and store DEP OAuth1 tokens
+      tags:
+      - DEP
+  /api/v1/dep/version:
+    get:
+      description: Returns the running NanoDEP version.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_NanoDEPVersionResponse'
+      summary: Returns the running NanoDEP version
+      tags:
+      - DEP
+  /api/v1/device-groups:
+    get:
+      description: Fetch device groups with pagination and filtering
+      produces:
+      - application/json
+      responses: {}
+      security:
+      - BearerAuth: []
+      summary: List device groups
+      tags:
+      - DeviceGroups
+    post:
+      consumes:
+      - application/json
+      description: Create a new device group
+      parameters:
+      - description: Group info
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_thienel_go-backend-template_internal_interface_api_dto.CreateDeviceGroupRequest'
+      produces:
+      - application/json
+      responses: {}
+      security:
+      - BearerAuth: []
+      summary: Create device group
+      tags:
+      - DeviceGroups
+  /api/v1/device-groups/{id}:
+    delete:
+      description: Delete an existing device group
+      parameters:
+      - description: Group ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses: {}
+      security:
+      - BearerAuth: []
+      summary: Delete device group
+      tags:
+      - DeviceGroups
+    get:
+      description: Fetch single device group
+      parameters:
+      - description: Group ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses: {}
+      security:
+      - BearerAuth: []
+      summary: Get device group by ID
+      tags:
+      - DeviceGroups
+    put:
+      consumes:
+      - application/json
+      description: Update an existing device group
+      parameters:
+      - description: Group ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Group info
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_thienel_go-backend-template_internal_interface_api_dto.UpdateDeviceGroupRequest'
+      produces:
+      - application/json
+      responses: {}
+      security:
+      - BearerAuth: []
+      summary: Update device group
+      tags:
+      - DeviceGroups
+  /api/v1/device-groups/{id}/devices:
+    post:
+      consumes:
+      - application/json
+      description: Assign one or more devices to a group
+      parameters:
+      - description: Group ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Device IDs
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_thienel_go-backend-template_internal_interface_api_dto.ManageGroupDevicesRequest'
+      produces:
+      - application/json
+      responses: {}
+      security:
+      - BearerAuth: []
+      summary: Add devices to group
+      tags:
+      - DeviceGroups
+  /api/v1/device-groups/{id}/devices/{deviceId}:
+    delete:
+      description: Unassign a single device from a group
+      parameters:
+      - description: Group ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Device ID
+        in: path
+        name: deviceId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses: {}
+      security:
+      - BearerAuth: []
+      summary: Remove device from group
+      tags:
+      - DeviceGroups
+  /api/v1/devices:
+    get:
+      description: Fetch devices with pagination, sorting and filtering
+      produces:
+      - application/json
+      responses: {}
+      security:
+      - BearerAuth: []
+      summary: List devices
+      tags:
+      - Devices
+  /api/v1/devices/{id}:
+    get:
+      description: Fetch single device details
+      parameters:
+      - description: Device ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses: {}
+      security:
+      - BearerAuth: []
+      summary: Get device by ID
+      tags:
+      - Devices
+  /api/v1/devices/{id}/lock:
+    post:
+      description: Queues MDM device lock command
+      parameters:
+      - description: Device ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses: {}
+      security:
+      - BearerAuth: []
+      summary: Lock device
+      tags:
+      - Devices
+  /api/v1/devices/{id}/wipe:
+    post:
+      description: Queues MDM erase device command
+      parameters:
+      - description: Device ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses: {}
+      security:
+      - BearerAuth: []
+      summary: Wipe device
+      tags:
+      - Devices
+  /api/v1/devices/export:
+    get:
+      description: Export devices to CSV or JSON
+      parameters:
+      - description: Format (csv or json)
+        in: query
+        name: format
+        type: string
+      produces:
+      - text/csv
+      responses: {}
+      security:
+      - BearerAuth: []
+      summary: Export devices
+      tags:
+      - Devices
+  /api/v1/mdm/enqueue/{id}:
+    put:
+      consumes:
+      - text/plain
+      description: Enqueue MDM commands to MDM enrollments and (optionally) send APNs
+        push notifications.
+      parameters:
+      - description: Enrollment ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Do not send push (1 to enable)
+        in: query
+        name: nopush
+        type: string
+      - description: XML-encoded MDM command plist
+        in: body
+        name: command
+        required: true
+        schema:
+          type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_APIResult'
+        "207":
+          description: Multi-Status
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_APIResult'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_APIResult'
+      security:
+      - BearerAuth: []
+      summary: Enqueue MDM commands
+      tags:
+      - MDM
+  /api/v1/mdm/escrowkeyunlock:
+    post:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: Perform an Escrow Key Unlock against Apple's API.
+      parameters:
+      - description: APNs Push topic
+        in: formData
+        name: topic
+        required: true
+        type: string
+      - description: Device serial number
+        in: formData
+        name: serial
+        required: true
+        type: string
+      - description: Apple product type
+        in: formData
+        name: productType
+        required: true
+        type: string
+      - description: Bypass Code
+        in: formData
+        name: escrowKey
+        required: true
+        type: string
+      - description: Organization name
+        in: formData
+        name: orgName
+        required: true
+        type: string
+      - description: Requester identifier
+        in: formData
+        name: guid
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+      summary: Perform an Escrow Key Unlock
+      tags:
+      - MDM
+  /api/v1/mdm/push/{id}:
+    get:
+      description: Send APNs push notifications to MDM enrollments.
+      parameters:
+      - description: Enrollment ID(s) comma-separated
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_APIResult'
+        "207":
+          description: Multi-Status
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_APIResult'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_APIResult'
+      security:
+      - BearerAuth: []
+      summary: Send APNs push notifications
+      tags:
+      - MDM
+  /api/v1/mdm/pushcert:
+    get:
+      description: Retrieve the topic and expiry of the stored APNs push certificate.
+      parameters:
+      - description: APNs topic
+        in: query
+        name: topic
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_PushCertResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+      security:
+      - BearerAuth: []
+      summary: Retrieve APNs push certificate info
+      tags:
+      - MDM
+    put:
+      consumes:
+      - text/plain
+      description: Upload APNs certificate and private key. Concatenated PEM format.
+      parameters:
+      - description: PEM-encoded certificate and private key
+        in: body
+        name: data
+        required: true
+        schema:
+          type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_PushCertResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+      security:
+      - BearerAuth: []
+      summary: Upload APNs certificate and private key
+      tags:
+      - MDM
+  /api/v1/mdm/version:
+    get:
+      description: Returns the running NanoMDM version.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_NanoMDMVersionResponse'
+      summary: Returns the running NanoMDM version
+      tags:
+      - MDM
   /api/v1/mobile-configs:
     get:
       description: Get a paginated list of Apple mobile configs with filtering and
@@ -2106,7 +3181,90 @@ paths:
       summary: List mobile configs
       tags:
       - Mobile Config
+    post:
+      consumes:
+      - application/json
+      description: Create a new Apple mobileconfig with payloads and payload properties
+      parameters:
+      - description: Mobile config payload
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_thienel_go-backend-template_internal_interface_api_dto.CreateMobileConfigRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/internal_interface_api_handler.MobileConfigSuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/internal_interface_api_handler.APIErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/internal_interface_api_handler.APIErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/internal_interface_api_handler.APIErrorResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/internal_interface_api_handler.APIErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/internal_interface_api_handler.APIErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Create mobile config
+      tags:
+      - Mobile Config
   /api/v1/mobile-configs/{id}:
+    delete:
+      description: Delete an existing Apple mobileconfig by ID
+      parameters:
+      - description: Mobile config ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_interface_api_handler.EmptySuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/internal_interface_api_handler.APIErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/internal_interface_api_handler.APIErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/internal_interface_api_handler.APIErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/internal_interface_api_handler.APIErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/internal_interface_api_handler.APIErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Delete mobile config
+      tags:
+      - Mobile Config
     get:
       description: Get details of a single mobile config by its ID including payloads
       parameters:
@@ -2143,6 +3301,451 @@ paths:
       summary: Get mobile config by ID
       tags:
       - Mobile Config
+    put:
+      consumes:
+      - application/json
+      description: Update an existing Apple mobileconfig with payloads and payload
+        properties
+      parameters:
+      - description: Mobile config ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Mobile config payload
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_thienel_go-backend-template_internal_interface_api_dto.UpdateMobileConfigRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_interface_api_handler.MobileConfigSuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/internal_interface_api_handler.APIErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/internal_interface_api_handler.APIErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/internal_interface_api_handler.APIErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/internal_interface_api_handler.APIErrorResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/internal_interface_api_handler.APIErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/internal_interface_api_handler.APIErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Update mobile config
+      tags:
+      - Mobile Config
+  /api/v1/mobile-configs/{id}/xml:
+    get:
+      description: Generate and return raw Apple mobileconfig XML content by ID
+      parameters:
+      - description: Mobile config ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - text/xml
+      responses:
+        "200":
+          description: Raw XML
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/internal_interface_api_handler.APIErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/internal_interface_api_handler.APIErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/internal_interface_api_handler.APIErrorResponse'
+      summary: Export mobile config XML
+      tags:
+      - Mobile Config
+  /api/v1/nanocmd/cmdplan/{name}:
+    get:
+      description: Retrieve and return a named command plan as JSON.
+      parameters:
+      - description: User-defined name of Command Plan.
+        in: path
+        name: name
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_CMDPlan'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+      security:
+      - BearerAuth: []
+      summary: Retrieve and return a named command plan
+      tags:
+      - NanoCMD
+    put:
+      consumes:
+      - application/json
+      description: Upload a named JSON command plan.
+      parameters:
+      - description: User-defined name of Command Plan.
+        in: path
+        name: name
+        required: true
+        type: string
+      - description: Command plan.
+        in: body
+        name: plan
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_thienel_go-backend-template_internal_interface_api_dto.CMDPlan'
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+      security:
+      - BearerAuth: []
+      summary: Upload a named command plan
+      tags:
+      - NanoCMD
+  /api/v1/nanocmd/event/{name}:
+    get:
+      description: Retrieve the event subscription.
+      parameters:
+      - description: User-defined name of Event Subscription.
+        in: path
+        name: name
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_EventSubscription'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+      security:
+      - BearerAuth: []
+      summary: Retrieve the event subscription
+      tags:
+      - NanoCMD
+    put:
+      consumes:
+      - application/json
+      description: Store the event subscription provided in the request body.
+      parameters:
+      - description: User-defined name of Event Subscription.
+        in: path
+        name: name
+        required: true
+        type: string
+      - description: Event Subscription.
+        in: body
+        name: subscription
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_thienel_go-backend-template_internal_interface_api_dto.EventSubscription'
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+      security:
+      - BearerAuth: []
+      summary: Store the event subscription
+      tags:
+      - NanoCMD
+  /api/v1/nanocmd/fvenable/profiletemplate:
+    get:
+      description: Returns the FileVault enable Configuration Profile template.
+      produces:
+      - application/x-apple-aspen-config
+      responses:
+        "200":
+          description: Apple Configuration Profile
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+      security:
+      - BearerAuth: []
+      summary: Returns the FileVault enable Configuration Profile template
+      tags:
+      - NanoCMD
+  /api/v1/nanocmd/inventory:
+    get:
+      description: Retrieve inventory data for enrollment IDs.
+      parameters:
+      - collectionFormat: csv
+        description: Enrollment ID. Unique identifier of MDM enrollment. Often a device
+          UDID or a user channel UUID.
+        in: query
+        items:
+          type: string
+        name: id
+        required: true
+        type: array
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_NanoCMDInventoryResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+      security:
+      - BearerAuth: []
+      summary: Retrieve inventory data for enrollment IDs
+      tags:
+      - NanoCMD
+  /api/v1/nanocmd/profile/{name}:
+    delete:
+      description: Deletes the named profile.
+      parameters:
+      - description: User-defined name of Profile.
+        in: path
+        name: name
+        required: true
+        type: string
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+      security:
+      - BearerAuth: []
+      summary: Deletes the named profile
+      tags:
+      - NanoCMD
+    get:
+      description: Fetches the named raw profile.
+      parameters:
+      - description: User-defined name of Profile.
+        in: path
+        name: name
+        required: true
+        type: string
+      produces:
+      - application/x-apple-aspen-config
+      responses:
+        "200":
+          description: Apple Configuration Profile
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+      security:
+      - BearerAuth: []
+      summary: Fetches the named raw profile
+      tags:
+      - NanoCMD
+    put:
+      consumes:
+      - application/x-apple-aspen-config
+      description: Uploads a raw profile. Signed profiles also supported.
+      parameters:
+      - description: User-defined name of Profile.
+        in: path
+        name: name
+        required: true
+        type: string
+      - description: Raw profile mobileconfig.
+        in: body
+        name: data
+        required: true
+        schema:
+          type: string
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+      security:
+      - BearerAuth: []
+      summary: Uploads a raw profile
+      tags:
+      - NanoCMD
+  /api/v1/nanocmd/profiles:
+    get:
+      description: Retrieve profile metadata.
+      parameters:
+      - collectionFormat: csv
+        description: User-defined name of profile.
+        in: query
+        items:
+          type: string
+        name: name
+        type: array
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-map_string_github_com_thienel_go-backend-template_internal_interface_api_dto_NanoCMDProfile'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+      security:
+      - BearerAuth: []
+      summary: Retrieve profile metadata
+      tags:
+      - NanoCMD
+  /api/v1/nanocmd/version:
+    get:
+      description: Get the version of the NanoCMD server
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_NanoCMDVersionResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+      security:
+      - BearerAuth: []
+      summary: Returns the running NanoCMD server version
+      tags:
+      - NanoCMD
   /api/v1/nanocmd/webhook:
     post:
       consumes:
@@ -2174,6 +3777,170 @@ paths:
       tags:
       - NanoCMD
       - Infrastructure
+  /api/v1/nanocmd/workflow/{name}/start:
+    post:
+      description: Start a workflow.
+      parameters:
+      - description: Name of NanoCMD workflow.
+        in: path
+        name: name
+        required: true
+        type: string
+      - collectionFormat: csv
+        description: Enrollment ID. Unique identifier of MDM enrollment. Often a device
+          UDID or a user channel UUID.
+        in: query
+        items:
+          type: string
+        name: id
+        required: true
+        type: array
+      - description: Workflow-dependent context.
+        in: query
+        name: context
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_NanoCMDWorkflowStartResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+      security:
+      - BearerAuth: []
+      summary: Start a workflow
+      tags:
+      - NanoCMD
+  /api/v1/policies:
+    delete:
+      consumes:
+      - application/json
+      description: Remove an existing Casbin policy
+      parameters:
+      - description: Policy rule details to remove
+        in: body
+        name: policy
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_thienel_go-backend-template_internal_usecase_service.PolicyRule'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+      security:
+      - BearerAuth: []
+      summary: Remove a policy
+      tags:
+      - Authorization
+    get:
+      description: Get a list of all Casbin policies (role, path, method)
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-array_github_com_thienel_go-backend-template_internal_usecase_service_PolicyRule'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+      security:
+      - BearerAuth: []
+      summary: List all policies
+      tags:
+      - Authorization
+    post:
+      consumes:
+      - application/json
+      description: Add a new Casbin policy
+      parameters:
+      - description: Policy rule details
+        in: body
+        name: policy
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_thienel_go-backend-template_internal_usecase_service.PolicyRule'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-github_com_thienel_go-backend-template_internal_usecase_service_PolicyRule'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+      security:
+      - BearerAuth: []
+      summary: Add a policy
+      tags:
+      - Authorization
+  /api/v1/policies/role/{role}:
+    get:
+      description: Get all Casbin policies associated with a specific role
+      parameters:
+      - description: Role name
+        in: path
+        name: role
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-array_github_com_thienel_go-backend-template_internal_usecase_service_PolicyRule'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+      security:
+      - BearerAuth: []
+      summary: Get policies for a role
+      tags:
+      - Authorization
   /api/v1/profiles:
     get:
       description: Fetch profiles with pagination and filtering
@@ -2927,170 +4694,7 @@ paths:
       summary: Rollback version
       tags:
       - Profiles
-  /applications:
-    get:
-      description: Fetch tracked applications with pagination
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
-      security:
-      - BearerAuth: []
-      summary: List applications
-      tags:
-      - applications
-    post:
-      consumes:
-      - application/json
-      description: Create application
-      produces:
-      - application/json
-      responses:
-        "201":
-          description: Created
-          schema:
-            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
-      security:
-      - BearerAuth: []
-      summary: Add a new application tracking record
-      tags:
-      - applications
-  /applications/{id}:
-    delete:
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
-      security:
-      - BearerAuth: []
-      summary: Delete application
-      tags:
-      - applications
-    get:
-      description: Fetch details of a specific app
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
-      security:
-      - BearerAuth: []
-      summary: Get app block by ID
-      tags:
-      - applications
-    put:
-      consumes:
-      - application/json
-      description: Update application
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
-      security:
-      - BearerAuth: []
-      summary: Update application metadata
-      tags:
-      - applications
-  /applications/{id}/versions:
-    get:
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
-      security:
-      - BearerAuth: []
-      summary: List application versions
-      tags:
-      - applications
-    post:
-      consumes:
-      - application/json
-      produces:
-      - application/json
-      responses:
-        "201":
-          description: Created
-          schema:
-            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
-      security:
-      - BearerAuth: []
-      summary: Upload and create a new version of an app
-      tags:
-      - applications
-  /applications/{id}/versions/{versionId}:
-    delete:
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
-      security:
-      - BearerAuth: []
-      summary: Delete app version
-      tags:
-      - applications
-  /applications/{id}/versions/{versionId}/deployments:
-    get:
-      description: Review installation statuses of pushed tools
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
-      security:
-      - BearerAuth: []
-      summary: List deployment status
-      tags:
-      - applications
-  /applications/deployments:
-    post:
-      consumes:
-      - application/json
-      description: Command the MDM core to push app installations
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
-      security:
-      - BearerAuth: []
-      summary: Push app to devices
-      tags:
-      - applications
-  /health:
-    get:
-      description: Check service liveness
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/internal_interface_api_handler.HealthResponse'
-      summary: Health check
-      tags:
-      - System
-  /reports/alerts/export:
+  /api/v1/reports/alerts/export:
     get:
       description: Export a list of generated alerts to CSV format
       parameters:
@@ -3118,7 +4722,7 @@ paths:
       summary: Export Alerts
       tags:
       - reports
-  /reports/applications/export:
+  /api/v1/reports/applications/export:
     get:
       description: Export a list of tracked applications to CSV format
       parameters:
@@ -3146,7 +4750,7 @@ paths:
       summary: Export Applications
       tags:
       - reports
-  /reports/devices/export:
+  /api/v1/reports/devices/export:
     get:
       description: Export a list of devices to CSV format
       parameters:
@@ -3174,7 +4778,96 @@ paths:
       summary: Export Devices
       tags:
       - reports
-  /settings:
+  /api/v1/roles:
+    delete:
+      consumes:
+      - application/json
+      description: Remove an existing role hierarchy link
+      parameters:
+      - description: Role link details to remove
+        in: body
+        name: role
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_thienel_go-backend-template_internal_usecase_service.RoleLink'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+      security:
+      - BearerAuth: []
+      summary: Remove a role link
+      tags:
+      - Authorization
+    get:
+      description: Get a list of all role hierarchy links (child, parent)
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-array_github_com_thienel_go-backend-template_internal_usecase_service_RoleLink'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+      security:
+      - BearerAuth: []
+      summary: List all role links
+      tags:
+      - Authorization
+    post:
+      consumes:
+      - application/json
+      description: Add a new role hierarchy link
+      parameters:
+      - description: Role link details
+        in: body
+        name: role
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_thienel_go-backend-template_internal_usecase_service.RoleLink'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-github_com_thienel_go-backend-template_internal_usecase_service_RoleLink'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+      security:
+      - BearerAuth: []
+      summary: Add a role link
+      tags:
+      - Authorization
+  /api/v1/settings:
     get:
       description: Fetch all backend configuration kv string settings
       produces:
@@ -3232,7 +4925,7 @@ paths:
       summary: Create setting
       tags:
       - settings
-  /settings/{key}:
+  /api/v1/settings/{key}:
     delete:
       description: Delete system setting forever
       parameters:
@@ -3337,1715 +5030,7 @@ paths:
       summary: Update setting
       tags:
       - settings
-  /v1/auth/login:
-    post:
-      consumes:
-      - application/json
-      description: Authenticate user and return JWT tokens
-      parameters:
-      - description: Login credentials
-        in: body
-        name: login
-        required: true
-        schema:
-          $ref: '#/definitions/github_com_thienel_go-backend-template_internal_interface_api_dto.LoginRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_LoginResponse'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
-      summary: User login
-      tags:
-      - Authentication
-  /v1/auth/logout:
-    post:
-      description: Invalidate the current session
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
-      security:
-      - BearerAuth: []
-      summary: User logout
-      tags:
-      - Authentication
-  /v1/auth/me:
-    get:
-      description: Return the profile of the currently authenticated user
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_UserResponse'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
-      security:
-      - BearerAuth: []
-      summary: Get current user info
-      tags:
-      - Authentication
-  /v1/auth/refresh:
-    post:
-      consumes:
-      - application/json
-      description: Refresh existing access token using a valid refresh token
-      parameters:
-      - description: Refresh token
-        in: body
-        name: refresh
-        required: true
-        schema:
-          $ref: '#/definitions/github_com_thienel_go-backend-template_internal_interface_api_dto.TokenRefreshRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_LoginResponse'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
-      summary: Refresh access token
-      tags:
-      - Authentication
-  /v1/dep/assigner/{name}:
-    get:
-      description: Return the assigner profile UUID for the given DEP name.
-      parameters:
-      - description: Name of DEP server instance
-        in: path
-        name: name
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_AssignerProfileUUID'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
-      security:
-      - BearerAuth: []
-      summary: Return the assigner profile UUID
-      tags:
-      - DEP
-    put:
-      description: Assign a profile UUID for assignment for the given DEP name.
-      parameters:
-      - description: Name of DEP server instance
-        in: path
-        name: name
-        required: true
-        type: string
-      - description: Profile UUID to assign
-        in: query
-        name: profile_uuid
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_AssignerProfileUUID'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
-      security:
-      - BearerAuth: []
-      summary: Assign a profile UUID for assignment
-      tags:
-      - DEP
-  /v1/dep/bypasscode:
-    get:
-      description: Generates (or decodes) an Activation Lock Bypass Code and returns
-        different forms of it.
-      parameters:
-      - description: Hex-encoded raw form of bypass code
-        in: query
-        name: code
-        type: string
-      - description: Dash-separated human readable form
-        in: query
-        name: raw
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_BypassCodeResponse'
-      security:
-      - BearerAuth: []
-      summary: Generates or decodes an Activation Lock Bypass Code
-      tags:
-      - DEP
-  /v1/dep/config/{name}:
-    get:
-      description: Return the config for the given DEP name.
-      parameters:
-      - description: Name of DEP server instance
-        in: path
-        name: name
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_DEPConfig'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
-      security:
-      - BearerAuth: []
-      summary: Return the config for the given DEP name
-      tags:
-      - DEP
-    put:
-      consumes:
-      - application/json
-      description: Set the config for the given DEP name.
-      parameters:
-      - description: Name of DEP server instance
-        in: path
-        name: name
-        required: true
-        type: string
-      - description: Config details
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/github_com_thienel_go-backend-template_internal_interface_api_dto.DEPConfig'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_DEPConfig'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
-      security:
-      - BearerAuth: []
-      summary: Set the config for the given DEP name
-      tags:
-      - DEP
-  /v1/dep/dep_names:
-    get:
-      description: Query DEP names with optional filters and pagination.
-      parameters:
-      - collectionFormat: csv
-        description: Filter by DEP names
-        in: query
-        items:
-          type: string
-        name: dep_name
-        type: array
-      - default: 100
-        description: Limits number of results
-        in: query
-        name: limit
-        type: integer
-      - description: Offset results
-        in: query
-        name: offset
-        type: integer
-      - description: Pagination cursor
-        in: query
-        name: cursor
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_DEPNamesQueryResponse'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
-      security:
-      - BearerAuth: []
-      summary: Query DEP names
-      tags:
-      - DEP
-  /v1/dep/maidjwt/{name}:
-    get:
-      description: Generate Managed Apple ID Managed Access JWT.
-      parameters:
-      - description: Name of DEP server instance
-        in: path
-        name: name
-        required: true
-        type: string
-      - description: MDM server UUID
-        in: query
-        name: server_uuid
-        type: string
-      produces:
-      - application/jwt
-      responses:
-        "200":
-          description: JWT
-          schema:
-            type: string
-      security:
-      - BearerAuth: []
-      summary: Generate Managed Apple ID Managed Access JWT
-      tags:
-      - DEP
-  /v1/dep/profiles:
-    get:
-      description: Fetch all defined DEP profiles from NanoDEP
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
-      security:
-      - BearerAuth: []
-      summary: List Defined DEP profiles
-      tags:
-      - DEP
-  /v1/dep/proxy/{name}/account:
-    get:
-      description: Fetch Apple DEP account info via proxy
-      parameters:
-      - description: DEP name
-        in: path
-        name: name
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses: {}
-      security:
-      - BearerAuth: []
-      summary: Get DEP account
-      tags:
-      - DEP
-  /v1/dep/proxy/{name}/devices:
-    post:
-      consumes:
-      - application/json
-      description: Fetch device list or details from Apple via proxy. If devices array
-        is provided in body, fetches details for those serial numbers.
-      parameters:
-      - description: DEP name
-        in: path
-        name: name
-        required: true
-        type: string
-      - description: Devices list
-        in: body
-        name: request
-        schema:
-          $ref: '#/definitions/github_com_thienel_go-backend-template_internal_interface_api_dto.DEPDevicesRequest'
-      - description: Pagination cursor
-        in: query
-        name: cursor
-        type: string
-      produces:
-      - application/json
-      responses: {}
-      security:
-      - BearerAuth: []
-      summary: Get DEP devices
-      tags:
-      - DEP
-  /v1/dep/proxy/{name}/devices/disown:
-    post:
-      consumes:
-      - application/json
-      description: Remove a device from DEP management via proxy
-      parameters:
-      - description: DEP name
-        in: path
-        name: name
-        required: true
-        type: string
-      - description: Devices list to disown
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/github_com_thienel_go-backend-template_internal_interface_api_dto.DEPDevicesRequest'
-      produces:
-      - application/json
-      responses: {}
-      security:
-      - BearerAuth: []
-      summary: Disown DEP device
-      tags:
-      - DEP
-  /v1/dep/proxy/{name}/devices/sync:
-    post:
-      description: Initiate a sync with Apple DEP servers to fetch new devices via
-        proxy
-      parameters:
-      - description: 'DEP name (default: ''default'')'
-        in: path
-        name: name
-        type: string
-      - description: Sync cursor
-        in: query
-        name: cursor
-        type: string
-      produces:
-      - application/json
-      responses: {}
-      security:
-      - BearerAuth: []
-      summary: Sync DEP devices
-      tags:
-      - DEP
-  /v1/dep/proxy/{name}/profile:
-    get:
-      description: Fetch details of a defined DEP profile via proxy
-      parameters:
-      - description: 'DEP name (default: ''default'')'
-        in: path
-        name: name
-        type: string
-      - description: Profile UUID
-        in: query
-        name: profile_uuid
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
-      security:
-      - BearerAuth: []
-      summary: Get DEP profile
-      tags:
-      - DEP
-    post:
-      consumes:
-      - application/json
-      description: Create or update a DEP assignment profile via proxy
-      parameters:
-      - description: 'DEP name (default: ''default'')'
-        in: path
-        name: name
-        type: string
-      - description: Profile details
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/github_com_thienel_go-backend-template_internal_interface_api_dto.DEPProfileRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_DEPProfileResponse'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
-      security:
-      - BearerAuth: []
-      summary: Define DEP profile
-      tags:
-      - DEP
-  /v1/dep/token/{name}:
-    get:
-      description: Get PEM certificate for ABM for a specific name
-      parameters:
-      - description: Token name
-        in: path
-        name: name
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
-        "404":
-          description: Not Found
-          schema:
-            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
-      security:
-      - BearerAuth: []
-      summary: Get DEP token pem
-      tags:
-      - DEP
-  /v1/dep/tokenpki/{name}:
-    get:
-      description: Generate and store a new X.509 certificate and RSA private key
-        for exchanging encrypted DEP OAuth1 tokens.
-      parameters:
-      - description: Name of DEP server instance
-        in: path
-        name: name
-        required: true
-        type: string
-      - description: Common Name
-        in: query
-        name: cn
-        type: string
-      - description: Validity days
-        in: query
-        name: validity_days
-        type: integer
-      produces:
-      - application/x-pem-file
-      responses:
-        "200":
-          description: X.509 certificate PEM
-          schema:
-            type: string
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
-      security:
-      - BearerAuth: []
-      summary: Generate and retrieve DEP token PKI certificate
-      tags:
-      - DEP
-    put:
-      consumes:
-      - application/pkcs7-mime
-      description: Decrypt the OAuth1 tokens from the Apple ABM/ASM/BE portal and
-        store them.
-      parameters:
-      - description: Name of DEP server instance
-        in: path
-        name: name
-        required: true
-        type: string
-      - description: Bypass the Consumer Key mismatch check (1 to enable)
-        in: query
-        name: force
-        type: string
-      - description: Contents of the .p7m file from Apple
-        in: body
-        name: token
-        required: true
-        schema:
-          type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_OAuth1Tokens'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
-      security:
-      - BearerAuth: []
-      summary: Upload and decrypt DEP OAuth1 tokens
-      tags:
-      - DEP
-  /v1/dep/tokens/{name}:
-    get:
-      description: Return the DEP OAuth1 tokens for the given DEP name.
-      parameters:
-      - description: Name of DEP server instance
-        in: path
-        name: name
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_OAuth1Tokens'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
-      security:
-      - BearerAuth: []
-      summary: Return the DEP OAuth1 tokens
-      tags:
-      - DEP
-    put:
-      consumes:
-      - application/json
-      description: Upload and store DEP OAuth1 tokens for the given DEP Name.
-      parameters:
-      - description: Name of DEP server instance
-        in: path
-        name: name
-        required: true
-        type: string
-      - description: OAuth1 tokens
-        in: body
-        name: tokens
-        required: true
-        schema:
-          $ref: '#/definitions/github_com_thienel_go-backend-template_internal_interface_api_dto.OAuth1Tokens'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_OAuth1Tokens'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
-      security:
-      - BearerAuth: []
-      summary: Upload and store DEP OAuth1 tokens
-      tags:
-      - DEP
-  /v1/dep/version:
-    get:
-      description: Returns the running NanoDEP version.
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_NanoDEPVersionResponse'
-      summary: Returns the running NanoDEP version
-      tags:
-      - DEP
-  /v1/device-groups:
-    get:
-      description: Fetch device groups with pagination and filtering
-      produces:
-      - application/json
-      responses: {}
-      security:
-      - BearerAuth: []
-      summary: List device groups
-      tags:
-      - DeviceGroups
-    post:
-      consumes:
-      - application/json
-      description: Create a new device group
-      parameters:
-      - description: Group info
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/github_com_thienel_go-backend-template_internal_interface_api_dto.CreateDeviceGroupRequest'
-      produces:
-      - application/json
-      responses: {}
-      security:
-      - BearerAuth: []
-      summary: Create device group
-      tags:
-      - DeviceGroups
-  /v1/device-groups/{id}:
-    delete:
-      description: Delete an existing device group
-      parameters:
-      - description: Group ID
-        in: path
-        name: id
-        required: true
-        type: integer
-      produces:
-      - application/json
-      responses: {}
-      security:
-      - BearerAuth: []
-      summary: Delete device group
-      tags:
-      - DeviceGroups
-    get:
-      description: Fetch single device group
-      parameters:
-      - description: Group ID
-        in: path
-        name: id
-        required: true
-        type: integer
-      produces:
-      - application/json
-      responses: {}
-      security:
-      - BearerAuth: []
-      summary: Get device group by ID
-      tags:
-      - DeviceGroups
-    put:
-      consumes:
-      - application/json
-      description: Update an existing device group
-      parameters:
-      - description: Group ID
-        in: path
-        name: id
-        required: true
-        type: integer
-      - description: Group info
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/github_com_thienel_go-backend-template_internal_interface_api_dto.UpdateDeviceGroupRequest'
-      produces:
-      - application/json
-      responses: {}
-      security:
-      - BearerAuth: []
-      summary: Update device group
-      tags:
-      - DeviceGroups
-  /v1/device-groups/{id}/devices:
-    post:
-      consumes:
-      - application/json
-      description: Assign one or more devices to a group
-      parameters:
-      - description: Group ID
-        in: path
-        name: id
-        required: true
-        type: integer
-      - description: Device IDs
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/github_com_thienel_go-backend-template_internal_interface_api_dto.ManageGroupDevicesRequest'
-      produces:
-      - application/json
-      responses: {}
-      security:
-      - BearerAuth: []
-      summary: Add devices to group
-      tags:
-      - DeviceGroups
-  /v1/device-groups/{id}/devices/{deviceId}:
-    delete:
-      description: Unassign a single device from a group
-      parameters:
-      - description: Group ID
-        in: path
-        name: id
-        required: true
-        type: integer
-      - description: Device ID
-        in: path
-        name: deviceId
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses: {}
-      security:
-      - BearerAuth: []
-      summary: Remove device from group
-      tags:
-      - DeviceGroups
-  /v1/devices:
-    get:
-      description: Fetch devices with pagination, sorting and filtering
-      produces:
-      - application/json
-      responses: {}
-      security:
-      - BearerAuth: []
-      summary: List devices
-      tags:
-      - Devices
-  /v1/devices/{id}:
-    get:
-      description: Fetch single device details
-      parameters:
-      - description: Device ID
-        in: path
-        name: id
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses: {}
-      security:
-      - BearerAuth: []
-      summary: Get device by ID
-      tags:
-      - Devices
-  /v1/devices/{id}/lock:
-    post:
-      description: Queues MDM device lock command
-      parameters:
-      - description: Device ID
-        in: path
-        name: id
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses: {}
-      security:
-      - BearerAuth: []
-      summary: Lock device
-      tags:
-      - Devices
-  /v1/devices/{id}/wipe:
-    post:
-      description: Queues MDM erase device command
-      parameters:
-      - description: Device ID
-        in: path
-        name: id
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses: {}
-      security:
-      - BearerAuth: []
-      summary: Wipe device
-      tags:
-      - Devices
-  /v1/devices/export:
-    get:
-      description: Export devices to CSV or JSON
-      parameters:
-      - description: Format (csv or json)
-        in: query
-        name: format
-        type: string
-      produces:
-      - text/csv
-      responses: {}
-      security:
-      - BearerAuth: []
-      summary: Export devices
-      tags:
-      - Devices
-  /v1/mdm/enqueue/{id}:
-    put:
-      consumes:
-      - text/plain
-      description: Enqueue MDM commands to MDM enrollments and (optionally) send APNs
-        push notifications.
-      parameters:
-      - description: Enrollment ID
-        in: path
-        name: id
-        required: true
-        type: string
-      - description: Do not send push (1 to enable)
-        in: query
-        name: nopush
-        type: string
-      - description: XML-encoded MDM command plist
-        in: body
-        name: command
-        required: true
-        schema:
-          type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_APIResult'
-        "207":
-          description: Multi-Status
-          schema:
-            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_APIResult'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_APIResult'
-      security:
-      - BearerAuth: []
-      summary: Enqueue MDM commands
-      tags:
-      - MDM
-  /v1/mdm/escrowkeyunlock:
-    post:
-      consumes:
-      - application/x-www-form-urlencoded
-      description: Perform an Escrow Key Unlock against Apple's API.
-      parameters:
-      - description: APNs Push topic
-        in: formData
-        name: topic
-        required: true
-        type: string
-      - description: Device serial number
-        in: formData
-        name: serial
-        required: true
-        type: string
-      - description: Apple product type
-        in: formData
-        name: productType
-        required: true
-        type: string
-      - description: Bypass Code
-        in: formData
-        name: escrowKey
-        required: true
-        type: string
-      - description: Organization name
-        in: formData
-        name: orgName
-        required: true
-        type: string
-      - description: Requester identifier
-        in: formData
-        name: guid
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Success
-          schema:
-            type: string
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
-      summary: Perform an Escrow Key Unlock
-      tags:
-      - MDM
-  /v1/mdm/push/{id}:
-    get:
-      description: Send APNs push notifications to MDM enrollments.
-      parameters:
-      - description: Enrollment ID(s) comma-separated
-        in: path
-        name: id
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_APIResult'
-        "207":
-          description: Multi-Status
-          schema:
-            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_APIResult'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_APIResult'
-      security:
-      - BearerAuth: []
-      summary: Send APNs push notifications
-      tags:
-      - MDM
-  /v1/mdm/pushcert:
-    get:
-      description: Retrieve the topic and expiry of the stored APNs push certificate.
-      parameters:
-      - description: APNs topic
-        in: query
-        name: topic
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_PushCertResponse'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
-        "404":
-          description: Not Found
-          schema:
-            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
-      security:
-      - BearerAuth: []
-      summary: Retrieve APNs push certificate info
-      tags:
-      - MDM
-    put:
-      consumes:
-      - text/plain
-      description: Upload APNs certificate and private key. Concatenated PEM format.
-      parameters:
-      - description: PEM-encoded certificate and private key
-        in: body
-        name: data
-        required: true
-        schema:
-          type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_PushCertResponse'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
-      security:
-      - BearerAuth: []
-      summary: Upload APNs certificate and private key
-      tags:
-      - MDM
-  /v1/mdm/version:
-    get:
-      description: Returns the running NanoMDM version.
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_NanoMDMVersionResponse'
-      summary: Returns the running NanoMDM version
-      tags:
-      - MDM
-  /v1/nanocmd/cmdplan/{name}:
-    get:
-      description: Retrieve and return a named command plan as JSON.
-      parameters:
-      - description: User-defined name of Command Plan.
-        in: path
-        name: name
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_CMDPlan'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
-        "404":
-          description: Not Found
-          schema:
-            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
-      security:
-      - BearerAuth: []
-      summary: Retrieve and return a named command plan
-      tags:
-      - NanoCMD
-    put:
-      consumes:
-      - application/json
-      description: Upload a named JSON command plan.
-      parameters:
-      - description: User-defined name of Command Plan.
-        in: path
-        name: name
-        required: true
-        type: string
-      - description: Command plan.
-        in: body
-        name: plan
-        required: true
-        schema:
-          $ref: '#/definitions/github_com_thienel_go-backend-template_internal_interface_api_dto.CMDPlan'
-      produces:
-      - application/json
-      responses:
-        "204":
-          description: No Content
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
-      security:
-      - BearerAuth: []
-      summary: Upload a named command plan
-      tags:
-      - NanoCMD
-  /v1/nanocmd/event/{name}:
-    get:
-      description: Retrieve the event subscription.
-      parameters:
-      - description: User-defined name of Event Subscription.
-        in: path
-        name: name
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_EventSubscription'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
-        "404":
-          description: Not Found
-          schema:
-            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
-      security:
-      - BearerAuth: []
-      summary: Retrieve the event subscription
-      tags:
-      - NanoCMD
-    put:
-      consumes:
-      - application/json
-      description: Store the event subscription provided in the request body.
-      parameters:
-      - description: User-defined name of Event Subscription.
-        in: path
-        name: name
-        required: true
-        type: string
-      - description: Event Subscription.
-        in: body
-        name: subscription
-        required: true
-        schema:
-          $ref: '#/definitions/github_com_thienel_go-backend-template_internal_interface_api_dto.EventSubscription'
-      produces:
-      - application/json
-      responses:
-        "204":
-          description: No Content
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
-      security:
-      - BearerAuth: []
-      summary: Store the event subscription
-      tags:
-      - NanoCMD
-  /v1/nanocmd/fvenable/profiletemplate:
-    get:
-      description: Returns the FileVault enable Configuration Profile template.
-      produces:
-      - application/x-apple-aspen-config
-      responses:
-        "200":
-          description: Apple Configuration Profile
-          schema:
-            type: string
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
-      security:
-      - BearerAuth: []
-      summary: Returns the FileVault enable Configuration Profile template
-      tags:
-      - NanoCMD
-  /v1/nanocmd/inventory:
-    get:
-      description: Retrieve inventory data for enrollment IDs.
-      parameters:
-      - collectionFormat: csv
-        description: Enrollment ID. Unique identifier of MDM enrollment. Often a device
-          UDID or a user channel UUID.
-        in: query
-        items:
-          type: string
-        name: id
-        required: true
-        type: array
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_NanoCMDInventoryResponse'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
-      security:
-      - BearerAuth: []
-      summary: Retrieve inventory data for enrollment IDs
-      tags:
-      - NanoCMD
-  /v1/nanocmd/profile/{name}:
-    delete:
-      description: Deletes the named profile.
-      parameters:
-      - description: User-defined name of Profile.
-        in: path
-        name: name
-        required: true
-        type: string
-      responses:
-        "204":
-          description: No Content
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
-        "404":
-          description: Not Found
-          schema:
-            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
-      security:
-      - BearerAuth: []
-      summary: Deletes the named profile
-      tags:
-      - NanoCMD
-    get:
-      description: Fetches the named raw profile.
-      parameters:
-      - description: User-defined name of Profile.
-        in: path
-        name: name
-        required: true
-        type: string
-      produces:
-      - application/x-apple-aspen-config
-      responses:
-        "200":
-          description: Apple Configuration Profile
-          schema:
-            type: string
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
-        "404":
-          description: Not Found
-          schema:
-            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
-      security:
-      - BearerAuth: []
-      summary: Fetches the named raw profile
-      tags:
-      - NanoCMD
-    put:
-      consumes:
-      - application/x-apple-aspen-config
-      description: Uploads a raw profile. Signed profiles also supported.
-      parameters:
-      - description: User-defined name of Profile.
-        in: path
-        name: name
-        required: true
-        type: string
-      - description: Raw profile mobileconfig.
-        in: body
-        name: data
-        required: true
-        schema:
-          type: string
-      responses:
-        "204":
-          description: No Content
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
-      security:
-      - BearerAuth: []
-      summary: Uploads a raw profile
-      tags:
-      - NanoCMD
-  /v1/nanocmd/profiles:
-    get:
-      description: Retrieve profile metadata.
-      parameters:
-      - collectionFormat: csv
-        description: User-defined name of profile.
-        in: query
-        items:
-          type: string
-        name: name
-        type: array
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-map_string_github_com_thienel_go-backend-template_internal_interface_api_dto_NanoCMDProfile'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
-      security:
-      - BearerAuth: []
-      summary: Retrieve profile metadata
-      tags:
-      - NanoCMD
-  /v1/nanocmd/version:
-    get:
-      description: Get the version of the NanoCMD server
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_NanoCMDVersionResponse'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
-      security:
-      - BearerAuth: []
-      summary: Returns the running NanoCMD server version
-      tags:
-      - NanoCMD
-  /v1/nanocmd/workflow/{name}/start:
-    post:
-      description: Start a workflow.
-      parameters:
-      - description: Name of NanoCMD workflow.
-        in: path
-        name: name
-        required: true
-        type: string
-      - collectionFormat: csv
-        description: Enrollment ID. Unique identifier of MDM enrollment. Often a device
-          UDID or a user channel UUID.
-        in: query
-        items:
-          type: string
-        name: id
-        required: true
-        type: array
-      - description: Workflow-dependent context.
-        in: query
-        name: context
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_NanoCMDWorkflowStartResponse'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
-      security:
-      - BearerAuth: []
-      summary: Start a workflow
-      tags:
-      - NanoCMD
-  /v1/policies:
-    delete:
-      consumes:
-      - application/json
-      description: Remove an existing Casbin policy
-      parameters:
-      - description: Policy rule details to remove
-        in: body
-        name: policy
-        required: true
-        schema:
-          $ref: '#/definitions/github_com_thienel_go-backend-template_internal_usecase_service.PolicyRule'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
-        "404":
-          description: Not Found
-          schema:
-            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
-      security:
-      - BearerAuth: []
-      summary: Remove a policy
-      tags:
-      - Authorization
-    get:
-      description: Get a list of all Casbin policies (role, path, method)
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-array_github_com_thienel_go-backend-template_internal_usecase_service_PolicyRule'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
-      security:
-      - BearerAuth: []
-      summary: List all policies
-      tags:
-      - Authorization
-    post:
-      consumes:
-      - application/json
-      description: Add a new Casbin policy
-      parameters:
-      - description: Policy rule details
-        in: body
-        name: policy
-        required: true
-        schema:
-          $ref: '#/definitions/github_com_thienel_go-backend-template_internal_usecase_service.PolicyRule'
-      produces:
-      - application/json
-      responses:
-        "201":
-          description: Created
-          schema:
-            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-github_com_thienel_go-backend-template_internal_usecase_service_PolicyRule'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
-        "409":
-          description: Conflict
-          schema:
-            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
-      security:
-      - BearerAuth: []
-      summary: Add a policy
-      tags:
-      - Authorization
-  /v1/policies/role/{role}:
-    get:
-      description: Get all Casbin policies associated with a specific role
-      parameters:
-      - description: Role name
-        in: path
-        name: role
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-array_github_com_thienel_go-backend-template_internal_usecase_service_PolicyRule'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
-      security:
-      - BearerAuth: []
-      summary: Get policies for a role
-      tags:
-      - Authorization
-  /v1/roles:
-    delete:
-      consumes:
-      - application/json
-      description: Remove an existing role hierarchy link
-      parameters:
-      - description: Role link details to remove
-        in: body
-        name: role
-        required: true
-        schema:
-          $ref: '#/definitions/github_com_thienel_go-backend-template_internal_usecase_service.RoleLink'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
-        "404":
-          description: Not Found
-          schema:
-            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
-      security:
-      - BearerAuth: []
-      summary: Remove a role link
-      tags:
-      - Authorization
-    get:
-      description: Get a list of all role hierarchy links (child, parent)
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-array_github_com_thienel_go-backend-template_internal_usecase_service_RoleLink'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
-      security:
-      - BearerAuth: []
-      summary: List all role links
-      tags:
-      - Authorization
-    post:
-      consumes:
-      - application/json
-      description: Add a new role hierarchy link
-      parameters:
-      - description: Role link details
-        in: body
-        name: role
-        required: true
-        schema:
-          $ref: '#/definitions/github_com_thienel_go-backend-template_internal_usecase_service.RoleLink'
-      produces:
-      - application/json
-      responses:
-        "201":
-          description: Created
-          schema:
-            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-github_com_thienel_go-backend-template_internal_usecase_service_RoleLink'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
-        "409":
-          description: Conflict
-          schema:
-            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
-      security:
-      - BearerAuth: []
-      summary: Add a role link
-      tags:
-      - Authorization
-  /v1/users:
+  /api/v1/users:
     get:
       description: Get a paginated list of users with filtering and sorting
       parameters:
@@ -5128,7 +5113,7 @@ paths:
       summary: Create user
       tags:
       - Users
-  /v1/users/{id}:
+  /api/v1/users/{id}:
     delete:
       description: Delete a user from the system
       parameters:
@@ -5229,6 +5214,19 @@ paths:
       summary: Update user
       tags:
       - Users
+  /health:
+    get:
+      description: Check service liveness
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_interface_api_handler.HealthResponse'
+      summary: Health check
+      tags:
+      - System
 securityDefinitions:
   BasicAuth:
     type: basic

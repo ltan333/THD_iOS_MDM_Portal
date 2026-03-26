@@ -51,7 +51,7 @@ func NewApplicationHandler(appService service.ApplicationService) ApplicationHan
 // @Produce json
 // @Security BearerAuth
 // @Success 200 {object} response.APIResponse[any]
-// @Router /applications [get]
+// @Router /api/v1/applications [get]
 func (h *applicationHandlerImpl) List(c *gin.Context) {
 	params := make(map[string]string)
 	for k, v := range c.Request.URL.Query() {
@@ -92,7 +92,7 @@ func (h *applicationHandlerImpl) List(c *gin.Context) {
 // @Produce json
 // @Security BearerAuth
 // @Success 200 {object} response.APIResponse[any]
-// @Router /applications/{id} [get]
+// @Router /api/v1/applications/{id} [get]
 func (h *applicationHandlerImpl) GetByID(c *gin.Context) {
 	idStr := c.Param("id")
 	id, err := strconv.ParseUint(idStr, 10, 32)
@@ -118,7 +118,7 @@ func (h *applicationHandlerImpl) GetByID(c *gin.Context) {
 // @Produce json
 // @Security BearerAuth
 // @Success 201 {object} response.APIResponse[any]
-// @Router /applications [post]
+// @Router /api/v1/applications [post]
 func (h *applicationHandlerImpl) Create(c *gin.Context) {
 	var req dto.CreateApplicationRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -150,7 +150,7 @@ func (h *applicationHandlerImpl) Create(c *gin.Context) {
 // @Produce json
 // @Security BearerAuth
 // @Success 200 {object} response.APIResponse[any]
-// @Router /applications/{id} [put]
+// @Router /api/v1/applications/{id} [put]
 func (h *applicationHandlerImpl) Update(c *gin.Context) {
 	idStr := c.Param("id")
 	id, err := strconv.ParseUint(idStr, 10, 32)
@@ -187,7 +187,7 @@ func (h *applicationHandlerImpl) Update(c *gin.Context) {
 // @Produce json
 // @Security BearerAuth
 // @Success 200 {object} response.APIResponse[any]
-// @Router /applications/{id} [delete]
+// @Router /api/v1/applications/{id} [delete]
 func (h *applicationHandlerImpl) Delete(c *gin.Context) {
 	idStr := c.Param("id")
 	id, err := strconv.ParseUint(idStr, 10, 32)
@@ -210,7 +210,7 @@ func (h *applicationHandlerImpl) Delete(c *gin.Context) {
 // @Produce json
 // @Security BearerAuth
 // @Success 200 {object} response.APIResponse[any]
-// @Router /applications/{id}/versions [get]
+// @Router /api/v1/applications/{id}/versions [get]
 func (h *applicationHandlerImpl) ListVersions(c *gin.Context) {
 	idStr := c.Param("id")
 	id, err := strconv.ParseUint(idStr, 10, 32)
@@ -240,7 +240,7 @@ func (h *applicationHandlerImpl) ListVersions(c *gin.Context) {
 // @Produce json
 // @Security BearerAuth
 // @Success 201 {object} response.APIResponse[any]
-// @Router /applications/{id}/versions [post]
+// @Router /api/v1/applications/{id}/versions [post]
 func (h *applicationHandlerImpl) CreateVersion(c *gin.Context) {
 	idStr := c.Param("id")
 	id, err := strconv.ParseUint(idStr, 10, 32)
@@ -279,7 +279,7 @@ func (h *applicationHandlerImpl) CreateVersion(c *gin.Context) {
 // @Produce json
 // @Security BearerAuth
 // @Success 200 {object} response.APIResponse[any]
-// @Router /applications/{id}/versions/{versionId} [delete]
+// @Router /api/v1/applications/{id}/versions/{versionId} [delete]
 func (h *applicationHandlerImpl) DeleteVersion(c *gin.Context) {
 	versionIdStr := c.Param("versionId")
 	versionId, err := strconv.ParseUint(versionIdStr, 10, 32)
@@ -304,7 +304,7 @@ func (h *applicationHandlerImpl) DeleteVersion(c *gin.Context) {
 // @Produce json
 // @Security BearerAuth
 // @Success 200 {object} response.APIResponse[any]
-// @Router /applications/deployments [post]
+// @Router /api/v1/applications/deployments [post]
 func (h *applicationHandlerImpl) Deploy(c *gin.Context) {
 	var req dto.CreateAppDeploymentRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -342,7 +342,7 @@ func (h *applicationHandlerImpl) Deploy(c *gin.Context) {
 // @Produce json
 // @Security BearerAuth
 // @Success 200 {object} response.APIResponse[any]
-// @Router /applications/{id}/versions/{versionId}/deployments [get]
+// @Router /api/v1/applications/{id}/versions/{versionId}/deployments [get]
 func (h *applicationHandlerImpl) ListDeployments(c *gin.Context) {
 	versionIdStr := c.Param("versionId")
 	versionId, err := strconv.ParseUint(versionIdStr, 10, 32)
@@ -375,7 +375,6 @@ func (h *applicationHandlerImpl) ListDeployments(c *gin.Context) {
 	response.OK(c, res, "")
 }
 
-
 func mapApplicationToResponse(a *ent.Application) dto.ApplicationResponse {
 	res := dto.ApplicationResponse{
 		ID:          a.ID,
@@ -388,7 +387,7 @@ func mapApplicationToResponse(a *ent.Application) dto.ApplicationResponse {
 		CreatedAt:   a.CreatedAt,
 		UpdatedAt:   a.UpdatedAt,
 	}
-	
+
 	if a.Edges.Versions != nil {
 		res.Versions = make([]dto.AppVersionResponse, 0, len(a.Edges.Versions))
 		for _, v := range a.Edges.Versions {
