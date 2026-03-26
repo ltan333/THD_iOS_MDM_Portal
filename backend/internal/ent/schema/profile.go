@@ -47,8 +47,11 @@ func (Profile) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.From("device_groups", DeviceGroup.Type).
 			Ref("profiles"),
-		edge.To("assignments", ProfileAssignment.Type),
-		edge.To("versions", ProfileVersion.Type),
-		edge.To("deployment_statuses", ProfileDeploymentStatus.Type),
+		edge.To("assignments", ProfileAssignment.Type).
+			Annotations(entsql.Annotation{OnDelete: entsql.Cascade}),
+		edge.To("versions", ProfileVersion.Type).
+			Annotations(entsql.Annotation{OnDelete: entsql.Cascade}),
+		edge.To("deployment_statuses", ProfileDeploymentStatus.Type).
+			Annotations(entsql.Annotation{OnDelete: entsql.Cascade}),
 	}
 }
