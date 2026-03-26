@@ -999,6 +999,49 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/v1/nanocmd/webhook": {
+            "post": {
+                "description": "Handler for MicroMDM-compatible webhook callback.\nEndpoint to receive MDM/CMD check-in events and state updates",
+                "consumes": [
+                    "application/json",
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json",
+                    "application/json"
+                ],
+                "tags": [
+                    "NanoCMD",
+                    "Infrastructure"
+                ],
+                "summary": "NanoCMD Webhook",
+                "parameters": [
+                    {
+                        "description": "Webhook payload",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_internal_interface_api_dto.NanoCMDWebhook"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any"
+                        }
+                    }
+                }
+            }
+        },
         "/api/v1/profiles": {
             "get": {
                 "security": [
@@ -5097,52 +5140,6 @@ const docTemplate = `{
                     },
                     "401": {
                         "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any"
-                        }
-                    }
-                }
-            }
-        },
-        "/v1/nanocmd/webhook": {
-            "post": {
-                "description": "Handler for MicroMDM-compatible webhook callback.",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "NanoCMD"
-                ],
-                "summary": "NanoCMD Webhook",
-                "parameters": [
-                    {
-                        "description": "Webhook payload",
-                        "name": "webhook",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/github_com_thienel_go-backend-template_internal_interface_api_dto.NanoCMDWebhook"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
                         "schema": {
                             "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any"
                         }

@@ -328,11 +328,14 @@ func (h *nanocmdHandler) GetInventory(c *gin.Context) {
 // @Tags NanoCMD
 // @Accept json
 // @Produce json
-// @Param webhook body dto.NanoCMDWebhook true "Webhook payload"
+// @Description Endpoint to receive MDM/CMD check-in events and state updates
+// @Tags Infrastructure
+// @Accept json
+// @Produce json
+// @Param request body dto.NanoCMDWebhook true "Webhook payload"
 // @Success 200 {object} response.APIResponse[any]
 // @Failure 400 {object} response.APIResponse[any]
-// @Failure 500 {object} response.APIResponse[any]
-// @Router /v1/nanocmd/webhook [post]
+// @Router /api/v1/nanocmd/webhook [post]
 func (h *nanocmdHandler) Webhook(c *gin.Context) {
 	var webhook dto.NanoCMDWebhook
 	if err := c.ShouldBindJSON(&webhook); err != nil {
