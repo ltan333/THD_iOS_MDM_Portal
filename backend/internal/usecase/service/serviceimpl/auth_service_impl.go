@@ -89,3 +89,46 @@ func (s *authServiceImpl) Logout(ctx context.Context) error {
 	// If you need blacklist/revocation, implement it here with Redis
 	return nil
 }
+
+func (s *authServiceImpl) Refresh(ctx context.Context, refreshToken string) (*dto.LoginResponse, error) {
+	// 1. Validate refresh token
+	claims, err := s.jwtService.ValidateToken(refreshToken)
+	if err != nil {
+		return nil, err
+	}
+
+	// 2. Find user
+	user, err := s.userRepo.FindByID(ctx, claims.UserID)
+	if err != nil {
+		return nil, apperror.ErrUnauthorized.WithMessage("Người dùng không tồn tại hoặc đã bị xóa")
+	}
+
+	if user.Status != entity.UserStatusActive {
+		return nil, apperror.ErrForbidden.WithMessage("Tài khoản đã bị vô hiệu hóa")
+	}
+
+	// 3. Generate new tokens (Rotation)
+	accessToken, err := s.jwtService.GenerateAccessToken(user.ID, user.Username, claims.Role)
+	if err != nil {
+		return nil, apperror.ErrInternalServerError.WithMessage("Không thể tạo access token").WithError(err)
+	}
+
+	newRefreshToken, err := s.jwtService.GenerateRefreshToken(user.ID, user.Username, claims.Role)
+	if err != nil {
+		return nil, apperror.ErrInternalServerError.WithMessage("Không thể tạo refresh token").WithError(err)
+	}
+
+	return &dto.LoginResponse{
+		User: dto.UserResponse{
+			ID:        user.ID,
+			Username:  user.Username,
+			Email:     user.Email,
+			Role:      claims.Role,
+			Status:    user.Status,
+			CreatedAt: user.CreatedAt,
+			UpdatedAt: user.UpdatedAt,
+		},
+		AccessToken:  accessToken,
+		RefreshToken: newRefreshToken,
+	}, nil
+}

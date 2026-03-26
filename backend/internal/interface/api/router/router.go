@@ -120,6 +120,7 @@ func (r *routeRegister) registerAuthRoutes(rg *gin.RouterGroup) {
 	auth := rg.Group("/auth")
 	{
 		auth.POST("/login", r.auth.Login)
+		auth.POST("/refresh", r.auth.Refresh)
 		auth.POST("/logout", r.mw.Auth(), r.auth.Logout)
 		auth.GET("/me", r.mw.Auth(), r.auth.GetMe)
 	}

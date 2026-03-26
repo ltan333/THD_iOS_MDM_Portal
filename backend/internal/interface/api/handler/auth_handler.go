@@ -14,6 +14,7 @@ import (
 // AuthHandler interface
 type AuthHandler interface {
 	Login(c *gin.Context)
+	Refresh(c *gin.Context)
 	Logout(c *gin.Context)
 	GetMe(c *gin.Context)
 }
@@ -58,6 +59,33 @@ func (h *authHandlerImpl) Login(c *gin.Context) {
 	}
 
 	response.OK(c, loginResp, "Đăng nhập thành công")
+}
+
+// Refresh godoc
+// @Summary Refresh access token
+// @Description Refresh existing access token using a valid refresh token
+// @Tags Authentication
+// @Accept json
+// @Produce json
+// @Param refresh body dto.TokenRefreshRequest true "Refresh token"
+// @Success 200 {object} response.APIResponse[dto.LoginResponse]
+// @Failure 400 {object} response.APIResponse[any]
+// @Failure 401 {object} response.APIResponse[any]
+// @Router /v1/auth/refresh [post]
+func (h *authHandlerImpl) Refresh(c *gin.Context) {
+	var req dto.TokenRefreshRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		response.WriteErrorResponse(c, apperror.ErrBadRequest.WithMessage("Dữ liệu không hợp lệ"))
+		return
+	}
+
+	loginResp, err := h.authService.Refresh(c.Request.Context(), req.RefreshToken)
+	if err != nil {
+		response.WriteErrorResponse(c, err)
+		return
+	}
+
+	response.OK(c, loginResp, "Làm mới token thành công")
 }
 
 // Logout godoc
