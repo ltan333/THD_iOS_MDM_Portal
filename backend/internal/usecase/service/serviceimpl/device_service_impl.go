@@ -18,11 +18,15 @@ import (
 )
 
 type deviceServiceImpl struct {
-	client *ent.Client
+	client         *ent.Client
+	profileService service.ProfileService
 }
 
-func NewDeviceService(client *ent.Client) service.DeviceService {
-	return &deviceServiceImpl{client: client}
+func NewDeviceService(client *ent.Client, profileService service.ProfileService) service.DeviceService {
+	return &deviceServiceImpl{
+		client:         client,
+		profileService: profileService,
+	}
 }
 
 func (s *deviceServiceImpl) List(ctx context.Context, offset, limit int, opts query.QueryOptions) ([]*ent.Device, int64, error) {
@@ -366,32 +370,88 @@ func (s *deviceServiceImpl) HandleWebhook(ctx context.Context, payload *dto.Nano
 				Exec(ctx)
 		}
 		return nil
-
 	case "mdm.TokenUpdate":
 		tlog.Info("Device tokens updated/enrolled", zap.String("udid", udid))
 		
-		updater := s.client.Device.UpdateOneID(udid).
-			SetIsEnrolled(true).
-			SetStatus(device.StatusActive).
-			SetEnrolledAt(time.Now()).
-			SetLastSeen(time.Now())
+		var finalID = udid
+		sn, _ := payload.Checkin_event["serial_number"].(string)
 
-		// Update other info if present in checkin_event
-		if sn, ok := payload.Checkin_event["serial_number"].(string); ok && sn != "" {
-			updater.SetSerialNumber(sn)
-		}
-		if model, ok := payload.Checkin_event["model"].(string); ok && model != "" {
-			updater.SetModel(model)
-		}
-		if osVer, ok := payload.Checkin_event["os_version"].(string); ok && osVer != "" {
-			updater.SetOsVersion(osVer)
-		}
-		if prodName, ok := payload.Checkin_event["product_name"].(string); ok && prodName != "" {
-			updater.SetDeviceType(prodName)
+		// IDENTITY MIGRATION: Check if device exists as "dep-SN"
+		if sn != "" {
+			depID := "dep-" + sn
+			depDev, err := s.client.Device.Query().
+				Where(device.IDEQ(depID)).
+				WithGroups().
+				Only(ctx)
+			
+			if err == nil && depDev != nil {
+				tlog.Info("Migrating identity from DEP SN to UDID", zap.String("sn", sn), zap.String("udid", udid))
+				
+				// Copy data and groups to new UDID record
+				create := s.client.Device.Create().
+					SetID(udid).
+					SetSerialNumber(sn).
+					SetIsEnrolled(true).
+					SetStatus(device.StatusActive).
+					SetEnrolledAt(time.Now()).
+					SetLastSeen(time.Now())
+
+				if depDev.OwnerID != 0 { create.SetOwnerID(depDev.OwnerID) }
+				if depDev.Model != "" { create.SetModel(depDev.Model) }
+				if depDev.Name != "" { create.SetName(depDev.Name) }
+
+				// Add groups
+				groupIDs := make([]uint, len(depDev.Edges.Groups))
+				for i, g := range depDev.Edges.Groups {
+					groupIDs[i] = g.ID
+				}
+				create.AddGroupIDs(groupIDs...)
+
+				_, err = create.Save(ctx)
+				if err == nil {
+					// Delete old DEP record
+					_ = s.client.Device.DeleteOneID(depID).Exec(ctx)
+				} else {
+					tlog.Error("Failed to create migrated device record", zap.Error(err))
+				}
+			} else {
+				// Regular update if no DEP record found
+				updater := s.client.Device.UpdateOneID(udid).
+					SetIsEnrolled(true).
+					SetStatus(device.StatusActive).
+					SetEnrolledAt(time.Now()).
+					SetLastSeen(time.Now())
+
+				if sn != "" { updater.SetSerialNumber(sn) }
+				if model, ok := payload.Checkin_event["model"].(string); ok && model != "" {
+					updater.SetModel(model)
+				}
+				if osVer, ok := payload.Checkin_event["os_version"].(string); ok && osVer != "" {
+					updater.SetOsVersion(osVer)
+				}
+				
+				_, err = updater.Save(ctx)
+				if err != nil {
+					// If update fails because it doesn't exist, create it
+					if ent.IsNotFound(err) {
+						_, _ = s.client.Device.Create().
+							SetID(udid).
+							SetSerialNumber(sn).
+							SetIsEnrolled(true).
+							SetStatus(device.StatusActive).
+							SetEnrolledAt(time.Now()).
+							SetLastSeen(time.Now()).
+							Save(ctx)
+					}
+				}
+			}
 		}
 
-		_, err := updater.Save(ctx)
-		return err
+		// TRIGGER AUTO-DEPLOY: Push profiles assigned to this device or its groups
+		if err := s.profileService.DeployToDevice(ctx, finalID); err != nil {
+			tlog.Error("Failed to trigger auto-deploy after enrollment", zap.String("udid", finalID), zap.Error(err))
+		}
+		return nil
 
 	case "mdm.CheckOut":
 		tlog.Info("Device checked out/unenrolled", zap.String("udid", udid))

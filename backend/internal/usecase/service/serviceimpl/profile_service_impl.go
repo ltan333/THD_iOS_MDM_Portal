@@ -8,6 +8,8 @@ import (
 	"time"
 
 	"github.com/thienel/go-backend-template/internal/ent"
+	"github.com/thienel/go-backend-template/internal/ent/device"
+	"github.com/thienel/go-backend-template/internal/ent/devicegroup"
 	"github.com/thienel/go-backend-template/internal/ent/profile"
 	"github.com/thienel/go-backend-template/internal/ent/profileassignment"
 	"github.com/thienel/go-backend-template/internal/usecase/service"
@@ -488,6 +490,60 @@ func (s *profileServiceImpl) Repush(ctx context.Context, profileID uint) error {
 		
 		// 5. Trigger Push
 		_, _ = s.mdmService.Push(ctx, []string{udid})
+	}
+
+	return nil
+}
+
+func (s *profileServiceImpl) DeployToDevice(ctx context.Context, deviceID string) error {
+	// 1. Find all profiles assigned to this device (directly or via group)
+	profiles, err := s.client.Profile.Query().
+		Where(
+			profile.Or(
+				profile.HasAssignmentsWith(profileassignment.DeviceIDEQ(deviceID)),
+				profile.HasDeviceGroupsWith(devicegroup.HasDevicesWith(device.IDEQ(deviceID))),
+			),
+		).All(ctx)
+	if err != nil {
+		return apperror.ErrInternalServerError.WithMessage("Lỗi khi truy vấn profile gán cho thiết bị").WithError(err)
+	}
+
+	for _, p := range profiles {
+		// 2. Generate XML
+		xmlData, err := s.generator.GenerateXML(ctx, p)
+		if err != nil {
+			tlog.Error("Failed to generate XML for auto-deploy", zap.Uint("profile_id", p.ID), zap.Error(err))
+			continue
+		}
+
+		// 3. Enqueue InstallProfile command
+		installProfileXML := `<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>Command</key>
+	<dict>
+		<key>Payload</key>
+		<data>%s</data>
+		<key>RequestType</key>
+		<string>InstallProfile</string>
+	</dict>
+	<key>CommandUUID</key>
+	<string>InstallProfile-%d-%s</string>
+</dict>
+</plist>`
+
+		encodedProfile := base64.StdEncoding.EncodeToString(xmlData)
+		finalXML := fmt.Sprintf(installProfileXML, encodedProfile, p.ID, deviceID)
+
+		_, err = s.mdmService.EnqueueCommand(ctx, deviceID, []byte(finalXML))
+		if err != nil {
+			tlog.Error("Failed to enqueue auto-InstallProfile", zap.String("udid", deviceID), zap.Error(err))
+			continue
+		}
+
+		// 4. Trigger Push
+		_, _ = s.mdmService.Push(ctx, []string{deviceID})
 	}
 
 	return nil
