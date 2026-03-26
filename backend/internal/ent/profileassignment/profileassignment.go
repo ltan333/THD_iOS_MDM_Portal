@@ -19,8 +19,6 @@ const (
 	FieldProfileID = "profile_id"
 	// FieldTargetType holds the string denoting the target_type field in the database.
 	FieldTargetType = "target_type"
-	// FieldTargetID holds the string denoting the target_id field in the database.
-	FieldTargetID = "target_id"
 	// FieldDeviceID holds the string denoting the device_id field in the database.
 	FieldDeviceID = "device_id"
 	// FieldGroupID holds the string denoting the group_id field in the database.
@@ -67,7 +65,6 @@ var Columns = []string{
 	FieldID,
 	FieldProfileID,
 	FieldTargetType,
-	FieldTargetID,
 	FieldDeviceID,
 	FieldGroupID,
 	FieldScheduleType,
@@ -156,11 +153,6 @@ func ByProfileID(opts ...sql.OrderTermOption) OrderOption {
 // ByTargetType orders the results by the target_type field.
 func ByTargetType(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldTargetType, opts...).ToFunc()
-}
-
-// ByTargetID orders the results by the target_id field.
-func ByTargetID(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldTargetID, opts...).ToFunc()
 }
 
 // ByDeviceID orders the results by the device_id field.

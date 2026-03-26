@@ -35,20 +35,6 @@ func (_c *ProfileAssignmentCreate) SetTargetType(v profileassignment.TargetType)
 	return _c
 }
 
-// SetTargetID sets the "target_id" field.
-func (_c *ProfileAssignmentCreate) SetTargetID(v string) *ProfileAssignmentCreate {
-	_c.mutation.SetTargetID(v)
-	return _c
-}
-
-// SetNillableTargetID sets the "target_id" field if the given value is not nil.
-func (_c *ProfileAssignmentCreate) SetNillableTargetID(v *string) *ProfileAssignmentCreate {
-	if v != nil {
-		_c.SetTargetID(*v)
-	}
-	return _c
-}
-
 // SetDeviceID sets the "device_id" field.
 func (_c *ProfileAssignmentCreate) SetDeviceID(v string) *ProfileAssignmentCreate {
 	_c.mutation.SetDeviceID(v)
@@ -247,10 +233,6 @@ func (_c *ProfileAssignmentCreate) createSpec() (*ProfileAssignment, *sqlgraph.C
 	if value, ok := _c.mutation.TargetType(); ok {
 		_spec.SetField(profileassignment.FieldTargetType, field.TypeEnum, value)
 		_node.TargetType = value
-	}
-	if value, ok := _c.mutation.TargetID(); ok {
-		_spec.SetField(profileassignment.FieldTargetID, field.TypeString, value)
-		_node.TargetID = value
 	}
 	if value, ok := _c.mutation.ScheduleType(); ok {
 		_spec.SetField(profileassignment.FieldScheduleType, field.TypeEnum, value)

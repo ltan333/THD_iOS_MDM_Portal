@@ -527,7 +527,7 @@ func init() {
 	profileassignmentFields := schema.ProfileAssignment{}.Fields()
 	_ = profileassignmentFields
 	// profileassignmentDescCreatedAt is the schema descriptor for created_at field.
-	profileassignmentDescCreatedAt := profileassignmentFields[8].Descriptor()
+	profileassignmentDescCreatedAt := profileassignmentFields[7].Descriptor()
 	// profileassignment.DefaultCreatedAt holds the default value on creation for the created_at field.
 	profileassignment.DefaultCreatedAt = profileassignmentDescCreatedAt.Default.(func() time.Time)
 	profiledeploymentstatusFields := schema.ProfileDeploymentStatus{}.Fields()
