@@ -40,10 +40,36 @@ definitions:
       total:
         type: integer
     type: object
+  github_com_thienel_go-backend-template_internal_interface_api_dto.AssignProfileRequest:
+    properties:
+      device_id:
+        type: string
+      group_id:
+        type: integer
+      schedule_type:
+        description: immediate, scheduled
+        type: string
+      scheduled_at:
+        type: string
+      target_type:
+        enum:
+        - device
+        - group
+        type: string
+    required:
+    - target_type
+    type: object
   github_com_thienel_go-backend-template_internal_interface_api_dto.AssignerProfileUUID:
     properties:
       profile_uuid:
         type: string
+    type: object
+  github_com_thienel_go-backend-template_internal_interface_api_dto.BiometricsSettings:
+    properties:
+      face_id_enabled:
+        type: boolean
+      fingerprint_enabled:
+        type: boolean
     type: object
   github_com_thienel_go-backend-template_internal_interface_api_dto.BypassCodeResponse:
     properties:
@@ -131,7 +157,7 @@ definitions:
       key:
         type: string
       value_json:
-        additionalProperties: true
+        additionalProperties: {}
         type: object
     required:
     - key
@@ -171,31 +197,31 @@ definitions:
   github_com_thienel_go-backend-template_internal_interface_api_dto.CreateProfileRequest:
     properties:
       compliance_rules:
-        additionalProperties: true
+        additionalProperties: {}
         type: object
       content_filter:
-        additionalProperties: true
+        additionalProperties: {}
         type: object
       name:
         maxLength: 255
         type: string
       network_config:
-        additionalProperties: true
+        additionalProperties: {}
         type: object
       payloads:
-        additionalProperties: true
+        additionalProperties: {}
         type: object
       platform:
         description: ios, android, windows, macos, all
         type: string
       restrictions:
-        additionalProperties: true
+        additionalProperties: {}
         type: object
       scope:
         description: device, user, group
         type: string
       security_settings:
-        additionalProperties: true
+        additionalProperties: {}
         type: object
     required:
     - name
@@ -291,7 +317,7 @@ definitions:
       org_magic:
         type: string
       profile_data:
-        additionalProperties: true
+        additionalProperties: {}
         description: ProfileData remains for any additional fields not explicitly
           mapped
         type: object
@@ -353,7 +379,7 @@ definitions:
       org_magic:
         type: string
       profile_data:
-        additionalProperties: true
+        additionalProperties: {}
         type: object
       profile_uuid:
         type: string
@@ -426,6 +452,11 @@ definitions:
       total:
         type: integer
     type: object
+  github_com_thienel_go-backend-template_internal_interface_api_dto.EncryptionSettings:
+    properties:
+      required:
+        type: boolean
+    type: object
   github_com_thienel_go-backend-template_internal_interface_api_dto.EventSubscription:
     properties:
       context:
@@ -442,6 +473,21 @@ definitions:
       items:
         items:
           $ref: '#/definitions/github_com_thienel_go-backend-template_internal_interface_api_dto.MobileConfigResponse'
+        type: array
+      limit:
+        type: integer
+      page:
+        type: integer
+      total:
+        type: integer
+      total_pages:
+        type: integer
+    type: object
+  ? github_com_thienel_go-backend-template_internal_interface_api_dto.ListResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_ProfileResponse
+  : properties:
+      items:
+        items:
+          $ref: '#/definitions/github_com_thienel_go-backend-template_internal_interface_api_dto.ProfileResponse'
         type: array
       limit:
         type: integer
@@ -526,7 +572,7 @@ definitions:
       key:
         type: string
       value_json:
-        additionalProperties: true
+        additionalProperties: {}
         type: object
     type: object
   github_com_thienel_go-backend-template_internal_interface_api_dto.MobileConfigResponse:
@@ -586,10 +632,10 @@ definitions:
   github_com_thienel_go-backend-template_internal_interface_api_dto.NanoCMDWebhook:
     properties:
       acknowledge_event:
-        additionalProperties: true
+        additionalProperties: {}
         type: object
       checkin_event:
-        additionalProperties: true
+        additionalProperties: {}
         type: object
       created_at:
         type: string
@@ -626,6 +672,123 @@ definitions:
       consumer_secret:
         type: string
     type: object
+  github_com_thienel_go-backend-template_internal_interface_api_dto.PasscodeSettings:
+    properties:
+      auto_lock:
+        description: minutes
+        type: integer
+      min_length:
+        type: integer
+      require_alphanumeric:
+        type: boolean
+      retry_limit:
+        type: integer
+    type: object
+  github_com_thienel_go-backend-template_internal_interface_api_dto.ProfileAssignmentResponse:
+    properties:
+      created_at:
+        type: string
+      device_id:
+        type: string
+      group_id:
+        type: integer
+      id:
+        type: integer
+      profile_id:
+        type: integer
+      schedule_type:
+        type: string
+      scheduled_at:
+        type: string
+      target_type:
+        type: string
+    type: object
+  github_com_thienel_go-backend-template_internal_interface_api_dto.ProfileDeploymentStatusResponse:
+    properties:
+      applied_at:
+        type: string
+      created_at:
+        type: string
+      device_id:
+        type: string
+      error_message:
+        type: string
+      id:
+        type: integer
+      profile_id:
+        type: integer
+      status:
+        description: pending, success, failed
+        type: string
+      updated_at:
+        type: string
+    type: object
+  github_com_thienel_go-backend-template_internal_interface_api_dto.ProfileResponse:
+    properties:
+      compliance_rules:
+        additionalProperties: {}
+        type: object
+      content_filter:
+        additionalProperties: {}
+        type: object
+      created_at:
+        type: string
+      id:
+        type: integer
+      name:
+        type: string
+      network_config:
+        additionalProperties: {}
+        type: object
+      payloads:
+        additionalProperties: {}
+        type: object
+      platform:
+        type: string
+      restrictions:
+        additionalProperties: {}
+        type: object
+      scope:
+        type: string
+      security_settings:
+        additionalProperties: {}
+        type: object
+      status:
+        type: string
+      updated_at:
+        type: string
+      version:
+        type: integer
+    type: object
+  github_com_thienel_go-backend-template_internal_interface_api_dto.ProfileVersionResponse:
+    properties:
+      change_notes:
+        type: string
+      created_at:
+        type: string
+      data:
+        additionalProperties: {}
+        type: object
+      id:
+        type: integer
+      profile_id:
+        type: integer
+      version:
+        type: integer
+    type: object
+  github_com_thienel_go-backend-template_internal_interface_api_dto.ProxyConfig:
+    properties:
+      enabled:
+        type: boolean
+      password:
+        type: string
+      port:
+        type: integer
+      server:
+        type: string
+      username:
+        type: string
+    type: object
   github_com_thienel_go-backend-template_internal_interface_api_dto.PushCertResponse:
     properties:
       not_after:
@@ -641,6 +804,14 @@ definitions:
         type: string
       push_result:
         type: string
+    type: object
+  github_com_thienel_go-backend-template_internal_interface_api_dto.ScreenLockSettings:
+    properties:
+      enabled:
+        type: boolean
+      timeout:
+        description: seconds
+        type: integer
     type: object
   github_com_thienel_go-backend-template_internal_interface_api_dto.SettingResponse:
     properties:
@@ -663,6 +834,28 @@ definitions:
         type: string
     required:
     - refresh_token
+    type: object
+  github_com_thienel_go-backend-template_internal_interface_api_dto.UpdateComplianceRulesRequest:
+    properties:
+      block_access:
+        type: boolean
+      lock_device:
+        type: boolean
+      send_alert:
+        type: boolean
+    type: object
+  github_com_thienel_go-backend-template_internal_interface_api_dto.UpdateContentFilterRequest:
+    properties:
+      allowed_domains:
+        items:
+          type: string
+        type: array
+      blocked_websites:
+        items:
+          type: string
+        type: array
+      safe_browsing:
+        type: boolean
     type: object
   github_com_thienel_go-backend-template_internal_interface_api_dto.UpdateDeviceGroupRequest:
     properties:
@@ -726,33 +919,79 @@ definitions:
     - payload_type
     - payloads
     type: object
+  github_com_thienel_go-backend-template_internal_interface_api_dto.UpdateNetworkConfigRequest:
+    properties:
+      proxy:
+        $ref: '#/definitions/github_com_thienel_go-backend-template_internal_interface_api_dto.ProxyConfig'
+      vpn:
+        $ref: '#/definitions/github_com_thienel_go-backend-template_internal_interface_api_dto.VPNConfig'
+      wifi:
+        $ref: '#/definitions/github_com_thienel_go-backend-template_internal_interface_api_dto.WifiConfig'
+    type: object
   github_com_thienel_go-backend-template_internal_interface_api_dto.UpdateProfileRequest:
     properties:
       compliance_rules:
-        additionalProperties: true
+        additionalProperties: {}
         type: object
       content_filter:
-        additionalProperties: true
+        additionalProperties: {}
         type: object
       name:
         maxLength: 255
         type: string
       network_config:
-        additionalProperties: true
+        additionalProperties: {}
         type: object
       payloads:
-        additionalProperties: true
+        additionalProperties: {}
         type: object
       platform:
         type: string
       restrictions:
-        additionalProperties: true
+        additionalProperties: {}
         type: object
       scope:
         type: string
       security_settings:
-        additionalProperties: true
+        additionalProperties: {}
         type: object
+    type: object
+  github_com_thienel_go-backend-template_internal_interface_api_dto.UpdateProfileStatusRequest:
+    properties:
+      status:
+        enum:
+        - active
+        - draft
+        - archived
+        type: string
+    required:
+    - status
+    type: object
+  github_com_thienel_go-backend-template_internal_interface_api_dto.UpdateRestrictionsRequest:
+    properties:
+      airdrop_enabled:
+        description: iOS only
+        type: boolean
+      bluetooth_enabled:
+        type: boolean
+      camera_enabled:
+        type: boolean
+      external_app_install_allowed:
+        type: boolean
+      usb_debugging_enabled:
+        description: Android only
+        type: boolean
+    type: object
+  github_com_thienel_go-backend-template_internal_interface_api_dto.UpdateSecuritySettingsRequest:
+    properties:
+      biometrics:
+        $ref: '#/definitions/github_com_thienel_go-backend-template_internal_interface_api_dto.BiometricsSettings'
+      encryption:
+        $ref: '#/definitions/github_com_thienel_go-backend-template_internal_interface_api_dto.EncryptionSettings'
+      passcode:
+        $ref: '#/definitions/github_com_thienel_go-backend-template_internal_interface_api_dto.PasscodeSettings'
+      screen_lock:
+        $ref: '#/definitions/github_com_thienel_go-backend-template_internal_interface_api_dto.ScreenLockSettings'
     type: object
   github_com_thienel_go-backend-template_internal_interface_api_dto.UpdateSettingRequest:
     properties:
@@ -793,6 +1032,24 @@ definitions:
       username:
         type: string
     type: object
+  github_com_thienel_go-backend-template_internal_interface_api_dto.VPNConfig:
+    properties:
+      server_config:
+        additionalProperties: {}
+        type: object
+      type:
+        description: IKEv2, L2TP, etc.
+        type: string
+    type: object
+  github_com_thienel_go-backend-template_internal_interface_api_dto.WifiConfig:
+    properties:
+      auto_join:
+        type: boolean
+      password:
+        type: string
+      ssid:
+        type: string
+    type: object
   github_com_thienel_go-backend-template_internal_usecase_service.PolicyRule:
     properties:
       method:
@@ -812,6 +1069,45 @@ definitions:
   github_com_thienel_go-backend-template_pkg_response.APIResponse-any:
     properties:
       data: {}
+      error:
+        $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.Error'
+      is_success:
+        type: boolean
+      message:
+        type: string
+    type: object
+  ? github_com_thienel_go-backend-template_pkg_response.APIResponse-array_github_com_thienel_go-backend-template_internal_interface_api_dto_ProfileAssignmentResponse
+  : properties:
+      data:
+        items:
+          $ref: '#/definitions/github_com_thienel_go-backend-template_internal_interface_api_dto.ProfileAssignmentResponse'
+        type: array
+      error:
+        $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.Error'
+      is_success:
+        type: boolean
+      message:
+        type: string
+    type: object
+  ? github_com_thienel_go-backend-template_pkg_response.APIResponse-array_github_com_thienel_go-backend-template_internal_interface_api_dto_ProfileDeploymentStatusResponse
+  : properties:
+      data:
+        items:
+          $ref: '#/definitions/github_com_thienel_go-backend-template_internal_interface_api_dto.ProfileDeploymentStatusResponse'
+        type: array
+      error:
+        $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.Error'
+      is_success:
+        type: boolean
+      message:
+        type: string
+    type: object
+  ? github_com_thienel_go-backend-template_pkg_response.APIResponse-array_github_com_thienel_go-backend-template_internal_interface_api_dto_ProfileVersionResponse
+  : properties:
+      data:
+        items:
+          $ref: '#/definitions/github_com_thienel_go-backend-template_internal_interface_api_dto.ProfileVersionResponse'
+        type: array
       error:
         $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.Error'
       is_success:
@@ -1001,6 +1297,17 @@ definitions:
       message:
         type: string
     type: object
+  ? github_com_thienel_go-backend-template_pkg_response.APIResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_ListResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_ProfileResponse
+  : properties:
+      data:
+        $ref: '#/definitions/github_com_thienel_go-backend-template_internal_interface_api_dto.ListResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_ProfileResponse'
+      error:
+        $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.Error'
+      is_success:
+        type: boolean
+      message:
+        type: string
+    type: object
   ? github_com_thienel_go-backend-template_pkg_response.APIResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_ListResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_UserResponse
   : properties:
       data:
@@ -1082,6 +1389,17 @@ definitions:
   : properties:
       data:
         $ref: '#/definitions/github_com_thienel_go-backend-template_internal_interface_api_dto.OAuth1Tokens'
+      error:
+        $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.Error'
+      is_success:
+        type: boolean
+      message:
+        type: string
+    type: object
+  ? github_com_thienel_go-backend-template_pkg_response.APIResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_ProfileResponse
+  : properties:
+      data:
+        $ref: '#/definitions/github_com_thienel_go-backend-template_internal_interface_api_dto.ProfileResponse'
       error:
         $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.Error'
       is_success:
@@ -1825,6 +2143,759 @@ paths:
       summary: Get mobile config by ID
       tags:
       - Mobile Config
+  /api/v1/profiles:
+    get:
+      description: Fetch profiles with pagination and filtering
+      parameters:
+      - description: Page number (default 1)
+        in: query
+        name: page
+        type: integer
+      - description: Items per page (default 20)
+        in: query
+        name: limit
+        type: integer
+      - description: Filter by name
+        in: query
+        name: name
+        type: string
+      - description: Filter by platform
+        in: query
+        name: platform
+        type: string
+      - description: Filter by scope
+        in: query
+        name: scope
+        type: string
+      - description: Filter by status
+        in: query
+        name: status
+        type: string
+      - description: General search
+        in: query
+        name: search
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_ListResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_ProfileResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+      security:
+      - BearerAuth: []
+      summary: List profiles
+      tags:
+      - Profiles
+    post:
+      consumes:
+      - application/json
+      description: Create a new configuration profile
+      parameters:
+      - description: Profile information
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_thienel_go-backend-template_internal_interface_api_dto.CreateProfileRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_ProfileResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+      security:
+      - BearerAuth: []
+      summary: Create profile
+      tags:
+      - Profiles
+  /api/v1/profiles/{id}:
+    delete:
+      description: Permanently delete a configuration profile and its associated data
+      parameters:
+      - description: Profile ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+      security:
+      - BearerAuth: []
+      summary: Delete profile
+      tags:
+      - Profiles
+    get:
+      description: Fetch single profile details
+      parameters:
+      - description: Profile ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_ProfileResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+      security:
+      - BearerAuth: []
+      summary: Get profile by ID
+      tags:
+      - Profiles
+    put:
+      consumes:
+      - application/json
+      description: Update an existing configuration profile
+      parameters:
+      - description: Profile ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Updated profile information
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_thienel_go-backend-template_internal_interface_api_dto.UpdateProfileRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_ProfileResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+      security:
+      - BearerAuth: []
+      summary: Update profile
+      tags:
+      - Profiles
+  /api/v1/profiles/{id}/assignments:
+    get:
+      description: Fetch all assignments for a specific profile
+      parameters:
+      - description: Profile ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-array_github_com_thienel_go-backend-template_internal_interface_api_dto_ProfileAssignmentResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+      security:
+      - BearerAuth: []
+      summary: List assignments
+      tags:
+      - Profiles
+    post:
+      consumes:
+      - application/json
+      description: Assign a configuration profile to a device or group
+      parameters:
+      - description: Profile ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Assignment details
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_thienel_go-backend-template_internal_interface_api_dto.AssignProfileRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+      security:
+      - BearerAuth: []
+      summary: Assign profile
+      tags:
+      - Profiles
+  /api/v1/profiles/{id}/assignments/{assignmentId}:
+    delete:
+      description: Remove a profile assignment from a device or group
+      parameters:
+      - description: Profile ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Assignment ID
+        in: path
+        name: assignmentId
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+      security:
+      - BearerAuth: []
+      summary: Unassign profile
+      tags:
+      - Profiles
+  /api/v1/profiles/{id}/deployment-status:
+    get:
+      description: Fetch the deployment status of a profile across devices
+      parameters:
+      - description: Profile ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-array_github_com_thienel_go-backend-template_internal_interface_api_dto_ProfileDeploymentStatusResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+      security:
+      - BearerAuth: []
+      summary: Get deployment status
+      tags:
+      - Profiles
+  /api/v1/profiles/{id}/duplicate:
+    post:
+      description: Create a clone of an existing configuration profile
+      parameters:
+      - description: Profile ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_ProfileResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+      security:
+      - BearerAuth: []
+      summary: Duplicate profile
+      tags:
+      - Profiles
+  /api/v1/profiles/{id}/repush:
+    post:
+      description: Manually trigger a push notification for this profile to all assigned
+        devices
+      parameters:
+      - description: Profile ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+      security:
+      - BearerAuth: []
+      summary: Repush profile
+      tags:
+      - Profiles
+  /api/v1/profiles/{id}/settings/compliance:
+    put:
+      consumes:
+      - application/json
+      description: Update the compliance-related rules and actions for a profile
+      parameters:
+      - description: Profile ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Compliance rules mapping
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_thienel_go-backend-template_internal_interface_api_dto.UpdateComplianceRulesRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+      security:
+      - BearerAuth: []
+      summary: Update compliance rules
+      tags:
+      - Profiles
+  /api/v1/profiles/{id}/settings/content-filter:
+    put:
+      consumes:
+      - application/json
+      description: Update the web content and domain filtering for a profile
+      parameters:
+      - description: Profile ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Content filter configuration
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_thienel_go-backend-template_internal_interface_api_dto.UpdateContentFilterRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+      security:
+      - BearerAuth: []
+      summary: Update content filters
+      tags:
+      - Profiles
+  /api/v1/profiles/{id}/settings/network:
+    put:
+      consumes:
+      - application/json
+      description: Update the network-related configuration (WiFi, VPN, etc.) for
+        a profile
+      parameters:
+      - description: Profile ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Network configuration
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_thienel_go-backend-template_internal_interface_api_dto.UpdateNetworkConfigRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+      security:
+      - BearerAuth: []
+      summary: Update network configuration
+      tags:
+      - Profiles
+  /api/v1/profiles/{id}/settings/restrictions:
+    put:
+      consumes:
+      - application/json
+      description: Update the restrictions applied to devices by this profile
+      parameters:
+      - description: Profile ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Restrictions setting
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_thienel_go-backend-template_internal_interface_api_dto.UpdateRestrictionsRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+      security:
+      - BearerAuth: []
+      summary: Update device restrictions
+      tags:
+      - Profiles
+  /api/v1/profiles/{id}/settings/security:
+    put:
+      consumes:
+      - application/json
+      description: Update the security-related configuration for a profile
+      parameters:
+      - description: Profile ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Security settings
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_thienel_go-backend-template_internal_interface_api_dto.UpdateSecuritySettingsRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+      security:
+      - BearerAuth: []
+      summary: Update security settings
+      tags:
+      - Profiles
+  /api/v1/profiles/{id}/status:
+    put:
+      consumes:
+      - application/json
+      description: Update the status of a profile (active, draft, archived)
+      parameters:
+      - description: Profile ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Status information
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_thienel_go-backend-template_internal_interface_api_dto.UpdateProfileStatusRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+      security:
+      - BearerAuth: []
+      summary: Update profile status
+      tags:
+      - Profiles
+  /api/v1/profiles/{id}/versions:
+    get:
+      description: Fetch version history for a specific profile
+      parameters:
+      - description: Profile ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-array_github_com_thienel_go-backend-template_internal_interface_api_dto_ProfileVersionResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+      security:
+      - BearerAuth: []
+      summary: List versions
+      tags:
+      - Profiles
+  /api/v1/profiles/{id}/versions/{versionId}/rollback:
+    post:
+      description: Rollback a profile to a previous version
+      parameters:
+      - description: Profile ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Version ID
+        in: path
+        name: versionId
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+      security:
+      - BearerAuth: []
+      summary: Rollback version
+      tags:
+      - Profiles
   /applications:
     get:
       description: Fetch tracked applications with pagination
@@ -3884,93 +4955,6 @@ paths:
       summary: Get policies for a role
       tags:
       - Authorization
-  /v1/profiles:
-    get:
-      description: Fetch profiles with pagination and filtering
-      produces:
-      - application/json
-      responses: {}
-      security:
-      - BearerAuth: []
-      summary: List profiles
-      tags:
-      - Profiles
-    post:
-      consumes:
-      - application/json
-      description: Create a new configuration profile
-      parameters:
-      - description: Profile info
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/github_com_thienel_go-backend-template_internal_interface_api_dto.CreateProfileRequest'
-      produces:
-      - application/json
-      responses: {}
-      security:
-      - BearerAuth: []
-      summary: Create profile
-      tags:
-      - Profiles
-  /v1/profiles/{id}:
-    delete:
-      description: Delete an existing profile
-      parameters:
-      - description: Profile ID
-        in: path
-        name: id
-        required: true
-        type: integer
-      produces:
-      - application/json
-      responses: {}
-      security:
-      - BearerAuth: []
-      summary: Delete profile
-      tags:
-      - Profiles
-    get:
-      description: Fetch single profile
-      parameters:
-      - description: Profile ID
-        in: path
-        name: id
-        required: true
-        type: integer
-      produces:
-      - application/json
-      responses: {}
-      security:
-      - BearerAuth: []
-      summary: Get profile by ID
-      tags:
-      - Profiles
-    put:
-      consumes:
-      - application/json
-      description: Update an existing profile
-      parameters:
-      - description: Profile ID
-        in: path
-        name: id
-        required: true
-        type: integer
-      - description: Profile info
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/github_com_thienel_go-backend-template_internal_interface_api_dto.UpdateProfileRequest'
-      produces:
-      - application/json
-      responses: {}
-      security:
-      - BearerAuth: []
-      summary: Update profile
-      tags:
-      - Profiles
   /v1/roles:
     delete:
       consumes:

@@ -999,6 +999,1178 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/v1/profiles": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Fetch profiles with pagination and filtering",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Profiles"
+                ],
+                "summary": "List profiles",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Page number (default 1)",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Items per page (default 20)",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Filter by name",
+                        "name": "name",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Filter by platform",
+                        "name": "platform",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Filter by scope",
+                        "name": "scope",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Filter by status",
+                        "name": "status",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "General search",
+                        "name": "search",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_ListResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_ProfileResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Create a new configuration profile",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Profiles"
+                ],
+                "summary": "Create profile",
+                "parameters": [
+                    {
+                        "description": "Profile information",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_internal_interface_api_dto.CreateProfileRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_ProfileResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/profiles/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Fetch single profile details",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Profiles"
+                ],
+                "summary": "Get profile by ID",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Profile ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_ProfileResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Update an existing configuration profile",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Profiles"
+                ],
+                "summary": "Update profile",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Profile ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Updated profile information",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_internal_interface_api_dto.UpdateProfileRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_ProfileResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Permanently delete a configuration profile and its associated data",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Profiles"
+                ],
+                "summary": "Delete profile",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Profile ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/profiles/{id}/assignments": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Fetch all assignments for a specific profile",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Profiles"
+                ],
+                "summary": "List assignments",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Profile ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-array_github_com_thienel_go-backend-template_internal_interface_api_dto_ProfileAssignmentResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Assign a configuration profile to a device or group",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Profiles"
+                ],
+                "summary": "Assign profile",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Profile ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Assignment details",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_internal_interface_api_dto.AssignProfileRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/profiles/{id}/assignments/{assignmentId}": {
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Remove a profile assignment from a device or group",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Profiles"
+                ],
+                "summary": "Unassign profile",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Profile ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Assignment ID",
+                        "name": "assignmentId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/profiles/{id}/deployment-status": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Fetch the deployment status of a profile across devices",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Profiles"
+                ],
+                "summary": "Get deployment status",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Profile ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-array_github_com_thienel_go-backend-template_internal_interface_api_dto_ProfileDeploymentStatusResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/profiles/{id}/duplicate": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Create a clone of an existing configuration profile",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Profiles"
+                ],
+                "summary": "Duplicate profile",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Profile ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_ProfileResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/profiles/{id}/repush": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Manually trigger a push notification for this profile to all assigned devices",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Profiles"
+                ],
+                "summary": "Repush profile",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Profile ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/profiles/{id}/settings/compliance": {
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Update the compliance-related rules and actions for a profile",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Profiles"
+                ],
+                "summary": "Update compliance rules",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Profile ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Compliance rules mapping",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_internal_interface_api_dto.UpdateComplianceRulesRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/profiles/{id}/settings/content-filter": {
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Update the web content and domain filtering for a profile",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Profiles"
+                ],
+                "summary": "Update content filters",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Profile ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Content filter configuration",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_internal_interface_api_dto.UpdateContentFilterRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/profiles/{id}/settings/network": {
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Update the network-related configuration (WiFi, VPN, etc.) for a profile",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Profiles"
+                ],
+                "summary": "Update network configuration",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Profile ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Network configuration",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_internal_interface_api_dto.UpdateNetworkConfigRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/profiles/{id}/settings/restrictions": {
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Update the restrictions applied to devices by this profile",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Profiles"
+                ],
+                "summary": "Update device restrictions",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Profile ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Restrictions setting",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_internal_interface_api_dto.UpdateRestrictionsRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/profiles/{id}/settings/security": {
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Update the security-related configuration for a profile",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Profiles"
+                ],
+                "summary": "Update security settings",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Profile ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Security settings",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_internal_interface_api_dto.UpdateSecuritySettingsRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/profiles/{id}/status": {
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Update the status of a profile (active, draft, archived)",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Profiles"
+                ],
+                "summary": "Update profile status",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Profile ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Status information",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_internal_interface_api_dto.UpdateProfileStatusRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/profiles/{id}/versions": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Fetch version history for a specific profile",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Profiles"
+                ],
+                "summary": "List versions",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Profile ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-array_github_com_thienel_go-backend-template_internal_interface_api_dto_ProfileVersionResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/profiles/{id}/versions/{versionId}/rollback": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Rollback a profile to a previous version",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Profiles"
+                ],
+                "summary": "Rollback version",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Profile ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Version ID",
+                        "name": "versionId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any"
+                        }
+                    }
+                }
+            }
+        },
         "/applications": {
             "get": {
                 "security": [
@@ -4234,143 +5406,6 @@ const docTemplate = `{
                 }
             }
         },
-        "/v1/profiles": {
-            "get": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Fetch profiles with pagination and filtering",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Profiles"
-                ],
-                "summary": "List profiles",
-                "responses": {}
-            },
-            "post": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Create a new configuration profile",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Profiles"
-                ],
-                "summary": "Create profile",
-                "parameters": [
-                    {
-                        "description": "Profile info",
-                        "name": "request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/github_com_thienel_go-backend-template_internal_interface_api_dto.CreateProfileRequest"
-                        }
-                    }
-                ],
-                "responses": {}
-            }
-        },
-        "/v1/profiles/{id}": {
-            "get": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Fetch single profile",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Profiles"
-                ],
-                "summary": "Get profile by ID",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "Profile ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {}
-            },
-            "put": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Update an existing profile",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Profiles"
-                ],
-                "summary": "Update profile",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "Profile ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "description": "Profile info",
-                        "name": "request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/github_com_thienel_go-backend-template_internal_interface_api_dto.UpdateProfileRequest"
-                        }
-                    }
-                ],
-                "responses": {}
-            },
-            "delete": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Delete an existing profile",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Profiles"
-                ],
-                "summary": "Delete profile",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "Profile ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {}
-            }
-        },
         "/v1/roles": {
             "get": {
                 "security": [
@@ -4861,11 +5896,50 @@ const docTemplate = `{
                 }
             }
         },
+        "github_com_thienel_go-backend-template_internal_interface_api_dto.AssignProfileRequest": {
+            "type": "object",
+            "required": [
+                "target_type"
+            ],
+            "properties": {
+                "device_id": {
+                    "type": "string"
+                },
+                "group_id": {
+                    "type": "integer"
+                },
+                "schedule_type": {
+                    "description": "immediate, scheduled",
+                    "type": "string"
+                },
+                "scheduled_at": {
+                    "type": "string"
+                },
+                "target_type": {
+                    "type": "string",
+                    "enum": [
+                        "device",
+                        "group"
+                    ]
+                }
+            }
+        },
         "github_com_thienel_go-backend-template_internal_interface_api_dto.AssignerProfileUUID": {
             "type": "object",
             "properties": {
                 "profile_uuid": {
                     "type": "string"
+                }
+            }
+        },
+        "github_com_thienel_go-backend-template_internal_interface_api_dto.BiometricsSettings": {
+            "type": "object",
+            "properties": {
+                "face_id_enabled": {
+                    "type": "boolean"
+                },
+                "fingerprint_enabled": {
+                    "type": "boolean"
                 }
             }
         },
@@ -5003,7 +6077,7 @@ const docTemplate = `{
                 },
                 "value_json": {
                     "type": "object",
-                    "additionalProperties": true
+                    "additionalProperties": {}
                 }
             }
         },
@@ -5059,11 +6133,11 @@ const docTemplate = `{
             "properties": {
                 "compliance_rules": {
                     "type": "object",
-                    "additionalProperties": true
+                    "additionalProperties": {}
                 },
                 "content_filter": {
                     "type": "object",
-                    "additionalProperties": true
+                    "additionalProperties": {}
                 },
                 "name": {
                     "type": "string",
@@ -5071,11 +6145,11 @@ const docTemplate = `{
                 },
                 "network_config": {
                     "type": "object",
-                    "additionalProperties": true
+                    "additionalProperties": {}
                 },
                 "payloads": {
                     "type": "object",
-                    "additionalProperties": true
+                    "additionalProperties": {}
                 },
                 "platform": {
                     "description": "ios, android, windows, macos, all",
@@ -5083,7 +6157,7 @@ const docTemplate = `{
                 },
                 "restrictions": {
                     "type": "object",
-                    "additionalProperties": true
+                    "additionalProperties": {}
                 },
                 "scope": {
                     "description": "device, user, group",
@@ -5091,7 +6165,7 @@ const docTemplate = `{
                 },
                 "security_settings": {
                     "type": "object",
-                    "additionalProperties": true
+                    "additionalProperties": {}
                 }
             }
         },
@@ -5232,7 +6306,7 @@ const docTemplate = `{
                 "profile_data": {
                     "description": "ProfileData remains for any additional fields not explicitly mapped",
                     "type": "object",
-                    "additionalProperties": true
+                    "additionalProperties": {}
                 },
                 "profile_name": {
                     "type": "string"
@@ -5322,7 +6396,7 @@ const docTemplate = `{
                 },
                 "profile_data": {
                     "type": "object",
-                    "additionalProperties": true
+                    "additionalProperties": {}
                 },
                 "profile_uuid": {
                     "type": "string"
@@ -5429,6 +6503,14 @@ const docTemplate = `{
                 }
             }
         },
+        "github_com_thienel_go-backend-template_internal_interface_api_dto.EncryptionSettings": {
+            "type": "object",
+            "properties": {
+                "required": {
+                    "type": "boolean"
+                }
+            }
+        },
         "github_com_thienel_go-backend-template_internal_interface_api_dto.EventSubscription": {
             "type": "object",
             "properties": {
@@ -5453,6 +6535,29 @@ const docTemplate = `{
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/github_com_thienel_go-backend-template_internal_interface_api_dto.MobileConfigResponse"
+                    }
+                },
+                "limit": {
+                    "type": "integer"
+                },
+                "page": {
+                    "type": "integer"
+                },
+                "total": {
+                    "type": "integer"
+                },
+                "total_pages": {
+                    "type": "integer"
+                }
+            }
+        },
+        "github_com_thienel_go-backend-template_internal_interface_api_dto.ListResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_ProfileResponse": {
+            "type": "object",
+            "properties": {
+                "items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_thienel_go-backend-template_internal_interface_api_dto.ProfileResponse"
                     }
                 },
                 "limit": {
@@ -5582,7 +6687,7 @@ const docTemplate = `{
                 },
                 "value_json": {
                     "type": "object",
-                    "additionalProperties": true
+                    "additionalProperties": {}
                 }
             }
         },
@@ -5674,11 +6779,11 @@ const docTemplate = `{
             "properties": {
                 "acknowledge_event": {
                     "type": "object",
-                    "additionalProperties": true
+                    "additionalProperties": {}
                 },
                 "checkin_event": {
                     "type": "object",
-                    "additionalProperties": true
+                    "additionalProperties": {}
                 },
                 "created_at": {
                     "type": "string"
@@ -5735,6 +6840,180 @@ const docTemplate = `{
                 }
             }
         },
+        "github_com_thienel_go-backend-template_internal_interface_api_dto.PasscodeSettings": {
+            "type": "object",
+            "properties": {
+                "auto_lock": {
+                    "description": "minutes",
+                    "type": "integer"
+                },
+                "min_length": {
+                    "type": "integer"
+                },
+                "require_alphanumeric": {
+                    "type": "boolean"
+                },
+                "retry_limit": {
+                    "type": "integer"
+                }
+            }
+        },
+        "github_com_thienel_go-backend-template_internal_interface_api_dto.ProfileAssignmentResponse": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "device_id": {
+                    "type": "string"
+                },
+                "group_id": {
+                    "type": "integer"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "profile_id": {
+                    "type": "integer"
+                },
+                "schedule_type": {
+                    "type": "string"
+                },
+                "scheduled_at": {
+                    "type": "string"
+                },
+                "target_type": {
+                    "type": "string"
+                }
+            }
+        },
+        "github_com_thienel_go-backend-template_internal_interface_api_dto.ProfileDeploymentStatusResponse": {
+            "type": "object",
+            "properties": {
+                "applied_at": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "device_id": {
+                    "type": "string"
+                },
+                "error_message": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "profile_id": {
+                    "type": "integer"
+                },
+                "status": {
+                    "description": "pending, success, failed",
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                }
+            }
+        },
+        "github_com_thienel_go-backend-template_internal_interface_api_dto.ProfileResponse": {
+            "type": "object",
+            "properties": {
+                "compliance_rules": {
+                    "type": "object",
+                    "additionalProperties": {}
+                },
+                "content_filter": {
+                    "type": "object",
+                    "additionalProperties": {}
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "network_config": {
+                    "type": "object",
+                    "additionalProperties": {}
+                },
+                "payloads": {
+                    "type": "object",
+                    "additionalProperties": {}
+                },
+                "platform": {
+                    "type": "string"
+                },
+                "restrictions": {
+                    "type": "object",
+                    "additionalProperties": {}
+                },
+                "scope": {
+                    "type": "string"
+                },
+                "security_settings": {
+                    "type": "object",
+                    "additionalProperties": {}
+                },
+                "status": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                },
+                "version": {
+                    "type": "integer"
+                }
+            }
+        },
+        "github_com_thienel_go-backend-template_internal_interface_api_dto.ProfileVersionResponse": {
+            "type": "object",
+            "properties": {
+                "change_notes": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "data": {
+                    "type": "object",
+                    "additionalProperties": {}
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "profile_id": {
+                    "type": "integer"
+                },
+                "version": {
+                    "type": "integer"
+                }
+            }
+        },
+        "github_com_thienel_go-backend-template_internal_interface_api_dto.ProxyConfig": {
+            "type": "object",
+            "properties": {
+                "enabled": {
+                    "type": "boolean"
+                },
+                "password": {
+                    "type": "string"
+                },
+                "port": {
+                    "type": "integer"
+                },
+                "server": {
+                    "type": "string"
+                },
+                "username": {
+                    "type": "string"
+                }
+            }
+        },
         "github_com_thienel_go-backend-template_internal_interface_api_dto.PushCertResponse": {
             "type": "object",
             "properties": {
@@ -5757,6 +7036,18 @@ const docTemplate = `{
                 },
                 "push_result": {
                     "type": "string"
+                }
+            }
+        },
+        "github_com_thienel_go-backend-template_internal_interface_api_dto.ScreenLockSettings": {
+            "type": "object",
+            "properties": {
+                "enabled": {
+                    "type": "boolean"
+                },
+                "timeout": {
+                    "description": "seconds",
+                    "type": "integer"
                 }
             }
         },
@@ -5791,6 +7082,40 @@ const docTemplate = `{
             "properties": {
                 "refresh_token": {
                     "type": "string"
+                }
+            }
+        },
+        "github_com_thienel_go-backend-template_internal_interface_api_dto.UpdateComplianceRulesRequest": {
+            "type": "object",
+            "properties": {
+                "block_access": {
+                    "type": "boolean"
+                },
+                "lock_device": {
+                    "type": "boolean"
+                },
+                "send_alert": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "github_com_thienel_go-backend-template_internal_interface_api_dto.UpdateContentFilterRequest": {
+            "type": "object",
+            "properties": {
+                "allowed_domains": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "blocked_websites": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "safe_browsing": {
+                    "type": "boolean"
                 }
             }
         },
@@ -5884,16 +7209,30 @@ const docTemplate = `{
                 }
             }
         },
+        "github_com_thienel_go-backend-template_internal_interface_api_dto.UpdateNetworkConfigRequest": {
+            "type": "object",
+            "properties": {
+                "proxy": {
+                    "$ref": "#/definitions/github_com_thienel_go-backend-template_internal_interface_api_dto.ProxyConfig"
+                },
+                "vpn": {
+                    "$ref": "#/definitions/github_com_thienel_go-backend-template_internal_interface_api_dto.VPNConfig"
+                },
+                "wifi": {
+                    "$ref": "#/definitions/github_com_thienel_go-backend-template_internal_interface_api_dto.WifiConfig"
+                }
+            }
+        },
         "github_com_thienel_go-backend-template_internal_interface_api_dto.UpdateProfileRequest": {
             "type": "object",
             "properties": {
                 "compliance_rules": {
                     "type": "object",
-                    "additionalProperties": true
+                    "additionalProperties": {}
                 },
                 "content_filter": {
                     "type": "object",
-                    "additionalProperties": true
+                    "additionalProperties": {}
                 },
                 "name": {
                     "type": "string",
@@ -5901,25 +7240,80 @@ const docTemplate = `{
                 },
                 "network_config": {
                     "type": "object",
-                    "additionalProperties": true
+                    "additionalProperties": {}
                 },
                 "payloads": {
                     "type": "object",
-                    "additionalProperties": true
+                    "additionalProperties": {}
                 },
                 "platform": {
                     "type": "string"
                 },
                 "restrictions": {
                     "type": "object",
-                    "additionalProperties": true
+                    "additionalProperties": {}
                 },
                 "scope": {
                     "type": "string"
                 },
                 "security_settings": {
                     "type": "object",
-                    "additionalProperties": true
+                    "additionalProperties": {}
+                }
+            }
+        },
+        "github_com_thienel_go-backend-template_internal_interface_api_dto.UpdateProfileStatusRequest": {
+            "type": "object",
+            "required": [
+                "status"
+            ],
+            "properties": {
+                "status": {
+                    "type": "string",
+                    "enum": [
+                        "active",
+                        "draft",
+                        "archived"
+                    ]
+                }
+            }
+        },
+        "github_com_thienel_go-backend-template_internal_interface_api_dto.UpdateRestrictionsRequest": {
+            "type": "object",
+            "properties": {
+                "airdrop_enabled": {
+                    "description": "iOS only",
+                    "type": "boolean"
+                },
+                "bluetooth_enabled": {
+                    "type": "boolean"
+                },
+                "camera_enabled": {
+                    "type": "boolean"
+                },
+                "external_app_install_allowed": {
+                    "type": "boolean"
+                },
+                "usb_debugging_enabled": {
+                    "description": "Android only",
+                    "type": "boolean"
+                }
+            }
+        },
+        "github_com_thienel_go-backend-template_internal_interface_api_dto.UpdateSecuritySettingsRequest": {
+            "type": "object",
+            "properties": {
+                "biometrics": {
+                    "$ref": "#/definitions/github_com_thienel_go-backend-template_internal_interface_api_dto.BiometricsSettings"
+                },
+                "encryption": {
+                    "$ref": "#/definitions/github_com_thienel_go-backend-template_internal_interface_api_dto.EncryptionSettings"
+                },
+                "passcode": {
+                    "$ref": "#/definitions/github_com_thienel_go-backend-template_internal_interface_api_dto.PasscodeSettings"
+                },
+                "screen_lock": {
+                    "$ref": "#/definitions/github_com_thienel_go-backend-template_internal_interface_api_dto.ScreenLockSettings"
                 }
             }
         },
@@ -5982,6 +7376,33 @@ const docTemplate = `{
                 }
             }
         },
+        "github_com_thienel_go-backend-template_internal_interface_api_dto.VPNConfig": {
+            "type": "object",
+            "properties": {
+                "server_config": {
+                    "type": "object",
+                    "additionalProperties": {}
+                },
+                "type": {
+                    "description": "IKEv2, L2TP, etc.",
+                    "type": "string"
+                }
+            }
+        },
+        "github_com_thienel_go-backend-template_internal_interface_api_dto.WifiConfig": {
+            "type": "object",
+            "properties": {
+                "auto_join": {
+                    "type": "boolean"
+                },
+                "password": {
+                    "type": "string"
+                },
+                "ssid": {
+                    "type": "string"
+                }
+            }
+        },
         "github_com_thienel_go-backend-template_internal_usecase_service.PolicyRule": {
             "type": "object",
             "properties": {
@@ -6011,6 +7432,66 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "data": {},
+                "error": {
+                    "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.Error"
+                },
+                "is_success": {
+                    "type": "boolean"
+                },
+                "message": {
+                    "type": "string"
+                }
+            }
+        },
+        "github_com_thienel_go-backend-template_pkg_response.APIResponse-array_github_com_thienel_go-backend-template_internal_interface_api_dto_ProfileAssignmentResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_thienel_go-backend-template_internal_interface_api_dto.ProfileAssignmentResponse"
+                    }
+                },
+                "error": {
+                    "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.Error"
+                },
+                "is_success": {
+                    "type": "boolean"
+                },
+                "message": {
+                    "type": "string"
+                }
+            }
+        },
+        "github_com_thienel_go-backend-template_pkg_response.APIResponse-array_github_com_thienel_go-backend-template_internal_interface_api_dto_ProfileDeploymentStatusResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_thienel_go-backend-template_internal_interface_api_dto.ProfileDeploymentStatusResponse"
+                    }
+                },
+                "error": {
+                    "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.Error"
+                },
+                "is_success": {
+                    "type": "boolean"
+                },
+                "message": {
+                    "type": "string"
+                }
+            }
+        },
+        "github_com_thienel_go-backend-template_pkg_response.APIResponse-array_github_com_thienel_go-backend-template_internal_interface_api_dto_ProfileVersionResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_thienel_go-backend-template_internal_interface_api_dto.ProfileVersionResponse"
+                    }
+                },
                 "error": {
                     "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.Error"
                 },
@@ -6303,6 +7784,23 @@ const docTemplate = `{
                 }
             }
         },
+        "github_com_thienel_go-backend-template_pkg_response.APIResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_ListResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_ProfileResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/github_com_thienel_go-backend-template_internal_interface_api_dto.ListResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_ProfileResponse"
+                },
+                "error": {
+                    "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.Error"
+                },
+                "is_success": {
+                    "type": "boolean"
+                },
+                "message": {
+                    "type": "string"
+                }
+            }
+        },
         "github_com_thienel_go-backend-template_pkg_response.APIResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_ListResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_UserResponse": {
             "type": "object",
             "properties": {
@@ -6427,6 +7925,23 @@ const docTemplate = `{
             "properties": {
                 "data": {
                     "$ref": "#/definitions/github_com_thienel_go-backend-template_internal_interface_api_dto.OAuth1Tokens"
+                },
+                "error": {
+                    "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.Error"
+                },
+                "is_success": {
+                    "type": "boolean"
+                },
+                "message": {
+                    "type": "string"
+                }
+            }
+        },
+        "github_com_thienel_go-backend-template_pkg_response.APIResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_ProfileResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/github_com_thienel_go-backend-template_internal_interface_api_dto.ProfileResponse"
                 },
                 "error": {
                     "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.Error"
