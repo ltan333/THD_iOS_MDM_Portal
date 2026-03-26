@@ -43,11 +43,11 @@ type NanoCMDInventoryDevice struct {
 
 // NanoCMD Webhook
 type NanoCMDWebhook struct {
-	Topic            string                 `json:"topic"`
-	EventID          string                 `json:"event_id"`
-	CreatedAt        time.Time              `json:"created_at"`
-	AcknowledgeEvent map[string]interface{} `json:"acknowledge_event"`
-	Checkin_event    map[string]interface{} `json:"checkin_event"`
+	Topic            string         `json:"topic"`
+	EventID          string         `json:"event_id"`
+	CreatedAt        time.Time      `json:"created_at"`
+	AcknowledgeEvent map[string]any `json:"acknowledge_event"`
+	Checkin_event    map[string]any `json:"checkin_event"`
 }
 
 // NanoCMD Error

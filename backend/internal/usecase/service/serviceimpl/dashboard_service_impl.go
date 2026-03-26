@@ -142,10 +142,10 @@ func (s *dashboardServiceImpl) GetAlertsSummary(ctx context.Context) (*dto.Alert
 			"low":      0,
 		},
 		ByType: map[string]int64{
-			"security":     0,
-			"compliance":   0,
-			"connectivity": 0,
-			"application":  0,
+			"security":      0,
+			"compliance":    0,
+			"connectivity":  0,
+			"application":   0,
 			"device_health": 0,
 		},
 	}, nil
@@ -176,7 +176,7 @@ func (s *dashboardServiceImpl) getDevicesChartData(ctx context.Context) (*dto.Ch
 		Datasets: []dto.ChartDataset{
 			{
 				Label: "Devices",
-				Data:  []interface{}{enrolled, notEnrolled},
+				Data:  []any{enrolled, notEnrolled},
 				Color: "#4CAF50,#FF5722",
 			},
 		},
@@ -192,7 +192,7 @@ func (s *dashboardServiceImpl) getComplianceChartData(ctx context.Context) (*dto
 		Datasets: []dto.ChartDataset{
 			{
 				Label: "Compliance",
-				Data:  []interface{}{100, 0},
+				Data:  []any{100, 0},
 				Color: "#4CAF50,#F44336",
 			},
 		},
@@ -208,7 +208,7 @@ func (s *dashboardServiceImpl) getAlertsChartData(ctx context.Context) (*dto.Cha
 		Datasets: []dto.ChartDataset{
 			{
 				Label: "Alerts",
-				Data:  []interface{}{0, 0, 0, 0},
+				Data:  []any{0, 0, 0, 0},
 				Color: "#F44336,#FF9800,#FFC107,#4CAF50",
 			},
 		},

@@ -12,12 +12,12 @@ type CreateProfileCommand struct {
 	Name             string
 	Platform         string
 	Scope            string
-	SecuritySettings map[string]interface{}
-	NetworkConfig    map[string]interface{}
-	Restrictions     map[string]interface{}
-	ContentFilter    map[string]interface{}
-	ComplianceRules  map[string]interface{}
-	Payloads         map[string]interface{}
+	SecuritySettings map[string]any
+	NetworkConfig    map[string]any
+	Restrictions     map[string]any
+	ContentFilter    map[string]any
+	ComplianceRules  map[string]any
+	Payloads         map[string]any
 }
 
 type UpdateProfileCommand struct {
@@ -25,12 +25,12 @@ type UpdateProfileCommand struct {
 	Name             *string
 	Platform         *string
 	Scope            *string
-	SecuritySettings map[string]interface{}
-	NetworkConfig    map[string]interface{}
-	Restrictions     map[string]interface{}
-	ContentFilter    map[string]interface{}
-	ComplianceRules  map[string]interface{}
-	Payloads         map[string]interface{}
+	SecuritySettings map[string]any
+	NetworkConfig    map[string]any
+	Restrictions     map[string]any
+	ContentFilter    map[string]any
+	ComplianceRules  map[string]any
+	Payloads         map[string]any
 }
 
 type AssignProfileCommand struct {
@@ -54,11 +54,11 @@ type ProfileService interface {
 	UpdateStatus(ctx context.Context, id uint, status string) error
 
 	// Settings sections
-	UpdateSecuritySettings(ctx context.Context, id uint, settings map[string]interface{}) error
-	UpdateNetworkConfig(ctx context.Context, id uint, config map[string]interface{}) error
-	UpdateRestrictions(ctx context.Context, id uint, restrictions map[string]interface{}) error
-	UpdateContentFilter(ctx context.Context, id uint, filter map[string]interface{}) error
-	UpdateComplianceRules(ctx context.Context, id uint, rules map[string]interface{}) error
+	UpdateSecuritySettings(ctx context.Context, id uint, settings map[string]any) error
+	UpdateNetworkConfig(ctx context.Context, id uint, config map[string]any) error
+	UpdateRestrictions(ctx context.Context, id uint, restrictions map[string]any) error
+	UpdateContentFilter(ctx context.Context, id uint, filter map[string]any) error
+	UpdateComplianceRules(ctx context.Context, id uint, rules map[string]any) error
 
 	// Assignment
 	Assign(ctx context.Context, cmd AssignProfileCommand) error

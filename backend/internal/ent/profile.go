@@ -27,17 +27,17 @@ type Profile struct {
 	// Status holds the value of the "status" field.
 	Status profile.Status `json:"status,omitempty"`
 	// SecuritySettings holds the value of the "security_settings" field.
-	SecuritySettings map[string]interface{} `json:"security_settings,omitempty"`
+	SecuritySettings map[string]any `json:"security_settings,omitempty"`
 	// NetworkConfig holds the value of the "network_config" field.
-	NetworkConfig map[string]interface{} `json:"network_config,omitempty"`
+	NetworkConfig map[string]any `json:"network_config,omitempty"`
 	// Restrictions holds the value of the "restrictions" field.
-	Restrictions map[string]interface{} `json:"restrictions,omitempty"`
+	Restrictions map[string]any `json:"restrictions,omitempty"`
 	// ContentFilter holds the value of the "content_filter" field.
-	ContentFilter map[string]interface{} `json:"content_filter,omitempty"`
+	ContentFilter map[string]any `json:"content_filter,omitempty"`
 	// ComplianceRules holds the value of the "compliance_rules" field.
-	ComplianceRules map[string]interface{} `json:"compliance_rules,omitempty"`
+	ComplianceRules map[string]any `json:"compliance_rules,omitempty"`
 	// Payloads holds the value of the "payloads" field.
-	Payloads map[string]interface{} `json:"payloads,omitempty"`
+	Payloads map[string]any `json:"payloads,omitempty"`
 	// Version holds the value of the "version" field.
 	Version int `json:"version,omitempty"`
 	// CreatedAt holds the value of the "created_at" field.

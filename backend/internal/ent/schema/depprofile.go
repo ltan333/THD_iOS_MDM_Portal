@@ -39,7 +39,7 @@ func (DepProfile) Fields() []ent.Field {
 		field.String("support_email_address").Optional(),
 		field.String("support_phone_number").Optional(),
 		field.String("url").Optional(),
-		field.JSON("profile_data", map[string]interface{}{}).Optional(),
+		field.JSON("profile_data", map[string]any{}).Optional(),
 		field.Time("created_at").Default(time.Now).Immutable(),
 		field.Time("updated_at").Default(time.Now).UpdateDefault(time.Now),
 	}

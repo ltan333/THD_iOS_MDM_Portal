@@ -34,7 +34,7 @@ func (_c *ProfileVersionCreate) SetVersion(v int) *ProfileVersionCreate {
 }
 
 // SetData sets the "data" field.
-func (_c *ProfileVersionCreate) SetData(v map[string]interface{}) *ProfileVersionCreate {
+func (_c *ProfileVersionCreate) SetData(v map[string]any) *ProfileVersionCreate {
 	_c.mutation.SetData(v)
 	return _c
 }

@@ -31,7 +31,7 @@ type Alert struct {
 	// UserID holds the value of the "user_id" field.
 	UserID *uint `json:"user_id,omitempty"`
 	// Details holds the value of the "details" field.
-	Details map[string]interface{} `json:"details,omitempty"`
+	Details map[string]any `json:"details,omitempty"`
 	// CreatedAt holds the value of the "created_at" field.
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	// AcknowledgedAt holds the value of the "acknowledged_at" field.

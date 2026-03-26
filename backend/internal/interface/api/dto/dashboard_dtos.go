@@ -16,14 +16,14 @@ type DashboardStatsResponse struct {
 
 // DeviceStatsResponse represents device-related statistics
 type DeviceStatsResponse struct {
-	Total       int64              `json:"total"`
-	Active      int64              `json:"active"`
-	Inactive    int64              `json:"inactive"`
-	Enrolled    int64              `json:"enrolled"`
-	ByPlatform  map[string]int64   `json:"by_platform"`  // ios, android, windows
-	ByStatus    map[string]int64   `json:"by_status"`    // active, inactive, pending
-	Compliant   int64              `json:"compliant"`
-	NonCompliant int64             `json:"non_compliant"`
+	Total        int64            `json:"total"`
+	Active       int64            `json:"active"`
+	Inactive     int64            `json:"inactive"`
+	Enrolled     int64            `json:"enrolled"`
+	ByPlatform   map[string]int64 `json:"by_platform"` // ios, android, windows
+	ByStatus     map[string]int64 `json:"by_status"`   // active, inactive, pending
+	Compliant    int64            `json:"compliant"`
+	NonCompliant int64            `json:"non_compliant"`
 }
 
 // AlertsSummaryResponse represents alerts summary statistics
@@ -38,21 +38,21 @@ type AlertsSummaryResponse struct {
 
 // ChartDataPoint represents a single data point for charts
 type ChartDataPoint struct {
-	Label string      `json:"label"`
-	Value interface{} `json:"value"`
+	Label string `json:"label"`
+	Value any    `json:"value"`
 }
 
 // ChartDataResponse represents chart data for visualization
 type ChartDataResponse struct {
-	ChartType string           `json:"chart_type"` // line, bar, pie, doughnut
-	Title     string           `json:"title"`
-	Labels    []string         `json:"labels"`
-	Datasets  []ChartDataset   `json:"datasets"`
+	ChartType string         `json:"chart_type"` // line, bar, pie, doughnut
+	Title     string         `json:"title"`
+	Labels    []string       `json:"labels"`
+	Datasets  []ChartDataset `json:"datasets"`
 }
 
 // ChartDataset represents a dataset for charts
 type ChartDataset struct {
-	Label string        `json:"label"`
-	Data  []interface{} `json:"data"`
-	Color string        `json:"color,omitempty"`
+	Label string `json:"label"`
+	Data  []any  `json:"data"`
+	Color string `json:"color,omitempty"`
 }

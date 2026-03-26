@@ -28,7 +28,7 @@ func (ProfileVersion) Fields() []ent.Field {
 		field.Uint("id"),
 		field.Uint("profile_id"),
 		field.Int("version"),
-		field.JSON("data", map[string]interface{}{}).Optional(), // Snapshot of profile data
+		field.JSON("data", map[string]any{}).Optional(), // Snapshot of profile data
 		field.String("change_notes").Optional(),
 		field.Time("created_at").Default(time.Now).Immutable(),
 	}

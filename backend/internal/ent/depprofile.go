@@ -65,7 +65,7 @@ type DepProfile struct {
 	// URL holds the value of the "url" field.
 	URL string `json:"url,omitempty"`
 	// ProfileData holds the value of the "profile_data" field.
-	ProfileData map[string]interface{} `json:"profile_data,omitempty"`
+	ProfileData map[string]any `json:"profile_data,omitempty"`
 	// CreatedAt holds the value of the "created_at" field.
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	// UpdatedAt holds the value of the "updated_at" field.

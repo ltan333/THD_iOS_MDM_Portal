@@ -14,14 +14,14 @@ type CreateAlertCommand struct {
 	Type     string
 	DeviceID string
 	UserID   *uint
-	Details  map[string]interface{}
+	Details  map[string]any
 }
 
 type CreateAlertRuleCommand struct {
 	Name        string
 	Description string
-	Condition   map[string]interface{}
-	Actions     map[string]interface{}
+	Condition   map[string]any
+	Actions     map[string]any
 	Enabled     bool
 }
 
@@ -29,8 +29,8 @@ type UpdateAlertRuleCommand struct {
 	ID          uint
 	Name        *string
 	Description *string
-	Condition   map[string]interface{}
-	Actions     map[string]interface{}
+	Condition   map[string]any
+	Actions     map[string]any
 	Enabled     *bool
 }
 

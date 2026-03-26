@@ -20,22 +20,22 @@ type UpdateApplicationRequest struct {
 }
 
 type CreateAppVersionRequest struct {
-	ApplicationID    uint                   `json:"application_id" binding:"required"`
-	Version          string                 `json:"version" binding:"required"`
-	BuildNumber      string                 `json:"build_number" binding:"required"`
-	MinimumOSVersion string                 `json:"minimum_os_version,omitempty"`
-	FileURL          string                 `json:"file_url,omitempty"`
-	Size             int64                  `json:"size,omitempty"`
-	Metadata         map[string]interface{} `json:"metadata,omitempty"`
+	ApplicationID    uint           `json:"application_id" binding:"required"`
+	Version          string         `json:"version" binding:"required"`
+	BuildNumber      string         `json:"build_number" binding:"required"`
+	MinimumOSVersion string         `json:"minimum_os_version,omitempty"`
+	FileURL          string         `json:"file_url,omitempty"`
+	Size             int64          `json:"size,omitempty"`
+	Metadata         map[string]any `json:"metadata,omitempty"`
 }
 
 type UpdateAppVersionRequest struct {
-	Version          *string                `json:"version,omitempty"`
-	BuildNumber      *string                `json:"build_number,omitempty"`
-	MinimumOSVersion *string                `json:"minimum_os_version,omitempty"`
-	FileURL          *string                `json:"file_url,omitempty"`
-	Size             *int64                 `json:"size,omitempty"`
-	Metadata         map[string]interface{} `json:"metadata,omitempty"`
+	Version          *string        `json:"version,omitempty"`
+	BuildNumber      *string        `json:"build_number,omitempty"`
+	MinimumOSVersion *string        `json:"minimum_os_version,omitempty"`
+	FileURL          *string        `json:"file_url,omitempty"`
+	Size             *int64         `json:"size,omitempty"`
+	Metadata         map[string]any `json:"metadata,omitempty"`
 }
 
 type CreateAppDeploymentRequest struct {
@@ -58,16 +58,16 @@ type ApplicationResponse struct {
 }
 
 type AppVersionResponse struct {
-	ID               uint                   `json:"id"`
-	ApplicationID    uint                   `json:"application_id"`
-	Version          string                 `json:"version"`
-	BuildNumber      string                 `json:"build_number"`
-	MinimumOSVersion string                 `json:"minimum_os_version,omitempty"`
-	FileURL          string                 `json:"file_url,omitempty"`
-	Size             int64                  `json:"size,omitempty"`
-	Metadata         map[string]interface{} `json:"metadata,omitempty"`
-	CreatedAt        time.Time              `json:"created_at"`
-	UpdatedAt        time.Time              `json:"updated_at"`
+	ID               uint           `json:"id"`
+	ApplicationID    uint           `json:"application_id"`
+	Version          string         `json:"version"`
+	BuildNumber      string         `json:"build_number"`
+	MinimumOSVersion string         `json:"minimum_os_version,omitempty"`
+	FileURL          string         `json:"file_url,omitempty"`
+	Size             int64          `json:"size,omitempty"`
+	Metadata         map[string]any `json:"metadata,omitempty"`
+	CreatedAt        time.Time      `json:"created_at"`
+	UpdatedAt        time.Time      `json:"updated_at"`
 }
 
 type AppDeploymentResponse struct {

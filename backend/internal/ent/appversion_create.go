@@ -83,7 +83,7 @@ func (_c *AppVersionCreate) SetNillableSize(v *int64) *AppVersionCreate {
 }
 
 // SetMetadata sets the "metadata" field.
-func (_c *AppVersionCreate) SetMetadata(v map[string]interface{}) *AppVersionCreate {
+func (_c *AppVersionCreate) SetMetadata(v map[string]any) *AppVersionCreate {
 	_c.mutation.SetMetadata(v)
 	return _c
 }

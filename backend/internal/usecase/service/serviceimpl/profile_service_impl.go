@@ -163,7 +163,7 @@ func (s *profileServiceImpl) Update(ctx context.Context, cmd service.UpdateProfi
 	}
 
 	// 2. Tạo bản ghi version mới
-	snapshotData := map[string]interface{}{
+	snapshotData := map[string]any{
 		"name":              old.Name,
 		"platform":          string(old.Platform),
 		"scope":             string(old.Scope),
@@ -265,7 +265,7 @@ func (s *profileServiceImpl) UpdateStatus(ctx context.Context, id uint, status s
 	return nil
 }
 
-func (s *profileServiceImpl) UpdateSecuritySettings(ctx context.Context, id uint, settings map[string]interface{}) error {
+func (s *profileServiceImpl) UpdateSecuritySettings(ctx context.Context, id uint, settings map[string]any) error {
 	_, err := s.client.Profile.UpdateOneID(id).
 		SetSecuritySettings(settings).
 		Save(ctx)
@@ -278,7 +278,7 @@ func (s *profileServiceImpl) UpdateSecuritySettings(ctx context.Context, id uint
 	return nil
 }
 
-func (s *profileServiceImpl) UpdateNetworkConfig(ctx context.Context, id uint, config map[string]interface{}) error {
+func (s *profileServiceImpl) UpdateNetworkConfig(ctx context.Context, id uint, config map[string]any) error {
 	_, err := s.client.Profile.UpdateOneID(id).
 		SetNetworkConfig(config).
 		Save(ctx)
@@ -291,7 +291,7 @@ func (s *profileServiceImpl) UpdateNetworkConfig(ctx context.Context, id uint, c
 	return nil
 }
 
-func (s *profileServiceImpl) UpdateRestrictions(ctx context.Context, id uint, restrictions map[string]interface{}) error {
+func (s *profileServiceImpl) UpdateRestrictions(ctx context.Context, id uint, restrictions map[string]any) error {
 	_, err := s.client.Profile.UpdateOneID(id).
 		SetRestrictions(restrictions).
 		Save(ctx)
@@ -304,7 +304,7 @@ func (s *profileServiceImpl) UpdateRestrictions(ctx context.Context, id uint, re
 	return nil
 }
 
-func (s *profileServiceImpl) UpdateContentFilter(ctx context.Context, id uint, filter map[string]interface{}) error {
+func (s *profileServiceImpl) UpdateContentFilter(ctx context.Context, id uint, filter map[string]any) error {
 	_, err := s.client.Profile.UpdateOneID(id).
 		SetContentFilter(filter).
 		Save(ctx)
@@ -317,7 +317,7 @@ func (s *profileServiceImpl) UpdateContentFilter(ctx context.Context, id uint, f
 	return nil
 }
 
-func (s *profileServiceImpl) UpdateComplianceRules(ctx context.Context, id uint, rules map[string]interface{}) error {
+func (s *profileServiceImpl) UpdateComplianceRules(ctx context.Context, id uint, rules map[string]any) error {
 	_, err := s.client.Profile.UpdateOneID(id).
 		SetComplianceRules(rules).
 		Save(ctx)
@@ -396,9 +396,9 @@ func (s *profileServiceImpl) Rollback(ctx context.Context, profileID uint, versi
 	}
 
 	_, err = s.client.Profile.UpdateOneID(profileID).
-		SetSecuritySettings(version.Data["security_settings"].(map[string]interface{})).
-		SetNetworkConfig(version.Data["network_config"].(map[string]interface{})).
-		SetRestrictions(version.Data["restrictions"].(map[string]interface{})).
+		SetSecuritySettings(version.Data["security_settings"].(map[string]any)).
+		SetNetworkConfig(version.Data["network_config"].(map[string]any)).
+		SetRestrictions(version.Data["restrictions"].(map[string]any)).
 		Save(ctx)
 	if err != nil {
 		return apperror.ErrInternalServerError.WithMessage("Lỗi khi rollback").WithError(err)

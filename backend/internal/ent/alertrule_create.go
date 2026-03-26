@@ -41,13 +41,13 @@ func (_c *AlertRuleCreate) SetNillableDescription(v *string) *AlertRuleCreate {
 }
 
 // SetCondition sets the "condition" field.
-func (_c *AlertRuleCreate) SetCondition(v map[string]interface{}) *AlertRuleCreate {
+func (_c *AlertRuleCreate) SetCondition(v map[string]any) *AlertRuleCreate {
 	_c.mutation.SetCondition(v)
 	return _c
 }
 
 // SetActions sets the "actions" field.
-func (_c *AlertRuleCreate) SetActions(v map[string]interface{}) *AlertRuleCreate {
+func (_c *AlertRuleCreate) SetActions(v map[string]any) *AlertRuleCreate {
 	_c.mutation.SetActions(v)
 	return _c
 }

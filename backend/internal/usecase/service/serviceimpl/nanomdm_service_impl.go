@@ -10,8 +10,8 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/thienel/go-backend-template/internal/usecase/service"
 	"github.com/thienel/go-backend-template/internal/interface/api/dto"
+	"github.com/thienel/go-backend-template/internal/usecase/service"
 	apperror "github.com/thienel/go-backend-template/pkg/error"
 	"github.com/thienel/go-backend-template/pkg/httpclient"
 )
@@ -38,7 +38,7 @@ func NewNanoMDMService(mdmBaseURL, depBaseURL, mdmUser, mdmPass, depUser, depPas
 	}
 }
 
-func (s *nanomdmServiceImpl) doRequest(ctx context.Context, method, baseURL, path string, body interface{}, query url.Values, username, password string) (*http.Response, error) {
+func (s *nanomdmServiceImpl) doRequest(ctx context.Context, method, baseURL, path string, body any, query url.Values, username, password string) (*http.Response, error) {
 	u, err := url.Parse(fmt.Sprintf("%s%s", baseURL, path))
 	if err != nil {
 		return nil, err
@@ -80,7 +80,7 @@ func (s *nanomdmServiceImpl) doRequest(ctx context.Context, method, baseURL, pat
 	return s.client.Do(req)
 }
 
-func (s *nanomdmServiceImpl) handleResponse(resp *http.Response, target interface{}) error {
+func (s *nanomdmServiceImpl) handleResponse(resp *http.Response, target any) error {
 	defer func() { _ = resp.Body.Close() }()
 
 	if resp.StatusCode >= 200 && resp.StatusCode < 300 {
@@ -107,7 +107,7 @@ func (s *nanomdmServiceImpl) handleResponse(resp *http.Response, target interfac
 	return apperror.ErrBadRequest.WithMessage(errMsg)
 }
 
-func (s *nanomdmServiceImpl) DefineDEPProfile(ctx context.Context, depName string, profile interface{}) (string, error) {
+func (s *nanomdmServiceImpl) DefineDEPProfile(ctx context.Context, depName string, profile any) (string, error) {
 	resp, err := s.doRequest(ctx, http.MethodPost, s.depBaseURL, "/v1/dep/profiles", profile, nil, s.depUsername, s.depPassword)
 	if err != nil {
 		return "", err
@@ -122,7 +122,7 @@ func (s *nanomdmServiceImpl) DefineDEPProfile(ctx context.Context, depName strin
 	return result.ProfileUUID, nil
 }
 
-func (s *nanomdmServiceImpl) GetDEPProfile(ctx context.Context, depName, profileUUID string) (interface{}, error) {
+func (s *nanomdmServiceImpl) GetDEPProfile(ctx context.Context, depName, profileUUID string) (any, error) {
 	query := url.Values{}
 	query.Set("profile_uuid", profileUUID)
 	resp, err := s.doRequest(ctx, http.MethodGet, s.depBaseURL, fmt.Sprintf("/proxy/%s/profile", depName), nil, query, s.depUsername, s.depPassword)
@@ -137,21 +137,21 @@ func (s *nanomdmServiceImpl) GetDEPProfile(ctx context.Context, depName, profile
 	return &result, nil
 }
 
-func (s *nanomdmServiceImpl) ListDEPProfiles(ctx context.Context, depName string) (interface{}, error) {
+func (s *nanomdmServiceImpl) ListDEPProfiles(ctx context.Context, depName string) (any, error) {
 	resp, err := s.doRequest(ctx, http.MethodGet, s.depBaseURL, "/v1/dep/profiles", nil, nil, s.depUsername, s.depPassword)
 	if err != nil {
 		return nil, err
 	}
 
-	var result interface{}
+	var result any
 	if err := s.handleResponse(resp, &result); err != nil {
 		return nil, err
 	}
 	return result, nil
 }
 
-func (s *nanomdmServiceImpl) SyncDEPDevices(ctx context.Context, depName string, cursor string) (interface{}, error) {
-	var body interface{}
+func (s *nanomdmServiceImpl) SyncDEPDevices(ctx context.Context, depName string, cursor string) (any, error) {
+	var body any
 	if cursor != "" {
 		body = map[string]string{"cursor": cursor}
 	}
@@ -160,14 +160,14 @@ func (s *nanomdmServiceImpl) SyncDEPDevices(ctx context.Context, depName string,
 		return nil, err
 	}
 
-	var result interface{}
+	var result any
 	if err := s.handleResponse(resp, &result); err != nil {
 		return nil, err
 	}
 	return result, nil
 }
 
-func (s *nanomdmServiceImpl) DisownDEPDevices(ctx context.Context, depName string, devices []string) (interface{}, error) {
+func (s *nanomdmServiceImpl) DisownDEPDevices(ctx context.Context, depName string, devices []string) (any, error) {
 	body := struct {
 		Devices []string `json:"devices"`
 	}{
@@ -178,14 +178,14 @@ func (s *nanomdmServiceImpl) DisownDEPDevices(ctx context.Context, depName strin
 		return nil, err
 	}
 
-	var result interface{}
+	var result any
 	if err := s.handleResponse(resp, &result); err != nil {
 		return nil, err
 	}
 	return result, nil
 }
 
-func (s *nanomdmServiceImpl) UploadDEPToken(ctx context.Context, depName string, tokenData []byte) (interface{}, error) {
+func (s *nanomdmServiceImpl) UploadDEPToken(ctx context.Context, depName string, tokenData []byte) (any, error) {
 	resp, err := s.doRequest(ctx, http.MethodPut, s.depBaseURL, fmt.Sprintf("/v1/tokenpki/%s", depName), tokenData, nil, s.depUsername, s.depPassword)
 	if err != nil {
 		return nil, err
@@ -194,7 +194,7 @@ func (s *nanomdmServiceImpl) UploadDEPToken(ctx context.Context, depName string,
 	// For token upload, NanoDEP might set Content-Type header manually in doRequest,
 	// but I updated doRequest to handle []byte body correctly.
 
-	var result interface{}
+	var result any
 	if err := s.handleResponse(resp, &result); err != nil {
 		return nil, err
 	}
@@ -325,20 +325,20 @@ func (s *nanomdmServiceImpl) SetDEPAssigner(ctx context.Context, depName string,
 	return &result, nil
 }
 
-func (s *nanomdmServiceImpl) GetDEPAccount(ctx context.Context, depName string) (interface{}, error) {
+func (s *nanomdmServiceImpl) GetDEPAccount(ctx context.Context, depName string) (any, error) {
 	resp, err := s.doRequest(ctx, http.MethodGet, s.depBaseURL, fmt.Sprintf("/proxy/%s/account", depName), nil, nil, s.depUsername, s.depPassword)
 	if err != nil {
 		return nil, err
 	}
 
-	var result interface{}
+	var result any
 	if err := s.handleResponse(resp, &result); err != nil {
 		return nil, err
 	}
 	return result, nil
 }
 
-func (s *nanomdmServiceImpl) GetDEPDevices(ctx context.Context, depName string, devices []string, cursor string) (interface{}, error) {
+func (s *nanomdmServiceImpl) GetDEPDevices(ctx context.Context, depName string, devices []string, cursor string) (any, error) {
 	var query url.Values
 	if cursor != "" {
 		query = url.Values{}
@@ -346,7 +346,7 @@ func (s *nanomdmServiceImpl) GetDEPDevices(ctx context.Context, depName string, 
 	}
 
 	method := http.MethodPost
-	var body interface{}
+	var body any
 	if len(devices) > 0 {
 		body = map[string][]string{"devices": devices}
 	} else {
@@ -359,7 +359,7 @@ func (s *nanomdmServiceImpl) GetDEPDevices(ctx context.Context, depName string, 
 		return nil, err
 	}
 
-	var result interface{}
+	var result any
 	if err := s.handleResponse(resp, &result); err != nil {
 		return nil, err
 	}
