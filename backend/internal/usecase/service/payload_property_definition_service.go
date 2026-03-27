@@ -2,31 +2,7 @@ package service
 
 import (
 	"context"
-
-	"github.com/thienel/go-backend-template/internal/ent"
-	"github.com/thienel/go-backend-template/pkg/query"
 )
-
-type CreatePayloadPropertyDefinitionCommand struct {
-	PayloadType  string
-	Key          string
-	ValueType    string
-	DefaultValue map[string]interface{}
-	EnumValues   []interface{}
-	Deprecated   bool
-	Description  string
-}
-
-type UpdatePayloadPropertyDefinitionCommand struct {
-	ID           uint
-	PayloadType  string
-	Key          string
-	ValueType    string
-	DefaultValue map[string]interface{}
-	EnumValues   []interface{}
-	Deprecated   bool
-	Description  string
-}
 
 type ImportPayloadPropertyDefinitionsResult struct {
 	PayloadType string   `json:"payload_type"`
@@ -36,14 +12,26 @@ type ImportPayloadPropertyDefinitionsResult struct {
 	Errors      []string `json:"errors,omitempty"`
 }
 
-// PayloadPropertyDefinitionService defines the payload property definition service interface.
-type PayloadPropertyDefinitionService interface {
-	Create(ctx context.Context, cmd CreatePayloadPropertyDefinitionCommand) (*ent.PayloadPropertyDefinition, error)
-	GetByID(ctx context.Context, id uint) (*ent.PayloadPropertyDefinition, error)
-	Update(ctx context.Context, cmd UpdatePayloadPropertyDefinitionCommand) (*ent.PayloadPropertyDefinition, error)
-	Delete(ctx context.Context, id uint) error
-	List(ctx context.Context, offset, limit int, opts query.QueryOptions) ([]*ent.PayloadPropertyDefinition, int64, error)
-	ListPayloadTypes(ctx context.Context) ([]string, error)
+type NestedProperty struct {
+	ValueType       string                     `json:"value_type"`
+	Description     string                     `json:"description,omitempty"`
+	DefaultValue    map[string]interface{}     `json:"default_value,omitempty"`
+	EnumValues      []interface{}              `json:"enum_values,omitempty"`
+	Deprecated      bool                       `json:"deprecated,omitempty"`
+	NestedReference *string                    `json:"nested_reference,omitempty"`
+	ItemsType       *string                    `json:"items_type,omitempty"`
+	ItemsReference  *string                    `json:"items_reference,omitempty"`
+	ItemsSchema     map[string]*NestedProperty `json:"items_schema,omitempty"`
+	Properties      map[string]*NestedProperty `json:"properties,omitempty"`
+}
 
-	ImportFromAppleJSON(ctx context.Context, filename string, data []byte) (*ImportPayloadPropertyDefinitionsResult, error)
+type NestedPayloadSchema struct {
+	PayloadType string                     `json:"payload_type"`
+	Properties  map[string]*NestedProperty `json:"properties"`
+}
+
+type PayloadPropertyDefinitionService interface {
+	ListPayloadTypes(ctx context.Context) ([]string, error)
+	ImportFromAppleJSONFiles(ctx context.Context, fileMap map[string][]byte) (*ImportPayloadPropertyDefinitionsResult, error)
+	GetNestedSchema(ctx context.Context, payloadType string) ([]*NestedPayloadSchema, error)
 }

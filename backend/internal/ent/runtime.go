@@ -289,12 +289,20 @@ func init() {
 	payloadpropertydefinitionDescDeprecated := payloadpropertydefinitionFields[5].Descriptor()
 	// payloadpropertydefinition.DefaultDeprecated holds the default value on creation for the deprecated field.
 	payloadpropertydefinition.DefaultDeprecated = payloadpropertydefinitionDescDeprecated.Default.(bool)
+	// payloadpropertydefinitionDescIsNested is the schema descriptor for is_nested field.
+	payloadpropertydefinitionDescIsNested := payloadpropertydefinitionFields[10].Descriptor()
+	// payloadpropertydefinition.DefaultIsNested holds the default value on creation for the is_nested field.
+	payloadpropertydefinition.DefaultIsNested = payloadpropertydefinitionDescIsNested.Default.(bool)
+	// payloadpropertydefinitionDescOrderIndex is the schema descriptor for order_index field.
+	payloadpropertydefinitionDescOrderIndex := payloadpropertydefinitionFields[11].Descriptor()
+	// payloadpropertydefinition.DefaultOrderIndex holds the default value on creation for the order_index field.
+	payloadpropertydefinition.DefaultOrderIndex = payloadpropertydefinitionDescOrderIndex.Default.(int)
 	// payloadpropertydefinitionDescCreatedAt is the schema descriptor for created_at field.
-	payloadpropertydefinitionDescCreatedAt := payloadpropertydefinitionFields[7].Descriptor()
+	payloadpropertydefinitionDescCreatedAt := payloadpropertydefinitionFields[12].Descriptor()
 	// payloadpropertydefinition.DefaultCreatedAt holds the default value on creation for the created_at field.
 	payloadpropertydefinition.DefaultCreatedAt = payloadpropertydefinitionDescCreatedAt.Default.(func() time.Time)
 	// payloadpropertydefinitionDescUpdatedAt is the schema descriptor for updated_at field.
-	payloadpropertydefinitionDescUpdatedAt := payloadpropertydefinitionFields[8].Descriptor()
+	payloadpropertydefinitionDescUpdatedAt := payloadpropertydefinitionFields[13].Descriptor()
 	// payloadpropertydefinition.DefaultUpdatedAt holds the default value on creation for the updated_at field.
 	payloadpropertydefinition.DefaultUpdatedAt = payloadpropertydefinitionDescUpdatedAt.Default.(func() time.Time)
 	// payloadpropertydefinition.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.

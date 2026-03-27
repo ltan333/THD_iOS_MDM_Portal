@@ -7486,6 +7486,12 @@ type PayloadPropertyDefinitionMutation struct {
 	appendenum_values []interface{}
 	deprecated        *bool
 	description       *string
+	nested_reference  *string
+	items_type        *string
+	items_reference   *string
+	is_nested         *bool
+	order_index       *int
+	addorder_index    *int
 	created_at        *time.Time
 	updated_at        *time.Time
 	deleted_at        *time.Time
@@ -7903,6 +7909,245 @@ func (m *PayloadPropertyDefinitionMutation) ResetDescription() {
 	delete(m.clearedFields, payloadpropertydefinition.FieldDescription)
 }
 
+// SetNestedReference sets the "nested_reference" field.
+func (m *PayloadPropertyDefinitionMutation) SetNestedReference(s string) {
+	m.nested_reference = &s
+}
+
+// NestedReference returns the value of the "nested_reference" field in the mutation.
+func (m *PayloadPropertyDefinitionMutation) NestedReference() (r string, exists bool) {
+	v := m.nested_reference
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldNestedReference returns the old "nested_reference" field's value of the PayloadPropertyDefinition entity.
+// If the PayloadPropertyDefinition object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PayloadPropertyDefinitionMutation) OldNestedReference(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldNestedReference is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldNestedReference requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldNestedReference: %w", err)
+	}
+	return oldValue.NestedReference, nil
+}
+
+// ClearNestedReference clears the value of the "nested_reference" field.
+func (m *PayloadPropertyDefinitionMutation) ClearNestedReference() {
+	m.nested_reference = nil
+	m.clearedFields[payloadpropertydefinition.FieldNestedReference] = struct{}{}
+}
+
+// NestedReferenceCleared returns if the "nested_reference" field was cleared in this mutation.
+func (m *PayloadPropertyDefinitionMutation) NestedReferenceCleared() bool {
+	_, ok := m.clearedFields[payloadpropertydefinition.FieldNestedReference]
+	return ok
+}
+
+// ResetNestedReference resets all changes to the "nested_reference" field.
+func (m *PayloadPropertyDefinitionMutation) ResetNestedReference() {
+	m.nested_reference = nil
+	delete(m.clearedFields, payloadpropertydefinition.FieldNestedReference)
+}
+
+// SetItemsType sets the "items_type" field.
+func (m *PayloadPropertyDefinitionMutation) SetItemsType(s string) {
+	m.items_type = &s
+}
+
+// ItemsType returns the value of the "items_type" field in the mutation.
+func (m *PayloadPropertyDefinitionMutation) ItemsType() (r string, exists bool) {
+	v := m.items_type
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldItemsType returns the old "items_type" field's value of the PayloadPropertyDefinition entity.
+// If the PayloadPropertyDefinition object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PayloadPropertyDefinitionMutation) OldItemsType(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldItemsType is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldItemsType requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldItemsType: %w", err)
+	}
+	return oldValue.ItemsType, nil
+}
+
+// ClearItemsType clears the value of the "items_type" field.
+func (m *PayloadPropertyDefinitionMutation) ClearItemsType() {
+	m.items_type = nil
+	m.clearedFields[payloadpropertydefinition.FieldItemsType] = struct{}{}
+}
+
+// ItemsTypeCleared returns if the "items_type" field was cleared in this mutation.
+func (m *PayloadPropertyDefinitionMutation) ItemsTypeCleared() bool {
+	_, ok := m.clearedFields[payloadpropertydefinition.FieldItemsType]
+	return ok
+}
+
+// ResetItemsType resets all changes to the "items_type" field.
+func (m *PayloadPropertyDefinitionMutation) ResetItemsType() {
+	m.items_type = nil
+	delete(m.clearedFields, payloadpropertydefinition.FieldItemsType)
+}
+
+// SetItemsReference sets the "items_reference" field.
+func (m *PayloadPropertyDefinitionMutation) SetItemsReference(s string) {
+	m.items_reference = &s
+}
+
+// ItemsReference returns the value of the "items_reference" field in the mutation.
+func (m *PayloadPropertyDefinitionMutation) ItemsReference() (r string, exists bool) {
+	v := m.items_reference
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldItemsReference returns the old "items_reference" field's value of the PayloadPropertyDefinition entity.
+// If the PayloadPropertyDefinition object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PayloadPropertyDefinitionMutation) OldItemsReference(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldItemsReference is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldItemsReference requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldItemsReference: %w", err)
+	}
+	return oldValue.ItemsReference, nil
+}
+
+// ClearItemsReference clears the value of the "items_reference" field.
+func (m *PayloadPropertyDefinitionMutation) ClearItemsReference() {
+	m.items_reference = nil
+	m.clearedFields[payloadpropertydefinition.FieldItemsReference] = struct{}{}
+}
+
+// ItemsReferenceCleared returns if the "items_reference" field was cleared in this mutation.
+func (m *PayloadPropertyDefinitionMutation) ItemsReferenceCleared() bool {
+	_, ok := m.clearedFields[payloadpropertydefinition.FieldItemsReference]
+	return ok
+}
+
+// ResetItemsReference resets all changes to the "items_reference" field.
+func (m *PayloadPropertyDefinitionMutation) ResetItemsReference() {
+	m.items_reference = nil
+	delete(m.clearedFields, payloadpropertydefinition.FieldItemsReference)
+}
+
+// SetIsNested sets the "is_nested" field.
+func (m *PayloadPropertyDefinitionMutation) SetIsNested(b bool) {
+	m.is_nested = &b
+}
+
+// IsNested returns the value of the "is_nested" field in the mutation.
+func (m *PayloadPropertyDefinitionMutation) IsNested() (r bool, exists bool) {
+	v := m.is_nested
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldIsNested returns the old "is_nested" field's value of the PayloadPropertyDefinition entity.
+// If the PayloadPropertyDefinition object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PayloadPropertyDefinitionMutation) OldIsNested(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldIsNested is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldIsNested requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldIsNested: %w", err)
+	}
+	return oldValue.IsNested, nil
+}
+
+// ResetIsNested resets all changes to the "is_nested" field.
+func (m *PayloadPropertyDefinitionMutation) ResetIsNested() {
+	m.is_nested = nil
+}
+
+// SetOrderIndex sets the "order_index" field.
+func (m *PayloadPropertyDefinitionMutation) SetOrderIndex(i int) {
+	m.order_index = &i
+	m.addorder_index = nil
+}
+
+// OrderIndex returns the value of the "order_index" field in the mutation.
+func (m *PayloadPropertyDefinitionMutation) OrderIndex() (r int, exists bool) {
+	v := m.order_index
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldOrderIndex returns the old "order_index" field's value of the PayloadPropertyDefinition entity.
+// If the PayloadPropertyDefinition object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PayloadPropertyDefinitionMutation) OldOrderIndex(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldOrderIndex is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldOrderIndex requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldOrderIndex: %w", err)
+	}
+	return oldValue.OrderIndex, nil
+}
+
+// AddOrderIndex adds i to the "order_index" field.
+func (m *PayloadPropertyDefinitionMutation) AddOrderIndex(i int) {
+	if m.addorder_index != nil {
+		*m.addorder_index += i
+	} else {
+		m.addorder_index = &i
+	}
+}
+
+// AddedOrderIndex returns the value that was added to the "order_index" field in this mutation.
+func (m *PayloadPropertyDefinitionMutation) AddedOrderIndex() (r int, exists bool) {
+	v := m.addorder_index
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetOrderIndex resets all changes to the "order_index" field.
+func (m *PayloadPropertyDefinitionMutation) ResetOrderIndex() {
+	m.order_index = nil
+	m.addorder_index = nil
+}
+
 // SetCreatedAt sets the "created_at" field.
 func (m *PayloadPropertyDefinitionMutation) SetCreatedAt(t time.Time) {
 	m.created_at = &t
@@ -8112,7 +8357,7 @@ func (m *PayloadPropertyDefinitionMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *PayloadPropertyDefinitionMutation) Fields() []string {
-	fields := make([]string, 0, 10)
+	fields := make([]string, 0, 15)
 	if m.payload_type != nil {
 		fields = append(fields, payloadpropertydefinition.FieldPayloadType)
 	}
@@ -8133,6 +8378,21 @@ func (m *PayloadPropertyDefinitionMutation) Fields() []string {
 	}
 	if m.description != nil {
 		fields = append(fields, payloadpropertydefinition.FieldDescription)
+	}
+	if m.nested_reference != nil {
+		fields = append(fields, payloadpropertydefinition.FieldNestedReference)
+	}
+	if m.items_type != nil {
+		fields = append(fields, payloadpropertydefinition.FieldItemsType)
+	}
+	if m.items_reference != nil {
+		fields = append(fields, payloadpropertydefinition.FieldItemsReference)
+	}
+	if m.is_nested != nil {
+		fields = append(fields, payloadpropertydefinition.FieldIsNested)
+	}
+	if m.order_index != nil {
+		fields = append(fields, payloadpropertydefinition.FieldOrderIndex)
 	}
 	if m.created_at != nil {
 		fields = append(fields, payloadpropertydefinition.FieldCreatedAt)
@@ -8165,6 +8425,16 @@ func (m *PayloadPropertyDefinitionMutation) Field(name string) (ent.Value, bool)
 		return m.Deprecated()
 	case payloadpropertydefinition.FieldDescription:
 		return m.Description()
+	case payloadpropertydefinition.FieldNestedReference:
+		return m.NestedReference()
+	case payloadpropertydefinition.FieldItemsType:
+		return m.ItemsType()
+	case payloadpropertydefinition.FieldItemsReference:
+		return m.ItemsReference()
+	case payloadpropertydefinition.FieldIsNested:
+		return m.IsNested()
+	case payloadpropertydefinition.FieldOrderIndex:
+		return m.OrderIndex()
 	case payloadpropertydefinition.FieldCreatedAt:
 		return m.CreatedAt()
 	case payloadpropertydefinition.FieldUpdatedAt:
@@ -8194,6 +8464,16 @@ func (m *PayloadPropertyDefinitionMutation) OldField(ctx context.Context, name s
 		return m.OldDeprecated(ctx)
 	case payloadpropertydefinition.FieldDescription:
 		return m.OldDescription(ctx)
+	case payloadpropertydefinition.FieldNestedReference:
+		return m.OldNestedReference(ctx)
+	case payloadpropertydefinition.FieldItemsType:
+		return m.OldItemsType(ctx)
+	case payloadpropertydefinition.FieldItemsReference:
+		return m.OldItemsReference(ctx)
+	case payloadpropertydefinition.FieldIsNested:
+		return m.OldIsNested(ctx)
+	case payloadpropertydefinition.FieldOrderIndex:
+		return m.OldOrderIndex(ctx)
 	case payloadpropertydefinition.FieldCreatedAt:
 		return m.OldCreatedAt(ctx)
 	case payloadpropertydefinition.FieldUpdatedAt:
@@ -8258,6 +8538,41 @@ func (m *PayloadPropertyDefinitionMutation) SetField(name string, value ent.Valu
 		}
 		m.SetDescription(v)
 		return nil
+	case payloadpropertydefinition.FieldNestedReference:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetNestedReference(v)
+		return nil
+	case payloadpropertydefinition.FieldItemsType:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetItemsType(v)
+		return nil
+	case payloadpropertydefinition.FieldItemsReference:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetItemsReference(v)
+		return nil
+	case payloadpropertydefinition.FieldIsNested:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetIsNested(v)
+		return nil
+	case payloadpropertydefinition.FieldOrderIndex:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetOrderIndex(v)
+		return nil
 	case payloadpropertydefinition.FieldCreatedAt:
 		v, ok := value.(time.Time)
 		if !ok {
@@ -8286,13 +8601,21 @@ func (m *PayloadPropertyDefinitionMutation) SetField(name string, value ent.Valu
 // AddedFields returns all numeric fields that were incremented/decremented during
 // this mutation.
 func (m *PayloadPropertyDefinitionMutation) AddedFields() []string {
-	return nil
+	var fields []string
+	if m.addorder_index != nil {
+		fields = append(fields, payloadpropertydefinition.FieldOrderIndex)
+	}
+	return fields
 }
 
 // AddedField returns the numeric value that was incremented/decremented on a field
 // with the given name. The second boolean return value indicates that this field
 // was not set, or was not defined in the schema.
 func (m *PayloadPropertyDefinitionMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case payloadpropertydefinition.FieldOrderIndex:
+		return m.AddedOrderIndex()
+	}
 	return nil, false
 }
 
@@ -8301,6 +8624,13 @@ func (m *PayloadPropertyDefinitionMutation) AddedField(name string) (ent.Value, 
 // type.
 func (m *PayloadPropertyDefinitionMutation) AddField(name string, value ent.Value) error {
 	switch name {
+	case payloadpropertydefinition.FieldOrderIndex:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddOrderIndex(v)
+		return nil
 	}
 	return fmt.Errorf("unknown PayloadPropertyDefinition numeric field %s", name)
 }
@@ -8317,6 +8647,15 @@ func (m *PayloadPropertyDefinitionMutation) ClearedFields() []string {
 	}
 	if m.FieldCleared(payloadpropertydefinition.FieldDescription) {
 		fields = append(fields, payloadpropertydefinition.FieldDescription)
+	}
+	if m.FieldCleared(payloadpropertydefinition.FieldNestedReference) {
+		fields = append(fields, payloadpropertydefinition.FieldNestedReference)
+	}
+	if m.FieldCleared(payloadpropertydefinition.FieldItemsType) {
+		fields = append(fields, payloadpropertydefinition.FieldItemsType)
+	}
+	if m.FieldCleared(payloadpropertydefinition.FieldItemsReference) {
+		fields = append(fields, payloadpropertydefinition.FieldItemsReference)
 	}
 	if m.FieldCleared(payloadpropertydefinition.FieldDeletedAt) {
 		fields = append(fields, payloadpropertydefinition.FieldDeletedAt)
@@ -8343,6 +8682,15 @@ func (m *PayloadPropertyDefinitionMutation) ClearField(name string) error {
 		return nil
 	case payloadpropertydefinition.FieldDescription:
 		m.ClearDescription()
+		return nil
+	case payloadpropertydefinition.FieldNestedReference:
+		m.ClearNestedReference()
+		return nil
+	case payloadpropertydefinition.FieldItemsType:
+		m.ClearItemsType()
+		return nil
+	case payloadpropertydefinition.FieldItemsReference:
+		m.ClearItemsReference()
 		return nil
 	case payloadpropertydefinition.FieldDeletedAt:
 		m.ClearDeletedAt()
@@ -8375,6 +8723,21 @@ func (m *PayloadPropertyDefinitionMutation) ResetField(name string) error {
 		return nil
 	case payloadpropertydefinition.FieldDescription:
 		m.ResetDescription()
+		return nil
+	case payloadpropertydefinition.FieldNestedReference:
+		m.ResetNestedReference()
+		return nil
+	case payloadpropertydefinition.FieldItemsType:
+		m.ResetItemsType()
+		return nil
+	case payloadpropertydefinition.FieldItemsReference:
+		m.ResetItemsReference()
+		return nil
+	case payloadpropertydefinition.FieldIsNested:
+		m.ResetIsNested()
+		return nil
+	case payloadpropertydefinition.FieldOrderIndex:
+		m.ResetOrderIndex()
 		return nil
 	case payloadpropertydefinition.FieldCreatedAt:
 		m.ResetCreatedAt()
