@@ -13,15 +13,16 @@ import (
 )
 
 var payloadPropertyDefinitionAllowedFields = map[string]bool{
-	"id":           true,
-	"payload_type": true,
-	"key":          true,
-	"value_type":   true,
-	"deprecated":   true,
-	"description":  true,
-	"created_at":   true,
-	"updated_at":   true,
-	"search":       true,
+	"id":            true,
+	"payload_type":  true,
+	"key":           true,
+	"value_type":    true,
+	"deprecated":    true,
+	"description":   true,
+	"order_index":   true,
+	"created_at":    true,
+	"updated_at":    true,
+	"search":        true,
 }
 
 type payloadPropertyDefinitionRepositoryImpl struct {
@@ -42,6 +43,11 @@ func (r *payloadPropertyDefinitionRepositoryImpl) Create(ctx context.Context, e 
 		SetEnumValues(e.EnumValues).
 		SetDeprecated(e.Deprecated).
 		SetDescription(strings.TrimSpace(e.Description)).
+		SetNillableNestedReference(e.NestedReference).
+		SetNillableItemsType(e.ItemsType).
+		SetNillableItemsReference(e.ItemsReference).
+		SetIsNested(e.IsNested).
+		SetOrderIndex(e.OrderIndex).
 		Save(ctx)
 	if err != nil {
 		if ent.IsConstraintError(err) {
@@ -78,6 +84,11 @@ func (r *payloadPropertyDefinitionRepositoryImpl) Update(ctx context.Context, e 
 		SetEnumValues(e.EnumValues).
 		SetDeprecated(e.Deprecated).
 		SetDescription(strings.TrimSpace(e.Description)).
+		SetNillableNestedReference(e.NestedReference).
+		SetNillableItemsType(e.ItemsType).
+		SetNillableItemsReference(e.ItemsReference).
+		SetIsNested(e.IsNested).
+		SetOrderIndex(e.OrderIndex).
 		Save(ctx)
 	if err != nil {
 		if ent.IsConstraintError(err) {
@@ -229,13 +240,18 @@ func (r *payloadPropertyDefinitionRepositoryImpl) UpsertByPayloadTypeAndKey(ctx 
 
 	if ent.IsNotFound(err) {
 		created := &ent.PayloadPropertyDefinition{
-			PayloadType:  payloadType,
-			Key:          key,
-			ValueType:    strings.TrimSpace(e.ValueType),
-			DefaultValue: e.DefaultValue,
-			EnumValues:   e.EnumValues,
-			Deprecated:   e.Deprecated,
-			Description:  strings.TrimSpace(e.Description),
+			PayloadType:     payloadType,
+			Key:             key,
+			ValueType:       strings.TrimSpace(e.ValueType),
+			DefaultValue:    e.DefaultValue,
+			EnumValues:      e.EnumValues,
+			Deprecated:      e.Deprecated,
+			Description:     strings.TrimSpace(e.Description),
+			NestedReference: e.NestedReference,
+			ItemsType:       e.ItemsType,
+			ItemsReference:  e.ItemsReference,
+			IsNested:        e.IsNested,
+			OrderIndex:      e.OrderIndex,
 		}
 		if err := r.Create(ctx, created); err != nil {
 			return nil, false, err
@@ -250,6 +266,11 @@ func (r *payloadPropertyDefinitionRepositoryImpl) UpsertByPayloadTypeAndKey(ctx 
 	existing.EnumValues = e.EnumValues
 	existing.Deprecated = e.Deprecated
 	existing.Description = strings.TrimSpace(e.Description)
+	existing.NestedReference = e.NestedReference
+	existing.ItemsType = e.ItemsType
+	existing.ItemsReference = e.ItemsReference
+	existing.IsNested = e.IsNested
+	existing.OrderIndex = e.OrderIndex
 	if err := r.Update(ctx, existing); err != nil {
 		return nil, false, err
 	}

@@ -257,6 +257,7 @@ func (r *routeRegister) registerNanoCMDRoutes(rg *gin.RouterGroup) {
 func (r *routeRegister) registerMobileConfigRoutes(rg *gin.RouterGroup) {
 	mobileConfigs := rg.Group("/mobile-configs")
 	{
+		mobileConfigs.GET("", r.mc.List)
 		mobileConfigs.POST("", r.mc.Create)
 		mobileConfigs.PUT("/:id", r.mc.Update)
 		mobileConfigs.DELETE("/:id", r.mc.Delete)
@@ -267,12 +268,13 @@ func (r *routeRegister) registerMobileConfigRoutes(rg *gin.RouterGroup) {
 func (r *routeRegister) registerPayloadPropertyDefinitionRoutes(rg *gin.RouterGroup) {
 	definitions := rg.Group("/payload-property-definitions")
 	{
-		definitions.GET("", r.ppd.List)
+		// definitions.GET("", r.ppd.List)
 		definitions.GET("/payload-types", r.ppd.ListPayloadTypes)
-		definitions.GET("/:id", r.ppd.GetByID)
-		definitions.POST("", r.ppd.Create)
-		definitions.PUT("/:id", r.ppd.Update)
-		definitions.DELETE("/:id", r.ppd.Delete)
+		// definitions.GET("/:id", r.ppd.GetByID)
+		// definitions.POST("", r.ppd.Create)
+		// definitions.PUT("/:id", r.ppd.Update)
+		// definitions.DELETE("/:id", r.ppd.Delete)
 		definitions.POST("/import", r.ppd.Import)
+		definitions.GET("/schema", r.ppd.GetNestedSchema)
 	}
 }
