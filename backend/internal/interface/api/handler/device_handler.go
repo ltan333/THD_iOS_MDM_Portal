@@ -165,8 +165,14 @@ func (h *deviceHandlerImpl) Lock(c *gin.Context) {
 		return
 	}
 
+	udid, err := h.deviceService.GetUDID(c.Request.Context(), id)
+	if err != nil {
+		response.WriteErrorResponse(c, err)
+		return
+	}
+
 	var req dto.DeviceLockRequest
-	_ = c.ShouldBindJSON(&req) // Optional body
+	_ = c.ShouldBindJSON(&req)
 
 	opts := &mdmcmd.DeviceLockOptions{
 		PIN:         req.PIN,
@@ -180,7 +186,7 @@ func (h *deviceHandlerImpl) Lock(c *gin.Context) {
 		return
 	}
 
-	result, err := h.mdmService.EnqueueCommand(c.Request.Context(), id, cmdData)
+	result, err := h.mdmService.EnqueueCommand(c.Request.Context(), udid, cmdData)
 	if err != nil {
 		response.WriteErrorResponse(c, err)
 		return
@@ -209,8 +215,14 @@ func (h *deviceHandlerImpl) Wipe(c *gin.Context) {
 		return
 	}
 
+	udid, err := h.deviceService.GetUDID(c.Request.Context(), id)
+	if err != nil {
+		response.WriteErrorResponse(c, err)
+		return
+	}
+
 	var req dto.DeviceWipeRequest
-	_ = c.ShouldBindJSON(&req) // Optional body
+	_ = c.ShouldBindJSON(&req)
 
 	opts := &mdmcmd.EraseDeviceOptions{
 		PIN:                    req.PIN,
@@ -225,7 +237,7 @@ func (h *deviceHandlerImpl) Wipe(c *gin.Context) {
 		return
 	}
 
-	result, err := h.mdmService.EnqueueCommand(c.Request.Context(), id, cmdData)
+	result, err := h.mdmService.EnqueueCommand(c.Request.Context(), udid, cmdData)
 	if err != nil {
 		response.WriteErrorResponse(c, err)
 		return
@@ -254,6 +266,12 @@ func (h *deviceHandlerImpl) Restart(c *gin.Context) {
 		return
 	}
 
+	udid, err := h.deviceService.GetUDID(c.Request.Context(), id)
+	if err != nil {
+		response.WriteErrorResponse(c, err)
+		return
+	}
+
 	var req dto.DeviceRestartRequest
 	_ = c.ShouldBindJSON(&req)
 
@@ -267,7 +285,7 @@ func (h *deviceHandlerImpl) Restart(c *gin.Context) {
 		return
 	}
 
-	result, err := h.mdmService.EnqueueCommand(c.Request.Context(), id, cmdData)
+	result, err := h.mdmService.EnqueueCommand(c.Request.Context(), udid, cmdData)
 	if err != nil {
 		response.WriteErrorResponse(c, err)
 		return
@@ -294,13 +312,19 @@ func (h *deviceHandlerImpl) Shutdown(c *gin.Context) {
 		return
 	}
 
+	udid, err := h.deviceService.GetUDID(c.Request.Context(), id)
+	if err != nil {
+		response.WriteErrorResponse(c, err)
+		return
+	}
+
 	cmdData, _, err := h.cmdBuilder.ShutDownDevice()
 	if err != nil {
 		response.WriteErrorResponse(c, apperror.ErrInternalServerError.WithError(err))
 		return
 	}
 
-	result, err := h.mdmService.EnqueueCommand(c.Request.Context(), id, cmdData)
+	result, err := h.mdmService.EnqueueCommand(c.Request.Context(), udid, cmdData)
 	if err != nil {
 		response.WriteErrorResponse(c, err)
 		return
@@ -330,14 +354,20 @@ func (h *deviceHandlerImpl) InstallProfile(c *gin.Context) {
 		return
 	}
 
+	udid, err := h.deviceService.GetUDID(c.Request.Context(), id)
+	if err != nil {
+		response.WriteErrorResponse(c, err)
+		return
+	}
+
 	var req dto.DeviceInstallProfileRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		response.WriteErrorResponse(c, apperror.ErrBadRequest.WithError(err))
 		return
 	}
 
-	// Use profile service to install profile on device
-	err := h.profileService.InstallOnDevice(c.Request.Context(), req.ProfileID, id)
+	// Use the MDM UDID for nanoMDM interactions.
+	err = h.profileService.InstallOnDevice(c.Request.Context(), req.ProfileID, udid)
 	if err != nil {
 		response.WriteErrorResponse(c, err)
 		return
@@ -370,6 +400,12 @@ func (h *deviceHandlerImpl) RemoveProfile(c *gin.Context) {
 		return
 	}
 
+	udid, err := h.deviceService.GetUDID(c.Request.Context(), id)
+	if err != nil {
+		response.WriteErrorResponse(c, err)
+		return
+	}
+
 	var req dto.DeviceRemoveProfileRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		response.WriteErrorResponse(c, apperror.ErrBadRequest.WithError(err))
@@ -382,7 +418,7 @@ func (h *deviceHandlerImpl) RemoveProfile(c *gin.Context) {
 		return
 	}
 
-	result, err := h.mdmService.EnqueueCommand(c.Request.Context(), id, cmdData)
+	result, err := h.mdmService.EnqueueCommand(c.Request.Context(), udid, cmdData)
 	if err != nil {
 		response.WriteErrorResponse(c, err)
 		return
@@ -411,6 +447,12 @@ func (h *deviceHandlerImpl) RequestInfo(c *gin.Context) {
 		return
 	}
 
+	udid, err := h.deviceService.GetUDID(c.Request.Context(), id)
+	if err != nil {
+		response.WriteErrorResponse(c, err)
+		return
+	}
+
 	var req dto.DeviceInfoRequest
 	_ = c.ShouldBindJSON(&req)
 
@@ -425,7 +467,7 @@ func (h *deviceHandlerImpl) RequestInfo(c *gin.Context) {
 		return
 	}
 
-	result, err := h.mdmService.EnqueueCommand(c.Request.Context(), id, cmdData)
+	result, err := h.mdmService.EnqueueCommand(c.Request.Context(), udid, cmdData)
 	if err != nil {
 		response.WriteErrorResponse(c, err)
 		return
@@ -441,8 +483,15 @@ func mapDeviceToResponse(d *ent.Device) dto.DeviceResponse {
 		ownerID = &o
 	}
 
+	// Expose the MDM UDID separately from the portal's internal ID.
+	udidVal := ""
+	if d.Udid != nil {
+		udidVal = *d.Udid
+	}
+
 	resp := dto.DeviceResponse{
 		ID:               d.ID,
+		UDID:             udidVal,
 		SerialNumber:     d.SerialNumber,
 		Model:            d.Model,
 		Name:             d.Name,
