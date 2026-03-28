@@ -16,12 +16,14 @@ import (
 
 type alertServiceImpl struct {
 	repo       repository.AlertRepository
+	ruleRepo   repository.AlertRuleRepository
 	mdmService service.NanoMDMService
 }
 
-func NewAlertService(repo repository.AlertRepository, mdmService service.NanoMDMService) service.AlertService {
+func NewAlertService(repo repository.AlertRepository, ruleRepo repository.AlertRuleRepository, mdmService service.NanoMDMService) service.AlertService {
 	return &alertServiceImpl{
 		repo:       repo,
+		ruleRepo:   ruleRepo,
 		mdmService: mdmService,
 	}
 }
@@ -43,7 +45,7 @@ func (s *alertServiceImpl) Create(ctx context.Context, cmd service.CreateAlertCo
 		return nil, apperror.ErrValidation.WithMessage("Tiêu đề alert là bắt buộc")
 	}
 	
-	return s.repo.Create(ctx, &ent.Alert{
+	createdAlert, err := s.repo.Create(ctx, &ent.Alert{
 		Title:    cmd.Title,
 		Severity: alert.Severity(cmd.Severity),
 		Type:     alert.Type(cmd.Type),
@@ -52,6 +54,55 @@ func (s *alertServiceImpl) Create(ctx context.Context, cmd service.CreateAlertCo
 		UserID:   cmd.UserID,
 		Details:  cmd.Details,
 	})
+	if err != nil {
+		return nil, err
+	}
+
+	go s.evaluateRulesAndTrigger(context.Background(), createdAlert)
+	return createdAlert, nil
+}
+
+func (s *alertServiceImpl) evaluateRulesAndTrigger(ctx context.Context, a *ent.Alert) {
+	if a.DeviceID == "" || a.Status != alert.StatusOpen {
+		return
+	}
+
+	rules, _, err := s.ruleRepo.List(ctx, 0, 1000, query.QueryOptions{
+		Filters: map[string]query.FilterValue{
+			"enabled": {Value: "true"},
+		},
+	})
+	if err != nil || len(rules) == 0 {
+		return
+	}
+
+	for _, r := range rules {
+		match := true
+		if r.Condition != nil {
+			if sev, ok := r.Condition["severity"].(string); ok && sev != "" {
+				if string(a.Severity) != sev {
+					match = false
+				}
+			}
+			if typ, ok := r.Condition["type"].(string); ok && typ != "" {
+				if string(a.Type) != typ {
+					match = false
+				}
+			}
+		}
+
+		if match && r.Actions != nil {
+			if lock, ok := r.Actions["lock_device"].(bool); ok && lock {
+				_ = s.LockDevice(ctx, a.ID)
+			}
+			if wipe, ok := r.Actions["wipe_device"].(bool); ok && wipe {
+				_ = s.WipeDevice(ctx, a.ID)
+			}
+			if policyID, ok := r.Actions["push_policy_id"].(float64); ok && policyID > 0 {
+				_ = s.PushPolicy(ctx, a.ID, uint(policyID))
+			}
+		}
+	}
 }
 
 func (s *alertServiceImpl) Acknowledge(ctx context.Context, id uint) error {
@@ -156,9 +207,45 @@ func (s *alertRuleServiceImpl) GetByID(ctx context.Context, id uint) (*ent.Alert
 	return s.repo.GetByID(ctx, id)
 }
 
+func validateRuleSchema(cond, actions map[string]interface{}) error {
+	if cond != nil {
+		if _, ok := cond["severity"]; ok {
+			if _, isStr := cond["severity"].(string); !isStr {
+				return apperror.ErrValidation.WithMessage("severity in condition must be string")
+			}
+		}
+		if _, ok := cond["type"]; ok {
+			if _, isStr := cond["type"].(string); !isStr {
+				return apperror.ErrValidation.WithMessage("type in condition must be string")
+			}
+		}
+	}
+	if actions != nil {
+		if _, ok := actions["lock_device"]; ok {
+			if _, isBool := actions["lock_device"].(bool); !isBool {
+				return apperror.ErrValidation.WithMessage("lock_device in actions must be bool")
+			}
+		}
+		if _, ok := actions["wipe_device"]; ok {
+			if _, isBool := actions["wipe_device"].(bool); !isBool {
+				return apperror.ErrValidation.WithMessage("wipe_device in actions must be bool")
+			}
+		}
+		if _, ok := actions["push_policy_id"]; ok {
+			if _, isFloat := actions["push_policy_id"].(float64); !isFloat {
+				return apperror.ErrValidation.WithMessage("push_policy_id in actions must be a number")
+			}
+		}
+	}
+	return nil
+}
+
 func (s *alertRuleServiceImpl) Create(ctx context.Context, cmd service.CreateAlertRuleCommand) (*ent.AlertRule, error) {
 	if strings.TrimSpace(cmd.Name) == "" {
 		return nil, apperror.ErrValidation.WithMessage("Tên rule là bắt buộc")
+	}
+	if err := validateRuleSchema(cmd.Condition, cmd.Actions); err != nil {
+		return nil, err
 	}
 
 	return s.repo.Create(ctx, &ent.AlertRule{
@@ -173,6 +260,10 @@ func (s *alertRuleServiceImpl) Create(ctx context.Context, cmd service.CreateAle
 func (s *alertRuleServiceImpl) Update(ctx context.Context, cmd service.UpdateAlertRuleCommand) (*ent.AlertRule, error) {
 	if cmd.ID == 0 {
 		return nil, apperror.ErrValidation.WithMessage("ID rule là bắt buộc")
+	}
+
+	if err := validateRuleSchema(cmd.Condition, cmd.Actions); err != nil {
+		return nil, err
 	}
 
 	r, err := s.GetByID(ctx, cmd.ID)
@@ -215,10 +306,5 @@ func (s *alertRuleServiceImpl) Delete(ctx context.Context, id uint) error {
 }
 
 func (s *alertRuleServiceImpl) Toggle(ctx context.Context, id uint) error {
-	r, err := s.GetByID(ctx, id)
-	if err != nil {
-		return err
-	}
-
-	return s.repo.SetEnabled(ctx, id, !r.Enabled)
+	return s.repo.ToggleEnabled(ctx, id)
 }
