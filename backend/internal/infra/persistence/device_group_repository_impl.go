@@ -87,20 +87,16 @@ func (r *deviceGroupRepositoryImpl) GetByID(ctx context.Context, id uint) (*ent.
 }
 
 func (r *deviceGroupRepositoryImpl) Create(ctx context.Context, entity *ent.DeviceGroup) (*ent.DeviceGroup, error) {
-	exists, err := r.client.DeviceGroup.Query().Where(devicegroup.NameEQ(entity.Name)).Exist(ctx)
-	if err != nil {
-		return nil, apperror.ErrInternalServerError.WithMessage("Lỗi khi kiểm tra tên nhóm thiết bị").WithError(err)
-	}
-	if exists {
-		return nil, apperror.ErrConflict.WithMessage("Tên nhóm thiết bị đã tồn tại")
-	}
-
-	create := r.client.DeviceGroup.Create().
+	group, err := r.client.DeviceGroup.Create().
 		SetName(entity.Name).
-		SetDescription(entity.Description)
+		SetDescription(entity.Description).
+		Save(ctx)
 
-	group, err := create.Save(ctx)
 	if err != nil {
+		// Atomic constraint handling — Immune to Race Conditions
+		if ent.IsConstraintError(err) {
+			return nil, apperror.ErrConflict.WithMessage("Tên nhóm thiết bị đã tồn tại")
+		}
 		return nil, apperror.ErrInternalServerError.WithMessage("Lỗi khi tạo nhóm thiết bị").WithError(err)
 	}
 
@@ -108,35 +104,20 @@ func (r *deviceGroupRepositoryImpl) Create(ctx context.Context, entity *ent.Devi
 }
 
 func (r *deviceGroupRepositoryImpl) Update(ctx context.Context, id uint, entity *ent.DeviceGroup) (*ent.DeviceGroup, error) {
-	if entity.Name != "" {
-		exists, err := r.client.DeviceGroup.Query().
-			Where(
-				devicegroup.NameEQ(entity.Name),
-				devicegroup.IDNEQ(id),
-			).
-			Exist(ctx)
-		if err != nil {
-			return nil, apperror.ErrInternalServerError.WithMessage("Lỗi khi kiểm tra tên nhóm thiết bị").WithError(err)
-		}
-		if exists {
+	// Because the service layer resolves the object fully, we blindly apply both fields. 
+	// This fixes the "impossible to clear description" bug.
+	group, err := r.client.DeviceGroup.UpdateOneID(id).
+		SetName(entity.Name).
+		SetDescription(entity.Description).
+		Save(ctx)
+
+	if err != nil {
+		if ent.IsConstraintError(err) {
 			return nil, apperror.ErrConflict.WithMessage("Tên nhóm thiết bị đã tồn tại")
 		}
-	}
-
-	update := r.client.DeviceGroup.UpdateOneID(id)
-
-	if entity.Name != "" {
-		update.SetName(entity.Name)
-	}
-	if entity.Description != "" {
-		update.SetDescription(entity.Description)
-	}
-
-	group, err := update.Save(ctx)
-	if ent.IsNotFound(err) {
-		return nil, apperror.ErrNotFound.WithMessage("Nhóm thiết bị không tồn tại")
-	}
-	if err != nil {
+		if ent.IsNotFound(err) {
+			return nil, apperror.ErrNotFound.WithMessage("Nhóm thiết bị không tồn tại")
+		}
 		return nil, apperror.ErrInternalServerError.WithMessage("Lỗi khi cập nhật nhóm thiết bị").WithError(err)
 	}
 
