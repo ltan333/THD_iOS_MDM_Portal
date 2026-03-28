@@ -43,8 +43,8 @@ func NewMobileConfigHandler(mobileConfigService service.MobileConfigService) Mob
 
 // List godoc
 // @Summary List mobile configs
-// @Description Get a paginated list of Apple mobile configs with filtering and sorting
-// @Tags Mobile Config
+// @Description Get a paginated list of Apple mobile configuration profiles with support for filtering and sorting.
+// @Tags MobileConfig
 // @Produce json
 // @Security BearerAuth
 // @Param page query int false "Page number (default 1)"
@@ -53,9 +53,9 @@ func NewMobileConfigHandler(mobileConfigService service.MobileConfigService) Mob
 // @Param name query string false "Filter by name"
 // @Param payload_type query string false "Filter by payload type"
 // @Param sort query string false "Sort by field (e.g. id,name,created_at)"
-// @Success 200 {object} response.APIResponse[dto.ListResponse[dto.MobileConfigResponse]]
-// @Failure 401 {object} APIErrorResponse
-// @Failure 500 {object} APIErrorResponse
+// @Success 200 {object} response.APIResponse[dto.ListResponse[dto.MobileConfigResponse]] "List of mobile configs"
+// @Failure 401 {object} response.APIResponse[any] "Unauthorized"
+// @Failure 500 {object} response.APIResponse[any] "Internal server error"
 // @Router /api/v1/mobile-configs [get]
 func (m *mobileConfigHandlerImpl) List(c *gin.Context) {
 	params := make(map[string]string)
@@ -93,16 +93,16 @@ func (m *mobileConfigHandlerImpl) List(c *gin.Context) {
 
 // GetByID godoc
 // @Summary Get mobile config by ID
-// @Description Get details of a single mobile config by its ID including payloads
-// @Tags Mobile Config
+// @Description Retrieve details of a single Apple mobile configuration profile, including its nested payloads and properties.
+// @Tags MobileConfig
 // @Produce json
 // @Security BearerAuth
 // @Param id path int true "Mobile config ID"
-// @Success 200 {object} MobileConfigSuccessResponse
-// @Failure 400 {object} APIErrorResponse
-// @Failure 401 {object} APIErrorResponse
-// @Failure 404 {object} APIErrorResponse
-// @Failure 500 {object} APIErrorResponse
+// @Success 200 {object} response.APIResponse[dto.MobileConfigResponse] "Mobile config details"
+// @Failure 400 {object} response.APIResponse[any] "Invalid ID format"
+// @Failure 401 {object} response.APIResponse[any] "Unauthorized"
+// @Failure 404 {object} response.APIResponse[any] "Mobile config not found"
+// @Failure 500 {object} response.APIResponse[any] "Internal server error"
 // @Router /api/v1/mobile-configs/{id} [get]
 func (m *mobileConfigHandlerImpl) GetByID(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
@@ -140,18 +140,18 @@ func toMobileConfigListResponse(mc *ent.MobileConfig) dto.MobileConfigResponse {
 
 // Create godoc
 // @Summary Create mobile config
-// @Description Create a new Apple mobileconfig with payloads and payload properties
-// @Tags Mobile Config
+// @Description Create a new Apple mobileconfig definition with multiple payloads and detailed properties.
+// @Tags MobileConfig
 // @Accept json
 // @Produce json
 // @Security BearerAuth
-// @Param request body dto.CreateMobileConfigRequest true "Mobile config payload"
-// @Success 201 {object} MobileConfigSuccessResponse
-// @Failure 400 {object} APIErrorResponse
-// @Failure 401 {object} APIErrorResponse
-// @Failure 403 {object} APIErrorResponse
-// @Failure 409 {object} APIErrorResponse
-// @Failure 500 {object} APIErrorResponse
+// @Param request body dto.CreateMobileConfigRequest true "Mobile config definition"
+// @Success 201 {object} response.APIResponse[dto.MobileConfigResponse] "Mobile config created successfully"
+// @Failure 400 {object} response.APIResponse[any] "Invalid request data or validation error"
+// @Failure 401 {object} response.APIResponse[any] "Unauthorized"
+// @Failure 403 {object} response.APIResponse[any] "Forbidden - Insufficient permissions"
+// @Failure 409 {object} response.APIResponse[any] "Mobile config with this identifier already exists"
+// @Failure 500 {object} response.APIResponse[any] "Internal server error"
 // @Router /api/v1/mobile-configs [post]
 func (m *mobileConfigHandlerImpl) Create(c *gin.Context) {
 	var req dto.CreateMobileConfigRequest
@@ -215,20 +215,20 @@ func (m *mobileConfigHandlerImpl) Create(c *gin.Context) {
 
 // Update godoc
 // @Summary Update mobile config
-// @Description Update an existing Apple mobileconfig with payloads and payload properties
-// @Tags Mobile Config
+// @Description Modify an existing Apple mobileconfig definition, including its nested payloads and properties.
+// @Tags MobileConfig
 // @Accept json
 // @Produce json
 // @Security BearerAuth
 // @Param id path int true "Mobile config ID"
-// @Param request body dto.UpdateMobileConfigRequest true "Mobile config payload"
-// @Success 200 {object} MobileConfigSuccessResponse
-// @Failure 400 {object} APIErrorResponse
-// @Failure 401 {object} APIErrorResponse
-// @Failure 403 {object} APIErrorResponse
-// @Failure 404 {object} APIErrorResponse
-// @Failure 409 {object} APIErrorResponse
-// @Failure 500 {object} APIErrorResponse
+// @Param request body dto.UpdateMobileConfigRequest true "Updated mobile config definition"
+// @Success 200 {object} response.APIResponse[dto.MobileConfigResponse] "Mobile config updated successfully"
+// @Failure 400 {object} response.APIResponse[any] "Invalid ID or request data"
+// @Failure 401 {object} response.APIResponse[any] "Unauthorized"
+// @Failure 403 {object} response.APIResponse[any] "Forbidden - Insufficient permissions"
+// @Failure 404 {object} response.APIResponse[any] "Mobile config not found"
+// @Failure 409 {object} response.APIResponse[any] "Conflict - record might have been modified"
+// @Failure 500 {object} response.APIResponse[any] "Internal server error"
 // @Router /api/v1/mobile-configs/{id} [put]
 func (m *mobileConfigHandlerImpl) Update(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
@@ -275,17 +275,17 @@ func (m *mobileConfigHandlerImpl) Update(c *gin.Context) {
 
 // Delete godoc
 // @Summary Delete mobile config
-// @Description Delete an existing Apple mobileconfig by ID
-// @Tags Mobile Config
+// @Description Permanently remove an Apple mobileconfig definition from the system.
+// @Tags MobileConfig
 // @Produce json
 // @Security BearerAuth
 // @Param id path int true "Mobile config ID"
-// @Success 200 {object} EmptySuccessResponse
-// @Failure 400 {object} APIErrorResponse
-// @Failure 401 {object} APIErrorResponse
-// @Failure 403 {object} APIErrorResponse
-// @Failure 404 {object} APIErrorResponse
-// @Failure 500 {object} APIErrorResponse
+// @Success 200 {object} response.APIResponse[any] "Mobile config deleted successfully"
+// @Failure 400 {object} response.APIResponse[any] "Invalid ID format"
+// @Failure 401 {object} response.APIResponse[any] "Unauthorized"
+// @Failure 403 {object} response.APIResponse[any] "Forbidden - Insufficient permissions"
+// @Failure 404 {object} response.APIResponse[any] "Mobile config not found"
+// @Failure 500 {object} response.APIResponse[any] "Internal server error"
 // @Router /api/v1/mobile-configs/{id} [delete]
 func (m *mobileConfigHandlerImpl) Delete(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
@@ -421,14 +421,14 @@ func validateCreateMobileConfigRequest(req dto.CreateMobileConfigRequest) []resp
 
 // GetXML godoc
 // @Summary Export mobile config XML
-// @Description Generate and return raw Apple mobileconfig XML content by ID
-// @Tags Mobile Config
-// @Produce xml
+// @Description Generate and return the raw .mobileconfig XML file content for Apple devices.
+// @Tags MobileConfig
+// @Produce application/x-apple-aspen-config
 // @Param id path int true "Mobile config ID"
-// @Success 200 {string} string "Raw XML"
-// @Failure 400 {object} APIErrorResponse
-// @Failure 404 {object} APIErrorResponse
-// @Failure 500 {object} APIErrorResponse
+// @Success 200 {file} file "Apple mobileconfig file content"
+// @Failure 400 {object} response.APIResponse[any] "Invalid ID format"
+// @Failure 404 {object} response.APIResponse[any] "Mobile config not found"
+// @Failure 500 {object} response.APIResponse[any] "Internal server error"
 // @Router /api/v1/mobile-configs/{id}/xml [get]
 func (m *mobileConfigHandlerImpl) GetXML(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 32)

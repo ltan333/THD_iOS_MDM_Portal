@@ -27,14 +27,14 @@ func NewSettingHandler(settingService service.SettingService) SettingHandler {
 }
 
 // List godoc
-// @Summary List settings
-// @Description Fetch all backend configuration kv string settings
-// @Tags settings
+// @Summary List system settings
+// @Description Retrieve a complete list of all system-wide configuration settings (key-value pairs).
+// @Tags Settings
 // @Produce json
+// @Success 200 {object} response.APIResponse[[]dto.SettingResponse] "List of system settings"
+// @Failure 401 {object} response.APIResponse[any] "Unauthorized"
+// @Failure 500 {object} response.APIResponse[any] "Internal server error"
 // @Security BearerAuth
-// @Success 200 {object} response.APIResponse[[]dto.SettingResponse]
-// @Failure 401 {object} response.APIResponse[any]
-// @Failure 500 {object} response.APIResponse[any]
 // @Router /api/v1/settings [get]
 func (h *settingHandlerImpl) List(c *gin.Context) {
 	settings, err := h.settingService.List(c.Request.Context())
@@ -52,16 +52,16 @@ func (h *settingHandlerImpl) List(c *gin.Context) {
 }
 
 // GetByKey godoc
-// @Summary Get setting by key
-// @Description Get a specifically named environment configuration value
-// @Tags settings
+// @Summary Get system setting
+// @Description Retrieve the value and metadata for a specific configuration setting using its unique key.
+// @Tags Settings
 // @Produce json
-// @Param key path string true "Setting Key Identifier"
+// @Param key path string true "Unique setting key"
+// @Success 200 {object} response.APIResponse[dto.SettingResponse] "Setting details"
+// @Failure 401 {object} response.APIResponse[any] "Unauthorized"
+// @Failure 404 {object} response.APIResponse[any] "Setting not found"
+// @Failure 500 {object} response.APIResponse[any] "Internal server error"
 // @Security BearerAuth
-// @Success 200 {object} response.APIResponse[dto.SettingResponse]
-// @Failure 401 {object} response.APIResponse[any]
-// @Failure 404 {object} response.APIResponse[any]
-// @Failure 500 {object} response.APIResponse[any]
 // @Router /api/v1/settings/{key} [get]
 func (h *settingHandlerImpl) GetByKey(c *gin.Context) {
 	key := c.Param("key")
@@ -76,17 +76,18 @@ func (h *settingHandlerImpl) GetByKey(c *gin.Context) {
 }
 
 // Create godoc
-// @Summary Create setting
-// @Description Create a new key-value system config record
-// @Tags settings
+// @Summary Create system setting
+// @Description Register a new system-wide configuration setting.
+// @Tags Settings
 // @Accept json
 // @Produce json
-// @Param request body dto.CreateSettingRequest true "Create Setting Body"
+// @Param request body dto.CreateSettingRequest true "Setting details"
+// @Success 201 {object} response.APIResponse[dto.SettingResponse] "Setting created successfully"
+// @Failure 400 {object} response.APIResponse[any] "Invalid request data"
+// @Failure 401 {object} response.APIResponse[any] "Unauthorized"
+// @Failure 409 {object} response.APIResponse[any] "Setting key already exists"
+// @Failure 500 {object} response.APIResponse[any] "Internal server error"
 // @Security BearerAuth
-// @Success 201 {object} response.APIResponse[dto.SettingResponse]
-// @Failure 400 {object} response.APIResponse[any]
-// @Failure 401 {object} response.APIResponse[any]
-// @Failure 500 {object} response.APIResponse[any]
 // @Router /api/v1/settings [post]
 func (h *settingHandlerImpl) Create(c *gin.Context) {
 	var req dto.CreateSettingRequest
@@ -109,19 +110,19 @@ func (h *settingHandlerImpl) Create(c *gin.Context) {
 }
 
 // Update godoc
-// @Summary Update setting
-// @Description Overwrite value and description of a system setting
-// @Tags settings
+// @Summary Update system setting
+// @Description Modify the value or description of an existing configuration setting.
+// @Tags Settings
 // @Accept json
 // @Produce json
-// @Param key path string true "Setting Key Identifier"
-// @Param request body dto.UpdateSettingRequest true "Update Setting Body"
+// @Param key path string true "Unique setting key"
+// @Param request body dto.UpdateSettingRequest true "Updated setting details"
+// @Success 200 {object} response.APIResponse[dto.SettingResponse] "Setting updated successfully"
+// @Failure 400 {object} response.APIResponse[any] "Invalid request data"
+// @Failure 401 {object} response.APIResponse[any] "Unauthorized"
+// @Failure 404 {object} response.APIResponse[any] "Setting not found"
+// @Failure 500 {object} response.APIResponse[any] "Internal server error"
 // @Security BearerAuth
-// @Success 200 {object} response.APIResponse[dto.SettingResponse]
-// @Failure 400 {object} response.APIResponse[any]
-// @Failure 401 {object} response.APIResponse[any]
-// @Failure 404 {object} response.APIResponse[any]
-// @Failure 500 {object} response.APIResponse[any]
 // @Router /api/v1/settings/{key} [put]
 func (h *settingHandlerImpl) Update(c *gin.Context) {
 	key := c.Param("key")
@@ -146,15 +147,16 @@ func (h *settingHandlerImpl) Update(c *gin.Context) {
 }
 
 // Delete godoc
-// @Summary Delete setting
-// @Description Delete system setting forever
-// @Tags settings
+// @Summary Delete system setting
+// @Description Permanently remove a configuration setting from the system.
+// @Tags Settings
 // @Produce json
-// @Param key path string true "Setting Key String"
+// @Param key path string true "Unique setting key"
+// @Success 200 {object} response.APIResponse[any] "Setting deleted successfully"
+// @Failure 401 {object} response.APIResponse[any] "Unauthorized"
+// @Failure 404 {object} response.APIResponse[any] "Setting not found"
+// @Failure 500 {object} response.APIResponse[any] "Internal server error"
 // @Security BearerAuth
-// @Success 200 {object} response.APIResponse[any]
-// @Failure 401 {object} response.APIResponse[any]
-// @Failure 500 {object} response.APIResponse[any]
 // @Router /api/v1/settings/{key} [delete]
 func (h *settingHandlerImpl) Delete(c *gin.Context) {
 	key := c.Param("key")

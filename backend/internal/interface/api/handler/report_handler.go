@@ -30,15 +30,15 @@ func NewReportHandler(reportService service.ReportService) ReportHandler {
 }
 
 // ExportDevices godoc
-// @Summary Export Devices
-// @Description Export a list of devices to CSV format
-// @Tags reports
+// @Summary Export devices to CSV
+// @Description Generate and download a CSV file containing the current inventory of enrolled devices, with optional search filtering.
+// @Tags Reports
 // @Produce text/csv
-// @Param search query string false "Search via Device Name, Serial or Model"
+// @Param search query string false "Filter by device name, serial number, or model"
+// @Success 200 {string} string "CSV file content"
+// @Failure 401 {object} response.APIResponse[any] "Unauthorized"
+// @Failure 500 {object} response.APIResponse[any] "Internal server error"
 // @Security BearerAuth
-// @Success 200 {string} string "CSV Data"
-// @Failure 401 {object} response.APIResponse[any]
-// @Failure 500 {object} response.APIResponse[any]
 // @Router /api/v1/reports/devices/export [get]
 func (h *reportHandlerImpl) ExportDevices(c *gin.Context) {
 	params := make(map[string]string)
@@ -61,15 +61,15 @@ func (h *reportHandlerImpl) ExportDevices(c *gin.Context) {
 }
 
 // ExportAlerts godoc
-// @Summary Export Alerts
-// @Description Export a list of generated alerts to CSV format
-// @Tags reports
+// @Summary Export alerts to CSV
+// @Description Generate and download a CSV file containing all generated security and system alerts.
+// @Tags Reports
 // @Produce text/csv
-// @Param search query string false "Search Alerts"
+// @Param search query string false "Filter alerts by description or severity"
+// @Success 200 {string} string "CSV file content"
+// @Failure 401 {object} response.APIResponse[any] "Unauthorized"
+// @Failure 500 {object} response.APIResponse[any] "Internal server error"
 // @Security BearerAuth
-// @Success 200 {string} string "CSV Data"
-// @Failure 401 {object} response.APIResponse[any]
-// @Failure 500 {object} response.APIResponse[any]
 // @Router /api/v1/reports/alerts/export [get]
 func (h *reportHandlerImpl) ExportAlerts(c *gin.Context) {
 	params := make(map[string]string)
@@ -92,15 +92,15 @@ func (h *reportHandlerImpl) ExportAlerts(c *gin.Context) {
 }
 
 // ExportApplications godoc
-// @Summary Export Applications
-// @Description Export a list of tracked applications to CSV format
-// @Tags reports
+// @Summary Export applications to CSV
+// @Description Generate and download a CSV file containing all tracked applications and their basic metadata.
+// @Tags Reports
 // @Produce text/csv
-// @Param search query string false "Search by Bundle ID or App Name"
+// @Param search query string false "Filter by bundle ID or application name"
+// @Success 200 {string} string "CSV file content"
+// @Failure 401 {object} response.APIResponse[any] "Unauthorized"
+// @Failure 500 {object} response.APIResponse[any] "Internal server error"
 // @Security BearerAuth
-// @Success 200 {string} string "CSV Data"
-// @Failure 401 {object} response.APIResponse[any]
-// @Failure 500 {object} response.APIResponse[any]
 // @Router /api/v1/reports/applications/export [get]
 func (h *reportHandlerImpl) ExportApplications(c *gin.Context) {
 	params := make(map[string]string)

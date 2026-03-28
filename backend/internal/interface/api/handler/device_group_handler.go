@@ -36,10 +36,18 @@ func NewDeviceGroupHandler(groupService service.DeviceGroupService) DeviceGroupH
 	return &deviceGroupHandlerImpl{groupService: groupService}
 }
 
+// List godoc
 // @Summary List device groups
-// @Description Fetch device groups with pagination and filtering
+// @Description Retrieve a paginated list of device groups with support for name-based filtering and searching.
 // @Tags DeviceGroups
 // @Produce json
+// @Param page query int false "Page number (default 1)"
+// @Param limit query int false "Items per page (default 20)"
+// @Param name query string false "Filter by group name"
+// @Param search query string false "Search in name and description"
+// @Success 200 {object} response.APIResponse[dto.ListResponse[dto.DeviceGroupResponse]] "List of device groups"
+// @Failure 401 {object} response.APIResponse[any] "Unauthorized"
+// @Failure 500 {object} response.APIResponse[any] "Internal server error"
 // @Security BearerAuth
 // @Router /api/v1/device-groups [get]
 func (h *deviceGroupHandlerImpl) List(c *gin.Context) {
@@ -75,11 +83,17 @@ func (h *deviceGroupHandlerImpl) List(c *gin.Context) {
 	}, "")
 }
 
+// GetByID godoc
 // @Summary Get device group by ID
-// @Description Fetch single device group
+// @Description Fetch detailed information for a single device group, including its assigned devices.
 // @Tags DeviceGroups
 // @Produce json
 // @Param id path int true "Group ID"
+// @Success 200 {object} response.APIResponse[dto.DeviceGroupResponse] "Device group details"
+// @Failure 400 {object} response.APIResponse[any] "Invalid ID format"
+// @Failure 401 {object} response.APIResponse[any] "Unauthorized"
+// @Failure 404 {object} response.APIResponse[any] "Group not found"
+// @Failure 500 {object} response.APIResponse[any] "Internal server error"
 // @Security BearerAuth
 // @Router /api/v1/device-groups/{id} [get]
 func (h *deviceGroupHandlerImpl) GetByID(c *gin.Context) {
@@ -99,12 +113,17 @@ func (h *deviceGroupHandlerImpl) GetByID(c *gin.Context) {
 	response.OK(c, mapGroupToResponse(g), "")
 }
 
+// Create godoc
 // @Summary Create device group
-// @Description Create a new device group
+// @Description Create a new group to categorize and manage devices collectively.
 // @Tags DeviceGroups
-// @Produce json
 // @Accept json
-// @Param request body dto.CreateDeviceGroupRequest true "Group info"
+// @Produce json
+// @Param request body dto.CreateDeviceGroupRequest true "Group details"
+// @Success 201 {object} response.APIResponse[dto.DeviceGroupResponse] "Group created successfully"
+// @Failure 400 {object} response.APIResponse[any] "Invalid request data"
+// @Failure 401 {object} response.APIResponse[any] "Unauthorized"
+// @Failure 500 {object} response.APIResponse[any] "Internal server error"
 // @Security BearerAuth
 // @Router /api/v1/device-groups [post]
 func (h *deviceGroupHandlerImpl) Create(c *gin.Context) {
@@ -126,13 +145,19 @@ func (h *deviceGroupHandlerImpl) Create(c *gin.Context) {
 	response.Created(c, mapGroupToResponse(g), "Tạo nhóm thành công")
 }
 
+// Update godoc
 // @Summary Update device group
-// @Description Update an existing device group
+// @Description Modify the name and description of an existing device group.
 // @Tags DeviceGroups
-// @Produce json
 // @Accept json
+// @Produce json
 // @Param id path int true "Group ID"
-// @Param request body dto.UpdateDeviceGroupRequest true "Group info"
+// @Param request body dto.UpdateDeviceGroupRequest true "Updated group details"
+// @Success 200 {object} response.APIResponse[dto.DeviceGroupResponse] "Group updated successfully"
+// @Failure 400 {object} response.APIResponse[any] "Invalid ID or request data"
+// @Failure 401 {object} response.APIResponse[any] "Unauthorized"
+// @Failure 404 {object} response.APIResponse[any] "Group not found"
+// @Failure 500 {object} response.APIResponse[any] "Internal server error"
 // @Security BearerAuth
 // @Router /api/v1/device-groups/{id} [put]
 func (h *deviceGroupHandlerImpl) Update(c *gin.Context) {
@@ -162,11 +187,17 @@ func (h *deviceGroupHandlerImpl) Update(c *gin.Context) {
 	response.OK(c, mapGroupToResponse(g), "Cập nhật nhóm thành công")
 }
 
+// Delete godoc
 // @Summary Delete device group
-// @Description Delete an existing device group
+// @Description Permanently remove a device group. This does not delete the devices themselves, only the group.
 // @Tags DeviceGroups
 // @Produce json
 // @Param id path int true "Group ID"
+// @Success 200 {object} response.APIResponse[any] "Group deleted successfully"
+// @Failure 400 {object} response.APIResponse[any] "Invalid ID format"
+// @Failure 401 {object} response.APIResponse[any] "Unauthorized"
+// @Failure 404 {object} response.APIResponse[any] "Group not found"
+// @Failure 500 {object} response.APIResponse[any] "Internal server error"
 // @Security BearerAuth
 // @Router /api/v1/device-groups/{id} [delete]
 func (h *deviceGroupHandlerImpl) Delete(c *gin.Context) {
@@ -185,13 +216,19 @@ func (h *deviceGroupHandlerImpl) Delete(c *gin.Context) {
 	response.OK[any](c, nil, "Xóa nhóm thành công")
 }
 
+// AddDevices godoc
 // @Summary Add devices to group
-// @Description Assign one or more devices to a group
+// @Description Assign multiple devices to a group for collective management.
 // @Tags DeviceGroups
-// @Produce json
 // @Accept json
+// @Produce json
 // @Param id path int true "Group ID"
-// @Param request body dto.ManageGroupDevicesRequest true "Device IDs"
+// @Param request body dto.ManageGroupDevicesRequest true "List of device IDs to add"
+// @Success 200 {object} response.APIResponse[any] "Devices added successfully"
+// @Failure 400 {object} response.APIResponse[any] "Invalid request data"
+// @Failure 401 {object} response.APIResponse[any] "Unauthorized"
+// @Failure 404 {object} response.APIResponse[any] "Group not found"
+// @Failure 500 {object} response.APIResponse[any] "Internal server error"
 // @Security BearerAuth
 // @Router /api/v1/device-groups/{id}/devices [post]
 func (h *deviceGroupHandlerImpl) AddDevices(c *gin.Context) {
@@ -216,12 +253,18 @@ func (h *deviceGroupHandlerImpl) AddDevices(c *gin.Context) {
 	response.OK[any](c, nil, "Thêm thiết bị vào nhóm thành công")
 }
 
+// RemoveDevice godoc
 // @Summary Remove device from group
-// @Description Unassign a single device from a group
+// @Description Remove a specific device from a group.
 // @Tags DeviceGroups
 // @Produce json
 // @Param id path int true "Group ID"
 // @Param deviceId path string true "Device ID"
+// @Success 200 {object} response.APIResponse[any] "Device removed successfully"
+// @Failure 400 {object} response.APIResponse[any] "Invalid ID format"
+// @Failure 401 {object} response.APIResponse[any] "Unauthorized"
+// @Failure 404 {object} response.APIResponse[any] "Group or device not found"
+// @Failure 500 {object} response.APIResponse[any] "Internal server error"
 // @Security BearerAuth
 // @Router /api/v1/device-groups/{id}/devices/{deviceId} [delete]
 func (h *deviceGroupHandlerImpl) RemoveDevice(c *gin.Context) {

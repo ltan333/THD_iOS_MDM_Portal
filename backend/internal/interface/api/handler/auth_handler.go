@@ -36,14 +36,15 @@ func NewAuthHandler(authService service.AuthService, userService service.UserSer
 
 // Login godoc
 // @Summary User login
-// @Description Authenticate user and return JWT tokens
+// @Description Authenticate user with username and password to receive JWT tokens.
 // @Tags Authentication
 // @Accept json
 // @Produce json
 // @Param login body dto.LoginRequest true "Login credentials"
-// @Success 200 {object} response.APIResponse[dto.LoginResponse]
-// @Failure 400 {object} response.APIResponse[any]
-// @Failure 401 {object} response.APIResponse[any]
+// @Success 200 {object} response.APIResponse[dto.LoginResponse] "Login successful"
+// @Failure 400 {object} response.APIResponse[any] "Invalid request data"
+// @Failure 401 {object} response.APIResponse[any] "Invalid username or password"
+// @Failure 500 {object} response.APIResponse[any] "Internal server error"
 // @Router /api/v1/auth/login [post]
 func (h *authHandlerImpl) Login(c *gin.Context) {
 	var req dto.LoginRequest
@@ -63,14 +64,15 @@ func (h *authHandlerImpl) Login(c *gin.Context) {
 
 // Refresh godoc
 // @Summary Refresh access token
-// @Description Refresh existing access token using a valid refresh token
+// @Description Refresh existing access token using a valid refresh token.
 // @Tags Authentication
 // @Accept json
 // @Produce json
 // @Param refresh body dto.TokenRefreshRequest true "Refresh token"
-// @Success 200 {object} response.APIResponse[dto.LoginResponse]
-// @Failure 400 {object} response.APIResponse[any]
-// @Failure 401 {object} response.APIResponse[any]
+// @Success 200 {object} response.APIResponse[dto.LoginResponse] "Tokens refreshed"
+// @Failure 400 {object} response.APIResponse[any] "Invalid request data"
+// @Failure 401 {object} response.APIResponse[any] "Invalid or expired refresh token"
+// @Failure 500 {object} response.APIResponse[any] "Internal server error"
 // @Router /api/v1/auth/refresh [post]
 func (h *authHandlerImpl) Refresh(c *gin.Context) {
 	var req dto.TokenRefreshRequest
@@ -90,11 +92,12 @@ func (h *authHandlerImpl) Refresh(c *gin.Context) {
 
 // Logout godoc
 // @Summary User logout
-// @Description Invalidate the current session
+// @Description Invalidate the current session and blacklists the token.
 // @Tags Authentication
 // @Produce json
-// @Success 200 {object} response.APIResponse[any]
-// @Failure 401 {object} response.APIResponse[any]
+// @Success 200 {object} response.APIResponse[any] "Successfully logged out"
+// @Failure 401 {object} response.APIResponse[any] "Unauthorized"
+// @Failure 500 {object} response.APIResponse[any] "Internal server error"
 // @Security BearerAuth
 // @Router /api/v1/auth/logout [post]
 func (h *authHandlerImpl) Logout(c *gin.Context) {
@@ -114,11 +117,12 @@ func (h *authHandlerImpl) Logout(c *gin.Context) {
 
 // GetMe godoc
 // @Summary Get current user info
-// @Description Return the profile of the currently authenticated user
+// @Description Returns the profile and permissions of the currently authenticated user.
 // @Tags Authentication
 // @Produce json
-// @Success 200 {object} response.APIResponse[dto.UserResponse]
-// @Failure 401 {object} response.APIResponse[any]
+// @Success 200 {object} response.APIResponse[dto.UserResponse] "User information"
+// @Failure 401 {object} response.APIResponse[any] "Unauthorized"
+// @Failure 500 {object} response.APIResponse[any] "Internal server error"
 // @Security BearerAuth
 // @Router /api/v1/auth/me [get]
 func (h *authHandlerImpl) GetMe(c *gin.Context) {

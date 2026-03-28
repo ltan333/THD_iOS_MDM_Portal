@@ -46,11 +46,18 @@ func NewApplicationHandler(appService service.ApplicationService) ApplicationHan
 
 // List godoc
 // @Summary List applications
-// @Description Fetch tracked applications with pagination
-// @Tags applications
+// @Description Retrieve a paginated list of tracked applications with filtering by platform and application type.
+// @Tags Applications
 // @Produce json
+// @Param page query int false "Page number (default 1)"
+// @Param limit query int false "Items per page (default 20)"
+// @Param platform query string false "Filter by platform (iOS, macOS, etc.)"
+// @Param type query string false "Filter by application type (enterprise, store)"
+// @Param search query string false "Search in name and description"
+// @Success 200 {object} response.APIResponse[dto.ListResponse[dto.ApplicationResponse]] "List of applications"
+// @Failure 401 {object} response.APIResponse[any] "Unauthorized"
+// @Failure 500 {object} response.APIResponse[any] "Internal server error"
 // @Security BearerAuth
-// @Success 200 {object} response.APIResponse[any]
 // @Router /api/v1/applications [get]
 func (h *applicationHandlerImpl) List(c *gin.Context) {
 	params := make(map[string]string)
@@ -86,12 +93,17 @@ func (h *applicationHandlerImpl) List(c *gin.Context) {
 }
 
 // GetByID godoc
-// @Summary Get app block by ID
-// @Description Fetch details of a specific app
-// @Tags applications
+// @Summary Get application by ID
+// @Description Fetch detailed information for a single application including its version history.
+// @Tags Applications
 // @Produce json
+// @Param id path int true "Application ID"
+// @Success 200 {object} response.APIResponse[dto.ApplicationResponse] "Application details"
+// @Failure 400 {object} response.APIResponse[any] "Invalid ID format"
+// @Failure 401 {object} response.APIResponse[any] "Unauthorized"
+// @Failure 404 {object} response.APIResponse[any] "Application not found"
+// @Failure 500 {object} response.APIResponse[any] "Internal server error"
 // @Security BearerAuth
-// @Success 200 {object} response.APIResponse[any]
 // @Router /api/v1/applications/{id} [get]
 func (h *applicationHandlerImpl) GetByID(c *gin.Context) {
 	idStr := c.Param("id")
@@ -111,13 +123,17 @@ func (h *applicationHandlerImpl) GetByID(c *gin.Context) {
 }
 
 // Create godoc
-// @Summary Add a new application tracking record
-// @Description Create application
-// @Tags applications
+// @Summary Create application
+// @Description Add a new application tracking record to the system.
+// @Tags Applications
 // @Accept json
 // @Produce json
+// @Param request body dto.CreateApplicationRequest true "Application details"
+// @Success 201 {object} response.APIResponse[dto.ApplicationResponse] "Application created successfully"
+// @Failure 400 {object} response.APIResponse[any] "Invalid request data"
+// @Failure 401 {object} response.APIResponse[any] "Unauthorized"
+// @Failure 500 {object} response.APIResponse[any] "Internal server error"
 // @Security BearerAuth
-// @Success 201 {object} response.APIResponse[any]
 // @Router /api/v1/applications [post]
 func (h *applicationHandlerImpl) Create(c *gin.Context) {
 	var req dto.CreateApplicationRequest
@@ -143,13 +159,19 @@ func (h *applicationHandlerImpl) Create(c *gin.Context) {
 }
 
 // Update godoc
-// @Summary Update application metadata
-// @Description Update application
-// @Tags applications
+// @Summary Update application
+// @Description Modify an existing application's metadata and tracking information.
+// @Tags Applications
 // @Accept json
 // @Produce json
+// @Param id path int true "Application ID"
+// @Param request body dto.UpdateApplicationRequest true "Updated application details"
+// @Success 200 {object} response.APIResponse[dto.ApplicationResponse] "Application updated successfully"
+// @Failure 400 {object} response.APIResponse[any] "Invalid ID or request data"
+// @Failure 401 {object} response.APIResponse[any] "Unauthorized"
+// @Failure 404 {object} response.APIResponse[any] "Application not found"
+// @Failure 500 {object} response.APIResponse[any] "Internal server error"
 // @Security BearerAuth
-// @Success 200 {object} response.APIResponse[any]
 // @Router /api/v1/applications/{id} [put]
 func (h *applicationHandlerImpl) Update(c *gin.Context) {
 	idStr := c.Param("id")
@@ -183,10 +205,16 @@ func (h *applicationHandlerImpl) Update(c *gin.Context) {
 
 // Delete godoc
 // @Summary Delete application
-// @Tags applications
+// @Description Permanently remove an application record from the tracking system.
+// @Tags Applications
 // @Produce json
+// @Param id path int true "Application ID"
+// @Success 200 {object} response.APIResponse[any] "Application deleted successfully"
+// @Failure 400 {object} response.APIResponse[any] "Invalid ID format"
+// @Failure 401 {object} response.APIResponse[any] "Unauthorized"
+// @Failure 404 {object} response.APIResponse[any] "Application not found"
+// @Failure 500 {object} response.APIResponse[any] "Internal server error"
 // @Security BearerAuth
-// @Success 200 {object} response.APIResponse[any]
 // @Router /api/v1/applications/{id} [delete]
 func (h *applicationHandlerImpl) Delete(c *gin.Context) {
 	idStr := c.Param("id")
@@ -206,10 +234,16 @@ func (h *applicationHandlerImpl) Delete(c *gin.Context) {
 
 // ListVersions godoc
 // @Summary List application versions
-// @Tags applications
+// @Description Fetch version history for a specific application.
+// @Tags Applications
 // @Produce json
+// @Param id path int true "Application ID"
+// @Success 200 {object} response.APIResponse[[]dto.AppVersionResponse] "List of application versions"
+// @Failure 400 {object} response.APIResponse[any] "Invalid ID format"
+// @Failure 401 {object} response.APIResponse[any] "Unauthorized"
+// @Failure 404 {object} response.APIResponse[any] "Application not found"
+// @Failure 500 {object} response.APIResponse[any] "Internal server error"
 // @Security BearerAuth
-// @Success 200 {object} response.APIResponse[any]
 // @Router /api/v1/applications/{id}/versions [get]
 func (h *applicationHandlerImpl) ListVersions(c *gin.Context) {
 	idStr := c.Param("id")
@@ -234,12 +268,19 @@ func (h *applicationHandlerImpl) ListVersions(c *gin.Context) {
 }
 
 // CreateVersion godoc
-// @Summary Upload and create a new version of an app
-// @Tags applications
+// @Summary Create application version
+// @Description Register a new version/build of an existing application.
+// @Tags Applications
 // @Accept json
 // @Produce json
+// @Param id path int true "Application ID"
+// @Param request body dto.CreateAppVersionRequest true "Version details"
+// @Success 201 {object} response.APIResponse[dto.AppVersionResponse] "Version created successfully"
+// @Failure 400 {object} response.APIResponse[any] "Invalid ID or request data"
+// @Failure 401 {object} response.APIResponse[any] "Unauthorized"
+// @Failure 404 {object} response.APIResponse[any] "Application not found"
+// @Failure 500 {object} response.APIResponse[any] "Internal server error"
 // @Security BearerAuth
-// @Success 201 {object} response.APIResponse[any]
 // @Router /api/v1/applications/{id}/versions [post]
 func (h *applicationHandlerImpl) CreateVersion(c *gin.Context) {
 	idStr := c.Param("id")
@@ -274,11 +315,18 @@ func (h *applicationHandlerImpl) CreateVersion(c *gin.Context) {
 }
 
 // DeleteVersion godoc
-// @Summary Delete app version
-// @Tags applications
+// @Summary Delete application version
+// @Description Permanently remove a specific version of an application.
+// @Tags Applications
 // @Produce json
+// @Param id path int true "Application ID"
+// @Param versionId path int true "Version ID"
+// @Success 200 {object} response.APIResponse[any] "Version deleted successfully"
+// @Failure 400 {object} response.APIResponse[any] "Invalid ID format"
+// @Failure 401 {object} response.APIResponse[any] "Unauthorized"
+// @Failure 404 {object} response.APIResponse[any] "Version not found"
+// @Failure 500 {object} response.APIResponse[any] "Internal server error"
 // @Security BearerAuth
-// @Success 200 {object} response.APIResponse[any]
 // @Router /api/v1/applications/{id}/versions/{versionId} [delete]
 func (h *applicationHandlerImpl) DeleteVersion(c *gin.Context) {
 	versionIdStr := c.Param("versionId")
@@ -297,13 +345,18 @@ func (h *applicationHandlerImpl) DeleteVersion(c *gin.Context) {
 }
 
 // Deploy godoc
-// @Summary Push app to devices
-// @Description Command the MDM core to push app installations
-// @Tags applications
+// @Summary Deploy application
+// @Description Initiate the remote installation of an application version on a target device or group.
+// @Tags Applications
 // @Accept json
 // @Produce json
+// @Param request body dto.CreateAppDeploymentRequest true "Deployment target and version selection"
+// @Success 200 {object} response.APIResponse[dto.AppDeploymentResponse] "Deployment initiated successfully"
+// @Failure 400 {object} response.APIResponse[any] "Invalid request data"
+// @Failure 401 {object} response.APIResponse[any] "Unauthorized"
+// @Failure 404 {object} response.APIResponse[any] "Version or target not found"
+// @Failure 500 {object} response.APIResponse[any] "Internal server error"
 // @Security BearerAuth
-// @Success 200 {object} response.APIResponse[any]
 // @Router /api/v1/applications/deployments [post]
 func (h *applicationHandlerImpl) Deploy(c *gin.Context) {
 	var req dto.CreateAppDeploymentRequest
@@ -336,12 +389,18 @@ func (h *applicationHandlerImpl) Deploy(c *gin.Context) {
 }
 
 // ListDeployments godoc
-// @Summary List deployment status
-// @Description Review installation statuses of pushed tools
-// @Tags applications
+// @Summary List application deployments
+// @Description Retrieve a list of deployment records and their execution statuses for a specific version.
+// @Tags Applications
 // @Produce json
+// @Param id path int true "Application ID"
+// @Param versionId path int true "Version ID"
+// @Success 200 {object} response.APIResponse[[]dto.AppDeploymentResponse] "List of deployments"
+// @Failure 400 {object} response.APIResponse[any] "Invalid version ID format"
+// @Failure 401 {object} response.APIResponse[any] "Unauthorized"
+// @Failure 404 {object} response.APIResponse[any] "Version not found"
+// @Failure 500 {object} response.APIResponse[any] "Internal server error"
 // @Security BearerAuth
-// @Success 200 {object} response.APIResponse[any]
 // @Router /api/v1/applications/{id}/versions/{versionId}/deployments [get]
 func (h *applicationHandlerImpl) ListDeployments(c *gin.Context) {
 	versionIdStr := c.Param("versionId")

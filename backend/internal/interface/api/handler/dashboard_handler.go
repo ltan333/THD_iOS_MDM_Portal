@@ -30,13 +30,13 @@ func NewDashboardHandler(dashboardService service.DashboardService) DashboardHan
 
 // GetStats godoc
 // @Summary Get dashboard statistics
-// @Description Get overall dashboard statistics including devices, users, alerts, and apps
+// @Description Fetch overall system statistics for the dashboard, including total devices, users, active alerts, and managed applications.
 // @Tags Dashboard
 // @Produce json
+// @Success 200 {object} response.APIResponse[dto.DashboardStatsResponse] "Dashboard statistics"
+// @Failure 401 {object} response.APIResponse[any] "Unauthorized"
+// @Failure 500 {object} response.APIResponse[any] "Internal server error"
 // @Security BearerAuth
-// @Success 200 {object} response.APIResponse[dto.DashboardStatsResponse]
-// @Failure 401 {object} response.APIResponse[any]
-// @Failure 500 {object} response.APIResponse[any]
 // @Router /api/v1/dashboard/stats [get]
 func (h *dashboardHandlerImpl) GetStats(c *gin.Context) {
 	stats, err := h.dashboardService.GetStats(c.Request.Context())
@@ -50,13 +50,13 @@ func (h *dashboardHandlerImpl) GetStats(c *gin.Context) {
 
 // GetDeviceStats godoc
 // @Summary Get device statistics
-// @Description Get detailed device statistics including counts by platform and status
+// @Description Retrieve a breakdown of device statistics, including counts by OS platform (iOS, macOS, etc.) and enrollment status.
 // @Tags Dashboard
 // @Produce json
+// @Success 200 {object} response.APIResponse[dto.DeviceStatsResponse] "Device breakdown statistics"
+// @Failure 401 {object} response.APIResponse[any] "Unauthorized"
+// @Failure 500 {object} response.APIResponse[any] "Internal server error"
 // @Security BearerAuth
-// @Success 200 {object} response.APIResponse[dto.DeviceStatsResponse]
-// @Failure 401 {object} response.APIResponse[any]
-// @Failure 500 {object} response.APIResponse[any]
 // @Router /api/v1/dashboard/device-stats [get]
 func (h *dashboardHandlerImpl) GetDeviceStats(c *gin.Context) {
 	stats, err := h.dashboardService.GetDeviceStats(c.Request.Context())
@@ -70,13 +70,13 @@ func (h *dashboardHandlerImpl) GetDeviceStats(c *gin.Context) {
 
 // GetAlertsSummary godoc
 // @Summary Get alerts summary
-// @Description Get alerts summary including counts by severity and type
+// @Description Get a summary of system alerts, categorized by severity (Critical, Warning, Info) and resolution status.
 // @Tags Dashboard
 // @Produce json
+// @Success 200 {object} response.APIResponse[dto.AlertsSummaryResponse] "Alerts summary data"
+// @Failure 401 {object} response.APIResponse[any] "Unauthorized"
+// @Failure 500 {object} response.APIResponse[any] "Internal server error"
 // @Security BearerAuth
-// @Success 200 {object} response.APIResponse[dto.AlertsSummaryResponse]
-// @Failure 401 {object} response.APIResponse[any]
-// @Failure 500 {object} response.APIResponse[any]
 // @Router /api/v1/dashboard/alerts-summary [get]
 func (h *dashboardHandlerImpl) GetAlertsSummary(c *gin.Context) {
 	summary, err := h.dashboardService.GetAlertsSummary(c.Request.Context())
@@ -90,15 +90,15 @@ func (h *dashboardHandlerImpl) GetAlertsSummary(c *gin.Context) {
 
 // GetChartData godoc
 // @Summary Get chart data
-// @Description Get chart data for dashboard visualization
+// @Description Fetch time-series or categorical data for dashboard charts (e.g., device enrollment trends, compliance rates).
 // @Tags Dashboard
 // @Produce json
-// @Security BearerAuth
 // @Param type path string true "Chart type (devices, compliance, alerts)"
-// @Success 200 {object} response.APIResponse[dto.ChartDataResponse]
-// @Failure 400 {object} response.APIResponse[any]
-// @Failure 401 {object} response.APIResponse[any]
-// @Failure 500 {object} response.APIResponse[any]
+// @Success 200 {object} response.APIResponse[dto.ChartDataResponse] "Chart visualization data"
+// @Failure 400 {object} response.APIResponse[any] "Invalid chart type requested"
+// @Failure 401 {object} response.APIResponse[any] "Unauthorized"
+// @Failure 500 {object} response.APIResponse[any] "Internal server error"
+// @Security BearerAuth
 // @Router /api/v1/dashboard/charts/{type} [get]
 func (h *dashboardHandlerImpl) GetChartData(c *gin.Context) {
 	chartType := c.Param("type")
