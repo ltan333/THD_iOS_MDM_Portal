@@ -89,7 +89,7 @@ func setupDependencies(cfg *config.Config) *gin.Engine {
 	deviceService := serviceimpl.NewDeviceService(deviceRepo, eventBus)
 
 	applicationService := serviceimpl.NewApplicationService(appRepo, nanomdmService)
-	alertService := serviceimpl.NewAlertService(alertRepo)
+	alertService := serviceimpl.NewAlertService(alertRepo, nanomdmService)
 	alertRuleService := serviceimpl.NewAlertRuleService(alertRuleRepo)
 	reportService := serviceimpl.NewReportService(reportRepo)
 	settingService := serviceimpl.NewSettingService(settingRepo)
