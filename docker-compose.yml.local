@@ -56,6 +56,7 @@ services:
       migrate apply
       --url "postgres://${DB_USER}:${DB_PASSWORD}@db:5432/${DB_NAME}?sslmode=disable"
       --dir "file:///migrations"
+      --allow-dirty
     depends_on:
       db:
         condition: service_healthy
