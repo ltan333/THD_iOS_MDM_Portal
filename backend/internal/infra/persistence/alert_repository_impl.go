@@ -319,3 +319,28 @@ func (r *alertRuleRepositoryImpl) SetEnabled(ctx context.Context, id uint, enabl
 	}
 	return nil
 }
+
+func (r *alertRuleRepositoryImpl) ToggleEnabled(ctx context.Context, id uint) error {
+	tx, err := r.client.Tx(ctx)
+	if err != nil {
+		return apperror.ErrInternalServerError.WithMessage("Lỗi khởi tạo transaction").WithError(err)
+	}
+
+	rule, err := tx.AlertRule.Get(ctx, id)
+	if ent.IsNotFound(err) {
+		_ = tx.Rollback()
+		return apperror.ErrNotFound.WithMessage("Alert rule không tồn tại")
+	}
+	if err != nil {
+		_ = tx.Rollback()
+		return apperror.ErrInternalServerError.WithMessage("Lỗi truy xuất rule").WithError(err)
+	}
+
+	err = tx.AlertRule.UpdateOneID(id).SetEnabled(!rule.Enabled).Exec(ctx)
+	if err != nil {
+		_ = tx.Rollback()
+		return apperror.ErrInternalServerError.WithMessage("Lỗi khi update toggle").WithError(err)
+	}
+
+	return tx.Commit()
+}

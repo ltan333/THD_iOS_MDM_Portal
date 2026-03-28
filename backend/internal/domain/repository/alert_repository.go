@@ -24,4 +24,5 @@ type AlertRuleRepository interface {
 	Update(ctx context.Context, id uint, entity *ent.AlertRule) (*ent.AlertRule, error)
 	Delete(ctx context.Context, id uint) error
 	SetEnabled(ctx context.Context, id uint, enabled bool) error
+	ToggleEnabled(ctx context.Context, id uint) error
 }
