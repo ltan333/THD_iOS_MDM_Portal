@@ -116,7 +116,7 @@ func setupDependencies(cfg *config.Config) *gin.Engine {
 	authHandler := handler.NewAuthHandler(authService, userService, authzService)
 	userHandler := handler.NewUserHandler(userService, authzService)
 	policyHandler := handler.NewPolicyHandler(authzService)
-	nanocmdHandler := handler.NewNanoCMDHandler(nanocmdService, deviceService)
+	nanocmdHandler := handler.NewNanoCMDHandler(nanocmdService, deviceService, cfg)
 	mobileConfigHandler := handler.NewMobileConfigHandler(mobileConfigService)
 	dashboardHandler := handler.NewDashboardHandler(dashboardService)
 	deviceHandler := handler.NewDeviceHandler(deviceService, nanomdmService, profileService, cmdBuilder)

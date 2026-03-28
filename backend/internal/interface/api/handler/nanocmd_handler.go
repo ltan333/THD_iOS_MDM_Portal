@@ -1,12 +1,17 @@
 package handler
 
 import (
+	"bytes"
+	"fmt"
 	"io"
 	"net/http"
+	"strings"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/thienel/go-backend-template/internal/interface/api/dto"
 	"github.com/thienel/go-backend-template/internal/usecase/service"
+	"github.com/thienel/go-backend-template/pkg/config"
 	"github.com/thienel/go-backend-template/pkg/response"
 	"github.com/thienel/tlog"
 	"go.uber.org/zap"
@@ -31,12 +36,18 @@ type NanoCMDHandler interface {
 type nanocmdHandler struct {
 	service       service.NanoCMDService
 	deviceService service.DeviceService
+	cfg           *config.Config
+	httpClient    *http.Client
 }
 
-func NewNanoCMDHandler(svc service.NanoCMDService, deviceService service.DeviceService) NanoCMDHandler {
+func NewNanoCMDHandler(svc service.NanoCMDService, deviceService service.DeviceService, cfg *config.Config) NanoCMDHandler {
 	return &nanocmdHandler{
 		service:       svc,
 		deviceService: deviceService,
+		cfg:           cfg,
+		httpClient: &http.Client{
+			Timeout: 5 * time.Second,
+		},
 	}
 }
 
@@ -336,6 +347,17 @@ func (h *nanocmdHandler) GetInventory(c *gin.Context) {
 // @Failure 500 {object} response.APIResponse[any] "Internal processing error"
 // @Router /api/v1/nanocmd/webhook [post]
 func (h *nanocmdHandler) Webhook(c *gin.Context) {
+	// 1. Capture the Payload (Body Draining)
+	body, err := io.ReadAll(c.Request.Body)
+	if err != nil {
+		tlog.Error("Failed to read webhook body", zap.Error(err))
+		response.WriteErrorResponse(c, err)
+		return
+	}
+
+	// Reconstruct Request.Body for subsequent binding
+	c.Request.Body = io.NopCloser(bytes.NewBuffer(body))
+
 	var webhook dto.NanoCMDWebhook
 	if err := c.ShouldBindJSON(&webhook); err != nil {
 		tlog.Error("Failed to bind webhook", zap.Error(err))
@@ -343,14 +365,57 @@ func (h *nanocmdHandler) Webhook(c *gin.Context) {
 		return
 	}
 
-	// Process webhook logic here (e.g., update device status)
+	// 2. Keep Existing Logic (Local processing)
 	tlog.Info("Received NanoCMD webhook", zap.String("topic", webhook.Topic))
-
+	
+	// Create a local copy of the status processing to avoid blocking response
 	if err := h.deviceService.HandleWebhook(c.Request.Context(), &webhook); err != nil {
 		tlog.Error("Failed to handle device webhook", zap.Error(err))
-		// We don't necessarily want to return 500 to the webhook provider if our local DB update fails
-		// but for debugging purposes it might be better to know.
 	}
 
-	response.OK[any](c, nil, "Webhook processed successfully")
+	// 3. Asynchronous Forwarding to NanoCMD
+	go h.forwardToNanoCMD(body, c.Request.Header)
+
+	// 4. Return 200 OK to NanoMDM immediately
+	response.OK[any](c, nil, "Webhook processed and fan-out initiated")
+}
+
+func (h *nanocmdHandler) forwardToNanoCMD(payload []byte, originalHeaders http.Header) {
+	if h.cfg.NanoCMD.BaseURL == "" {
+		tlog.Warn("NanoCMD BaseURL is not configured, skipping fan-out")
+		return
+	}
+
+	url := fmt.Sprintf("%s/webhook", strings.TrimSuffix(h.cfg.NanoCMD.BaseURL, "/"))
+	req, err := http.NewRequest("POST", url, bytes.NewBuffer(payload))
+	if err != nil {
+		tlog.Error("Failed to create forward request", zap.Error(err))
+		return
+	}
+
+	// Copy essential headers
+	req.Header.Set("Content-Type", "application/json")
+	if auth := originalHeaders.Get("Authorization"); auth != "" {
+		req.Header.Set("Authorization", auth)
+	}
+
+	// Ensure Basic Auth if configured (as requested)
+	if h.cfg.NanoCMD.Username != "" && h.cfg.NanoCMD.Password != "" {
+		req.SetBasicAuth(h.cfg.NanoCMD.Username, h.cfg.NanoCMD.Password)
+	}
+
+	resp, err := h.httpClient.Do(req)
+	if err != nil {
+		tlog.Error("Failed to forward webhook to NanoCMD", zap.String("url", url), zap.Error(err))
+		return
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+		tlog.Warn("NanoCMD returned non-OK status for forwarded webhook", 
+			zap.String("url", url), 
+			zap.Int("status", resp.StatusCode))
+	} else {
+		tlog.Info("Successfully forwarded webhook to NanoCMD", zap.String("url", url))
+	}
 }
