@@ -22,6 +22,20 @@ type DeviceCreate struct {
 	hooks    []Hook
 }
 
+// SetUdid sets the "udid" field.
+func (_c *DeviceCreate) SetUdid(v string) *DeviceCreate {
+	_c.mutation.SetUdid(v)
+	return _c
+}
+
+// SetNillableUdid sets the "udid" field if the given value is not nil.
+func (_c *DeviceCreate) SetNillableUdid(v *string) *DeviceCreate {
+	if v != nil {
+		_c.SetUdid(*v)
+	}
+	return _c
+}
+
 // SetSerialNumber sets the "serial_number" field.
 func (_c *DeviceCreate) SetSerialNumber(v string) *DeviceCreate {
 	_c.mutation.SetSerialNumber(v)
@@ -498,6 +512,10 @@ func (_c *DeviceCreate) createSpec() (*Device, *sqlgraph.CreateSpec) {
 	if id, ok := _c.mutation.ID(); ok {
 		_node.ID = id
 		_spec.ID.Value = id
+	}
+	if value, ok := _c.mutation.Udid(); ok {
+		_spec.SetField(device.FieldUdid, field.TypeString, value)
+		_node.Udid = &value
 	}
 	if value, ok := _c.mutation.SerialNumber(); ok {
 		_spec.SetField(device.FieldSerialNumber, field.TypeString, value)

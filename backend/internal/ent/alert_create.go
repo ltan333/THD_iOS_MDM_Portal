@@ -97,7 +97,7 @@ func (_c *AlertCreate) SetNillableUserID(v *uint) *AlertCreate {
 }
 
 // SetDetails sets the "details" field.
-func (_c *AlertCreate) SetDetails(v map[string]any) *AlertCreate {
+func (_c *AlertCreate) SetDetails(v map[string]interface{}) *AlertCreate {
 	_c.mutation.SetDetails(v)
 	return _c
 }

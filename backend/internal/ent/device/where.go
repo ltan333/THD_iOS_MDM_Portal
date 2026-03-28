@@ -65,6 +65,11 @@ func IDContainsFold(id string) predicate.Device {
 	return predicate.Device(sql.FieldContainsFold(FieldID, id))
 }
 
+// Udid applies equality check predicate on the "udid" field. It's identical to UdidEQ.
+func Udid(v string) predicate.Device {
+	return predicate.Device(sql.FieldEQ(FieldUdid, v))
+}
+
 // SerialNumber applies equality check predicate on the "serial_number" field. It's identical to SerialNumberEQ.
 func SerialNumber(v string) predicate.Device {
 	return predicate.Device(sql.FieldEQ(FieldSerialNumber, v))
@@ -153,6 +158,81 @@ func CreatedAt(v time.Time) predicate.Device {
 // UpdatedAt applies equality check predicate on the "updated_at" field. It's identical to UpdatedAtEQ.
 func UpdatedAt(v time.Time) predicate.Device {
 	return predicate.Device(sql.FieldEQ(FieldUpdatedAt, v))
+}
+
+// UdidEQ applies the EQ predicate on the "udid" field.
+func UdidEQ(v string) predicate.Device {
+	return predicate.Device(sql.FieldEQ(FieldUdid, v))
+}
+
+// UdidNEQ applies the NEQ predicate on the "udid" field.
+func UdidNEQ(v string) predicate.Device {
+	return predicate.Device(sql.FieldNEQ(FieldUdid, v))
+}
+
+// UdidIn applies the In predicate on the "udid" field.
+func UdidIn(vs ...string) predicate.Device {
+	return predicate.Device(sql.FieldIn(FieldUdid, vs...))
+}
+
+// UdidNotIn applies the NotIn predicate on the "udid" field.
+func UdidNotIn(vs ...string) predicate.Device {
+	return predicate.Device(sql.FieldNotIn(FieldUdid, vs...))
+}
+
+// UdidGT applies the GT predicate on the "udid" field.
+func UdidGT(v string) predicate.Device {
+	return predicate.Device(sql.FieldGT(FieldUdid, v))
+}
+
+// UdidGTE applies the GTE predicate on the "udid" field.
+func UdidGTE(v string) predicate.Device {
+	return predicate.Device(sql.FieldGTE(FieldUdid, v))
+}
+
+// UdidLT applies the LT predicate on the "udid" field.
+func UdidLT(v string) predicate.Device {
+	return predicate.Device(sql.FieldLT(FieldUdid, v))
+}
+
+// UdidLTE applies the LTE predicate on the "udid" field.
+func UdidLTE(v string) predicate.Device {
+	return predicate.Device(sql.FieldLTE(FieldUdid, v))
+}
+
+// UdidContains applies the Contains predicate on the "udid" field.
+func UdidContains(v string) predicate.Device {
+	return predicate.Device(sql.FieldContains(FieldUdid, v))
+}
+
+// UdidHasPrefix applies the HasPrefix predicate on the "udid" field.
+func UdidHasPrefix(v string) predicate.Device {
+	return predicate.Device(sql.FieldHasPrefix(FieldUdid, v))
+}
+
+// UdidHasSuffix applies the HasSuffix predicate on the "udid" field.
+func UdidHasSuffix(v string) predicate.Device {
+	return predicate.Device(sql.FieldHasSuffix(FieldUdid, v))
+}
+
+// UdidIsNil applies the IsNil predicate on the "udid" field.
+func UdidIsNil() predicate.Device {
+	return predicate.Device(sql.FieldIsNull(FieldUdid))
+}
+
+// UdidNotNil applies the NotNil predicate on the "udid" field.
+func UdidNotNil() predicate.Device {
+	return predicate.Device(sql.FieldNotNull(FieldUdid))
+}
+
+// UdidEqualFold applies the EqualFold predicate on the "udid" field.
+func UdidEqualFold(v string) predicate.Device {
+	return predicate.Device(sql.FieldEqualFold(FieldUdid, v))
+}
+
+// UdidContainsFold applies the ContainsFold predicate on the "udid" field.
+func UdidContainsFold(v string) predicate.Device {
+	return predicate.Device(sql.FieldContainsFold(FieldUdid, v))
 }
 
 // SerialNumberEQ applies the EQ predicate on the "serial_number" field.

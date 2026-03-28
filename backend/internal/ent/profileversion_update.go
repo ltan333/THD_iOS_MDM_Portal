@@ -64,7 +64,7 @@ func (_u *ProfileVersionUpdate) AddVersion(v int) *ProfileVersionUpdate {
 }
 
 // SetData sets the "data" field.
-func (_u *ProfileVersionUpdate) SetData(v map[string]any) *ProfileVersionUpdate {
+func (_u *ProfileVersionUpdate) SetData(v map[string]interface{}) *ProfileVersionUpdate {
 	_u.mutation.SetData(v)
 	return _u
 }
@@ -261,7 +261,7 @@ func (_u *ProfileVersionUpdateOne) AddVersion(v int) *ProfileVersionUpdateOne {
 }
 
 // SetData sets the "data" field.
-func (_u *ProfileVersionUpdateOne) SetData(v map[string]any) *ProfileVersionUpdateOne {
+func (_u *ProfileVersionUpdateOne) SetData(v map[string]interface{}) *ProfileVersionUpdateOne {
 	_u.mutation.SetData(v)
 	return _u
 }

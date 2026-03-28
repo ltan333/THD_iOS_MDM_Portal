@@ -32,7 +32,7 @@ type AppVersion struct {
 	// Size holds the value of the "size" field.
 	Size int64 `json:"size,omitempty"`
 	// Metadata holds the value of the "metadata" field.
-	Metadata map[string]any `json:"metadata,omitempty"`
+	Metadata map[string]interface{} `json:"metadata,omitempty"`
 	// CreatedAt holds the value of the "created_at" field.
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	// UpdatedAt holds the value of the "updated_at" field.

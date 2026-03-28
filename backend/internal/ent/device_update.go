@@ -30,6 +30,26 @@ func (_u *DeviceUpdate) Where(ps ...predicate.Device) *DeviceUpdate {
 	return _u
 }
 
+// SetUdid sets the "udid" field.
+func (_u *DeviceUpdate) SetUdid(v string) *DeviceUpdate {
+	_u.mutation.SetUdid(v)
+	return _u
+}
+
+// SetNillableUdid sets the "udid" field if the given value is not nil.
+func (_u *DeviceUpdate) SetNillableUdid(v *string) *DeviceUpdate {
+	if v != nil {
+		_u.SetUdid(*v)
+	}
+	return _u
+}
+
+// ClearUdid clears the value of the "udid" field.
+func (_u *DeviceUpdate) ClearUdid() *DeviceUpdate {
+	_u.mutation.ClearUdid()
+	return _u
+}
+
 // SetSerialNumber sets the "serial_number" field.
 func (_u *DeviceUpdate) SetSerialNumber(v string) *DeviceUpdate {
 	_u.mutation.SetSerialNumber(v)
@@ -570,6 +590,12 @@ func (_u *DeviceUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 			}
 		}
 	}
+	if value, ok := _u.mutation.Udid(); ok {
+		_spec.SetField(device.FieldUdid, field.TypeString, value)
+	}
+	if _u.mutation.UdidCleared() {
+		_spec.ClearField(device.FieldUdid, field.TypeString)
+	}
 	if value, ok := _u.mutation.SerialNumber(); ok {
 		_spec.SetField(device.FieldSerialNumber, field.TypeString, value)
 	}
@@ -782,6 +808,26 @@ type DeviceUpdateOne struct {
 	fields   []string
 	hooks    []Hook
 	mutation *DeviceMutation
+}
+
+// SetUdid sets the "udid" field.
+func (_u *DeviceUpdateOne) SetUdid(v string) *DeviceUpdateOne {
+	_u.mutation.SetUdid(v)
+	return _u
+}
+
+// SetNillableUdid sets the "udid" field if the given value is not nil.
+func (_u *DeviceUpdateOne) SetNillableUdid(v *string) *DeviceUpdateOne {
+	if v != nil {
+		_u.SetUdid(*v)
+	}
+	return _u
+}
+
+// ClearUdid clears the value of the "udid" field.
+func (_u *DeviceUpdateOne) ClearUdid() *DeviceUpdateOne {
+	_u.mutation.ClearUdid()
+	return _u
 }
 
 // SetSerialNumber sets the "serial_number" field.
@@ -1353,6 +1399,12 @@ func (_u *DeviceUpdateOne) sqlSave(ctx context.Context) (_node *Device, err erro
 				ps[i](selector)
 			}
 		}
+	}
+	if value, ok := _u.mutation.Udid(); ok {
+		_spec.SetField(device.FieldUdid, field.TypeString, value)
+	}
+	if _u.mutation.UdidCleared() {
+		_spec.ClearField(device.FieldUdid, field.TypeString)
 	}
 	if value, ok := _u.mutation.SerialNumber(); ok {
 		_spec.SetField(device.FieldSerialNumber, field.TypeString, value)

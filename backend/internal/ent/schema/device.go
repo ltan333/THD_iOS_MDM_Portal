@@ -18,14 +18,23 @@ type Device struct {
 // Annotations of the Device.
 func (Device) Annotations() []schema.Annotation {
 	return []schema.Annotation{
-		entsql.Annotation{Table: "devices"},
+		entsql.Annotation{Table: "portal_devices"},
 	}
 }
 
 // Fields of the Device.
 func (Device) Fields() []ent.Field {
 	return []ent.Field{
+		// id is the portal's stable primary key.
+		// For DEP-synced devices it is a generated UUID; for directly-enrolled
+		// devices it defaults to the UDID for backward compatibility.
 		field.String("id").Unique().NotEmpty().SchemaType(map[string]string{
+			"postgres": "character varying(255)",
+		}),
+		// udid is the Apple MDM enrollment identifier (UDID).
+		// NULL for DEP devices that have not enrolled yet.
+		// Always set on mdm.TokenUpdate (enrollment/token refresh).
+		field.String("udid").Unique().Optional().Nillable().SchemaType(map[string]string{
 			"postgres": "character varying(255)",
 		}),
 		field.String("serial_number").Unique().Optional().SchemaType(map[string]string{

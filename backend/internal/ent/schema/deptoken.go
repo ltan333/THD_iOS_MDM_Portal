@@ -17,7 +17,7 @@ type DEPToken struct {
 // Annotations of the DEPToken.
 func (DEPToken) Annotations() []schema.Annotation {
 	return []schema.Annotation{
-		entsql.Annotation{Table: "dep_names"},
+		entsql.Annotation{Table: "portal_dep_names"},
 	}
 }
 

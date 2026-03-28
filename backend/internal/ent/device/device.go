@@ -15,6 +15,8 @@ const (
 	Label = "device"
 	// FieldID holds the string denoting the id field in the database.
 	FieldID = "id"
+	// FieldUdid holds the string denoting the udid field in the database.
+	FieldUdid = "udid"
 	// FieldSerialNumber holds the string denoting the serial_number field in the database.
 	FieldSerialNumber = "serial_number"
 	// FieldModel holds the string denoting the model field in the database.
@@ -64,9 +66,9 @@ const (
 	// EdgeGroups holds the string denoting the groups edge name in mutations.
 	EdgeGroups = "groups"
 	// Table holds the table name of the device in the database.
-	Table = "devices"
+	Table = "portal_devices"
 	// OwnerTable is the table that holds the owner relation/edge.
-	OwnerTable = "devices"
+	OwnerTable = "portal_devices"
 	// OwnerInverseTable is the table name for the User entity.
 	// It exists in this package in order to avoid circular dependency with the "user" package.
 	OwnerInverseTable = "portal_users"
@@ -82,6 +84,7 @@ const (
 // Columns holds all SQL columns for device fields.
 var Columns = []string{
 	FieldID,
+	FieldUdid,
 	FieldSerialNumber,
 	FieldModel,
 	FieldOwnerID,
@@ -256,6 +259,11 @@ type OrderOption func(*sql.Selector)
 // ByID orders the results by the id field.
 func ByID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldID, opts...).ToFunc()
+}
+
+// ByUdid orders the results by the udid field.
+func ByUdid(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldUdid, opts...).ToFunc()
 }
 
 // BySerialNumber orders the results by the serial_number field.

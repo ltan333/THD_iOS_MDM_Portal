@@ -23,9 +23,9 @@ type AlertRule struct {
 	// Description holds the value of the "description" field.
 	Description string `json:"description,omitempty"`
 	// Condition holds the value of the "condition" field.
-	Condition map[string]any `json:"condition,omitempty"`
+	Condition map[string]interface{} `json:"condition,omitempty"`
 	// Actions holds the value of the "actions" field.
-	Actions map[string]any `json:"actions,omitempty"`
+	Actions map[string]interface{} `json:"actions,omitempty"`
 	// Enabled holds the value of the "enabled" field.
 	Enabled bool `json:"enabled,omitempty"`
 	// CreatedAt holds the value of the "created_at" field.

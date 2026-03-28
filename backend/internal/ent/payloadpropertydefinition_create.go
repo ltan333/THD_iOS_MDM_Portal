@@ -40,13 +40,13 @@ func (_c *PayloadPropertyDefinitionCreate) SetValueType(v string) *PayloadProper
 }
 
 // SetDefaultValue sets the "default_value" field.
-func (_c *PayloadPropertyDefinitionCreate) SetDefaultValue(v map[string]any) *PayloadPropertyDefinitionCreate {
+func (_c *PayloadPropertyDefinitionCreate) SetDefaultValue(v map[string]interface{}) *PayloadPropertyDefinitionCreate {
 	_c.mutation.SetDefaultValue(v)
 	return _c
 }
 
 // SetEnumValues sets the "enum_values" field.
-func (_c *PayloadPropertyDefinitionCreate) SetEnumValues(v []any) *PayloadPropertyDefinitionCreate {
+func (_c *PayloadPropertyDefinitionCreate) SetEnumValues(v []interface{}) *PayloadPropertyDefinitionCreate {
 	_c.mutation.SetEnumValues(v)
 	return _c
 }

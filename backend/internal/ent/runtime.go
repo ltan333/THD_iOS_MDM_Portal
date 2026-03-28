@@ -277,19 +277,19 @@ func init() {
 	deviceFields := schema.Device{}.Fields()
 	_ = deviceFields
 	// deviceDescIsEnrolled is the schema descriptor for is_enrolled field.
-	deviceDescIsEnrolled := deviceFields[4].Descriptor()
+	deviceDescIsEnrolled := deviceFields[5].Descriptor()
 	// device.DefaultIsEnrolled holds the default value on creation for the is_enrolled field.
 	device.DefaultIsEnrolled = deviceDescIsEnrolled.Default.(bool)
 	// deviceDescIsJailbroken is the schema descriptor for is_jailbroken field.
-	deviceDescIsJailbroken := deviceFields[19].Descriptor()
+	deviceDescIsJailbroken := deviceFields[20].Descriptor()
 	// device.DefaultIsJailbroken holds the default value on creation for the is_jailbroken field.
 	device.DefaultIsJailbroken = deviceDescIsJailbroken.Default.(bool)
 	// deviceDescCreatedAt is the schema descriptor for created_at field.
-	deviceDescCreatedAt := deviceFields[21].Descriptor()
+	deviceDescCreatedAt := deviceFields[22].Descriptor()
 	// device.DefaultCreatedAt holds the default value on creation for the created_at field.
 	device.DefaultCreatedAt = deviceDescCreatedAt.Default.(func() time.Time)
 	// deviceDescUpdatedAt is the schema descriptor for updated_at field.
-	deviceDescUpdatedAt := deviceFields[22].Descriptor()
+	deviceDescUpdatedAt := deviceFields[23].Descriptor()
 	// device.DefaultUpdatedAt holds the default value on creation for the updated_at field.
 	device.DefaultUpdatedAt = deviceDescUpdatedAt.Default.(func() time.Time)
 	// device.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.

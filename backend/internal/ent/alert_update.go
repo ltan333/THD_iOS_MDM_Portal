@@ -132,7 +132,7 @@ func (_u *AlertUpdate) ClearUserID() *AlertUpdate {
 }
 
 // SetDetails sets the "details" field.
-func (_u *AlertUpdate) SetDetails(v map[string]any) *AlertUpdate {
+func (_u *AlertUpdate) SetDetails(v map[string]interface{}) *AlertUpdate {
 	_u.mutation.SetDetails(v)
 	return _u
 }
@@ -421,7 +421,7 @@ func (_u *AlertUpdateOne) ClearUserID() *AlertUpdateOne {
 }
 
 // SetDetails sets the "details" field.
-func (_u *AlertUpdateOne) SetDetails(v map[string]any) *AlertUpdateOne {
+func (_u *AlertUpdateOne) SetDetails(v map[string]interface{}) *AlertUpdateOne {
 	_u.mutation.SetDetails(v)
 	return _u
 }

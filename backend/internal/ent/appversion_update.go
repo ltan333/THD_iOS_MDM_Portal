@@ -140,7 +140,7 @@ func (_u *AppVersionUpdate) ClearSize() *AppVersionUpdate {
 }
 
 // SetMetadata sets the "metadata" field.
-func (_u *AppVersionUpdate) SetMetadata(v map[string]any) *AppVersionUpdate {
+func (_u *AppVersionUpdate) SetMetadata(v map[string]interface{}) *AppVersionUpdate {
 	_u.mutation.SetMetadata(v)
 	return _u
 }
@@ -515,7 +515,7 @@ func (_u *AppVersionUpdateOne) ClearSize() *AppVersionUpdateOne {
 }
 
 // SetMetadata sets the "metadata" field.
-func (_u *AppVersionUpdateOne) SetMetadata(v map[string]any) *AppVersionUpdateOne {
+func (_u *AppVersionUpdateOne) SetMetadata(v map[string]interface{}) *AppVersionUpdateOne {
 	_u.mutation.SetMetadata(v)
 	return _u
 }

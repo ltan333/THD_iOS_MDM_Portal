@@ -21,7 +21,7 @@ type PayloadProperty struct {
 	// ID of the ent.
 	ID uint `json:"id,omitempty"`
 	// ValueJSON holds the value of the "value_json" field.
-	ValueJSON map[string]any `json:"value_json,omitempty"`
+	ValueJSON map[string]interface{} `json:"value_json,omitempty"`
 	// CreatedAt holds the value of the "created_at" field.
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	// UpdatedAt holds the value of the "updated_at" field.
