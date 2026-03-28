@@ -2,6 +2,7 @@ package serviceimpl
 
 import (
 	"context"
+	"fmt"
 	"strings"
 	"time"
 
@@ -203,7 +204,22 @@ func (s *profileServiceImpl) UpdateComplianceRules(ctx context.Context, id uint,
 }
 
 func (s *profileServiceImpl) Assign(ctx context.Context, cmd service.AssignProfileCommand) error {
-	return s.repo.Assign(ctx, cmd)
+	if err := s.repo.Assign(ctx, cmd); err != nil {
+		return err
+	}
+	// Immediately deploy if schedule_type is "immediate" and a direct device is targeted.
+	if cmd.ScheduleType == "immediate" {
+		if cmd.DeviceID != nil && *cmd.DeviceID != "" {
+			if err := s.InstallOnDevice(ctx, cmd.ProfileID, *cmd.DeviceID); err != nil {
+				// Non-fatal: log but do not roll back the assignment record.
+				tlog.Error("Immediate deploy on assign failed",
+					zap.Uint("profile_id", cmd.ProfileID),
+					zap.String("device_id", *cmd.DeviceID),
+					zap.Error(err))
+			}
+		}
+	}
+	return nil
 }
 
 func (s *profileServiceImpl) Unassign(ctx context.Context, profileID uint, assignmentID uint) error {
@@ -248,14 +264,23 @@ func (s *profileServiceImpl) Repush(ctx context.Context, profileID uint) error {
 		return apperror.ErrInternalServerError.WithMessage("Lỗi khi fetch device IDs").WithError(err)
 	}
 
+	var failed int
 	for _, udid := range udids {
 		if _, err := s.mdmService.EnqueueCommand(ctx, udid, cmdData); err != nil {
 			tlog.Error("Failed to enqueue InstallProfile", zap.String("udid", udid), zap.Error(err))
+			failed++
 			continue
 		}
-		_, _ = s.mdmService.Push(ctx, []string{udid})
+		if _, err := s.mdmService.Push(ctx, []string{udid}); err != nil {
+			tlog.Error("Failed to push APNs notification", zap.String("udid", udid), zap.Error(err))
+			failed++
+		}
 	}
 
+	if len(udids) > 0 && failed == len(udids) {
+		return apperror.ErrInternalServerError.WithMessage(
+			fmt.Sprintf("Repush failed for all %d devices", failed))
+	}
 	return nil
 }
 
