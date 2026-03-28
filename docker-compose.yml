@@ -20,13 +20,7 @@ services:
       - DB_MAX_IDLE_CONNS=5
       - DB_CONN_MAX_LIFETIME_MINUTES=3
       - LOG_FILE_PATH=/app/logs/app.log
-      # NanoCMD / NanoMDM on the same Docker network → use service names
-      # If nano servers are on the HOST network outside this compose, use:
-      # - NANOMDM_URL=http://host.docker.internal:9000
-      # - NANOCMD_URL=http://host.docker.internal:9003
     depends_on:
-      db:
-        condition: service_healthy
       redis:
         condition: service_healthy
       migration:
@@ -90,11 +84,8 @@ services:
 
 networks:
   mdm-network:
-    driver: bridge
-    # If nano servers live in a SEPARATE compose project on the same host,
-    # switch to external and reference their network:
-    # external: true
-    # name: nano_nano-network
+    external: true
+    name: global_mdm_network
 
 volumes:
   postgres_data:
