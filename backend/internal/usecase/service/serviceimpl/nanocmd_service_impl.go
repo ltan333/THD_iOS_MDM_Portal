@@ -65,6 +65,8 @@ func (s *nanocmdServiceImpl) doRequest(ctx context.Context, method, path string,
 		if _, ok := body.([]byte); !ok {
 			req.Header.Set("Content-Type", "application/json")
 		}
+	} else if method == http.MethodPost || method == http.MethodPut {
+		req.Header.Set("Content-Type", "application/json")
 	}
 
 	return s.client.Do(req)
@@ -98,8 +100,11 @@ func (s *nanocmdServiceImpl) handleResponse(resp *http.Response, target any) err
 	if resp.StatusCode == http.StatusBadRequest {
 		return apperror.ErrBadRequest.WithMessage(errMsg)
 	}
+	if resp.StatusCode >= 500 {
+		return apperror.ErrInternalServerError.WithMessage(errMsg)
+	}
 
-	return fmt.Errorf("%s", errMsg)
+	return apperror.ErrInternalServerError.WithMessage(errMsg)
 }
 
 func (s *nanocmdServiceImpl) GetVersion(ctx context.Context) (*dto.NanoCMDVersionResponse, error) {
