@@ -24,8 +24,20 @@ const (
 	FieldDefaultValue = "default_value"
 	// FieldEnumValues holds the string denoting the enum_values field in the database.
 	FieldEnumValues = "enum_values"
+	// FieldDeprecated holds the string denoting the deprecated field in the database.
+	FieldDeprecated = "deprecated"
 	// FieldDescription holds the string denoting the description field in the database.
 	FieldDescription = "description"
+	// FieldNestedReference holds the string denoting the nested_reference field in the database.
+	FieldNestedReference = "nested_reference"
+	// FieldItemsType holds the string denoting the items_type field in the database.
+	FieldItemsType = "items_type"
+	// FieldItemsReference holds the string denoting the items_reference field in the database.
+	FieldItemsReference = "items_reference"
+	// FieldIsNested holds the string denoting the is_nested field in the database.
+	FieldIsNested = "is_nested"
+	// FieldOrderIndex holds the string denoting the order_index field in the database.
+	FieldOrderIndex = "order_index"
 	// FieldCreatedAt holds the string denoting the created_at field in the database.
 	FieldCreatedAt = "created_at"
 	// FieldUpdatedAt holds the string denoting the updated_at field in the database.
@@ -53,7 +65,13 @@ var Columns = []string{
 	FieldValueType,
 	FieldDefaultValue,
 	FieldEnumValues,
+	FieldDeprecated,
 	FieldDescription,
+	FieldNestedReference,
+	FieldItemsType,
+	FieldItemsReference,
+	FieldIsNested,
+	FieldOrderIndex,
 	FieldCreatedAt,
 	FieldUpdatedAt,
 	FieldDeletedAt,
@@ -76,6 +94,12 @@ var (
 	KeyValidator func(string) error
 	// ValueTypeValidator is a validator for the "value_type" field. It is called by the builders before save.
 	ValueTypeValidator func(string) error
+	// DefaultDeprecated holds the default value on creation for the "deprecated" field.
+	DefaultDeprecated bool
+	// DefaultIsNested holds the default value on creation for the "is_nested" field.
+	DefaultIsNested bool
+	// DefaultOrderIndex holds the default value on creation for the "order_index" field.
+	DefaultOrderIndex int
 	// DefaultCreatedAt holds the default value on creation for the "created_at" field.
 	DefaultCreatedAt func() time.Time
 	// DefaultUpdatedAt holds the default value on creation for the "updated_at" field.
@@ -107,9 +131,39 @@ func ByValueType(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldValueType, opts...).ToFunc()
 }
 
+// ByDeprecated orders the results by the deprecated field.
+func ByDeprecated(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldDeprecated, opts...).ToFunc()
+}
+
 // ByDescription orders the results by the description field.
 func ByDescription(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldDescription, opts...).ToFunc()
+}
+
+// ByNestedReference orders the results by the nested_reference field.
+func ByNestedReference(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldNestedReference, opts...).ToFunc()
+}
+
+// ByItemsType orders the results by the items_type field.
+func ByItemsType(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldItemsType, opts...).ToFunc()
+}
+
+// ByItemsReference orders the results by the items_reference field.
+func ByItemsReference(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldItemsReference, opts...).ToFunc()
+}
+
+// ByIsNested orders the results by the is_nested field.
+func ByIsNested(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldIsNested, opts...).ToFunc()
+}
+
+// ByOrderIndex orders the results by the order_index field.
+func ByOrderIndex(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldOrderIndex, opts...).ToFunc()
 }
 
 // ByCreatedAt orders the results by the created_at field.

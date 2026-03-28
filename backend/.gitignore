@@ -43,3 +43,6 @@ debug
 # Air (hot reload)
 tmp/
 .air.toml
+import
+
+local_docs
