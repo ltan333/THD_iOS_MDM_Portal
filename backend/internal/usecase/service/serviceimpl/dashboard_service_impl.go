@@ -7,14 +7,25 @@ import (
 	"github.com/thienel/go-backend-template/internal/interface/api/dto"
 	"github.com/thienel/go-backend-template/internal/usecase/service"
 	apperror "github.com/thienel/go-backend-template/pkg/error"
+	"github.com/thienel/go-backend-template/pkg/query"
 )
 
 type dashboardServiceImpl struct {
-	repo repository.DashboardRepository
+	repo      repository.DashboardRepository
+	alertRepo repository.AlertRepository
+	appRepo   repository.ApplicationRepository
 }
 
-func NewDashboardService(repo repository.DashboardRepository) service.DashboardService {
-	return &dashboardServiceImpl{repo: repo}
+func NewDashboardService(
+	repo repository.DashboardRepository,
+	alertRepo repository.AlertRepository,
+	appRepo repository.ApplicationRepository,
+) service.DashboardService {
+	return &dashboardServiceImpl{
+		repo:      repo,
+		alertRepo: alertRepo,
+		appRepo:   appRepo,
+	}
 }
 
 func (s *dashboardServiceImpl) GetStats(ctx context.Context) (*dto.DashboardStatsResponse, error) {
@@ -38,11 +49,26 @@ func (s *dashboardServiceImpl) GetStats(ctx context.Context) (*dto.DashboardStat
 		return nil, apperror.ErrInternalServerError.WithMessage("Lỗi khi đếm người dùng hoạt động").WithError(err)
 	}
 
-	complianceRate := 0
+	complianceRate := 100
 	nonCompliantRate := 0
 	if totalDevices > 0 {
 		complianceRate = int((float64(activeDevices) / float64(totalDevices)) * 100)
 		nonCompliantRate = 100 - complianceRate
+	}
+
+	alertsSummary, err := s.alertRepo.GetStats(ctx)
+	if err != nil {
+		alertsSummary = &dto.AlertsSummaryResponse{}
+	}
+
+	_, totalApps, err := s.appRepo.List(ctx, 0, 1, query.QueryOptions{})
+	if err != nil {
+		totalApps = 0
+	}
+
+	deployedApps, err := s.appRepo.CountDeployments(ctx)
+	if err != nil {
+		deployedApps = 0
 	}
 
 	return &dto.DashboardStatsResponse{
@@ -50,10 +76,10 @@ func (s *dashboardServiceImpl) GetStats(ctx context.Context) (*dto.DashboardStat
 		ActiveDevices:    int64(activeDevices),
 		TotalUsers:       int64(totalUsers),
 		ActiveUsers:      int64(activeUsers),
-		TotalAlerts:      0, // Will be updated when Alert entity exists
-		PendingAlerts:    0, // Will be updated when Alert entity exists
-		TotalApps:        0, // Will be updated when Application entity exists
-		DeployedApps:     0, // Will be updated when Application entity exists
+		TotalAlerts:      alertsSummary.Total,
+		PendingAlerts:    alertsSummary.Open,
+		TotalApps:        totalApps,
+		DeployedApps:     int64(deployedApps),
 		ComplianceRate:   complianceRate,
 		NonCompliantRate: nonCompliantRate,
 	}, nil
@@ -104,26 +130,7 @@ func (s *dashboardServiceImpl) GetDeviceStats(ctx context.Context) (*dto.DeviceS
 }
 
 func (s *dashboardServiceImpl) GetAlertsSummary(ctx context.Context) (*dto.AlertsSummaryResponse, error) {
-	// Placeholder implementation - will be updated when Alert entity exists
-	return &dto.AlertsSummaryResponse{
-		Total:        0,
-		Open:         0,
-		Acknowledged: 0,
-		Resolved:     0,
-		BySeverity: map[string]int64{
-			"critical": 0,
-			"high":     0,
-			"medium":   0,
-			"low":      0,
-		},
-		ByType: map[string]int64{
-			"security":      0,
-			"compliance":    0,
-			"connectivity":  0,
-			"application":   0,
-			"device_health": 0,
-		},
-	}, nil
+	return s.alertRepo.GetStats(ctx)
 }
 
 func (s *dashboardServiceImpl) GetChartData(ctx context.Context, chartType string) (*dto.ChartDataResponse, error) {
@@ -175,7 +182,11 @@ func (s *dashboardServiceImpl) getComplianceChartData(ctx context.Context) (*dto
 }
 
 func (s *dashboardServiceImpl) getAlertsChartData(ctx context.Context) (*dto.ChartDataResponse, error) {
-	// Placeholder - will be updated when Alert entity exists
+	stats, err := s.alertRepo.GetStats(ctx)
+	if err != nil {
+		return nil, err
+	}
+
 	return &dto.ChartDataResponse{
 		ChartType: "bar",
 		Title:     "Alerts by Severity",
@@ -183,7 +194,12 @@ func (s *dashboardServiceImpl) getAlertsChartData(ctx context.Context) (*dto.Cha
 		Datasets: []dto.ChartDataset{
 			{
 				Label: "Alerts",
-				Data:  []any{0, 0, 0, 0},
+				Data: []any{
+					stats.BySeverity["critical"],
+					stats.BySeverity["high"],
+					stats.BySeverity["medium"],
+					stats.BySeverity["low"],
+				},
 				Color: "#F44336,#FF9800,#FFC107,#4CAF50",
 			},
 		},

@@ -78,7 +78,7 @@ func setupDependencies(cfg *config.Config) *gin.Engine {
 		cfg.NanoMDM.DEPPassword,
 	)
 	mobileConfigService := serviceimpl.NewMobileConfigService(mobileConfigRepo)
-	dashboardService := serviceimpl.NewDashboardService(dashboardRepo)
+	dashboardService := serviceimpl.NewDashboardService(dashboardRepo, alertRepo, appRepo)
 	deviceGroupService := serviceimpl.NewDeviceGroupService(deviceGroupRepo)
 	profileGenerator := serviceimpl.NewProfileGenerator("THD MDM", "com.thd.mdm")
 	profileService := serviceimpl.NewProfileService(profileRepo, profileGenerator, nanomdmService)
