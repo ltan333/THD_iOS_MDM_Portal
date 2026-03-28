@@ -9,15 +9,20 @@ import (
 	"github.com/thienel/go-backend-template/internal/ent/application"
 	"github.com/thienel/go-backend-template/internal/usecase/service"
 	apperror "github.com/thienel/go-backend-template/pkg/error"
+	"github.com/thienel/go-backend-template/pkg/mdmcmd"
 	"github.com/thienel/go-backend-template/pkg/query"
 )
 
 type applicationServiceImpl struct {
-	repo repository.ApplicationRepository
+	repo       repository.ApplicationRepository
+	mdmService service.NanoMDMService
 }
 
-func NewApplicationService(repo repository.ApplicationRepository) service.ApplicationService {
-	return &applicationServiceImpl{repo: repo}
+func NewApplicationService(repo repository.ApplicationRepository, mdmService service.NanoMDMService) service.ApplicationService {
+	return &applicationServiceImpl{
+		repo:       repo,
+		mdmService: mdmService,
+	}
 }
 
 func (s *applicationServiceImpl) List(ctx context.Context, offset, limit int, opts query.QueryOptions) ([]*ent.Application, int64, error) {
@@ -29,13 +34,7 @@ func (s *applicationServiceImpl) GetByID(ctx context.Context, id uint) (*ent.App
 }
 
 func (s *applicationServiceImpl) Create(ctx context.Context, cmd service.CreateApplicationCommand) (*ent.Application, error) {
-	exists, err := s.repo.BundleIDExists(ctx, cmd.BundleID)
-	if err != nil {
-		return nil, err
-	}
-	if exists {
-		return nil, apperror.ErrConflict.WithMessage("Bundle ID đã tồn tại trong hệ thống")
-	}
+	// BundleID exists check is now handled atomically by DB constraint in repo.Create
 
 	return s.repo.Create(ctx, &ent.Application{
 		Name:        cmd.Name,
@@ -87,8 +86,15 @@ func (s *applicationServiceImpl) ListVersions(ctx context.Context, appID uint) (
 }
 
 func (s *applicationServiceImpl) CreateVersion(ctx context.Context, cmd service.CreateAppVersionCommand) (*ent.AppVersion, error) {
+	if cmd.Version == "" || cmd.BuildNumber == "" {
+		return nil, apperror.ErrValidation.WithMessage("version và build_number là bắt buộc")
+	}
+
 	exists, err := s.repo.AppExists(ctx, cmd.ApplicationID)
-	if err != nil || !exists {
+	if err != nil {
+		return nil, apperror.ErrInternalServerError.WithMessage("Lỗi khi kiểm tra ứng dụng gốc").WithError(err)
+	}
+	if !exists {
 		return nil, apperror.ErrNotFound.WithMessage("Không tìm thấy ứng dụng gốc")
 	}
 
@@ -109,16 +115,49 @@ func (s *applicationServiceImpl) DeleteVersion(ctx context.Context, id uint) err
 
 func (s *applicationServiceImpl) Deploy(ctx context.Context, cmd service.CreateAppDeploymentCommand) (*ent.AppDeployment, error) {
 	exists, err := s.repo.AppVersionExists(ctx, cmd.AppVersionID)
-	if err != nil || !exists {
+	if err != nil {
+		return nil, apperror.ErrInternalServerError.WithMessage("Lỗi khi kiểm tra phiên bản").WithError(err)
+	}
+	if !exists {
 		return nil, apperror.ErrNotFound.WithMessage("Không tìm thấy phiên bản ứng dụng để deploy")
 	}
 
-	return s.repo.CreateDeployment(ctx, &ent.AppDeployment{
+	version, err := s.repo.GetVersionByID(ctx, cmd.AppVersionID)
+	if err != nil {
+		return nil, err
+	}
+
+	deployment, err := s.repo.CreateDeployment(ctx, &ent.AppDeployment{
 		AppVersionID: cmd.AppVersionID,
 		TargetType:   appdeployment.TargetType(cmd.TargetType),
 		TargetID:     cmd.TargetID,
 		Status:       appdeployment.StatusPending,
 	})
+	if err != nil {
+		return nil, err
+	}
+
+	builder := mdmcmd.NewBuilder("com.thd.mdm")
+	// The parent Application bundle ID is heavily relied on
+	bundleID := ""
+	if version.Edges.Application != nil {
+		bundleID = version.Edges.Application.BundleID
+	}
+
+	cmdData, _, err := builder.BuildInstallApplication(version.FileURL, bundleID)
+	if err != nil {
+		_ = s.repo.UpdateDeploymentStatus(ctx, deployment.ID, "failed", err.Error())
+		return deployment, nil 
+	}
+
+	if _, err = s.mdmService.EnqueueCommand(ctx, cmd.TargetID, cmdData); err != nil {
+		_ = s.repo.UpdateDeploymentStatus(ctx, deployment.ID, "failed", err.Error())
+		return deployment, nil
+	}
+	_, _ = s.mdmService.Push(ctx, []string{cmd.TargetID})
+
+	_ = s.repo.UpdateDeploymentStatus(ctx, deployment.ID, "sent", "")
+	return deployment, nil
 }
 
 func (s *applicationServiceImpl) ListDeployments(ctx context.Context, appVersionID uint) ([]*ent.AppDeployment, error) {

@@ -25,4 +25,6 @@ type ApplicationRepository interface {
 	CreateDeployment(ctx context.Context, entity *ent.AppDeployment) (*ent.AppDeployment, error)
 	ListDeployments(ctx context.Context, appVersionID uint) ([]*ent.AppDeployment, error)
 	AppVersionExists(ctx context.Context, id uint) (bool, error)
+	GetVersionByID(ctx context.Context, id uint) (*ent.AppVersion, error)
+	UpdateDeploymentStatus(ctx context.Context, id uint, status string, errorMessage string) error
 }
