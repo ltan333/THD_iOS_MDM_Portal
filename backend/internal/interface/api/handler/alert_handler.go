@@ -61,11 +61,19 @@ func NewAlertHandler(alertService service.AlertService, alertRuleService service
 
 // List godoc
 // @Summary List alerts
-// @Description Fetch tracked system alerts
-// @Tags alerts
+// @Description Fetch tracked system alerts with support for pagination and filtering by severity, type, and status.
+// @Tags Alerts
 // @Produce json
+// @Param page query int false "Page number (default 1)"
+// @Param limit query int false "Items per page (default 20)"
+// @Param severity query string false "Filter by severity (info, warning, critical)"
+// @Param type query string false "Filter by alert type"
+// @Param status query string false "Filter by status (open, acknowledged, resolved)"
+// @Param search query string false "Search in title and details"
+// @Success 200 {object} response.APIResponse[dto.ListResponse[dto.AlertResponse]] "List of alerts"
+// @Failure 401 {object} response.APIResponse[any] "Unauthorized"
+// @Failure 500 {object} response.APIResponse[any] "Internal server error"
 // @Security BearerAuth
-// @Success 200 {object} response.APIResponse[any]
 // @Router /api/v1/alerts [get]
 func (h *alertHandlerImpl) List(c *gin.Context) {
 	params := make(map[string]string)
@@ -102,10 +110,16 @@ func (h *alertHandlerImpl) List(c *gin.Context) {
 
 // GetByID godoc
 // @Summary Get alert by ID
-// @Tags alerts
+// @Description Retrieve details of a specific alert by its unique ID.
+// @Tags Alerts
 // @Produce json
+// @Param id path int true "Alert ID"
+// @Success 200 {object} response.APIResponse[dto.AlertResponse] "Alert details"
+// @Failure 400 {object} response.APIResponse[any] "Invalid ID format"
+// @Failure 401 {object} response.APIResponse[any] "Unauthorized"
+// @Failure 404 {object} response.APIResponse[any] "Alert not found"
+// @Failure 500 {object} response.APIResponse[any] "Internal server error"
 // @Security BearerAuth
-// @Success 200 {object} response.APIResponse[any]
 // @Router /api/v1/alerts/{id} [get]
 func (h *alertHandlerImpl) GetByID(c *gin.Context) {
 	idStr := c.Param("id")
@@ -126,11 +140,16 @@ func (h *alertHandlerImpl) GetByID(c *gin.Context) {
 
 // Create godoc
 // @Summary Create alert
-// @Tags alerts
+// @Description Manually create a new system alert.
+// @Tags Alerts
 // @Accept json
 // @Produce json
+// @Param alert body dto.CreateAlertRequest true "Alert details"
+// @Success 201 {object} response.APIResponse[dto.AlertResponse] "Alert created successfully"
+// @Failure 400 {object} response.APIResponse[any] "Invalid request data"
+// @Failure 401 {object} response.APIResponse[any] "Unauthorized"
+// @Failure 500 {object} response.APIResponse[any] "Internal server error"
 // @Security BearerAuth
-// @Success 201 {object} response.APIResponse[any]
 // @Router /api/v1/alerts [post]
 func (h *alertHandlerImpl) Create(c *gin.Context) {
 	var req dto.CreateAlertRequest
@@ -157,10 +176,16 @@ func (h *alertHandlerImpl) Create(c *gin.Context) {
 
 // Acknowledge godoc
 // @Summary Acknowledge alert
-// @Tags alerts
+// @Description Mark an alert as acknowledged by an administrator.
+// @Tags Alerts
 // @Produce json
+// @Param id path int true "Alert ID"
+// @Success 200 {object} response.APIResponse[any] "Alert acknowledged"
+// @Failure 400 {object} response.APIResponse[any] "Invalid ID format"
+// @Failure 401 {object} response.APIResponse[any] "Unauthorized"
+// @Failure 404 {object} response.APIResponse[any] "Alert not found"
+// @Failure 500 {object} response.APIResponse[any] "Internal server error"
 // @Security BearerAuth
-// @Success 200 {object} response.APIResponse[any]
 // @Router /api/v1/alerts/{id}/acknowledge [put]
 func (h *alertHandlerImpl) Acknowledge(c *gin.Context) {
 	idStr := c.Param("id")
@@ -180,10 +205,16 @@ func (h *alertHandlerImpl) Acknowledge(c *gin.Context) {
 
 // Resolve godoc
 // @Summary Resolve alert
-// @Tags alerts
+// @Description Mark an alert as resolved.
+// @Tags Alerts
 // @Produce json
+// @Param id path int true "Alert ID"
+// @Success 200 {object} response.APIResponse[any] "Alert resolved"
+// @Failure 400 {object} response.APIResponse[any] "Invalid ID format"
+// @Failure 401 {object} response.APIResponse[any] "Unauthorized"
+// @Failure 404 {object} response.APIResponse[any] "Alert not found"
+// @Failure 500 {object} response.APIResponse[any] "Internal server error"
 // @Security BearerAuth
-// @Success 200 {object} response.APIResponse[any]
 // @Router /api/v1/alerts/{id}/resolve [put]
 func (h *alertHandlerImpl) Resolve(c *gin.Context) {
 	idStr := c.Param("id")
@@ -203,11 +234,16 @@ func (h *alertHandlerImpl) Resolve(c *gin.Context) {
 
 // BulkResolve godoc
 // @Summary Bulk resolve alerts
-// @Tags alerts
+// @Description Resolve multiple alerts in a single request.
+// @Tags Alerts
 // @Accept json
 // @Produce json
+// @Param request body dto.BulkResolveAlertsRequest true "List of alert IDs to resolve"
+// @Success 200 {object} response.APIResponse[any] "Alerts bulk resolved"
+// @Failure 400 {object} response.APIResponse[any] "Invalid request data"
+// @Failure 401 {object} response.APIResponse[any] "Unauthorized"
+// @Failure 500 {object} response.APIResponse[any] "Internal server error"
 // @Security BearerAuth
-// @Success 200 {object} response.APIResponse[any]
 // @Router /api/v1/alerts/bulk-resolve [post]
 func (h *alertHandlerImpl) BulkResolve(c *gin.Context) {
 	var req dto.BulkResolveAlertsRequest
@@ -226,10 +262,13 @@ func (h *alertHandlerImpl) BulkResolve(c *gin.Context) {
 
 // GetStats godoc
 // @Summary Get alert stats
-// @Tags alerts
+// @Description Get statistical data about alerts, such as counts by severity and status.
+// @Tags Alerts
 // @Produce json
+// @Success 200 {object} response.APIResponse[dto.AlertsSummaryResponse] "Alert statistics"
+// @Failure 401 {object} response.APIResponse[any] "Unauthorized"
+// @Failure 500 {object} response.APIResponse[any] "Internal server error"
 // @Security BearerAuth
-// @Success 200 {object} response.APIResponse[any]
 // @Router /api/v1/alerts/stats [get]
 func (h *alertHandlerImpl) GetStats(c *gin.Context) {
 	stats, err := h.alertService.GetStats(c.Request.Context())
@@ -243,10 +282,15 @@ func (h *alertHandlerImpl) GetStats(c *gin.Context) {
 
 // LockDevice godoc
 // @Summary Lock device from alert
-// @Tags alerts
+// @Description Initiate a remote lock command for the device associated with this alert.
+// @Tags Alerts
 // @Produce json
+// @Param id path int true "Alert ID"
+// @Success 200 {object} response.APIResponse[any] "Device lock initiated"
+// @Failure 400 {object} response.APIResponse[any] "Invalid ID or device not found"
+// @Failure 401 {object} response.APIResponse[any] "Unauthorized"
+// @Failure 500 {object} response.APIResponse[any] "Internal server error"
 // @Security BearerAuth
-// @Success 200 {object} response.APIResponse[any]
 // @Router /api/v1/alerts/{id}/actions/lock [post]
 func (h *alertHandlerImpl) LockDevice(c *gin.Context) {
 	idStr := c.Param("id")
@@ -265,10 +309,15 @@ func (h *alertHandlerImpl) LockDevice(c *gin.Context) {
 
 // WipeDevice godoc
 // @Summary Wipe device from alert
-// @Tags alerts
+// @Description Initiate a remote wipe (factory reset) command for the device associated with this alert.
+// @Tags Alerts
 // @Produce json
+// @Param id path int true "Alert ID"
+// @Success 200 {object} response.APIResponse[any] "Device wipe initiated"
+// @Failure 400 {object} response.APIResponse[any] "Invalid ID or device not found"
+// @Failure 401 {object} response.APIResponse[any] "Unauthorized"
+// @Failure 500 {object} response.APIResponse[any] "Internal server error"
 // @Security BearerAuth
-// @Success 200 {object} response.APIResponse[any]
 // @Router /api/v1/alerts/{id}/actions/wipe [post]
 func (h *alertHandlerImpl) WipeDevice(c *gin.Context) {
 	idStr := c.Param("id")
@@ -287,11 +336,17 @@ func (h *alertHandlerImpl) WipeDevice(c *gin.Context) {
 
 // PushPolicy godoc
 // @Summary Push policy from alert
-// @Tags alerts
+// @Description Force push a specific configuration policy to the device associated with this alert.
+// @Tags Alerts
 // @Accept json
 // @Produce json
+// @Param id path int true "Alert ID"
+// @Param request body dto.AlertActionRequest true "Policy ID"
+// @Success 200 {object} response.APIResponse[any] "Policy pushed"
+// @Failure 400 {object} response.APIResponse[any] "Invalid request data"
+// @Failure 401 {object} response.APIResponse[any] "Unauthorized"
+// @Failure 500 {object} response.APIResponse[any] "Internal server error"
 // @Security BearerAuth
-// @Success 200 {object} response.APIResponse[any]
 // @Router /api/v1/alerts/{id}/actions/push-policy [post]
 func (h *alertHandlerImpl) PushPolicy(c *gin.Context) {
 	idStr := c.Param("id")
@@ -316,11 +371,17 @@ func (h *alertHandlerImpl) PushPolicy(c *gin.Context) {
 
 // SendMessage godoc
 // @Summary Send message from alert
-// @Tags alerts
+// @Description Send a notification message to the device user associated with this alert.
+// @Tags Alerts
 // @Accept json
 // @Produce json
+// @Param id path int true "Alert ID"
+// @Param request body dto.AlertActionRequest true "Message content"
+// @Success 200 {object} response.APIResponse[any] "Message sent"
+// @Failure 400 {object} response.APIResponse[any] "Invalid request data"
+// @Failure 401 {object} response.APIResponse[any] "Unauthorized"
+// @Failure 500 {object} response.APIResponse[any] "Internal server error"
 // @Security BearerAuth
-// @Success 200 {object} response.APIResponse[any]
 // @Router /api/v1/alerts/{id}/actions/message [post]
 func (h *alertHandlerImpl) SendMessage(c *gin.Context) {
 	idStr := c.Param("id")
@@ -347,10 +408,17 @@ func (h *alertHandlerImpl) SendMessage(c *gin.Context) {
 
 // ListRules godoc
 // @Summary List alert rules
-// @Tags alert-rules
+// @Description Retrieve all alert rules with pagination and filtering by status.
+// @Tags Alert-Rules
 // @Produce json
+// @Param page query int false "Page number (default 1)"
+// @Param limit query int false "Items per page (default 20)"
+// @Param enabled query boolean false "Filter by enabled status"
+// @Param search query string false "Search in name and description"
+// @Success 200 {object} response.APIResponse[dto.ListResponse[dto.AlertRuleResponse]] "List of alert rules"
+// @Failure 401 {object} response.APIResponse[any] "Unauthorized"
+// @Failure 500 {object} response.APIResponse[any] "Internal server error"
 // @Security BearerAuth
-// @Success 200 {object} response.APIResponse[any]
 // @Router /api/v1/alerts/rules [get]
 func (h *alertHandlerImpl) ListRules(c *gin.Context) {
 	params := make(map[string]string)
@@ -387,10 +455,16 @@ func (h *alertHandlerImpl) ListRules(c *gin.Context) {
 
 // GetRuleByID godoc
 // @Summary Get alert rule by ID
-// @Tags alert-rules
+// @Description Fetch details of a specific alert rule by its system ID.
+// @Tags Alert-Rules
 // @Produce json
+// @Param id path int true "Rule ID"
+// @Success 200 {object} response.APIResponse[dto.AlertRuleResponse] "Alert rule details"
+// @Failure 400 {object} response.APIResponse[any] "Invalid ID format"
+// @Failure 401 {object} response.APIResponse[any] "Unauthorized"
+// @Failure 404 {object} response.APIResponse[any] "Rule not found"
+// @Failure 500 {object} response.APIResponse[any] "Internal server error"
 // @Security BearerAuth
-// @Success 200 {object} response.APIResponse[any]
 // @Router /api/v1/alerts/rules/{id} [get]
 func (h *alertHandlerImpl) GetRuleByID(c *gin.Context) {
 	idStr := c.Param("id")
@@ -411,11 +485,16 @@ func (h *alertHandlerImpl) GetRuleByID(c *gin.Context) {
 
 // CreateRule godoc
 // @Summary Create alert rule
-// @Tags alert-rules
+// @Description Define a new alert rule with conditions and automated actions.
+// @Tags Alert-Rules
 // @Accept json
 // @Produce json
+// @Param rule body dto.CreateAlertRuleRequest true "Rule details"
+// @Success 201 {object} response.APIResponse[dto.AlertRuleResponse] "Rule created successfully"
+// @Failure 400 {object} response.APIResponse[any] "Invalid request data"
+// @Failure 401 {object} response.APIResponse[any] "Unauthorized"
+// @Failure 500 {object} response.APIResponse[any] "Internal server error"
 // @Security BearerAuth
-// @Success 201 {object} response.APIResponse[any]
 // @Router /api/v1/alerts/rules [post]
 func (h *alertHandlerImpl) CreateRule(c *gin.Context) {
 	var req dto.CreateAlertRuleRequest
@@ -446,11 +525,18 @@ func (h *alertHandlerImpl) CreateRule(c *gin.Context) {
 
 // UpdateRule godoc
 // @Summary Update alert rule
-// @Tags alert-rules
+// @Description Update the configuration of an existing alert rule.
+// @Tags Alert-Rules
 // @Accept json
 // @Produce json
+// @Param id path int true "Rule ID"
+// @Param rule body dto.UpdateAlertRuleRequest true "Updated rule details"
+// @Success 200 {object} response.APIResponse[dto.AlertRuleResponse] "Rule updated successfully"
+// @Failure 400 {object} response.APIResponse[any] "Invalid ID or request data"
+// @Failure 401 {object} response.APIResponse[any] "Unauthorized"
+// @Failure 404 {object} response.APIResponse[any] "Rule not found"
+// @Failure 500 {object} response.APIResponse[any] "Internal server error"
 // @Security BearerAuth
-// @Success 200 {object} response.APIResponse[any]
 // @Router /api/v1/alerts/rules/{id} [put]
 func (h *alertHandlerImpl) UpdateRule(c *gin.Context) {
 	idStr := c.Param("id")
@@ -484,10 +570,16 @@ func (h *alertHandlerImpl) UpdateRule(c *gin.Context) {
 
 // DeleteRule godoc
 // @Summary Delete alert rule
-// @Tags alert-rules
+// @Description Permanently remove an alert rule from the system.
+// @Tags Alert-Rules
 // @Produce json
+// @Param id path int true "Rule ID"
+// @Success 200 {object} response.APIResponse[any] "Rule deleted successfully"
+// @Failure 400 {object} response.APIResponse[any] "Invalid ID format"
+// @Failure 401 {object} response.APIResponse[any] "Unauthorized"
+// @Failure 404 {object} response.APIResponse[any] "Rule not found"
+// @Failure 500 {object} response.APIResponse[any] "Internal server error"
 // @Security BearerAuth
-// @Success 200 {object} response.APIResponse[any]
 // @Router /api/v1/alerts/rules/{id} [delete]
 func (h *alertHandlerImpl) DeleteRule(c *gin.Context) {
 	idStr := c.Param("id")
@@ -507,10 +599,16 @@ func (h *alertHandlerImpl) DeleteRule(c *gin.Context) {
 
 // ToggleRule godoc
 // @Summary Toggle alert rule active status
-// @Tags alert-rules
+// @Description Enable or disable an alert rule.
+// @Tags Alert-Rules
 // @Produce json
+// @Param id path int true "Rule ID"
+// @Success 200 {object} response.APIResponse[any] "Rule status toggled"
+// @Failure 400 {object} response.APIResponse[any] "Invalid ID format"
+// @Failure 401 {object} response.APIResponse[any] "Unauthorized"
+// @Failure 404 {object} response.APIResponse[any] "Rule not found"
+// @Failure 500 {object} response.APIResponse[any] "Internal server error"
 // @Security BearerAuth
-// @Success 200 {object} response.APIResponse[any]
 // @Router /api/v1/alerts/rules/{id}/toggle [put]
 func (h *alertHandlerImpl) ToggleRule(c *gin.Context) {
 	idStr := c.Param("id")

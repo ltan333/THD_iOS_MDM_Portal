@@ -55,10 +55,21 @@ func NewDeviceHandler(
 	}
 }
 
+// List godoc
 // @Summary List devices
-// @Description Fetch devices with pagination, sorting and filtering
+// @Description Retrieve a paginated list of managed devices with support for sorting and filtering by serial number, model, platform, and status.
 // @Tags Devices
 // @Produce json
+// @Param page query int false "Page number (default 1)"
+// @Param limit query int false "Items per page (default 20)"
+// @Param serial_number query string false "Filter by serial number"
+// @Param model query string false "Filter by device model"
+// @Param platform query string false "Filter by platform (iOS, macOS, etc.)Status"
+// @Param status query string false "Filter by status"
+// @Param search query string false "Search in serial number, name, and model"
+// @Success 200 {object} response.APIResponse[dto.ListResponse[dto.DeviceResponse]] "List of devices"
+// @Failure 401 {object} response.APIResponse[any] "Unauthorized"
+// @Failure 500 {object} response.APIResponse[any] "Internal server error"
 // @Security BearerAuth
 // @Router /api/v1/devices [get]
 func (h *deviceHandlerImpl) List(c *gin.Context) {
@@ -94,11 +105,17 @@ func (h *deviceHandlerImpl) List(c *gin.Context) {
 	}, "")
 }
 
+// GetByID godoc
 // @Summary Get device by ID
-// @Description Fetch single device details
+// @Description Fetch detailed information for a single managed device using its unique system ID.
 // @Tags Devices
 // @Produce json
 // @Param id path string true "Device ID"
+// @Success 200 {object} response.APIResponse[dto.DeviceResponse] "Device details"
+// @Failure 400 {object} response.APIResponse[any] "Invalid ID format"
+// @Failure 401 {object} response.APIResponse[any] "Unauthorized"
+// @Failure 404 {object} response.APIResponse[any] "Device not found"
+// @Failure 500 {object} response.APIResponse[any] "Internal server error"
 // @Security BearerAuth
 // @Router /api/v1/devices/{id} [get]
 func (h *deviceHandlerImpl) GetByID(c *gin.Context) {
@@ -117,11 +134,16 @@ func (h *deviceHandlerImpl) GetByID(c *gin.Context) {
 	response.OK(c, mapDeviceToResponse(dev), "")
 }
 
+// Export godoc
 // @Summary Export devices
-// @Description Export devices to CSV or JSON
+// @Description Export all managed devices to a downloadable CSV or JSON file.
 // @Tags Devices
 // @Produce text/csv
-// @Param format query string false "Format (csv or json)"
+// @Produce application/json
+// @Param format query string false "Export format (csv or json, default: csv)"
+// @Success 200 {file} file "Exported device data"
+// @Failure 401 {object} response.APIResponse[any] "Unauthorized"
+// @Failure 500 {object} response.APIResponse[any] "Internal server error"
 // @Security BearerAuth
 // @Router /api/v1/devices/export [get]
 func (h *deviceHandlerImpl) Export(c *gin.Context) {
@@ -145,17 +167,19 @@ func (h *deviceHandlerImpl) Export(c *gin.Context) {
 	}
 }
 
+// Lock godoc
 // @Summary Lock device
-// @Description Queues MDM device lock command with optional PIN, message, and phone number
+// @Description Enqueue a remote lock command for an MDM-enrolled device. Optionally specify a PIN, message, and phone number to display on the lock screen.
 // @Tags Device Actions
 // @Accept json
 // @Produce json
 // @Param id path string true "Device ID (UDID)"
-// @Param request body dto.DeviceLockRequest false "Lock options"
-// @Success 200 {object} response.APIResponse[dto.APIResult]
-// @Failure 400 {object} response.APIResponse[any]
-// @Failure 401 {object} response.APIResponse[any]
-// @Failure 500 {object} response.APIResponse[any]
+// @Param request body dto.DeviceLockRequest false "Lock configuration options"
+// @Success 200 {object} response.APIResponse[dto.APIResult] "Lock command successfully enqueued"
+// @Failure 400 {object} response.APIResponse[any] "Invalid request data or device ID"
+// @Failure 401 {object} response.APIResponse[any] "Unauthorized"
+// @Failure 404 {object} response.APIResponse[any] "Device not found"
+// @Failure 500 {object} response.APIResponse[any] "Internal server error"
 // @Security BearerAuth
 // @Router /api/v1/devices/{id}/lock [post]
 func (h *deviceHandlerImpl) Lock(c *gin.Context) {
@@ -198,17 +222,19 @@ func (h *deviceHandlerImpl) Lock(c *gin.Context) {
 	response.OK(c, result, "Lock command queued successfully")
 }
 
+// Wipe godoc
 // @Summary Wipe device
-// @Description Queues MDM erase device command with optional parameters
+// @Description Enqueue a remote wipe (factory reset) command for an MDM-enrolled device. This action is irreversible.
 // @Tags Device Actions
 // @Accept json
 // @Produce json
 // @Param id path string true "Device ID (UDID)"
-// @Param request body dto.DeviceWipeRequest false "Wipe options"
-// @Success 200 {object} response.APIResponse[dto.APIResult]
-// @Failure 400 {object} response.APIResponse[any]
-// @Failure 401 {object} response.APIResponse[any]
-// @Failure 500 {object} response.APIResponse[any]
+// @Param request body dto.DeviceWipeRequest false "Wipe configuration options"
+// @Success 200 {object} response.APIResponse[dto.APIResult] "Wipe command successfully enqueued"
+// @Failure 400 {object} response.APIResponse[any] "Invalid request data"
+// @Failure 401 {object} response.APIResponse[any] "Unauthorized"
+// @Failure 404 {object} response.APIResponse[any] "Device not found"
+// @Failure 500 {object} response.APIResponse[any] "Internal server error"
 // @Security BearerAuth
 // @Router /api/v1/devices/{id}/wipe [post]
 func (h *deviceHandlerImpl) Wipe(c *gin.Context) {
@@ -252,17 +278,19 @@ func (h *deviceHandlerImpl) Wipe(c *gin.Context) {
 	response.OK(c, result, "Wipe command queued successfully")
 }
 
+// Restart godoc
 // @Summary Restart device
-// @Description Queues MDM restart device command
+// @Description Enqueue a remote restart command for an MDM-enrolled device.
 // @Tags Device Actions
 // @Accept json
 // @Produce json
 // @Param id path string true "Device ID (UDID)"
 // @Param request body dto.DeviceRestartRequest false "Restart options"
-// @Success 200 {object} response.APIResponse[dto.APIResult]
-// @Failure 400 {object} response.APIResponse[any]
-// @Failure 401 {object} response.APIResponse[any]
-// @Failure 500 {object} response.APIResponse[any]
+// @Success 200 {object} response.APIResponse[dto.APIResult] "Restart command successfully enqueued"
+// @Failure 400 {object} response.APIResponse[any] "Invalid request data"
+// @Failure 401 {object} response.APIResponse[any] "Unauthorized"
+// @Failure 404 {object} response.APIResponse[any] "Device not found"
+// @Failure 500 {object} response.APIResponse[any] "Internal server error"
 // @Security BearerAuth
 // @Router /api/v1/devices/{id}/restart [post]
 func (h *deviceHandlerImpl) Restart(c *gin.Context) {
@@ -303,15 +331,17 @@ func (h *deviceHandlerImpl) Restart(c *gin.Context) {
 	response.OK(c, result, "Restart command queued successfully")
 }
 
+// Shutdown godoc
 // @Summary Shutdown device
-// @Description Queues MDM shutdown device command
+// @Description Enqueue a remote shutdown command for an MDM-enrolled device.
 // @Tags Device Actions
 // @Produce json
 // @Param id path string true "Device ID (UDID)"
-// @Success 200 {object} response.APIResponse[dto.APIResult]
-// @Failure 400 {object} response.APIResponse[any]
-// @Failure 401 {object} response.APIResponse[any]
-// @Failure 500 {object} response.APIResponse[any]
+// @Success 200 {object} response.APIResponse[dto.APIResult] "Shutdown command successfully enqueued"
+// @Failure 400 {object} response.APIResponse[any] "Invalid device ID"
+// @Failure 401 {object} response.APIResponse[any] "Unauthorized"
+// @Failure 404 {object} response.APIResponse[any] "Device not found"
+// @Failure 500 {object} response.APIResponse[any] "Internal server error"
 // @Security BearerAuth
 // @Router /api/v1/devices/{id}/shutdown [post]
 func (h *deviceHandlerImpl) Shutdown(c *gin.Context) {
@@ -342,18 +372,19 @@ func (h *deviceHandlerImpl) Shutdown(c *gin.Context) {
 	response.OK(c, result, "Shutdown command queued successfully")
 }
 
+// InstallProfile godoc
 // @Summary Install profile on device
-// @Description Queues MDM install profile command for a specific profile
+// @Description Enqueue an command to install a specific configuration profile onto an MDM-enrolled device.
 // @Tags Device Actions
 // @Accept json
 // @Produce json
 // @Param id path string true "Device ID (UDID)"
-// @Param request body dto.DeviceInstallProfileRequest true "Profile to install"
-// @Success 200 {object} response.APIResponse[dto.APIResult]
-// @Failure 400 {object} response.APIResponse[any]
-// @Failure 401 {object} response.APIResponse[any]
-// @Failure 404 {object} response.APIResponse[any]
-// @Failure 500 {object} response.APIResponse[any]
+// @Param request body dto.DeviceInstallProfileRequest true "Profile selection"
+// @Success 200 {object} response.APIResponse[dto.DeviceActionResponse] "Installation command successfully enqueued"
+// @Failure 400 {object} response.APIResponse[any] "Invalid request data"
+// @Failure 401 {object} response.APIResponse[any] "Unauthorized"
+// @Failure 404 {object} response.APIResponse[any] "Device or profile not found"
+// @Failure 500 {object} response.APIResponse[any] "Internal server error"
 // @Security BearerAuth
 // @Router /api/v1/devices/{id}/install-profile [post]
 func (h *deviceHandlerImpl) InstallProfile(c *gin.Context) {
@@ -389,17 +420,19 @@ func (h *deviceHandlerImpl) InstallProfile(c *gin.Context) {
 	}, "Profile installation queued successfully")
 }
 
+// RemoveProfile godoc
 // @Summary Remove profile from device
-// @Description Queues MDM remove profile command
+// @Description Enqueue a command to remove a configuration profile from an MDM-enrolled device using its identifier.
 // @Tags Device Actions
 // @Accept json
 // @Produce json
 // @Param id path string true "Device ID (UDID)"
-// @Param request body dto.DeviceRemoveProfileRequest true "Profile to remove"
-// @Success 200 {object} response.APIResponse[dto.APIResult]
-// @Failure 400 {object} response.APIResponse[any]
-// @Failure 401 {object} response.APIResponse[any]
-// @Failure 500 {object} response.APIResponse[any]
+// @Param request body dto.DeviceRemoveProfileRequest true "Profile identifier"
+// @Success 200 {object} response.APIResponse[dto.APIResult] "Removal command successfully enqueued"
+// @Failure 400 {object} response.APIResponse[any] "Invalid request data"
+// @Failure 401 {object} response.APIResponse[any] "Unauthorized"
+// @Failure 404 {object} response.APIResponse[any] "Device not found"
+// @Failure 500 {object} response.APIResponse[any] "Internal server error"
 // @Security BearerAuth
 // @Router /api/v1/devices/{id}/remove-profile [post]
 func (h *deviceHandlerImpl) RemoveProfile(c *gin.Context) {
@@ -436,17 +469,19 @@ func (h *deviceHandlerImpl) RemoveProfile(c *gin.Context) {
 	response.OK(c, result, "Remove profile command queued successfully")
 }
 
+// RequestInfo godoc
 // @Summary Request device information
-// @Description Queues MDM device information command to query device attributes
+// @Description Enqueue an MDM command to query specific hardware and software attributes of an enrolled device.
 // @Tags Device Actions
 // @Accept json
 // @Produce json
 // @Param id path string true "Device ID (UDID)"
-// @Param request body dto.DeviceInfoRequest false "Information queries"
-// @Success 200 {object} response.APIResponse[dto.APIResult]
-// @Failure 400 {object} response.APIResponse[any]
-// @Failure 401 {object} response.APIResponse[any]
-// @Failure 500 {object} response.APIResponse[any]
+// @Param request body dto.DeviceInfoRequest false "Optional specific information queries"
+// @Success 200 {object} response.APIResponse[dto.APIResult] "Information request successfully enqueued"
+// @Failure 400 {object} response.APIResponse[any] "Invalid request data"
+// @Failure 401 {object} response.APIResponse[any] "Unauthorized"
+// @Failure 404 {object} response.APIResponse[any] "Device not found"
+// @Failure 500 {object} response.APIResponse[any] "Internal server error"
 // @Security BearerAuth
 // @Router /api/v1/devices/{id}/request-info [post]
 func (h *deviceHandlerImpl) RequestInfo(c *gin.Context) {

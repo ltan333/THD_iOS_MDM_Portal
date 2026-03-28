@@ -54,21 +54,22 @@ func NewProfileHandler(profileService service.ProfileService) ProfileHandler {
 	return &profileHandlerImpl{profileService: profileService}
 }
 
+// List godoc
 // @Summary List profiles
-// @Description Fetch profiles with pagination and filtering
+// @Description Retrieve a paginated list of configuration profiles with support for filtering by name, platform, scope, and status.
 // @Tags Profiles
 // @Produce json
 // @Param page query int false "Page number (default 1)"
 // @Param limit query int false "Items per page (default 20)"
 // @Param name query string false "Filter by name"
-// @Param platform query string false "Filter by platform"
-// @Param scope query string false "Filter by scope"
-// @Param status query string false "Filter by status"
-// @Param search query string false "General search"
+// @Param platform query string false "Filter by platform (iOS, macOS, etc.)"
+// @Param scope query string false "Filter by scope (system, user)"
+// @Param status query string false "Filter by status (active, draft, archived)"
+// @Param search query string false "Search in name and description"
+// @Success 200 {object} response.APIResponse[dto.ListResponse[dto.ProfileResponse]] "List of profiles"
+// @Failure 401 {object} response.APIResponse[any] "Unauthorized"
+// @Failure 500 {object} response.APIResponse[any] "Internal server error"
 // @Security BearerAuth
-// @Success 200 {object} response.APIResponse[dto.ListResponse[dto.ProfileResponse]]
-// @Failure 401 {object} response.APIResponse[any]
-// @Failure 500 {object} response.APIResponse[any]
 // @Router /api/v1/profiles [get]
 func (h *profileHandlerImpl) List(c *gin.Context) {
 	params := make(map[string]string)
@@ -103,16 +104,18 @@ func (h *profileHandlerImpl) List(c *gin.Context) {
 	}, "")
 }
 
+// GetByID godoc
 // @Summary Get profile by ID
-// @Description Fetch single profile details
+// @Description Fetch detailed information for a single configuration profile including its settings and payloads.
 // @Tags Profiles
 // @Produce json
 // @Param id path int true "Profile ID"
+// @Success 200 {object} response.APIResponse[dto.ProfileResponse] "Profile details"
+// @Failure 400 {object} response.APIResponse[any] "Invalid ID format"
+// @Failure 401 {object} response.APIResponse[any] "Unauthorized"
+// @Failure 404 {object} response.APIResponse[any] "Profile not found"
+// @Failure 500 {object} response.APIResponse[any] "Internal server error"
 // @Security BearerAuth
-// @Success 200 {object} response.APIResponse[dto.ProfileResponse]
-// @Failure 401 {object} response.APIResponse[any]
-// @Failure 404 {object} response.APIResponse[any]
-// @Failure 500 {object} response.APIResponse[any]
 // @Router /api/v1/profiles/{id} [get]
 func (h *profileHandlerImpl) GetByID(c *gin.Context) {
 	idStr := c.Param("id")
@@ -131,17 +134,18 @@ func (h *profileHandlerImpl) GetByID(c *gin.Context) {
 	response.OK(c, mapProfileToResponse(p), "")
 }
 
+// Create godoc
 // @Summary Create profile
-// @Description Create a new configuration profile
+// @Description Create a new configuration profile with initial settings and assignments.
 // @Tags Profiles
 // @Accept json
 // @Produce json
-// @Param request body dto.CreateProfileRequest true "Profile information"
+// @Param request body dto.CreateProfileRequest true "New profile definition"
+// @Success 201 {object} response.APIResponse[dto.ProfileResponse] "Profile created successfully"
+// @Failure 400 {object} response.APIResponse[any] "Invalid request data"
+// @Failure 401 {object} response.APIResponse[any] "Unauthorized"
+// @Failure 500 {object} response.APIResponse[any] "Internal server error"
 // @Security BearerAuth
-// @Success 201 {object} response.APIResponse[dto.ProfileResponse]
-// @Failure 400 {object} response.APIResponse[any]
-// @Failure 401 {object} response.APIResponse[any]
-// @Failure 500 {object} response.APIResponse[any]
 // @Router /api/v1/profiles [post]
 func (h *profileHandlerImpl) Create(c *gin.Context) {
 	var req dto.CreateProfileRequest
@@ -169,19 +173,20 @@ func (h *profileHandlerImpl) Create(c *gin.Context) {
 	response.Created(c, mapProfileToResponse(p), "Profile created successfully")
 }
 
+// Update godoc
 // @Summary Update profile
-// @Description Update an existing configuration profile
+// @Description Modify an existing configuration profile's settings and metadata.
 // @Tags Profiles
 // @Accept json
 // @Produce json
 // @Param id path int true "Profile ID"
-// @Param request body dto.UpdateProfileRequest true "Updated profile information"
+// @Param request body dto.UpdateProfileRequest true "Updated profile definition"
+// @Success 200 {object} response.APIResponse[dto.ProfileResponse] "Profile updated successfully"
+// @Failure 400 {object} response.APIResponse[any] "Invalid ID or request data"
+// @Failure 401 {object} response.APIResponse[any] "Unauthorized"
+// @Failure 404 {object} response.APIResponse[any] "Profile not found"
+// @Failure 500 {object} response.APIResponse[any] "Internal server error"
 // @Security BearerAuth
-// @Success 200 {object} response.APIResponse[dto.ProfileResponse]
-// @Failure 400 {object} response.APIResponse[any]
-// @Failure 401 {object} response.APIResponse[any]
-// @Failure 404 {object} response.APIResponse[any]
-// @Failure 500 {object} response.APIResponse[any]
 // @Router /api/v1/profiles/{id} [put]
 func (h *profileHandlerImpl) Update(c *gin.Context) {
 	idStr := c.Param("id")
@@ -217,16 +222,18 @@ func (h *profileHandlerImpl) Update(c *gin.Context) {
 	response.OK(c, mapProfileToResponse(p), "Profile updated successfully")
 }
 
+// Delete godoc
 // @Summary Delete profile
-// @Description Permanently delete a configuration profile and its associated data
+// @Description Permanently remove a configuration profile and its associated data.
 // @Tags Profiles
 // @Produce json
 // @Param id path int true "Profile ID"
+// @Success 200 {object} response.APIResponse[any] "Profile deleted successfully"
+// @Failure 400 {object} response.APIResponse[any] "Invalid ID format"
+// @Failure 401 {object} response.APIResponse[any] "Unauthorized"
+// @Failure 404 {object} response.APIResponse[any] "Profile not found"
+// @Failure 500 {object} response.APIResponse[any] "Internal server error"
 // @Security BearerAuth
-// @Success 200 {object} response.APIResponse[any]
-// @Failure 401 {object} response.APIResponse[any]
-// @Failure 404 {object} response.APIResponse[any]
-// @Failure 500 {object} response.APIResponse[any]
 // @Router /api/v1/profiles/{id} [delete]
 func (h *profileHandlerImpl) Delete(c *gin.Context) {
 	idStr := c.Param("id")
@@ -244,19 +251,20 @@ func (h *profileHandlerImpl) Delete(c *gin.Context) {
 	response.OK[any](c, nil, "Profile deleted successfully")
 }
 
+// UpdateStatus godoc
 // @Summary Update profile status
-// @Description Update the status of a profile (active, draft, archived)
+// @Description Update the operational status of a profile (active, draft, archived).
 // @Tags Profiles
 // @Accept json
 // @Produce json
 // @Param id path int true "Profile ID"
-// @Param request body dto.UpdateProfileStatusRequest true "Status information"
+// @Param request body dto.UpdateProfileStatusRequest true "New status selection"
+// @Success 200 {object} response.APIResponse[any] "Profile status updated successfully"
+// @Failure 400 {object} response.APIResponse[any] "Invalid request data or status"
+// @Failure 401 {object} response.APIResponse[any] "Unauthorized"
+// @Failure 404 {object} response.APIResponse[any] "Profile not found"
+// @Failure 500 {object} response.APIResponse[any] "Internal server error"
 // @Security BearerAuth
-// @Success 200 {object} response.APIResponse[any]
-// @Failure 400 {object} response.APIResponse[any]
-// @Failure 401 {object} response.APIResponse[any]
-// @Failure 404 {object} response.APIResponse[any]
-// @Failure 500 {object} response.APIResponse[any]
 // @Router /api/v1/profiles/{id}/status [put]
 func (h *profileHandlerImpl) UpdateStatus(c *gin.Context) {
 	idStr := c.Param("id")
@@ -277,19 +285,20 @@ func (h *profileHandlerImpl) UpdateStatus(c *gin.Context) {
 	response.OK[any](c, nil, "Profile status updated successfully")
 }
 
+// UpdateSecuritySettings godoc
 // @Summary Update security settings
-// @Description Update the security-related configuration for a profile
+// @Description Modify the security-related platform configurations for a specific profile.
 // @Tags Profiles
 // @Accept json
 // @Produce json
 // @Param id path int true "Profile ID"
-// @Param request body dto.UpdateSecuritySettingsRequest true "Security settings"
+// @Param request body dto.UpdateSecuritySettingsRequest true "Security settings map"
+// @Success 200 {object} response.APIResponse[any] "Security settings updated successfully"
+// @Failure 400 {object} response.APIResponse[any] "Invalid request dataMap"
+// @Failure 401 {object} response.APIResponse[any] "Unauthorized"
+// @Failure 404 {object} response.APIResponse[any] "Profile not found"
+// @Failure 500 {object} response.APIResponse[any] "Internal server error"
 // @Security BearerAuth
-// @Success 200 {object} response.APIResponse[any]
-// @Failure 400 {object} response.APIResponse[any]
-// @Failure 401 {object} response.APIResponse[any]
-// @Failure 404 {object} response.APIResponse[any]
-// @Failure 500 {object} response.APIResponse[any]
 // @Router /api/v1/profiles/{id}/settings/security [put]
 func (h *profileHandlerImpl) UpdateSecuritySettings(c *gin.Context) {
 	idStr := c.Param("id")
@@ -310,19 +319,20 @@ func (h *profileHandlerImpl) UpdateSecuritySettings(c *gin.Context) {
 	response.OK[any](c, nil, "Security settings updated successfully")
 }
 
+// UpdateNetworkConfig godoc
 // @Summary Update network configuration
-// @Description Update the network-related configuration (WiFi, VPN, etc.) for a profile
+// @Description Modify network connectivity settings (Wi-Fi, VPN, Proxy) for a profile.
 // @Tags Profiles
 // @Accept json
 // @Produce json
 // @Param id path int true "Profile ID"
-// @Param request body dto.UpdateNetworkConfigRequest true "Network configuration"
+// @Param request body dto.UpdateNetworkConfigRequest true "Network settings map"
+// @Success 200 {object} response.APIResponse[any] "Network config updated successfully"
+// @Failure 400 {object} response.APIResponse[any] "Invalid request data"
+// @Failure 401 {object} response.APIResponse[any] "Unauthorized"
+// @Failure 404 {object} response.APIResponse[any] "Profile not found"
+// @Failure 500 {object} response.APIResponse[any] "Internal server error"
 // @Security BearerAuth
-// @Success 200 {object} response.APIResponse[any]
-// @Failure 400 {object} response.APIResponse[any]
-// @Failure 401 {object} response.APIResponse[any]
-// @Failure 404 {object} response.APIResponse[any]
-// @Failure 500 {object} response.APIResponse[any]
 // @Router /api/v1/profiles/{id}/settings/network [put]
 func (h *profileHandlerImpl) UpdateNetworkConfig(c *gin.Context) {
 	idStr := c.Param("id")
@@ -343,19 +353,20 @@ func (h *profileHandlerImpl) UpdateNetworkConfig(c *gin.Context) {
 	response.OK[any](c, nil, "Network config updated successfully")
 }
 
+// UpdateRestrictions godoc
 // @Summary Update device restrictions
-// @Description Update the restrictions applied to devices by this profile
+// @Description Modify hardware and software usage restrictions applied by this profile.
 // @Tags Profiles
 // @Accept json
 // @Produce json
 // @Param id path int true "Profile ID"
-// @Param request body dto.UpdateRestrictionsRequest true "Restrictions setting"
+// @Param request body dto.UpdateRestrictionsRequest true "Restrictions setting map"
+// @Success 200 {object} response.APIResponse[any] "Restrictions updated successfully"
+// @Failure 400 {object} response.APIResponse[any] "Invalid request data"
+// @Failure 401 {object} response.APIResponse[any] "Unauthorized"
+// @Failure 404 {object} response.APIResponse[any] "Profile not found"
+// @Failure 500 {object} response.APIResponse[any] "Internal server error"
 // @Security BearerAuth
-// @Success 200 {object} response.APIResponse[any]
-// @Failure 400 {object} response.APIResponse[any]
-// @Failure 401 {object} response.APIResponse[any]
-// @Failure 404 {object} response.APIResponse[any]
-// @Failure 500 {object} response.APIResponse[any]
 // @Router /api/v1/profiles/{id}/settings/restrictions [put]
 func (h *profileHandlerImpl) UpdateRestrictions(c *gin.Context) {
 	idStr := c.Param("id")
@@ -376,19 +387,20 @@ func (h *profileHandlerImpl) UpdateRestrictions(c *gin.Context) {
 	response.OK[any](c, nil, "Restrictions updated successfully")
 }
 
+// UpdateContentFilter godoc
 // @Summary Update content filters
-// @Description Update the web content and domain filtering for a profile
+// @Description Modify web content and domain access filters for a profile.
 // @Tags Profiles
 // @Accept json
 // @Produce json
 // @Param id path int true "Profile ID"
-// @Param request body dto.UpdateContentFilterRequest true "Content filter configuration"
+// @Param request body dto.UpdateContentFilterRequest true "Content filter map"
+// @Success 200 {object} response.APIResponse[any] "Content filter updated successfully"
+// @Failure 400 {object} response.APIResponse[any] "Invalid request data"
+// @Failure 401 {object} response.APIResponse[any] "Unauthorized"
+// @Failure 404 {object} response.APIResponse[any] "Profile not found"
+// @Failure 500 {object} response.APIResponse[any] "Internal server error"
 // @Security BearerAuth
-// @Success 200 {object} response.APIResponse[any]
-// @Failure 400 {object} response.APIResponse[any]
-// @Failure 401 {object} response.APIResponse[any]
-// @Failure 404 {object} response.APIResponse[any]
-// @Failure 500 {object} response.APIResponse[any]
 // @Router /api/v1/profiles/{id}/settings/content-filter [put]
 func (h *profileHandlerImpl) UpdateContentFilter(c *gin.Context) {
 	idStr := c.Param("id")
@@ -409,19 +421,20 @@ func (h *profileHandlerImpl) UpdateContentFilter(c *gin.Context) {
 	response.OK[any](c, nil, "Content filter updated successfully")
 }
 
+// UpdateComplianceRules godoc
 // @Summary Update compliance rules
-// @Description Update the compliance-related rules and actions for a profile
+// @Description Modify automated compliance verification rules and enforcement actions for a profile.
 // @Tags Profiles
 // @Accept json
 // @Produce json
 // @Param id path int true "Profile ID"
-// @Param request body dto.UpdateComplianceRulesRequest true "Compliance rules mapping"
+// @Param request body dto.UpdateComplianceRulesRequest true "Compliance rules map"
+// @Success 200 {object} response.APIResponse[any] "Compliance rules updated successfully"
+// @Failure 400 {object} response.APIResponse[any] "Invalid request data"
+// @Failure 401 {object} response.APIResponse[any] "Unauthorized"
+// @Failure 404 {object} response.APIResponse[any] "Profile not found"
+// @Failure 500 {object} response.APIResponse[any] "Internal server error"
 // @Security BearerAuth
-// @Success 200 {object} response.APIResponse[any]
-// @Failure 400 {object} response.APIResponse[any]
-// @Failure 401 {object} response.APIResponse[any]
-// @Failure 404 {object} response.APIResponse[any]
-// @Failure 500 {object} response.APIResponse[any]
 // @Router /api/v1/profiles/{id}/settings/compliance [put]
 func (h *profileHandlerImpl) UpdateComplianceRules(c *gin.Context) {
 	idStr := c.Param("id")
@@ -442,19 +455,20 @@ func (h *profileHandlerImpl) UpdateComplianceRules(c *gin.Context) {
 	response.OK[any](c, nil, "Compliance rules updated successfully")
 }
 
+// Assign godoc
 // @Summary Assign profile
-// @Description Assign a configuration profile to a device or group
+// @Description Assign a profile to a specific device or group for deployment.
 // @Tags Profiles
 // @Accept json
 // @Produce json
 // @Param id path int true "Profile ID"
-// @Param request body dto.AssignProfileRequest true "Assignment details"
+// @Param request body dto.AssignProfileRequest true "Target and scheduling details"
+// @Success 200 {object} response.APIResponse[any] "Profile assignment successful"
+// @Failure 400 {object} response.APIResponse[any] "Invalid request data or target"
+// @Failure 401 {object} response.APIResponse[any] "Unauthorized"
+// @Failure 404 {object} response.APIResponse[any] "Profile or target not found"
+// @Failure 500 {object} response.APIResponse[any] "Internal server error"
 // @Security BearerAuth
-// @Success 200 {object} response.APIResponse[any]
-// @Failure 400 {object} response.APIResponse[any]
-// @Failure 401 {object} response.APIResponse[any]
-// @Failure 404 {object} response.APIResponse[any]
-// @Failure 500 {object} response.APIResponse[any]
 // @Router /api/v1/profiles/{id}/assignments [post]
 func (h *profileHandlerImpl) Assign(c *gin.Context) {
 	idStr := c.Param("id")
@@ -484,17 +498,19 @@ func (h *profileHandlerImpl) Assign(c *gin.Context) {
 	response.OK[any](c, nil, "Profile assigned successfully")
 }
 
+// Unassign godoc
 // @Summary Unassign profile
-// @Description Remove a profile assignment from a device or group
+// @Description Remove an existing profile assignment from a device or group.
 // @Tags Profiles
 // @Produce json
 // @Param id path int true "Profile ID"
-// @Param assignmentId path int true "Assignment ID"
+// @Param assignmentId path int true "Assignment record ID"
+// @Success 200 {object} response.APIResponse[any] "Profile unassigned successfully"
+// @Failure 400 {object} response.APIResponse[any] "Invalid ID formats"
+// @Failure 401 {object} response.APIResponse[any] "Unauthorized"
+// @Failure 404 {object} response.APIResponse[any] "Assignment not found"
+// @Failure 500 {object} response.APIResponse[any] "Internal server error"
 // @Security BearerAuth
-// @Success 200 {object} response.APIResponse[any]
-// @Failure 401 {object} response.APIResponse[any]
-// @Failure 404 {object} response.APIResponse[any]
-// @Failure 500 {object} response.APIResponse[any]
 // @Router /api/v1/profiles/{id}/assignments/{assignmentId} [delete]
 func (h *profileHandlerImpl) Unassign(c *gin.Context) {
 	idStr := c.Param("id")
@@ -517,16 +533,18 @@ func (h *profileHandlerImpl) Unassign(c *gin.Context) {
 	response.OK[any](c, nil, "Profile unassigned successfully")
 }
 
+// ListAssignments godoc
 // @Summary List assignments
-// @Description Fetch all assignments for a specific profile
+// @Description Retrieve a list of all current assignments and deployment targets for this profile.
 // @Tags Profiles
 // @Produce json
 // @Param id path int true "Profile ID"
+// @Success 200 {object} response.APIResponse[[]dto.ProfileAssignmentResponse] "List of assignments"
+// @Failure 400 {object} response.APIResponse[any] "Invalid ID format"
+// @Failure 401 {object} response.APIResponse[any] "Unauthorized"
+// @Failure 404 {object} response.APIResponse[any] "Profile not found"
+// @Failure 500 {object} response.APIResponse[any] "Internal server error"
 // @Security BearerAuth
-// @Success 200 {object} response.APIResponse[[]dto.ProfileAssignmentResponse]
-// @Failure 401 {object} response.APIResponse[any]
-// @Failure 404 {object} response.APIResponse[any]
-// @Failure 500 {object} response.APIResponse[any]
 // @Router /api/v1/profiles/{id}/assignments [get]
 func (h *profileHandlerImpl) ListAssignments(c *gin.Context) {
 	idStr := c.Param("id")
@@ -558,16 +576,18 @@ func (h *profileHandlerImpl) ListAssignments(c *gin.Context) {
 	response.OK(c, res, "")
 }
 
-// @Summary List versions
-// @Description Fetch version history for a specific profile
+// ListVersions godoc
+// @Summary List profile versions
+// @Description Retrieve the full version history and change logs for a specific configuration profile.
 // @Tags Profiles
 // @Produce json
 // @Param id path int true "Profile ID"
+// @Success 200 {object} response.APIResponse[[]dto.ProfileVersionResponse] "Version history"
+// @Failure 400 {object} response.APIResponse[any] "Invalid ID format"
+// @Failure 401 {object} response.APIResponse[any] "Unauthorized"
+// @Failure 404 {object} response.APIResponse[any] "Profile not found"
+// @Failure 500 {object} response.APIResponse[any] "Internal server error"
 // @Security BearerAuth
-// @Success 200 {object} response.APIResponse[[]dto.ProfileVersionResponse]
-// @Failure 401 {object} response.APIResponse[any]
-// @Failure 404 {object} response.APIResponse[any]
-// @Failure 500 {object} response.APIResponse[any]
 // @Router /api/v1/profiles/{id}/versions [get]
 func (h *profileHandlerImpl) ListVersions(c *gin.Context) {
 	idStr := c.Param("id")
@@ -598,17 +618,19 @@ func (h *profileHandlerImpl) ListVersions(c *gin.Context) {
 	response.OK(c, res, "")
 }
 
-// @Summary Rollback version
-// @Description Rollback a profile to a previous version
+// Rollback godoc
+// @Summary Rollback profile version
+// @Description Revert a configuration profile to a previously saved version.
 // @Tags Profiles
 // @Produce json
 // @Param id path int true "Profile ID"
-// @Param versionId path int true "Version ID"
+// @Param versionId path int true "Target version ID to rollback to"
+// @Success 200 {object} response.APIResponse[any] "Rollback successful"
+// @Failure 400 {object} response.APIResponse[any] "Invalid ID formats"
+// @Failure 401 {object} response.APIResponse[any] "Unauthorized"
+// @Failure 404 {object} response.APIResponse[any] "Profile or version not found"
+// @Failure 500 {object} response.APIResponse[any] "Internal server error"
 // @Security BearerAuth
-// @Success 200 {object} response.APIResponse[any]
-// @Failure 401 {object} response.APIResponse[any]
-// @Failure 404 {object} response.APIResponse[any]
-// @Failure 500 {object} response.APIResponse[any]
 // @Router /api/v1/profiles/{id}/versions/{versionId}/rollback [post]
 func (h *profileHandlerImpl) Rollback(c *gin.Context) {
 	idStr := c.Param("id")
@@ -631,16 +653,18 @@ func (h *profileHandlerImpl) Rollback(c *gin.Context) {
 	response.OK[any](c, nil, "Profile rolled back successfully")
 }
 
-// @Summary Get deployment status
-// @Description Fetch the deployment status of a profile across devices
+// GetDeploymentStatus godoc
+// @Summary Get profile deployment status
+// @Description Fetch real-time deployment and installation status across all assigned devices.
 // @Tags Profiles
 // @Produce json
 // @Param id path int true "Profile ID"
+// @Success 200 {object} response.APIResponse[[]dto.ProfileDeploymentStatusResponse] "Deployment statuses"
+// @Failure 400 {object} response.APIResponse[any] "Invalid ID format"
+// @Failure 401 {object} response.APIResponse[any] "Unauthorized"
+// @Failure 404 {object} response.APIResponse[any] "Profile not found"
+// @Failure 500 {object} response.APIResponse[any] "Internal server error"
 // @Security BearerAuth
-// @Success 200 {object} response.APIResponse[[]dto.ProfileDeploymentStatusResponse]
-// @Failure 401 {object} response.APIResponse[any]
-// @Failure 404 {object} response.APIResponse[any]
-// @Failure 500 {object} response.APIResponse[any]
 // @Router /api/v1/profiles/{id}/deployment-status [get]
 func (h *profileHandlerImpl) GetDeploymentStatus(c *gin.Context) {
 	idStr := c.Param("id")
@@ -672,16 +696,18 @@ func (h *profileHandlerImpl) GetDeploymentStatus(c *gin.Context) {
 	response.OK(c, res, "")
 }
 
+// Repush godoc
 // @Summary Repush profile
-// @Description Manually trigger a push notification for this profile to all assigned devices
+// @Description Force a re-deployment of the profile to all assigned devices that haven't successfully installed it.
 // @Tags Profiles
 // @Produce json
 // @Param id path int true "Profile ID"
+// @Success 200 {object} response.APIResponse[any] "Repush command initiated"
+// @Failure 400 {object} response.APIResponse[any] "Invalid ID format"
+// @Failure 401 {object} response.APIResponse[any] "Unauthorized"
+// @Failure 404 {object} response.APIResponse[any] "Profile not found"
+// @Failure 500 {object} response.APIResponse[any] "Internal server error"
 // @Security BearerAuth
-// @Success 200 {object} response.APIResponse[any]
-// @Failure 401 {object} response.APIResponse[any]
-// @Failure 404 {object} response.APIResponse[any]
-// @Failure 500 {object} response.APIResponse[any]
 // @Router /api/v1/profiles/{id}/repush [post]
 func (h *profileHandlerImpl) Repush(c *gin.Context) {
 	idStr := c.Param("id")
@@ -698,16 +724,18 @@ func (h *profileHandlerImpl) Repush(c *gin.Context) {
 	response.OK[any](c, nil, "Profile repush initiated successfully")
 }
 
+// Duplicate godoc
 // @Summary Duplicate profile
-// @Description Create a clone of an existing configuration profile
+// @Description Create an exact copy of an existing configuration profile for staging or modification.
 // @Tags Profiles
 // @Produce json
 // @Param id path int true "Profile ID"
+// @Success 201 {object} response.APIResponse[dto.ProfileResponse] "Profile duplicated successfully"
+// @Failure 400 {object} response.APIResponse[any] "Invalid ID format"
+// @Failure 401 {object} response.APIResponse[any] "Unauthorized"
+// @Failure 404 {object} response.APIResponse[any] "Profile not found"
+// @Failure 500 {object} response.APIResponse[any] "Internal server error"
 // @Security BearerAuth
-// @Success 201 {object} response.APIResponse[dto.ProfileResponse]
-// @Failure 401 {object} response.APIResponse[any]
-// @Failure 404 {object} response.APIResponse[any]
-// @Failure 500 {object} response.APIResponse[any]
 // @Router /api/v1/profiles/{id}/duplicate [post]
 func (h *profileHandlerImpl) Duplicate(c *gin.Context) {
 	idStr := c.Param("id")

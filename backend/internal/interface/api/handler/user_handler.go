@@ -47,7 +47,7 @@ func NewUserHandler(userService service.UserService, authzService service.Author
 
 // List godoc
 // @Summary List users
-// @Description Get a paginated list of users with filtering and sorting
+// @Description Get a paginated list of users with filtering and sorting capabilities.
 // @Tags Users
 // @Produce json
 // @Param page query int false "Page number (default 1)"
@@ -55,10 +55,12 @@ func NewUserHandler(userService service.UserService, authzService service.Author
 // @Param search query string false "Search by username or email"
 // @Param role query string false "Filter by role"
 // @Param status query string false "Filter by status"
-// @Param sort query string false "Sort by field (e.g. id,username,created_at)"
-// @Param order query string false "Sort order (asc,desc)"
-// @Success 200 {object} response.APIResponse[dto.ListResponse[dto.UserResponse]]
-// @Failure 401 {object} response.APIResponse[any]
+// @Param sort query string false "Sort by field (e.g., id, username, created_at)"
+// @Param order query string false "Sort order (asc, desc)"
+// @Success 200 {object} response.APIResponse[dto.ListResponse[dto.UserResponse]] "List of users"
+// @Failure 401 {object} response.APIResponse[any] "Unauthorized"
+// @Failure 403 {object} response.APIResponse[any] "Forbidden - Insufficient permissions"
+// @Failure 500 {object} response.APIResponse[any] "Internal server error"
 // @Security BearerAuth
 // @Router /api/v1/users [get]
 func (h *userHandlerImpl) List(c *gin.Context) {
@@ -97,14 +99,16 @@ func (h *userHandlerImpl) List(c *gin.Context) {
 
 // GetByID godoc
 // @Summary Get user by ID
-// @Description Get details of a single user by their ID
+// @Description Fetch detailed information for a single user by their system ID.
 // @Tags Users
 // @Produce json
 // @Param id path int true "User ID"
-// @Success 200 {object} response.APIResponse[dto.UserResponse]
-// @Failure 400 {object} response.APIResponse[any]
-// @Failure 401 {object} response.APIResponse[any]
-// @Failure 404 {object} response.APIResponse[any]
+// @Success 200 {object} response.APIResponse[dto.UserResponse] "User details"
+// @Failure 400 {object} response.APIResponse[any] "Invalid ID format"
+// @Failure 401 {object} response.APIResponse[any] "Unauthorized"
+// @Failure 403 {object} response.APIResponse[any] "Forbidden - Insufficient permissions"
+// @Failure 404 {object} response.APIResponse[any] "User not found"
+// @Failure 500 {object} response.APIResponse[any] "Internal server error"
 // @Security BearerAuth
 // @Router /api/v1/users/{id} [get]
 func (h *userHandlerImpl) GetByID(c *gin.Context) {
@@ -125,15 +129,17 @@ func (h *userHandlerImpl) GetByID(c *gin.Context) {
 
 // Create godoc
 // @Summary Create user
-// @Description Create a new user in the system
+// @Description Register a new user with specified role and credentials.
 // @Tags Users
 // @Accept json
 // @Produce json
-// @Param user body dto.CreateUserRequest true "User details"
-// @Success 201 {object} response.APIResponse[dto.UserResponse]
-// @Failure 400 {object} response.APIResponse[any]
-// @Failure 401 {object} response.APIResponse[any]
-// @Failure 409 {object} response.APIResponse[any]
+// @Param user body dto.CreateUserRequest true "New user details"
+// @Success 201 {object} response.APIResponse[dto.UserResponse] "User created successfully"
+// @Failure 400 {object} response.APIResponse[any] "Invalid request data or validation error"
+// @Failure 401 {object} response.APIResponse[any] "Unauthorized"
+// @Failure 403 {object} response.APIResponse[any] "Forbidden - Insufficient permissions"
+// @Failure 409 {object} response.APIResponse[any] "Username or email already exists"
+// @Failure 500 {object} response.APIResponse[any] "Internal server error"
 // @Security BearerAuth
 // @Router /api/v1/users [post]
 func (h *userHandlerImpl) Create(c *gin.Context) {
@@ -159,16 +165,18 @@ func (h *userHandlerImpl) Create(c *gin.Context) {
 
 // Update godoc
 // @Summary Update user
-// @Description Update an existing user's details
+// @Description Modify an existing user's profile, including email, role, and status.
 // @Tags Users
 // @Accept json
 // @Produce json
 // @Param id path int true "User ID"
 // @Param user body dto.UpdateUserRequest true "Updated user details"
-// @Success 200 {object} response.APIResponse[dto.UserResponse]
-// @Failure 400 {object} response.APIResponse[any]
-// @Failure 401 {object} response.APIResponse[any]
-// @Failure 404 {object} response.APIResponse[any]
+// @Success 200 {object} response.APIResponse[dto.UserResponse] "User updated successfully"
+// @Failure 400 {object} response.APIResponse[any] "Invalid ID or request data"
+// @Failure 401 {object} response.APIResponse[any] "Unauthorized"
+// @Failure 403 {object} response.APIResponse[any] "Forbidden - Insufficient permissions"
+// @Failure 404 {object} response.APIResponse[any] "User not found"
+// @Failure 500 {object} response.APIResponse[any] "Internal server error"
 // @Security BearerAuth
 // @Router /api/v1/users/{id} [put]
 func (h *userHandlerImpl) Update(c *gin.Context) {
@@ -201,13 +209,15 @@ func (h *userHandlerImpl) Update(c *gin.Context) {
 
 // Delete godoc
 // @Summary Delete user
-// @Description Delete a user from the system
+// @Description Remove a user from the system permanently (or mark as deleted).
 // @Tags Users
 // @Param id path int true "User ID"
-// @Success 204
-// @Failure 400 {object} response.APIResponse[any]
-// @Failure 401 {object} response.APIResponse[any]
-// @Failure 404 {object} response.APIResponse[any]
+// @Success 204 "User deleted successfully"
+// @Failure 400 {object} response.APIResponse[any] "Invalid ID format"
+// @Failure 401 {object} response.APIResponse[any] "Unauthorized"
+// @Failure 403 {object} response.APIResponse[any] "Forbidden - Insufficient permissions"
+// @Failure 404 {object} response.APIResponse[any] "User not found"
+// @Failure 500 {object} response.APIResponse[any] "Internal server error"
 // @Security BearerAuth
 // @Router /api/v1/users/{id} [delete]
 func (h *userHandlerImpl) Delete(c *gin.Context) {

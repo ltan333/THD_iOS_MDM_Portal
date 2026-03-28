@@ -41,12 +41,13 @@ func NewNanoCMDHandler(svc service.NanoCMDService, deviceService service.DeviceS
 }
 
 // GetVersion godoc
-// @Summary Returns the running NanoCMD server version
-// @Description Get the version of the NanoCMD server
-// @Tags NanoCMD Setup
+// @Summary Get NanoCMD version
+// @Description Retrieve the current version of the running NanoCMD service.
+// @Tags NanoCMD
 // @Produce json
-// @Success 200 {object} response.APIResponse[dto.NanoCMDVersionResponse]
-// @Failure 401 {object} response.APIResponse[any]
+// @Success 200 {object} response.APIResponse[dto.NanoCMDVersionResponse] "NanoCMD version information"
+// @Failure 401 {object} response.APIResponse[any] "Unauthorized"
+// @Failure 500 {object} response.APIResponse[any] "Internal server error"
 // @Security BearerAuth
 // @Router /api/v1/nanocmd/version [get]
 func (h *nanocmdHandler) GetVersion(c *gin.Context) {
@@ -59,17 +60,17 @@ func (h *nanocmdHandler) GetVersion(c *gin.Context) {
 }
 
 // StartWorkflow godoc
-// @Summary Start a workflow
-// @Description Start a workflow.
-// @Tags NanoCMD Setup
+// @Summary Start NanoCMD workflow
+// @Description Initiate a pre-defined command workflow for one or more enrolled devices or user channels.
+// @Tags NanoCMD
 // @Produce json
-// @Param name path string true "Name of NanoCMD workflow."
-// @Param id query []string true "Enrollment ID. Unique identifier of MDM enrollment. Often a device UDID or a user channel UUID."
-// @Param context query string false "Workflow-dependent context."
-// @Success 200 {object} response.APIResponse[dto.NanoCMDWorkflowStartResponse]
-// @Failure 400 {object} response.APIResponse[any]
-// @Failure 401 {object} response.APIResponse[any]
-// @Failure 500 {object} response.APIResponse[any]
+// @Param name path string true "Workflow name"
+// @Param id query []string true "One or more Enrollment IDs (UDIDs or User Channel UUIDs)"
+// @Param context query string false "Optional context data for the workflow"
+// @Success 200 {object} response.APIResponse[dto.NanoCMDWorkflowStartResponse] "Workflow started successfully"
+// @Failure 400 {object} response.APIResponse[any] "Invalid request parameters"
+// @Failure 401 {object} response.APIResponse[any] "Unauthorized"
+// @Failure 500 {object} response.APIResponse[any] "Internal server error"
 // @Security BearerAuth
 // @Router /api/v1/nanocmd/workflow/{name}/start [post]
 func (h *nanocmdHandler) StartWorkflow(c *gin.Context) {
@@ -86,16 +87,16 @@ func (h *nanocmdHandler) StartWorkflow(c *gin.Context) {
 }
 
 // GetEvent godoc
-// @Summary Retrieve the event subscription
-// @Description Retrieve the event subscription.
-// @Tags NanoCMD Setup
+// @Summary Get event subscription
+// @Description Retrieve the details of an existing event subscription by its name.
+// @Tags NanoCMD
 // @Produce json
-// @Param name path string true "User-defined name of Event Subscription."
-// @Success 200 {object} response.APIResponse[dto.EventSubscription]
-// @Failure 400 {object} response.APIResponse[any]
-// @Failure 401 {object} response.APIResponse[any]
-// @Failure 404 {object} response.APIResponse[any]
-// @Failure 500 {object} response.APIResponse[any]
+// @Param name path string true "User-defined subscription name"
+// @Success 200 {object} response.APIResponse[dto.EventSubscription] "Event subscription details"
+// @Failure 400 {object} response.APIResponse[any] "Invalid subscription name"
+// @Failure 401 {object} response.APIResponse[any] "Unauthorized"
+// @Failure 404 {object} response.APIResponse[any] "Subscription not found"
+// @Failure 500 {object} response.APIResponse[any] "Internal server error"
 // @Security BearerAuth
 // @Router /api/v1/nanocmd/event/{name} [get]
 func (h *nanocmdHandler) GetEvent(c *gin.Context) {
@@ -109,17 +110,17 @@ func (h *nanocmdHandler) GetEvent(c *gin.Context) {
 }
 
 // PutEvent godoc
-// @Summary Store the event subscription
-// @Description Store the event subscription provided in the request body.
-// @Tags NanoCMD Setup
+// @Summary Create or update event subscription
+// @Description Store an event subscription definition. Subsequent state changes will trigger callbacks based on this subscription.
+// @Tags NanoCMD
 // @Accept json
 // @Produce json
-// @Param name path string true "User-defined name of Event Subscription."
-// @Param subscription body dto.EventSubscription true "Event Subscription."
-// @Success 204
-// @Failure 400 {object} response.APIResponse[any]
-// @Failure 401 {object} response.APIResponse[any]
-// @Failure 500 {object} response.APIResponse[any]
+// @Param name path string true "User-defined subscription name"
+// @Param subscription body dto.EventSubscription true "Subscription definition"
+// @Success 204 "Subscription stored successfully"
+// @Failure 400 {object} response.APIResponse[any] "Invalid request body"
+// @Failure 401 {object} response.APIResponse[any] "Unauthorized"
+// @Failure 500 {object} response.APIResponse[any] "Internal server error"
 // @Security BearerAuth
 // @Router /api/v1/nanocmd/event/{name} [put]
 func (h *nanocmdHandler) PutEvent(c *gin.Context) {
@@ -138,12 +139,13 @@ func (h *nanocmdHandler) PutEvent(c *gin.Context) {
 }
 
 // GetFVEnableProfileTemplate godoc
-// @Summary Returns the FileVault enable Configuration Profile template
-// @Description Returns the FileVault enable Configuration Profile template.
-// @Tags NanoCMD Setup
+// @Summary Get FileVault profile template
+// @Description Retrieve the Apple Configuration Profile template used for enabling FileVault encryption.
+// @Tags NanoCMD
 // @Produce application/x-apple-aspen-config
-// @Success 200 {string} string "Apple Configuration Profile"
-// @Failure 401 {object} response.APIResponse[any]
+// @Success 200 {file} file "Apple Configuration Profile XML"
+// @Failure 401 {object} response.APIResponse[any] "Unauthorized"
+// @Failure 500 {object} response.APIResponse[any] "Internal server error"
 // @Security BearerAuth
 // @Router /api/v1/nanocmd/fvenable/profiletemplate [get]
 func (h *nanocmdHandler) GetFVEnableProfileTemplate(c *gin.Context) {
@@ -156,16 +158,16 @@ func (h *nanocmdHandler) GetFVEnableProfileTemplate(c *gin.Context) {
 }
 
 // GetProfile godoc
-// @Summary Fetches the named raw profile
-// @Description Fetches the named raw profile.
-// @Tags NanoCMD Setup
+// @Summary Get raw NanoCMD profile
+// @Description Retrieve the raw XML content of a stored Apple Configuration Profile.
+// @Tags NanoCMD
 // @Produce application/x-apple-aspen-config
-// @Param name path string true "User-defined name of Profile."
-// @Success 200 {string} string "Apple Configuration Profile"
-// @Failure 400 {object} response.APIResponse[any]
-// @Failure 401 {object} response.APIResponse[any]
-// @Failure 404 {object} response.APIResponse[any]
-// @Failure 500 {object} response.APIResponse[any]
+// @Param name path string true "Profile name"
+// @Success 200 {file} file "Apple Configuration Profile XML"
+// @Failure 400 {object} response.APIResponse[any] "Invalid profile name"
+// @Failure 401 {object} response.APIResponse[any] "Unauthorized"
+// @Failure 404 {object} response.APIResponse[any] "Profile not found"
+// @Failure 500 {object} response.APIResponse[any] "Internal server error"
 // @Security BearerAuth
 // @Router /api/v1/nanocmd/profile/{name} [get]
 func (h *nanocmdHandler) GetProfile(c *gin.Context) {
@@ -179,16 +181,16 @@ func (h *nanocmdHandler) GetProfile(c *gin.Context) {
 }
 
 // PutProfile godoc
-// @Summary Uploads a raw profile
-// @Description Uploads a raw profile. Signed profiles also supported.
-// @Tags NanoCMD Setup
+// @Summary Upload raw NanoCMD profile
+// @Description Store a raw Apple .mobileconfig XML file. Signed profiles are also supported.
+// @Tags NanoCMD
 // @Accept application/x-apple-aspen-config
-// @Param name path string true "User-defined name of Profile."
-// @Param data body string true "Raw profile mobileconfig."
-// @Success 204
-// @Failure 400 {object} response.APIResponse[any]
-// @Failure 401 {object} response.APIResponse[any]
-// @Failure 500 {object} response.APIResponse[any]
+// @Param name path string true "User-defined profile name"
+// @Param data body string true "Raw .mobileconfig content"
+// @Success 204 "Profile stored successfully"
+// @Failure 400 {object} response.APIResponse[any] "Invalid request body"
+// @Failure 401 {object} response.APIResponse[any] "Unauthorized"
+// @Failure 500 {object} response.APIResponse[any] "Internal server error"
 // @Security BearerAuth
 // @Router /api/v1/nanocmd/profile/{name} [put]
 func (h *nanocmdHandler) PutProfile(c *gin.Context) {
@@ -207,15 +209,15 @@ func (h *nanocmdHandler) PutProfile(c *gin.Context) {
 }
 
 // DeleteProfile godoc
-// @Summary Deletes the named profile
-// @Description Deletes the named profile.
-// @Tags NanoCMD Setup
-// @Param name path string true "User-defined name of Profile."
-// @Success 204
-// @Failure 400 {object} response.APIResponse[any]
-// @Failure 401 {object} response.APIResponse[any]
-// @Failure 404 {object} response.APIResponse[any]
-// @Failure 500 {object} response.APIResponse[any]
+// @Summary Delete NanoCMD profile
+// @Description Permanently remove a stored Apple Configuration Profile definition.
+// @Tags NanoCMD
+// @Param name path string true "Profile name to delete"
+// @Success 204 "Profile deleted successfully"
+// @Failure 400 {object} response.APIResponse[any] "Invalid profile name"
+// @Failure 401 {object} response.APIResponse[any] "Unauthorized"
+// @Failure 404 {object} response.APIResponse[any] "Profile not found"
+// @Failure 500 {object} response.APIResponse[any] "Internal server error"
 // @Security BearerAuth
 // @Router /api/v1/nanocmd/profile/{name} [delete]
 func (h *nanocmdHandler) DeleteProfile(c *gin.Context) {
@@ -228,14 +230,14 @@ func (h *nanocmdHandler) DeleteProfile(c *gin.Context) {
 }
 
 // GetProfiles godoc
-// @Summary Retrieve profile metadata
-// @Description Retrieve profile metadata.
-// @Tags NanoCMD Setup
+// @Summary List profile metadata
+// @Description Retrieve metadata for one or more stored configuration profiles.
+// @Tags NanoCMD
 // @Produce json
-// @Param name query []string false "User-defined name of profile."
-// @Success 200 {object} response.APIResponse[map[string]dto.NanoCMDProfile]
-// @Failure 401 {object} response.APIResponse[any]
-// @Failure 500 {object} response.APIResponse[any]
+// @Param name query []string false "Optional filter by list of profile names"
+// @Success 200 {object} response.APIResponse[map[string]dto.NanoCMDProfile] "Map of profile metadata"
+// @Failure 401 {object} response.APIResponse[any] "Unauthorized"
+// @Failure 500 {object} response.APIResponse[any] "Internal server error"
 // @Security BearerAuth
 // @Router /api/v1/nanocmd/profiles [get]
 func (h *nanocmdHandler) GetProfiles(c *gin.Context) {
@@ -249,16 +251,16 @@ func (h *nanocmdHandler) GetProfiles(c *gin.Context) {
 }
 
 // GetCMDPlan godoc
-// @Summary Retrieve and return a named command plan
-// @Description Retrieve and return a named command plan as JSON.
-// @Tags NanoCMD Setup
+// @Summary Get command plan
+// @Description Retrieve a specific NanoCMD command plan definition by its name.
+// @Tags NanoCMD
 // @Produce json
-// @Param name path string true "User-defined name of Command Plan."
-// @Success 200 {object} response.APIResponse[dto.CMDPlan]
-// @Failure 400 {object} response.APIResponse[any]
-// @Failure 401 {object} response.APIResponse[any]
-// @Failure 404 {object} response.APIResponse[any]
-// @Failure 500 {object} response.APIResponse[any]
+// @Param name path string true "Command plan name"
+// @Success 200 {object} response.APIResponse[dto.CMDPlan] "Command plan details"
+// @Failure 400 {object} response.APIResponse[any] "Invalid command plan name"
+// @Failure 401 {object} response.APIResponse[any] "Unauthorized"
+// @Failure 404 {object} response.APIResponse[any] "Command plan not found"
+// @Failure 500 {object} response.APIResponse[any] "Internal server error"
 // @Security BearerAuth
 // @Router /api/v1/nanocmd/cmdplan/{name} [get]
 func (h *nanocmdHandler) GetCMDPlan(c *gin.Context) {
@@ -272,17 +274,17 @@ func (h *nanocmdHandler) GetCMDPlan(c *gin.Context) {
 }
 
 // PutCMDPlan godoc
-// @Summary Upload a named command plan
-// @Description Upload a named JSON command plan.
-// @Tags NanoCMD Setup
+// @Summary Create or update command plan
+// @Description Store a command plan definition for automated command issuance.
+// @Tags NanoCMD
 // @Accept json
 // @Produce json
-// @Param name path string true "User-defined name of Command Plan."
-// @Param plan body dto.CMDPlan true "Command plan."
-// @Success 204
-// @Failure 400 {object} response.APIResponse[any]
-// @Failure 401 {object} response.APIResponse[any]
-// @Failure 500 {object} response.APIResponse[any]
+// @Param name path string true "User-defined command plan name"
+// @Param plan body dto.CMDPlan true "Plan definition"
+// @Success 204 "Command plan stored successfully"
+// @Failure 400 {object} response.APIResponse[any] "Invalid request body"
+// @Failure 401 {object} response.APIResponse[any] "Unauthorized"
+// @Failure 500 {object} response.APIResponse[any] "Internal server error"
 // @Security BearerAuth
 // @Router /api/v1/nanocmd/cmdplan/{name} [put]
 func (h *nanocmdHandler) PutCMDPlan(c *gin.Context) {
@@ -301,15 +303,15 @@ func (h *nanocmdHandler) PutCMDPlan(c *gin.Context) {
 }
 
 // GetInventory godoc
-// @Summary Retrieve inventory data for enrollment IDs
-// @Description Retrieve inventory data for enrollment IDs.
-// @Tags NanoCMD Setup
+// @Summary Get device inventory
+// @Description Retrieve cached inventory data for one or more MDM-enrolled devices.
+// @Tags NanoCMD
 // @Produce json
-// @Param id query []string true "Enrollment ID. Unique identifier of MDM enrollment. Often a device UDID or a user channel UUID."
-// @Success 200 {object} response.APIResponse[dto.NanoCMDInventoryResponse]
-// @Failure 400 {object} response.APIResponse[any]
-// @Failure 401 {object} response.APIResponse[any]
-// @Failure 500 {object} response.APIResponse[any]
+// @Param id query []string true "List of Enrollment IDs (UDIDs)"
+// @Success 200 {object} response.APIResponse[dto.NanoCMDInventoryResponse] "Device inventory data"
+// @Failure 400 {object} response.APIResponse[any] "Invalid Enrollment IDs"
+// @Failure 401 {object} response.APIResponse[any] "Unauthorized"
+// @Failure 500 {object} response.APIResponse[any] "Internal server error"
 // @Security BearerAuth
 // @Router /api/v1/nanocmd/inventory [get]
 func (h *nanocmdHandler) GetInventory(c *gin.Context) {
@@ -323,18 +325,15 @@ func (h *nanocmdHandler) GetInventory(c *gin.Context) {
 }
 
 // Webhook godoc
-// @Summary NanoCMD Webhook
-// @Description Handler for MicroMDM-compatible webhook callback.
-// @Tags NanoCMD Setup
-// @Accept json
-// @Produce json
-// @Description Endpoint to receive MDM/CMD check-in events and state updates
+// @Summary NanoCMD Webhook callback
+// @Description Internal endpoint for NanoCMD to report command status changes and state updates. This consumes MicroMDM-compatible webhook payloads.
 // @Tags Infrastructure
 // @Accept json
 // @Produce json
 // @Param request body dto.NanoCMDWebhook true "Webhook payload"
-// @Success 200 {object} response.APIResponse[any]
-// @Failure 400 {object} response.APIResponse[any]
+// @Success 200 {object} response.APIResponse[any] "Webhook processed successfully"
+// @Failure 400 {object} response.APIResponse[any] "Invalid webhook signature or data"
+// @Failure 500 {object} response.APIResponse[any] "Internal processing error"
 // @Router /api/v1/nanocmd/webhook [post]
 func (h *nanocmdHandler) Webhook(c *gin.Context) {
 	var webhook dto.NanoCMDWebhook
