@@ -185,6 +185,11 @@ func (r *profileRepositoryImpl) Update(ctx context.Context, id uint, entity *ent
 			update.SetPayloads(entity.Payloads)
 		}
 
+		// Propagate version increment when explicitly set by service layer
+		if entity.Version > 0 {
+			update.SetVersion(entity.Version)
+		}
+
 		if deviceGroupIDs != nil {
 			update.ClearDeviceGroups().AddDeviceGroupIDs(deviceGroupIDs...)
 		}
