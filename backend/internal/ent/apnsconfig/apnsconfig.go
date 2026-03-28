@@ -24,7 +24,7 @@ const (
 	// FieldUpdatedAt holds the string denoting the updated_at field in the database.
 	FieldUpdatedAt = "updated_at"
 	// Table holds the table name of the apnsconfig in the database.
-	Table = "push_certs"
+	Table = "portal_push_certs"
 )
 
 // Columns holds all SQL columns for apnsconfig fields.

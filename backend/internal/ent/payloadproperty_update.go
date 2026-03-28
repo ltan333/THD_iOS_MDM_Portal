@@ -31,7 +31,7 @@ func (_u *PayloadPropertyUpdate) Where(ps ...predicate.PayloadProperty) *Payload
 }
 
 // SetValueJSON sets the "value_json" field.
-func (_u *PayloadPropertyUpdate) SetValueJSON(v map[string]any) *PayloadPropertyUpdate {
+func (_u *PayloadPropertyUpdate) SetValueJSON(v map[string]interface{}) *PayloadPropertyUpdate {
 	_u.mutation.SetValueJSON(v)
 	return _u
 }
@@ -260,7 +260,7 @@ type PayloadPropertyUpdateOne struct {
 }
 
 // SetValueJSON sets the "value_json" field.
-func (_u *PayloadPropertyUpdateOne) SetValueJSON(v map[string]any) *PayloadPropertyUpdateOne {
+func (_u *PayloadPropertyUpdateOne) SetValueJSON(v map[string]interface{}) *PayloadPropertyUpdateOne {
 	_u.mutation.SetValueJSON(v)
 	return _u
 }

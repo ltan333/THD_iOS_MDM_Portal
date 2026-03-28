@@ -18,6 +18,8 @@ type Device struct {
 	config `json:"-"`
 	// ID of the ent.
 	ID string `json:"id,omitempty"`
+	// Udid holds the value of the "udid" field.
+	Udid *string `json:"udid,omitempty"`
 	// SerialNumber holds the value of the "serial_number" field.
 	SerialNumber string `json:"serial_number,omitempty"`
 	// Model holds the value of the "model" field.
@@ -110,7 +112,7 @@ func (*Device) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullFloat64)
 		case device.FieldOwnerID, device.FieldStorageCapacity, device.FieldStorageUsed:
 			values[i] = new(sql.NullInt64)
-		case device.FieldID, device.FieldSerialNumber, device.FieldModel, device.FieldName, device.FieldPlatform, device.FieldStatus, device.FieldComplianceStatus, device.FieldOsVersion, device.FieldDeviceType, device.FieldMACAddress, device.FieldIPAddress, device.FieldEnrollmentType:
+		case device.FieldID, device.FieldUdid, device.FieldSerialNumber, device.FieldModel, device.FieldName, device.FieldPlatform, device.FieldStatus, device.FieldComplianceStatus, device.FieldOsVersion, device.FieldDeviceType, device.FieldMACAddress, device.FieldIPAddress, device.FieldEnrollmentType:
 			values[i] = new(sql.NullString)
 		case device.FieldLastSync, device.FieldLastSeen, device.FieldEnrolledAt, device.FieldCreatedAt, device.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
@@ -134,6 +136,13 @@ func (_m *Device) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field id", values[i])
 			} else if value.Valid {
 				_m.ID = value.String
+			}
+		case device.FieldUdid:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field udid", values[i])
+			} else if value.Valid {
+				_m.Udid = new(string)
+				*_m.Udid = value.String
 			}
 		case device.FieldSerialNumber:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -313,6 +322,11 @@ func (_m *Device) String() string {
 	var builder strings.Builder
 	builder.WriteString("Device(")
 	builder.WriteString(fmt.Sprintf("id=%v, ", _m.ID))
+	if v := _m.Udid; v != nil {
+		builder.WriteString("udid=")
+		builder.WriteString(*v)
+	}
+	builder.WriteString(", ")
 	builder.WriteString("serial_number=")
 	builder.WriteString(_m.SerialNumber)
 	builder.WriteString(", ")

@@ -662,7 +662,7 @@ type AlertMutation struct {
 	device_id       *string
 	user_id         *uint
 	adduser_id      *int
-	details         *map[string]any
+	details         *map[string]interface{}
 	created_at      *time.Time
 	acknowledged_at *time.Time
 	resolved_at     *time.Time
@@ -1040,12 +1040,12 @@ func (m *AlertMutation) ResetUserID() {
 }
 
 // SetDetails sets the "details" field.
-func (m *AlertMutation) SetDetails(value map[string]any) {
+func (m *AlertMutation) SetDetails(value map[string]interface{}) {
 	m.details = &value
 }
 
 // Details returns the value of the "details" field in the mutation.
-func (m *AlertMutation) Details() (r map[string]any, exists bool) {
+func (m *AlertMutation) Details() (r map[string]interface{}, exists bool) {
 	v := m.details
 	if v == nil {
 		return
@@ -1056,7 +1056,7 @@ func (m *AlertMutation) Details() (r map[string]any, exists bool) {
 // OldDetails returns the old "details" field's value of the Alert entity.
 // If the Alert object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *AlertMutation) OldDetails(ctx context.Context) (v map[string]any, err error) {
+func (m *AlertMutation) OldDetails(ctx context.Context) (v map[string]interface{}, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldDetails is only allowed on UpdateOne operations")
 	}
@@ -1396,7 +1396,7 @@ func (m *AlertMutation) SetField(name string, value ent.Value) error {
 		m.SetUserID(v)
 		return nil
 	case alert.FieldDetails:
-		v, ok := value.(map[string]any)
+		v, ok := value.(map[string]interface{})
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
@@ -1610,8 +1610,8 @@ type AlertRuleMutation struct {
 	id            *uint
 	name          *string
 	description   *string
-	condition     *map[string]any
-	actions       *map[string]any
+	condition     *map[string]interface{}
+	actions       *map[string]interface{}
 	enabled       *bool
 	created_at    *time.Time
 	updated_at    *time.Time
@@ -1811,12 +1811,12 @@ func (m *AlertRuleMutation) ResetDescription() {
 }
 
 // SetCondition sets the "condition" field.
-func (m *AlertRuleMutation) SetCondition(value map[string]any) {
+func (m *AlertRuleMutation) SetCondition(value map[string]interface{}) {
 	m.condition = &value
 }
 
 // Condition returns the value of the "condition" field in the mutation.
-func (m *AlertRuleMutation) Condition() (r map[string]any, exists bool) {
+func (m *AlertRuleMutation) Condition() (r map[string]interface{}, exists bool) {
 	v := m.condition
 	if v == nil {
 		return
@@ -1827,7 +1827,7 @@ func (m *AlertRuleMutation) Condition() (r map[string]any, exists bool) {
 // OldCondition returns the old "condition" field's value of the AlertRule entity.
 // If the AlertRule object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *AlertRuleMutation) OldCondition(ctx context.Context) (v map[string]any, err error) {
+func (m *AlertRuleMutation) OldCondition(ctx context.Context) (v map[string]interface{}, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldCondition is only allowed on UpdateOne operations")
 	}
@@ -1860,12 +1860,12 @@ func (m *AlertRuleMutation) ResetCondition() {
 }
 
 // SetActions sets the "actions" field.
-func (m *AlertRuleMutation) SetActions(value map[string]any) {
+func (m *AlertRuleMutation) SetActions(value map[string]interface{}) {
 	m.actions = &value
 }
 
 // Actions returns the value of the "actions" field in the mutation.
-func (m *AlertRuleMutation) Actions() (r map[string]any, exists bool) {
+func (m *AlertRuleMutation) Actions() (r map[string]interface{}, exists bool) {
 	v := m.actions
 	if v == nil {
 		return
@@ -1876,7 +1876,7 @@ func (m *AlertRuleMutation) Actions() (r map[string]any, exists bool) {
 // OldActions returns the old "actions" field's value of the AlertRule entity.
 // If the AlertRule object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *AlertRuleMutation) OldActions(ctx context.Context) (v map[string]any, err error) {
+func (m *AlertRuleMutation) OldActions(ctx context.Context) (v map[string]interface{}, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldActions is only allowed on UpdateOne operations")
 	}
@@ -2141,14 +2141,14 @@ func (m *AlertRuleMutation) SetField(name string, value ent.Value) error {
 		m.SetDescription(v)
 		return nil
 	case alertrule.FieldCondition:
-		v, ok := value.(map[string]any)
+		v, ok := value.(map[string]interface{})
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetCondition(v)
 		return nil
 	case alertrule.FieldActions:
-		v, ok := value.(map[string]any)
+		v, ok := value.(map[string]interface{})
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
@@ -3151,7 +3151,7 @@ type AppVersionMutation struct {
 	file_url           *string
 	size               *int64
 	addsize            *int64
-	metadata           *map[string]any
+	metadata           *map[string]interface{}
 	created_at         *time.Time
 	updated_at         *time.Time
 	clearedFields      map[string]struct{}
@@ -3546,12 +3546,12 @@ func (m *AppVersionMutation) ResetSize() {
 }
 
 // SetMetadata sets the "metadata" field.
-func (m *AppVersionMutation) SetMetadata(value map[string]any) {
+func (m *AppVersionMutation) SetMetadata(value map[string]interface{}) {
 	m.metadata = &value
 }
 
 // Metadata returns the value of the "metadata" field in the mutation.
-func (m *AppVersionMutation) Metadata() (r map[string]any, exists bool) {
+func (m *AppVersionMutation) Metadata() (r map[string]interface{}, exists bool) {
 	v := m.metadata
 	if v == nil {
 		return
@@ -3562,7 +3562,7 @@ func (m *AppVersionMutation) Metadata() (r map[string]any, exists bool) {
 // OldMetadata returns the old "metadata" field's value of the AppVersion entity.
 // If the AppVersion object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *AppVersionMutation) OldMetadata(ctx context.Context) (v map[string]any, err error) {
+func (m *AppVersionMutation) OldMetadata(ctx context.Context) (v map[string]interface{}, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldMetadata is only allowed on UpdateOne operations")
 	}
@@ -3914,7 +3914,7 @@ func (m *AppVersionMutation) SetField(name string, value ent.Value) error {
 		m.SetSize(v)
 		return nil
 	case appversion.FieldMetadata:
-		v, ok := value.(map[string]any)
+		v, ok := value.(map[string]interface{})
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
@@ -6154,7 +6154,7 @@ type DepProfileMutation struct {
 	support_email_address          *string
 	support_phone_number           *string
 	url                            *string
-	profile_data                   *map[string]any
+	profile_data                   *map[string]interface{}
 	created_at                     *time.Time
 	updated_at                     *time.Time
 	clearedFields                  map[string]struct{}
@@ -7329,12 +7329,12 @@ func (m *DepProfileMutation) ResetURL() {
 }
 
 // SetProfileData sets the "profile_data" field.
-func (m *DepProfileMutation) SetProfileData(value map[string]any) {
+func (m *DepProfileMutation) SetProfileData(value map[string]interface{}) {
 	m.profile_data = &value
 }
 
 // ProfileData returns the value of the "profile_data" field in the mutation.
-func (m *DepProfileMutation) ProfileData() (r map[string]any, exists bool) {
+func (m *DepProfileMutation) ProfileData() (r map[string]interface{}, exists bool) {
 	v := m.profile_data
 	if v == nil {
 		return
@@ -7345,7 +7345,7 @@ func (m *DepProfileMutation) ProfileData() (r map[string]any, exists bool) {
 // OldProfileData returns the old "profile_data" field's value of the DepProfile entity.
 // If the DepProfile object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *DepProfileMutation) OldProfileData(ctx context.Context) (v map[string]any, err error) {
+func (m *DepProfileMutation) OldProfileData(ctx context.Context) (v map[string]interface{}, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldProfileData is only allowed on UpdateOne operations")
 	}
@@ -7854,7 +7854,7 @@ func (m *DepProfileMutation) SetField(name string, value ent.Value) error {
 		m.SetURL(v)
 		return nil
 	case depprofile.FieldProfileData:
-		v, ok := value.(map[string]any)
+		v, ok := value.(map[string]interface{})
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
@@ -8146,6 +8146,7 @@ type DeviceMutation struct {
 	op                  Op
 	typ                 string
 	id                  *string
+	udid                *string
 	serial_number       *string
 	model               *string
 	is_enrolled         *bool
@@ -8283,6 +8284,55 @@ func (m *DeviceMutation) IDs(ctx context.Context) ([]string, error) {
 	default:
 		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
 	}
+}
+
+// SetUdid sets the "udid" field.
+func (m *DeviceMutation) SetUdid(s string) {
+	m.udid = &s
+}
+
+// Udid returns the value of the "udid" field in the mutation.
+func (m *DeviceMutation) Udid() (r string, exists bool) {
+	v := m.udid
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUdid returns the old "udid" field's value of the Device entity.
+// If the Device object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *DeviceMutation) OldUdid(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUdid is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUdid requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUdid: %w", err)
+	}
+	return oldValue.Udid, nil
+}
+
+// ClearUdid clears the value of the "udid" field.
+func (m *DeviceMutation) ClearUdid() {
+	m.udid = nil
+	m.clearedFields[device.FieldUdid] = struct{}{}
+}
+
+// UdidCleared returns if the "udid" field was cleared in this mutation.
+func (m *DeviceMutation) UdidCleared() bool {
+	_, ok := m.clearedFields[device.FieldUdid]
+	return ok
+}
+
+// ResetUdid resets all changes to the "udid" field.
+func (m *DeviceMutation) ResetUdid() {
+	m.udid = nil
+	delete(m.clearedFields, device.FieldUdid)
 }
 
 // SetSerialNumber sets the "serial_number" field.
@@ -9489,7 +9539,10 @@ func (m *DeviceMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *DeviceMutation) Fields() []string {
-	fields := make([]string, 0, 22)
+	fields := make([]string, 0, 23)
+	if m.udid != nil {
+		fields = append(fields, device.FieldUdid)
+	}
 	if m.serial_number != nil {
 		fields = append(fields, device.FieldSerialNumber)
 	}
@@ -9564,6 +9617,8 @@ func (m *DeviceMutation) Fields() []string {
 // schema.
 func (m *DeviceMutation) Field(name string) (ent.Value, bool) {
 	switch name {
+	case device.FieldUdid:
+		return m.Udid()
 	case device.FieldSerialNumber:
 		return m.SerialNumber()
 	case device.FieldModel:
@@ -9617,6 +9672,8 @@ func (m *DeviceMutation) Field(name string) (ent.Value, bool) {
 // database failed.
 func (m *DeviceMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
 	switch name {
+	case device.FieldUdid:
+		return m.OldUdid(ctx)
 	case device.FieldSerialNumber:
 		return m.OldSerialNumber(ctx)
 	case device.FieldModel:
@@ -9670,6 +9727,13 @@ func (m *DeviceMutation) OldField(ctx context.Context, name string) (ent.Value, 
 // type.
 func (m *DeviceMutation) SetField(name string, value ent.Value) error {
 	switch name {
+	case device.FieldUdid:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUdid(v)
+		return nil
 	case device.FieldSerialNumber:
 		v, ok := value.(string)
 		if !ok {
@@ -9893,6 +9957,9 @@ func (m *DeviceMutation) AddField(name string, value ent.Value) error {
 // mutation.
 func (m *DeviceMutation) ClearedFields() []string {
 	var fields []string
+	if m.FieldCleared(device.FieldUdid) {
+		fields = append(fields, device.FieldUdid)
+	}
 	if m.FieldCleared(device.FieldSerialNumber) {
 		fields = append(fields, device.FieldSerialNumber)
 	}
@@ -9961,6 +10028,9 @@ func (m *DeviceMutation) FieldCleared(name string) bool {
 // error if the field is not defined in the schema.
 func (m *DeviceMutation) ClearField(name string) error {
 	switch name {
+	case device.FieldUdid:
+		m.ClearUdid()
+		return nil
 	case device.FieldSerialNumber:
 		m.ClearSerialNumber()
 		return nil
@@ -10023,6 +10093,9 @@ func (m *DeviceMutation) ClearField(name string) error {
 // It returns an error if the field is not defined in the schema.
 func (m *DeviceMutation) ResetField(name string) error {
 	switch name {
+	case device.FieldUdid:
+		m.ResetUdid()
+		return nil
 	case device.FieldSerialNumber:
 		m.ResetSerialNumber()
 		return nil
@@ -13074,7 +13147,7 @@ type PayloadPropertyMutation struct {
 	op                Op
 	typ               string
 	id                *uint
-	value_json        *map[string]any
+	value_json        *map[string]interface{}
 	created_at        *time.Time
 	updated_at        *time.Time
 	deleted_at        *time.Time
@@ -13193,12 +13266,12 @@ func (m *PayloadPropertyMutation) IDs(ctx context.Context) ([]uint, error) {
 }
 
 // SetValueJSON sets the "value_json" field.
-func (m *PayloadPropertyMutation) SetValueJSON(value map[string]any) {
+func (m *PayloadPropertyMutation) SetValueJSON(value map[string]interface{}) {
 	m.value_json = &value
 }
 
 // ValueJSON returns the value of the "value_json" field in the mutation.
-func (m *PayloadPropertyMutation) ValueJSON() (r map[string]any, exists bool) {
+func (m *PayloadPropertyMutation) ValueJSON() (r map[string]interface{}, exists bool) {
 	v := m.value_json
 	if v == nil {
 		return
@@ -13209,7 +13282,7 @@ func (m *PayloadPropertyMutation) ValueJSON() (r map[string]any, exists bool) {
 // OldValueJSON returns the old "value_json" field's value of the PayloadProperty entity.
 // If the PayloadProperty object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *PayloadPropertyMutation) OldValueJSON(ctx context.Context) (v map[string]any, err error) {
+func (m *PayloadPropertyMutation) OldValueJSON(ctx context.Context) (v map[string]interface{}, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldValueJSON is only allowed on UpdateOne operations")
 	}
@@ -13530,7 +13603,7 @@ func (m *PayloadPropertyMutation) OldField(ctx context.Context, name string) (en
 func (m *PayloadPropertyMutation) SetField(name string, value ent.Value) error {
 	switch name {
 	case payloadproperty.FieldValueJSON:
-		v, ok := value.(map[string]any)
+		v, ok := value.(map[string]interface{})
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
@@ -13738,9 +13811,9 @@ type PayloadPropertyDefinitionMutation struct {
 	payload_type      *string
 	key               *string
 	value_type        *string
-	default_value     *map[string]any
-	enum_values       *[]any
-	appendenum_values []any
+	default_value     *map[string]interface{}
+	enum_values       *[]interface{}
+	appendenum_values []interface{}
 	description       *string
 	created_at        *time.Time
 	updated_at        *time.Time
@@ -13961,12 +14034,12 @@ func (m *PayloadPropertyDefinitionMutation) ResetValueType() {
 }
 
 // SetDefaultValue sets the "default_value" field.
-func (m *PayloadPropertyDefinitionMutation) SetDefaultValue(value map[string]any) {
+func (m *PayloadPropertyDefinitionMutation) SetDefaultValue(value map[string]interface{}) {
 	m.default_value = &value
 }
 
 // DefaultValue returns the value of the "default_value" field in the mutation.
-func (m *PayloadPropertyDefinitionMutation) DefaultValue() (r map[string]any, exists bool) {
+func (m *PayloadPropertyDefinitionMutation) DefaultValue() (r map[string]interface{}, exists bool) {
 	v := m.default_value
 	if v == nil {
 		return
@@ -13977,7 +14050,7 @@ func (m *PayloadPropertyDefinitionMutation) DefaultValue() (r map[string]any, ex
 // OldDefaultValue returns the old "default_value" field's value of the PayloadPropertyDefinition entity.
 // If the PayloadPropertyDefinition object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *PayloadPropertyDefinitionMutation) OldDefaultValue(ctx context.Context) (v map[string]any, err error) {
+func (m *PayloadPropertyDefinitionMutation) OldDefaultValue(ctx context.Context) (v map[string]interface{}, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldDefaultValue is only allowed on UpdateOne operations")
 	}
@@ -14010,13 +14083,13 @@ func (m *PayloadPropertyDefinitionMutation) ResetDefaultValue() {
 }
 
 // SetEnumValues sets the "enum_values" field.
-func (m *PayloadPropertyDefinitionMutation) SetEnumValues(i []any) {
+func (m *PayloadPropertyDefinitionMutation) SetEnumValues(i []interface{}) {
 	m.enum_values = &i
 	m.appendenum_values = nil
 }
 
 // EnumValues returns the value of the "enum_values" field in the mutation.
-func (m *PayloadPropertyDefinitionMutation) EnumValues() (r []any, exists bool) {
+func (m *PayloadPropertyDefinitionMutation) EnumValues() (r []interface{}, exists bool) {
 	v := m.enum_values
 	if v == nil {
 		return
@@ -14027,7 +14100,7 @@ func (m *PayloadPropertyDefinitionMutation) EnumValues() (r []any, exists bool) 
 // OldEnumValues returns the old "enum_values" field's value of the PayloadPropertyDefinition entity.
 // If the PayloadPropertyDefinition object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *PayloadPropertyDefinitionMutation) OldEnumValues(ctx context.Context) (v []any, err error) {
+func (m *PayloadPropertyDefinitionMutation) OldEnumValues(ctx context.Context) (v []interface{}, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldEnumValues is only allowed on UpdateOne operations")
 	}
@@ -14042,12 +14115,12 @@ func (m *PayloadPropertyDefinitionMutation) OldEnumValues(ctx context.Context) (
 }
 
 // AppendEnumValues adds i to the "enum_values" field.
-func (m *PayloadPropertyDefinitionMutation) AppendEnumValues(i []any) {
+func (m *PayloadPropertyDefinitionMutation) AppendEnumValues(i []interface{}) {
 	m.appendenum_values = append(m.appendenum_values, i...)
 }
 
 // AppendedEnumValues returns the list of values that were appended to the "enum_values" field in this mutation.
-func (m *PayloadPropertyDefinitionMutation) AppendedEnumValues() ([]any, bool) {
+func (m *PayloadPropertyDefinitionMutation) AppendedEnumValues() ([]interface{}, bool) {
 	if len(m.appendenum_values) == 0 {
 		return nil, false
 	}
@@ -14444,14 +14517,14 @@ func (m *PayloadPropertyDefinitionMutation) SetField(name string, value ent.Valu
 		m.SetValueType(v)
 		return nil
 	case payloadpropertydefinition.FieldDefaultValue:
-		v, ok := value.(map[string]any)
+		v, ok := value.(map[string]interface{})
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetDefaultValue(v)
 		return nil
 	case payloadpropertydefinition.FieldEnumValues:
-		v, ok := value.([]any)
+		v, ok := value.([]interface{})
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
@@ -14686,12 +14759,12 @@ type ProfileMutation struct {
 	platform                   *profile.Platform
 	scope                      *profile.Scope
 	status                     *profile.Status
-	security_settings          *map[string]any
-	network_config             *map[string]any
-	restrictions               *map[string]any
-	content_filter             *map[string]any
-	compliance_rules           *map[string]any
-	payloads                   *map[string]any
+	security_settings          *map[string]interface{}
+	network_config             *map[string]interface{}
+	restrictions               *map[string]interface{}
+	content_filter             *map[string]interface{}
+	compliance_rules           *map[string]interface{}
+	payloads                   *map[string]interface{}
 	version                    *int
 	addversion                 *int
 	created_at                 *time.Time
@@ -14963,12 +15036,12 @@ func (m *ProfileMutation) ResetStatus() {
 }
 
 // SetSecuritySettings sets the "security_settings" field.
-func (m *ProfileMutation) SetSecuritySettings(value map[string]any) {
+func (m *ProfileMutation) SetSecuritySettings(value map[string]interface{}) {
 	m.security_settings = &value
 }
 
 // SecuritySettings returns the value of the "security_settings" field in the mutation.
-func (m *ProfileMutation) SecuritySettings() (r map[string]any, exists bool) {
+func (m *ProfileMutation) SecuritySettings() (r map[string]interface{}, exists bool) {
 	v := m.security_settings
 	if v == nil {
 		return
@@ -14979,7 +15052,7 @@ func (m *ProfileMutation) SecuritySettings() (r map[string]any, exists bool) {
 // OldSecuritySettings returns the old "security_settings" field's value of the Profile entity.
 // If the Profile object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *ProfileMutation) OldSecuritySettings(ctx context.Context) (v map[string]any, err error) {
+func (m *ProfileMutation) OldSecuritySettings(ctx context.Context) (v map[string]interface{}, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldSecuritySettings is only allowed on UpdateOne operations")
 	}
@@ -15012,12 +15085,12 @@ func (m *ProfileMutation) ResetSecuritySettings() {
 }
 
 // SetNetworkConfig sets the "network_config" field.
-func (m *ProfileMutation) SetNetworkConfig(value map[string]any) {
+func (m *ProfileMutation) SetNetworkConfig(value map[string]interface{}) {
 	m.network_config = &value
 }
 
 // NetworkConfig returns the value of the "network_config" field in the mutation.
-func (m *ProfileMutation) NetworkConfig() (r map[string]any, exists bool) {
+func (m *ProfileMutation) NetworkConfig() (r map[string]interface{}, exists bool) {
 	v := m.network_config
 	if v == nil {
 		return
@@ -15028,7 +15101,7 @@ func (m *ProfileMutation) NetworkConfig() (r map[string]any, exists bool) {
 // OldNetworkConfig returns the old "network_config" field's value of the Profile entity.
 // If the Profile object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *ProfileMutation) OldNetworkConfig(ctx context.Context) (v map[string]any, err error) {
+func (m *ProfileMutation) OldNetworkConfig(ctx context.Context) (v map[string]interface{}, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldNetworkConfig is only allowed on UpdateOne operations")
 	}
@@ -15061,12 +15134,12 @@ func (m *ProfileMutation) ResetNetworkConfig() {
 }
 
 // SetRestrictions sets the "restrictions" field.
-func (m *ProfileMutation) SetRestrictions(value map[string]any) {
+func (m *ProfileMutation) SetRestrictions(value map[string]interface{}) {
 	m.restrictions = &value
 }
 
 // Restrictions returns the value of the "restrictions" field in the mutation.
-func (m *ProfileMutation) Restrictions() (r map[string]any, exists bool) {
+func (m *ProfileMutation) Restrictions() (r map[string]interface{}, exists bool) {
 	v := m.restrictions
 	if v == nil {
 		return
@@ -15077,7 +15150,7 @@ func (m *ProfileMutation) Restrictions() (r map[string]any, exists bool) {
 // OldRestrictions returns the old "restrictions" field's value of the Profile entity.
 // If the Profile object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *ProfileMutation) OldRestrictions(ctx context.Context) (v map[string]any, err error) {
+func (m *ProfileMutation) OldRestrictions(ctx context.Context) (v map[string]interface{}, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldRestrictions is only allowed on UpdateOne operations")
 	}
@@ -15110,12 +15183,12 @@ func (m *ProfileMutation) ResetRestrictions() {
 }
 
 // SetContentFilter sets the "content_filter" field.
-func (m *ProfileMutation) SetContentFilter(value map[string]any) {
+func (m *ProfileMutation) SetContentFilter(value map[string]interface{}) {
 	m.content_filter = &value
 }
 
 // ContentFilter returns the value of the "content_filter" field in the mutation.
-func (m *ProfileMutation) ContentFilter() (r map[string]any, exists bool) {
+func (m *ProfileMutation) ContentFilter() (r map[string]interface{}, exists bool) {
 	v := m.content_filter
 	if v == nil {
 		return
@@ -15126,7 +15199,7 @@ func (m *ProfileMutation) ContentFilter() (r map[string]any, exists bool) {
 // OldContentFilter returns the old "content_filter" field's value of the Profile entity.
 // If the Profile object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *ProfileMutation) OldContentFilter(ctx context.Context) (v map[string]any, err error) {
+func (m *ProfileMutation) OldContentFilter(ctx context.Context) (v map[string]interface{}, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldContentFilter is only allowed on UpdateOne operations")
 	}
@@ -15159,12 +15232,12 @@ func (m *ProfileMutation) ResetContentFilter() {
 }
 
 // SetComplianceRules sets the "compliance_rules" field.
-func (m *ProfileMutation) SetComplianceRules(value map[string]any) {
+func (m *ProfileMutation) SetComplianceRules(value map[string]interface{}) {
 	m.compliance_rules = &value
 }
 
 // ComplianceRules returns the value of the "compliance_rules" field in the mutation.
-func (m *ProfileMutation) ComplianceRules() (r map[string]any, exists bool) {
+func (m *ProfileMutation) ComplianceRules() (r map[string]interface{}, exists bool) {
 	v := m.compliance_rules
 	if v == nil {
 		return
@@ -15175,7 +15248,7 @@ func (m *ProfileMutation) ComplianceRules() (r map[string]any, exists bool) {
 // OldComplianceRules returns the old "compliance_rules" field's value of the Profile entity.
 // If the Profile object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *ProfileMutation) OldComplianceRules(ctx context.Context) (v map[string]any, err error) {
+func (m *ProfileMutation) OldComplianceRules(ctx context.Context) (v map[string]interface{}, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldComplianceRules is only allowed on UpdateOne operations")
 	}
@@ -15208,12 +15281,12 @@ func (m *ProfileMutation) ResetComplianceRules() {
 }
 
 // SetPayloads sets the "payloads" field.
-func (m *ProfileMutation) SetPayloads(value map[string]any) {
+func (m *ProfileMutation) SetPayloads(value map[string]interface{}) {
 	m.payloads = &value
 }
 
 // Payloads returns the value of the "payloads" field in the mutation.
-func (m *ProfileMutation) Payloads() (r map[string]any, exists bool) {
+func (m *ProfileMutation) Payloads() (r map[string]interface{}, exists bool) {
 	v := m.payloads
 	if v == nil {
 		return
@@ -15224,7 +15297,7 @@ func (m *ProfileMutation) Payloads() (r map[string]any, exists bool) {
 // OldPayloads returns the old "payloads" field's value of the Profile entity.
 // If the Profile object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *ProfileMutation) OldPayloads(ctx context.Context) (v map[string]any, err error) {
+func (m *ProfileMutation) OldPayloads(ctx context.Context) (v map[string]interface{}, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldPayloads is only allowed on UpdateOne operations")
 	}
@@ -15781,42 +15854,42 @@ func (m *ProfileMutation) SetField(name string, value ent.Value) error {
 		m.SetStatus(v)
 		return nil
 	case profile.FieldSecuritySettings:
-		v, ok := value.(map[string]any)
+		v, ok := value.(map[string]interface{})
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetSecuritySettings(v)
 		return nil
 	case profile.FieldNetworkConfig:
-		v, ok := value.(map[string]any)
+		v, ok := value.(map[string]interface{})
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetNetworkConfig(v)
 		return nil
 	case profile.FieldRestrictions:
-		v, ok := value.(map[string]any)
+		v, ok := value.(map[string]interface{})
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetRestrictions(v)
 		return nil
 	case profile.FieldContentFilter:
-		v, ok := value.(map[string]any)
+		v, ok := value.(map[string]interface{})
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetContentFilter(v)
 		return nil
 	case profile.FieldComplianceRules:
-		v, ok := value.(map[string]any)
+		v, ok := value.(map[string]interface{})
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetComplianceRules(v)
 		return nil
 	case profile.FieldPayloads:
-		v, ok := value.(map[string]any)
+		v, ok := value.(map[string]interface{})
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
@@ -17824,7 +17897,7 @@ type ProfileVersionMutation struct {
 	id             *uint
 	version        *int
 	addversion     *int
-	data           *map[string]any
+	data           *map[string]interface{}
 	change_notes   *string
 	created_at     *time.Time
 	clearedFields  map[string]struct{}
@@ -18032,12 +18105,12 @@ func (m *ProfileVersionMutation) ResetVersion() {
 }
 
 // SetData sets the "data" field.
-func (m *ProfileVersionMutation) SetData(value map[string]any) {
+func (m *ProfileVersionMutation) SetData(value map[string]interface{}) {
 	m.data = &value
 }
 
 // Data returns the value of the "data" field in the mutation.
-func (m *ProfileVersionMutation) Data() (r map[string]any, exists bool) {
+func (m *ProfileVersionMutation) Data() (r map[string]interface{}, exists bool) {
 	v := m.data
 	if v == nil {
 		return
@@ -18048,7 +18121,7 @@ func (m *ProfileVersionMutation) Data() (r map[string]any, exists bool) {
 // OldData returns the old "data" field's value of the ProfileVersion entity.
 // If the ProfileVersion object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *ProfileVersionMutation) OldData(ctx context.Context) (v map[string]any, err error) {
+func (m *ProfileVersionMutation) OldData(ctx context.Context) (v map[string]interface{}, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldData is only allowed on UpdateOne operations")
 	}
@@ -18303,7 +18376,7 @@ func (m *ProfileVersionMutation) SetField(name string, value ent.Value) error {
 		m.SetVersion(v)
 		return nil
 	case profileversion.FieldData:
-		v, ok := value.(map[string]any)
+		v, ok := value.(map[string]interface{})
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}

@@ -48,7 +48,7 @@ const (
 	DeviceTable = "profile_assignments"
 	// DeviceInverseTable is the table name for the Device entity.
 	// It exists in this package in order to avoid circular dependency with the "device" package.
-	DeviceInverseTable = "devices"
+	DeviceInverseTable = "portal_devices"
 	// DeviceColumn is the table column denoting the device relation/edge.
 	DeviceColumn = "device_id"
 	// GroupTable is the table that holds the group relation/edge.

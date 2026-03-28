@@ -32,7 +32,7 @@ const (
 	DevicesTable = "device_group_devices"
 	// DevicesInverseTable is the table name for the Device entity.
 	// It exists in this package in order to avoid circular dependency with the "device" package.
-	DevicesInverseTable = "devices"
+	DevicesInverseTable = "portal_devices"
 	// ProfilesTable is the table that holds the profiles relation/edge. The primary key declared below.
 	ProfilesTable = "device_group_profiles"
 	// ProfilesInverseTable is the table name for the Profile entity.

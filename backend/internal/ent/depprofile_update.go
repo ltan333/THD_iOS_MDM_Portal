@@ -422,7 +422,7 @@ func (_u *DepProfileUpdate) ClearURL() *DepProfileUpdate {
 }
 
 // SetProfileData sets the "profile_data" field.
-func (_u *DepProfileUpdate) SetProfileData(v map[string]any) *DepProfileUpdate {
+func (_u *DepProfileUpdate) SetProfileData(v map[string]interface{}) *DepProfileUpdate {
 	_u.mutation.SetProfileData(v)
 	return _u
 }
@@ -1052,7 +1052,7 @@ func (_u *DepProfileUpdateOne) ClearURL() *DepProfileUpdateOne {
 }
 
 // SetProfileData sets the "profile_data" field.
-func (_u *DepProfileUpdateOne) SetProfileData(v map[string]any) *DepProfileUpdateOne {
+func (_u *DepProfileUpdateOne) SetProfileData(v map[string]interface{}) *DepProfileUpdateOne {
 	_u.mutation.SetProfileData(v)
 	return _u
 }

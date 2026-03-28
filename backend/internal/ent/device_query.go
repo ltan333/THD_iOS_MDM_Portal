@@ -335,12 +335,12 @@ func (_q *DeviceQuery) WithGroups(opts ...func(*DeviceGroupQuery)) *DeviceQuery 
 // Example:
 //
 //	var v []struct {
-//		SerialNumber string `json:"serial_number,omitempty"`
+//		Udid string `json:"udid,omitempty"`
 //		Count int `json:"count,omitempty"`
 //	}
 //
 //	client.Device.Query().
-//		GroupBy(device.FieldSerialNumber).
+//		GroupBy(device.FieldUdid).
 //		Aggregate(ent.Count()).
 //		Scan(ctx, &v)
 func (_q *DeviceQuery) GroupBy(field string, fields ...string) *DeviceGroupBy {
@@ -358,11 +358,11 @@ func (_q *DeviceQuery) GroupBy(field string, fields ...string) *DeviceGroupBy {
 // Example:
 //
 //	var v []struct {
-//		SerialNumber string `json:"serial_number,omitempty"`
+//		Udid string `json:"udid,omitempty"`
 //	}
 //
 //	client.Device.Query().
-//		Select(device.FieldSerialNumber).
+//		Select(device.FieldUdid).
 //		Scan(ctx, &v)
 func (_q *DeviceQuery) Select(fields ...string) *DeviceSelect {
 	_q.ctx.Fields = append(_q.ctx.Fields, fields...)

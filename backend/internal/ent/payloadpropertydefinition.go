@@ -25,9 +25,9 @@ type PayloadPropertyDefinition struct {
 	// ValueType holds the value of the "value_type" field.
 	ValueType string `json:"value_type,omitempty"`
 	// DefaultValue holds the value of the "default_value" field.
-	DefaultValue map[string]any `json:"default_value,omitempty"`
+	DefaultValue map[string]interface{} `json:"default_value,omitempty"`
 	// EnumValues holds the value of the "enum_values" field.
-	EnumValues []any `json:"enum_values,omitempty"`
+	EnumValues []interface{} `json:"enum_values,omitempty"`
 	// Description holds the value of the "description" field.
 	Description string `json:"description,omitempty"`
 	// CreatedAt holds the value of the "created_at" field.

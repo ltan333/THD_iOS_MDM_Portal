@@ -23,7 +23,7 @@ type PayloadPropertyCreate struct {
 }
 
 // SetValueJSON sets the "value_json" field.
-func (_c *PayloadPropertyCreate) SetValueJSON(v map[string]any) *PayloadPropertyCreate {
+func (_c *PayloadPropertyCreate) SetValueJSON(v map[string]interface{}) *PayloadPropertyCreate {
 	_c.mutation.SetValueJSON(v)
 	return _c
 }

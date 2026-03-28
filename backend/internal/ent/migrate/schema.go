@@ -9,8 +9,8 @@ import (
 )
 
 var (
-	// PushCertsColumns holds the columns for the "push_certs" table.
-	PushCertsColumns = []*schema.Column{
+	// PortalPushCertsColumns holds the columns for the "portal_push_certs" table.
+	PortalPushCertsColumns = []*schema.Column{
 		{Name: "topic", Type: field.TypeString, Unique: true},
 		{Name: "cert_pem", Type: field.TypeString, Size: 2147483647},
 		{Name: "key_pem", Type: field.TypeString, Size: 2147483647},
@@ -18,11 +18,11 @@ var (
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
 	}
-	// PushCertsTable holds the schema information for the "push_certs" table.
-	PushCertsTable = &schema.Table{
-		Name:       "push_certs",
-		Columns:    PushCertsColumns,
-		PrimaryKey: []*schema.Column{PushCertsColumns[0]},
+	// PortalPushCertsTable holds the schema information for the "portal_push_certs" table.
+	PortalPushCertsTable = &schema.Table{
+		Name:       "portal_push_certs",
+		Columns:    PortalPushCertsColumns,
+		PrimaryKey: []*schema.Column{PortalPushCertsColumns[0]},
 	}
 	// AlertsColumns holds the columns for the "alerts" table.
 	AlertsColumns = []*schema.Column{
@@ -132,8 +132,8 @@ var (
 		Columns:    ApplicationsColumns,
 		PrimaryKey: []*schema.Column{ApplicationsColumns[0]},
 	}
-	// DepNamesColumns holds the columns for the "dep_names" table.
-	DepNamesColumns = []*schema.Column{
+	// PortalDepNamesColumns holds the columns for the "portal_dep_names" table.
+	PortalDepNamesColumns = []*schema.Column{
 		{Name: "name", Type: field.TypeString, Unique: true},
 		{Name: "consumer_key", Type: field.TypeString, Nullable: true, Size: 2147483647},
 		{Name: "consumer_secret", Type: field.TypeString, Nullable: true, Size: 2147483647},
@@ -148,11 +148,11 @@ var (
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
 	}
-	// DepNamesTable holds the schema information for the "dep_names" table.
-	DepNamesTable = &schema.Table{
-		Name:       "dep_names",
-		Columns:    DepNamesColumns,
-		PrimaryKey: []*schema.Column{DepNamesColumns[0]},
+	// PortalDepNamesTable holds the schema information for the "portal_dep_names" table.
+	PortalDepNamesTable = &schema.Table{
+		Name:       "portal_dep_names",
+		Columns:    PortalDepNamesColumns,
+		PrimaryKey: []*schema.Column{PortalDepNamesColumns[0]},
 	}
 	// DepProfilesColumns holds the columns for the "dep_profiles" table.
 	DepProfilesColumns = []*schema.Column{
@@ -190,9 +190,10 @@ var (
 		Columns:    DepProfilesColumns,
 		PrimaryKey: []*schema.Column{DepProfilesColumns[0]},
 	}
-	// DevicesColumns holds the columns for the "devices" table.
-	DevicesColumns = []*schema.Column{
+	// PortalDevicesColumns holds the columns for the "portal_devices" table.
+	PortalDevicesColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeString, Unique: true, SchemaType: map[string]string{"postgres": "character varying(255)"}},
+		{Name: "udid", Type: field.TypeString, Unique: true, Nullable: true, SchemaType: map[string]string{"postgres": "character varying(255)"}},
 		{Name: "serial_number", Type: field.TypeString, Unique: true, Nullable: true, SchemaType: map[string]string{"postgres": "character varying(127)"}},
 		{Name: "model", Type: field.TypeString, Nullable: true, SchemaType: map[string]string{"postgres": "character varying(255)"}},
 		{Name: "is_enrolled", Type: field.TypeBool, Default: false},
@@ -216,15 +217,15 @@ var (
 		{Name: "updated_at", Type: field.TypeTime},
 		{Name: "owner_id", Type: field.TypeUint, Nullable: true},
 	}
-	// DevicesTable holds the schema information for the "devices" table.
-	DevicesTable = &schema.Table{
-		Name:       "devices",
-		Columns:    DevicesColumns,
-		PrimaryKey: []*schema.Column{DevicesColumns[0]},
+	// PortalDevicesTable holds the schema information for the "portal_devices" table.
+	PortalDevicesTable = &schema.Table{
+		Name:       "portal_devices",
+		Columns:    PortalDevicesColumns,
+		PrimaryKey: []*schema.Column{PortalDevicesColumns[0]},
 		ForeignKeys: []*schema.ForeignKey{
 			{
-				Symbol:     "devices_portal_users_devices",
-				Columns:    []*schema.Column{DevicesColumns[22]},
+				Symbol:     "portal_devices_portal_users_devices",
+				Columns:    []*schema.Column{PortalDevicesColumns[23]},
 				RefColumns: []*schema.Column{PortalUsersColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
@@ -402,12 +403,12 @@ var (
 				Symbol:     "profile_assignments_profiles_assignments",
 				Columns:    []*schema.Column{ProfileAssignmentsColumns[5]},
 				RefColumns: []*schema.Column{ProfilesColumns[0]},
-				OnDelete:   schema.NoAction,
+				OnDelete:   schema.Cascade,
 			},
 			{
-				Symbol:     "profile_assignments_devices_device",
+				Symbol:     "profile_assignments_portal_devices_device",
 				Columns:    []*schema.Column{ProfileAssignmentsColumns[6]},
-				RefColumns: []*schema.Column{DevicesColumns[0]},
+				RefColumns: []*schema.Column{PortalDevicesColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
@@ -439,12 +440,12 @@ var (
 				Symbol:     "profile_deployment_statuses_profiles_deployment_statuses",
 				Columns:    []*schema.Column{ProfileDeploymentStatusesColumns[6]},
 				RefColumns: []*schema.Column{ProfilesColumns[0]},
-				OnDelete:   schema.NoAction,
+				OnDelete:   schema.Cascade,
 			},
 			{
-				Symbol:     "profile_deployment_statuses_devices_device",
+				Symbol:     "profile_deployment_statuses_portal_devices_device",
 				Columns:    []*schema.Column{ProfileDeploymentStatusesColumns[7]},
-				RefColumns: []*schema.Column{DevicesColumns[0]},
+				RefColumns: []*schema.Column{PortalDevicesColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 		},
@@ -468,7 +469,7 @@ var (
 				Symbol:     "profile_versions_profiles_versions",
 				Columns:    []*schema.Column{ProfileVersionsColumns[5]},
 				RefColumns: []*schema.Column{ProfilesColumns[0]},
-				OnDelete:   schema.NoAction,
+				OnDelete:   schema.Cascade,
 			},
 		},
 	}
@@ -524,7 +525,7 @@ var (
 			{
 				Symbol:     "device_group_devices_device_id",
 				Columns:    []*schema.Column{DeviceGroupDevicesColumns[1]},
-				RefColumns: []*schema.Column{DevicesColumns[0]},
+				RefColumns: []*schema.Column{PortalDevicesColumns[0]},
 				OnDelete:   schema.Cascade,
 			},
 		},
@@ -556,15 +557,15 @@ var (
 	}
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
-		PushCertsTable,
+		PortalPushCertsTable,
 		AlertsTable,
 		AlertRulesTable,
 		AppDeploymentsTable,
 		AppVersionsTable,
 		ApplicationsTable,
-		DepNamesTable,
+		PortalDepNamesTable,
 		DepProfilesTable,
-		DevicesTable,
+		PortalDevicesTable,
 		DeviceGroupsTable,
 		MobileConfigsTable,
 		PayloadsTable,
@@ -582,8 +583,8 @@ var (
 )
 
 func init() {
-	PushCertsTable.Annotation = &entsql.Annotation{
-		Table: "push_certs",
+	PortalPushCertsTable.Annotation = &entsql.Annotation{
+		Table: "portal_push_certs",
 	}
 	AlertsTable.Annotation = &entsql.Annotation{
 		Table: "alerts",
@@ -602,12 +603,12 @@ func init() {
 	ApplicationsTable.Annotation = &entsql.Annotation{
 		Table: "applications",
 	}
-	DepNamesTable.Annotation = &entsql.Annotation{
-		Table: "dep_names",
+	PortalDepNamesTable.Annotation = &entsql.Annotation{
+		Table: "portal_dep_names",
 	}
-	DevicesTable.ForeignKeys[0].RefTable = PortalUsersTable
-	DevicesTable.Annotation = &entsql.Annotation{
-		Table: "devices",
+	PortalDevicesTable.ForeignKeys[0].RefTable = PortalUsersTable
+	PortalDevicesTable.Annotation = &entsql.Annotation{
+		Table: "portal_devices",
 	}
 	DeviceGroupsTable.Annotation = &entsql.Annotation{
 		Table: "device_groups",
@@ -619,13 +620,13 @@ func init() {
 		Table: "profiles",
 	}
 	ProfileAssignmentsTable.ForeignKeys[0].RefTable = ProfilesTable
-	ProfileAssignmentsTable.ForeignKeys[1].RefTable = DevicesTable
+	ProfileAssignmentsTable.ForeignKeys[1].RefTable = PortalDevicesTable
 	ProfileAssignmentsTable.ForeignKeys[2].RefTable = DeviceGroupsTable
 	ProfileAssignmentsTable.Annotation = &entsql.Annotation{
 		Table: "profile_assignments",
 	}
 	ProfileDeploymentStatusesTable.ForeignKeys[0].RefTable = ProfilesTable
-	ProfileDeploymentStatusesTable.ForeignKeys[1].RefTable = DevicesTable
+	ProfileDeploymentStatusesTable.ForeignKeys[1].RefTable = PortalDevicesTable
 	ProfileDeploymentStatusesTable.Annotation = &entsql.Annotation{
 		Table: "profile_deployment_statuses",
 	}
@@ -640,7 +641,7 @@ func init() {
 		Table: "portal_users",
 	}
 	DeviceGroupDevicesTable.ForeignKeys[0].RefTable = DeviceGroupsTable
-	DeviceGroupDevicesTable.ForeignKeys[1].RefTable = DevicesTable
+	DeviceGroupDevicesTable.ForeignKeys[1].RefTable = PortalDevicesTable
 	DeviceGroupProfilesTable.ForeignKeys[0].RefTable = DeviceGroupsTable
 	DeviceGroupProfilesTable.ForeignKeys[1].RefTable = ProfilesTable
 }
