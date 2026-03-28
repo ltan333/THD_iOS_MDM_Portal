@@ -2,8 +2,6 @@ package serviceimpl
 
 import (
 	"context"
-	"encoding/base64"
-	"fmt"
 	"strings"
 	"time"
 
@@ -14,6 +12,7 @@ import (
 	"github.com/thienel/go-backend-template/internal/ent/profileassignment"
 	"github.com/thienel/go-backend-template/internal/usecase/service"
 	apperror "github.com/thienel/go-backend-template/pkg/error"
+	"github.com/thienel/go-backend-template/pkg/mdmcmd"
 	"github.com/thienel/go-backend-template/pkg/query"
 	"github.com/thienel/tlog"
 	"go.uber.org/zap"
@@ -407,11 +406,33 @@ func (s *profileServiceImpl) Rollback(ctx context.Context, profileID uint, versi
 		return apperror.ErrInternalServerError.WithMessage("Lỗi khi truy xuất version").WithError(err)
 	}
 
-	_, err = s.client.Profile.UpdateOneID(profileID).
-		SetSecuritySettings(version.Data["security_settings"].(map[string]any)).
-		SetNetworkConfig(version.Data["network_config"].(map[string]any)).
-		SetRestrictions(version.Data["restrictions"].(map[string]any)).
-		Save(ctx)
+	// Use safe type assertions to avoid runtime panics if a field is nil or
+	// of an unexpected type (e.g. old snapshots taken before a schema change).
+	update := s.client.Profile.UpdateOneID(profileID)
+
+	if ss, ok := version.Data["security_settings"].(map[string]any); ok {
+		update = update.SetSecuritySettings(ss)
+	}
+	if nc, ok := version.Data["network_config"].(map[string]any); ok {
+		update = update.SetNetworkConfig(nc)
+	}
+	if res, ok := version.Data["restrictions"].(map[string]any); ok {
+		update = update.SetRestrictions(res)
+	}
+	if cf, ok := version.Data["content_filter"].(map[string]any); ok {
+		update = update.SetContentFilter(cf)
+	}
+	if cr, ok := version.Data["compliance_rules"].(map[string]any); ok {
+		update = update.SetComplianceRules(cr)
+	}
+	if pl, ok := version.Data["payloads"].(map[string]any); ok {
+		update = update.SetPayloads(pl)
+	}
+	if name, ok := version.Data["name"].(string); ok && name != "" {
+		update = update.SetName(name)
+	}
+
+	_, err = update.Save(ctx)
 	if err != nil {
 		return apperror.ErrInternalServerError.WithMessage("Lỗi khi rollback").WithError(err)
 	}
@@ -443,13 +464,20 @@ func (s *profileServiceImpl) Repush(ctx context.Context, profileID uint) error {
 		return apperror.ErrInternalServerError.WithMessage("Lỗi khi truy xuất profile").WithError(err)
 	}
 
-	// 2. Generate XML
+	// 2. Generate mobileconfig XML
 	xmlData, err := s.generator.GenerateXML(ctx, p)
 	if err != nil {
 		return apperror.ErrInternalServerError.WithMessage("Lỗi khi tạo XML profile").WithError(err)
 	}
 
-	// 3. Find all assigned devices
+	// 3. Build the InstallProfile MDM command plist once (reused per device)
+	cmdBuilder := mdmcmd.NewBuilder("")
+	cmdData, _, err := cmdBuilder.InstallProfile(xmlData)
+	if err != nil {
+		return apperror.ErrInternalServerError.WithMessage("Lỗi khi build InstallProfile command").WithError(err)
+	}
+
+	// 4. Find all directly-assigned devices
 	assignments, err := s.client.ProfileAssignment.Query().
 		Where(profileassignment.ProfileIDEQ(profileID), profileassignment.DeviceIDNEQ("")).
 		All(ctx)
@@ -457,38 +485,16 @@ func (s *profileServiceImpl) Repush(ctx context.Context, profileID uint) error {
 		return apperror.ErrInternalServerError.WithMessage("Lỗi khi truy xuất danh sách máy gán").WithError(err)
 	}
 
-	// 4. Enqueue InstallProfile command for each device
-	installProfileXML := `<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-<plist version="1.0">
-<dict>
-	<key>Command</key>
-	<dict>
-		<key>Payload</key>
-		<data>%s</data>
-		<key>RequestType</key>
-		<string>InstallProfile</string>
-	</dict>
-	<key>CommandUUID</key>
-	<string>InstallProfile-%d-%s</string>
-</dict>
-</plist>`
-
-	encodedProfile := base64.StdEncoding.EncodeToString(xmlData)
-
+	// 5. Enqueue InstallProfile and push for each device
 	for _, as := range assignments {
 		if as.DeviceID == nil {
 			continue
 		}
 		udid := *as.DeviceID
-		finalXML := fmt.Sprintf(installProfileXML, encodedProfile, p.ID, udid)
-		_, err := s.mdmService.EnqueueCommand(ctx, udid, []byte(finalXML))
-		if err != nil {
+		if _, err := s.mdmService.EnqueueCommand(ctx, udid, cmdData); err != nil {
 			tlog.Error("Failed to enqueue InstallProfile", zap.String("udid", udid), zap.Error(err))
 			continue
 		}
-
-		// 5. Trigger Push
 		_, _ = s.mdmService.Push(ctx, []string{udid})
 	}
 
@@ -501,48 +507,36 @@ func (s *profileServiceImpl) DeployToDevice(ctx context.Context, deviceID string
 		Where(
 			profile.Or(
 				profile.HasAssignmentsWith(profileassignment.DeviceIDEQ(deviceID)),
-				profile.HasDeviceGroupsWith(devicegroup.HasDevicesWith(device.IDEQ(deviceID))),
+				profile.HasDeviceGroupsWith(devicegroup.HasDevicesWith(device.UdidEQ(deviceID))),
 			),
 		).All(ctx)
 	if err != nil {
 		return apperror.ErrInternalServerError.WithMessage("Lỗi khi truy vấn profile gán cho thiết bị").WithError(err)
 	}
 
+	cmdBuilder := mdmcmd.NewBuilder("")
+
 	for _, p := range profiles {
-		// 2. Generate XML
+		// 2. Generate mobileconfig XML
 		xmlData, err := s.generator.GenerateXML(ctx, p)
 		if err != nil {
 			tlog.Error("Failed to generate XML for auto-deploy", zap.Uint("profile_id", p.ID), zap.Error(err))
 			continue
 		}
 
-		// 3. Enqueue InstallProfile command
-		installProfileXML := `<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-<plist version="1.0">
-<dict>
-	<key>Command</key>
-	<dict>
-		<key>Payload</key>
-		<data>%s</data>
-		<key>RequestType</key>
-		<string>InstallProfile</string>
-	</dict>
-	<key>CommandUUID</key>
-	<string>InstallProfile-%d-%s</string>
-</dict>
-</plist>`
-
-		encodedProfile := base64.StdEncoding.EncodeToString(xmlData)
-		finalXML := fmt.Sprintf(installProfileXML, encodedProfile, p.ID, deviceID)
-
-		_, err = s.mdmService.EnqueueCommand(ctx, deviceID, []byte(finalXML))
+		// 3. Build InstallProfile MDM command using the shared builder
+		cmdData, _, err := cmdBuilder.InstallProfile(xmlData)
 		if err != nil {
+			tlog.Error("Failed to build InstallProfile command", zap.Uint("profile_id", p.ID), zap.Error(err))
+			continue
+		}
+
+		if _, err = s.mdmService.EnqueueCommand(ctx, deviceID, cmdData); err != nil {
 			tlog.Error("Failed to enqueue auto-InstallProfile", zap.String("udid", deviceID), zap.Error(err))
 			continue
 		}
 
-		// 4. Trigger Push
+		// 4. Trigger APNs push
 		_, _ = s.mdmService.Push(ctx, []string{deviceID})
 	}
 
@@ -553,44 +547,30 @@ func (s *profileServiceImpl) InstallOnDevice(ctx context.Context, profileID uint
 	// 1. Get the profile
 	p, err := s.client.Profile.Get(ctx, profileID)
 	if ent.IsNotFound(err) {
-		return apperror.ErrNotFound.WithMessage("Profile not found")
+		return apperror.ErrNotFound.WithMessage("Profile không tồn tại")
 	}
 	if err != nil {
-		return apperror.ErrInternalServerError.WithMessage("Error fetching profile").WithError(err)
+		return apperror.ErrInternalServerError.WithMessage("Lỗi khi truy xuất profile").WithError(err)
 	}
 
-	// 2. Generate XML
+	// 2. Generate mobileconfig XML
 	xmlData, err := s.generator.GenerateXML(ctx, p)
 	if err != nil {
-		return apperror.ErrInternalServerError.WithMessage("Error generating profile XML").WithError(err)
+		return apperror.ErrInternalServerError.WithMessage("Lỗi khi tạo XML profile").WithError(err)
 	}
 
-	// 3. Enqueue InstallProfile command
-	installProfileXML := `<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-<plist version="1.0">
-<dict>
-	<key>Command</key>
-	<dict>
-		<key>Payload</key>
-		<data>%s</data>
-		<key>RequestType</key>
-		<string>InstallProfile</string>
-	</dict>
-	<key>CommandUUID</key>
-	<string>InstallProfile-%d-%s</string>
-</dict>
-</plist>`
-
-	encodedProfile := base64.StdEncoding.EncodeToString(xmlData)
-	finalXML := fmt.Sprintf(installProfileXML, encodedProfile, p.ID, deviceID)
-
-	_, err = s.mdmService.EnqueueCommand(ctx, deviceID, []byte(finalXML))
+	// 3. Build InstallProfile MDM command using the shared builder
+	cmdBuilder := mdmcmd.NewBuilder("")
+	cmdData, _, err := cmdBuilder.InstallProfile(xmlData)
 	if err != nil {
-		return apperror.ErrInternalServerError.WithMessage("Error enqueueing InstallProfile command").WithError(err)
+		return apperror.ErrInternalServerError.WithMessage("Lỗi khi build InstallProfile command").WithError(err)
 	}
 
-	// 4. Trigger Push
+	if _, err = s.mdmService.EnqueueCommand(ctx, deviceID, cmdData); err != nil {
+		return apperror.ErrInternalServerError.WithMessage("Lỗi khi enqueue InstallProfile").WithError(err)
+	}
+
+	// 4. Trigger APNs push
 	_, _ = s.mdmService.Push(ctx, []string{deviceID})
 
 	return nil
