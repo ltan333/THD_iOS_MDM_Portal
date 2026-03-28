@@ -6,6 +6,8 @@ import (
 	"encoding/json"
 	"strings"
 
+	"go.uber.org/zap"
+
 	"github.com/thienel/go-backend-template/internal/domain/repository"
 	"github.com/thienel/go-backend-template/internal/ent"
 	"github.com/thienel/go-backend-template/internal/ent/device"
@@ -15,7 +17,6 @@ import (
 	"github.com/thienel/go-backend-template/pkg/event"
 	"github.com/thienel/go-backend-template/pkg/query"
 	"github.com/thienel/tlog"
-	"go.uber.org/zap"
 )
 
 type deviceServiceImpl struct {
@@ -314,11 +315,17 @@ func (s *deviceServiceImpl) handleTokenUpdate(ctx context.Context, udid, sn, mod
 		if err == nil {
 			return nil
 		}
+		if !ent.IsNotFound(err) {
+			return err
+		}
 	}
 
 	err := s.repo.UpdateTokenEnrolledByUDID(ctx, udid, sn, model, osVer)
 	if err == nil {
 		return nil
+	}
+	if !ent.IsNotFound(err) {
+		return err
 	}
 
 	return s.repo.CreateEnrolledDevice(ctx, udid, sn, model, osVer)
@@ -338,6 +345,9 @@ func (s *deviceServiceImpl) handleAcknowledge(ctx context.Context, payload *dto.
 	}
 
 	udid, _ := ack["udid"].(string)
+	if udid == "" {
+		udid, _ = ack["UDID"].(string)
+	}
 	if udid == "" {
 		udid = stringFromCheckin(payload, "udid")
 	}

@@ -398,7 +398,15 @@ func (r *deviceRepositoryImpl) CreateEnrolledDevice(ctx context.Context, udid st
 		create = create.SetOsVersion(osVer)
 	}
 	_, err := create.Save(ctx)
-	return err
+	if err != nil && ent.IsConstraintError(err) {
+		// A parallel webhook thread created the record in the same nanosecond window.
+		// The device now exists in a safe, valid state — treat this as a non-error.
+		return nil
+	}
+	if err != nil {
+		return apperror.ErrInternalServerError.WithMessage("Lỗi khi tạo thiết bị mới từ enrollment").WithError(err)
+	}
+	return nil
 }
 
 func (r *deviceRepositoryImpl) UpdateCheckOut(ctx context.Context, udid string) error {
