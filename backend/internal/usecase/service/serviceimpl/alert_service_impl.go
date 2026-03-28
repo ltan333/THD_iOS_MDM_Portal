@@ -10,15 +10,20 @@ import (
 	"github.com/thienel/go-backend-template/internal/interface/api/dto"
 	"github.com/thienel/go-backend-template/internal/usecase/service"
 	apperror "github.com/thienel/go-backend-template/pkg/error"
+	"github.com/thienel/go-backend-template/pkg/mdmcmd"
 	"github.com/thienel/go-backend-template/pkg/query"
 )
 
 type alertServiceImpl struct {
-	repo repository.AlertRepository
+	repo       repository.AlertRepository
+	mdmService service.NanoMDMService
 }
 
-func NewAlertService(repo repository.AlertRepository) service.AlertService {
-	return &alertServiceImpl{repo: repo}
+func NewAlertService(repo repository.AlertRepository, mdmService service.NanoMDMService) service.AlertService {
+	return &alertServiceImpl{
+		repo:       repo,
+		mdmService: mdmService,
+	}
 }
 
 func (s *alertServiceImpl) List(ctx context.Context, offset, limit int, opts query.QueryOptions) ([]*ent.Alert, int64, error) {
@@ -76,7 +81,20 @@ func (s *alertServiceImpl) LockDevice(ctx context.Context, alertID uint) error {
 	if a.DeviceID == "" {
 		return apperror.ErrBadRequest.WithMessage("Alert không có device liên quan")
 	}
-	// In real implementation, this would call MDM to lock device
+
+	builder := mdmcmd.NewBuilder("com.thd.mdm")
+	cmdData, _, err := builder.DeviceLock(&mdmcmd.DeviceLockOptions{
+		Message: "This device has been locked by THD MDM IT Security.",
+	})
+	if err != nil {
+		return apperror.ErrInternalServerError.WithMessage("Failed to build DeviceLock profile").WithError(err)
+	}
+
+	if _, err := s.mdmService.EnqueueCommand(ctx, a.DeviceID, cmdData); err != nil {
+		return apperror.ErrInternalServerError.WithMessage("Failed to enqueue lock command").WithError(err)
+	}
+	_, _ = s.mdmService.Push(ctx, []string{a.DeviceID})
+
 	return nil
 }
 
@@ -88,7 +106,18 @@ func (s *alertServiceImpl) WipeDevice(ctx context.Context, alertID uint) error {
 	if a.DeviceID == "" {
 		return apperror.ErrBadRequest.WithMessage("Alert không có device liên quan")
 	}
-	// In real implementation, this would call MDM to wipe device
+
+	builder := mdmcmd.NewBuilder("com.thd.mdm")
+	cmdData, _, err := builder.EraseDevice(&mdmcmd.EraseDeviceOptions{})
+	if err != nil {
+		return apperror.ErrInternalServerError.WithMessage("Failed to build EraseDevice profile").WithError(err)
+	}
+
+	if _, err := s.mdmService.EnqueueCommand(ctx, a.DeviceID, cmdData); err != nil {
+		return apperror.ErrInternalServerError.WithMessage("Failed to enqueue wipe command").WithError(err)
+	}
+	_, _ = s.mdmService.Push(ctx, []string{a.DeviceID})
+
 	return nil
 }
 

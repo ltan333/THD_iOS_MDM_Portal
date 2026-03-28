@@ -154,9 +154,12 @@ func (r *alertRepositoryImpl) BulkUpdateStatus(ctx context.Context, ids []uint, 
 		update.SetResolvedAt(now)
 	}
 
-	_, err := update.Save(ctx)
+	affected, err := update.Save(ctx)
 	if err != nil {
 		return apperror.ErrInternalServerError.WithMessage("Lỗi khi bulk update alert").WithError(err)
+	}
+	if affected != len(ids) {
+		return apperror.ErrNotFound.WithMessage("Chỉ cập nhật được một phần (một số alert ID không tồn tại)")
 	}
 	return nil
 }
