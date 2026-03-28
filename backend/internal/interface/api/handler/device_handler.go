@@ -172,7 +172,10 @@ func (h *deviceHandlerImpl) Lock(c *gin.Context) {
 	}
 
 	var req dto.DeviceLockRequest
-	_ = c.ShouldBindJSON(&req)
+	if err := c.ShouldBindJSON(&req); err != nil && err.Error() != "EOF" {
+		response.WriteErrorResponse(c, apperror.ErrBadRequest.WithMessage("Invalid JSON payload").WithError(err))
+		return
+	}
 
 	opts := &mdmcmd.DeviceLockOptions{
 		PIN:         req.PIN,
@@ -222,7 +225,10 @@ func (h *deviceHandlerImpl) Wipe(c *gin.Context) {
 	}
 
 	var req dto.DeviceWipeRequest
-	_ = c.ShouldBindJSON(&req)
+	if err := c.ShouldBindJSON(&req); err != nil && err.Error() != "EOF" {
+		response.WriteErrorResponse(c, apperror.ErrBadRequest.WithMessage("Invalid JSON payload").WithError(err))
+		return
+	}
 
 	opts := &mdmcmd.EraseDeviceOptions{
 		PIN:                    req.PIN,
@@ -273,7 +279,10 @@ func (h *deviceHandlerImpl) Restart(c *gin.Context) {
 	}
 
 	var req dto.DeviceRestartRequest
-	_ = c.ShouldBindJSON(&req)
+	if err := c.ShouldBindJSON(&req); err != nil && err.Error() != "EOF" {
+		response.WriteErrorResponse(c, apperror.ErrBadRequest.WithMessage("Invalid JSON payload").WithError(err))
+		return
+	}
 
 	opts := &mdmcmd.RestartDeviceOptions{
 		NotifyUser: req.NotifyUser,
@@ -454,7 +463,10 @@ func (h *deviceHandlerImpl) RequestInfo(c *gin.Context) {
 	}
 
 	var req dto.DeviceInfoRequest
-	_ = c.ShouldBindJSON(&req)
+	if err := c.ShouldBindJSON(&req); err != nil && err.Error() != "EOF" {
+		response.WriteErrorResponse(c, apperror.ErrBadRequest.WithMessage("Invalid JSON payload").WithError(err))
+		return
+	}
 
 	queries := req.Queries
 	if len(queries) == 0 {
