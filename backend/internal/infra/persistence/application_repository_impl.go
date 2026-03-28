@@ -104,6 +104,9 @@ func (r *applicationRepositoryImpl) Create(ctx context.Context, entity *ent.Appl
 
 	app, err := create.Save(ctx)
 	if err != nil {
+		if ent.IsConstraintError(err) {
+			return nil, apperror.ErrConflict.WithMessage("Bundle ID đã tồn tại trong hệ thống")
+		}
 		return nil, apperror.ErrInternalServerError.WithMessage("Lỗi khi tạo ứng dụng").WithError(err)
 	}
 
@@ -252,4 +255,32 @@ func (r *applicationRepositoryImpl) AppVersionExists(ctx context.Context, id uin
 		return false, apperror.ErrInternalServerError.WithMessage("Lỗi khi kiểm tra phiên bản ứng dụng").WithError(err)
 	}
 	return exists, nil
+}
+
+func (r *applicationRepositoryImpl) GetVersionByID(ctx context.Context, id uint) (*ent.AppVersion, error) {
+	version, err := r.client.AppVersion.Query().
+		Where(appversion.IDEQ(id)).
+		WithApplication().
+		First(ctx)
+	if ent.IsNotFound(err) {
+		return nil, apperror.ErrNotFound.WithMessage("Không tìm thấy phiên bản ứng dụng")
+	}
+	if err != nil {
+		return nil, apperror.ErrInternalServerError.WithMessage("Lỗi khi truy xuất phiên bản ứng dụng").WithError(err)
+	}
+	return version, nil
+}
+
+func (r *applicationRepositoryImpl) UpdateDeploymentStatus(ctx context.Context, id uint, status string, errorMessage string) error {
+	update := r.client.AppDeployment.UpdateOneID(id).
+		SetStatus(appdeployment.Status(status))
+	
+	if errorMessage != "" {
+		update = update.SetErrorMessage(errorMessage)
+	}
+	
+	if err := update.Exec(ctx); err != nil {
+		return apperror.ErrInternalServerError.WithMessage("Lỗi khi cập nhật trạng thái triển khai").WithError(err)
+	}
+	return nil
 }

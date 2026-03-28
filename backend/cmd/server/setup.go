@@ -88,7 +88,7 @@ func setupDependencies(cfg *config.Config) *gin.Engine {
 	// that subscribe to the bus, eliminating the circular dependency.
 	deviceService := serviceimpl.NewDeviceService(deviceRepo, eventBus)
 
-	applicationService := serviceimpl.NewApplicationService(appRepo)
+	applicationService := serviceimpl.NewApplicationService(appRepo, nanomdmService)
 	alertService := serviceimpl.NewAlertService(alertRepo)
 	alertRuleService := serviceimpl.NewAlertRuleService(alertRuleRepo)
 	reportService := serviceimpl.NewReportService(reportRepo)
