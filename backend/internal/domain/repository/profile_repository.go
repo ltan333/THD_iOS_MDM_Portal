@@ -29,4 +29,5 @@ type ProfileRepository interface {
 	// Deployment Status
 	GetDeploymentStatus(ctx context.Context, profileID uint) ([]*ent.ProfileDeploymentStatus, error)
 	GetProfilesByDevice(ctx context.Context, deviceID string) ([]*ent.Profile, error)
+	GetFlattenedDeviceUDIDsByProfile(ctx context.Context, profileID uint) ([]string, error)
 }

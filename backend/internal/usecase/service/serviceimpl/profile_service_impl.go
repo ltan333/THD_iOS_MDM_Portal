@@ -199,16 +199,12 @@ func (s *profileServiceImpl) Repush(ctx context.Context, profileID uint) error {
 		return apperror.ErrInternalServerError.WithMessage("Lỗi khi build InstallProfile command").WithError(err)
 	}
 
-	assignments, err := s.repo.ListAssignments(ctx, profileID)
+	udids, err := s.repo.GetFlattenedDeviceUDIDsByProfile(ctx, profileID)
 	if err != nil {
-		return err
+		return apperror.ErrInternalServerError.WithMessage("Lỗi khi fetch device IDs").WithError(err)
 	}
 
-	for _, as := range assignments {
-		if as.DeviceID == nil {
-			continue
-		}
-		udid := *as.DeviceID
+	for _, udid := range udids {
 		if _, err := s.mdmService.EnqueueCommand(ctx, udid, cmdData); err != nil {
 			tlog.Error("Failed to enqueue InstallProfile", zap.String("udid", udid), zap.Error(err))
 			continue

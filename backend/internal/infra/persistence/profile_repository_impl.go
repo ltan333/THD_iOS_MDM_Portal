@@ -99,16 +99,8 @@ func (r *profileRepositoryImpl) GetByID(ctx context.Context, id uint) (*ent.Prof
 }
 
 func (r *profileRepositoryImpl) Create(ctx context.Context, entity *ent.Profile, deviceGroupIDs []uint) (*ent.Profile, error) {
-	exists, err := r.client.Profile.Query().Where(profile.NameEQ(entity.Name)).Exist(ctx)
-	if err != nil {
-		return nil, apperror.ErrInternalServerError.WithMessage("Lỗi khi kiểm tra tên profile").WithError(err)
-	}
-	if exists {
-		return nil, apperror.ErrConflict.WithMessage("Tên profile đã tồn tại")
-	}
-
 	var p *ent.Profile
-	err = database.WithTx(ctx, func(tx *ent.Tx) error {
+	err := database.WithTx(ctx, func(tx *ent.Tx) error {
 		create := tx.Profile.Create().
 			SetName(entity.Name).
 			SetStatus(entity.Status).
@@ -146,6 +138,9 @@ func (r *profileRepositoryImpl) Create(ctx context.Context, entity *ent.Profile,
 		var createErr error
 		p, createErr = create.Save(ctx)
 		if createErr != nil {
+			if ent.IsConstraintError(createErr) {
+				return apperror.ErrConflict.WithMessage("Tên profile đã tồn tại")
+			}
 			return apperror.ErrInternalServerError.WithMessage("Lỗi khi tạo profile").WithError(createErr)
 		}
 		return nil
@@ -155,20 +150,6 @@ func (r *profileRepositoryImpl) Create(ctx context.Context, entity *ent.Profile,
 }
 
 func (r *profileRepositoryImpl) Update(ctx context.Context, id uint, entity *ent.Profile, deviceGroupIDs []uint) (*ent.Profile, error) {
-	if entity.Name != "" {
-		exists, err := r.client.Profile.Query().
-			Where(
-				profile.NameEQ(entity.Name),
-				profile.IDNEQ(id),
-			).Exist(ctx)
-		if err != nil {
-			return nil, apperror.ErrInternalServerError.WithMessage("Lỗi kiểm tra tên profile").WithError(err)
-		}
-		if exists {
-			return nil, apperror.ErrConflict.WithMessage("Tên profile đã tồn tại")
-		}
-	}
-
 	var p *ent.Profile
 	err := database.WithTx(ctx, func(tx *ent.Tx) error {
 		update := tx.Profile.UpdateOneID(id)
@@ -210,6 +191,9 @@ func (r *profileRepositoryImpl) Update(ctx context.Context, id uint, entity *ent
 
 		var updateErr error
 		p, updateErr = update.Save(ctx)
+		if ent.IsConstraintError(updateErr) {
+			return apperror.ErrConflict.WithMessage("Tên profile đã tồn tại")
+		}
 		if ent.IsNotFound(updateErr) {
 			return apperror.ErrNotFound.WithMessage("Profile không tồn tại")
 		}
@@ -326,28 +310,51 @@ func (r *profileRepositoryImpl) Rollback(ctx context.Context, profileID uint, ve
 
 	update := r.client.Profile.UpdateOneID(profileID)
 
-	if ss, ok := version.Data["security_settings"].(map[string]any); ok {
+	if ss, ok := version.Data["security_settings"].(map[string]any); ok && ss != nil {
 		update = update.SetSecuritySettings(ss)
+	} else {
+		update = update.ClearSecuritySettings()
 	}
-	if nc, ok := version.Data["network_config"].(map[string]any); ok {
+
+	if nc, ok := version.Data["network_config"].(map[string]any); ok && nc != nil {
 		update = update.SetNetworkConfig(nc)
+	} else {
+		update = update.ClearNetworkConfig()
 	}
-	if res, ok := version.Data["restrictions"].(map[string]any); ok {
+
+	if res, ok := version.Data["restrictions"].(map[string]any); ok && res != nil {
 		update = update.SetRestrictions(res)
+	} else {
+		update = update.ClearRestrictions()
 	}
-	if cf, ok := version.Data["content_filter"].(map[string]any); ok {
+
+	if cf, ok := version.Data["content_filter"].(map[string]any); ok && cf != nil {
 		update = update.SetContentFilter(cf)
+	} else {
+		update = update.ClearContentFilter()
 	}
-	if cr, ok := version.Data["compliance_rules"].(map[string]any); ok {
+
+	if cr, ok := version.Data["compliance_rules"].(map[string]any); ok && cr != nil {
 		update = update.SetComplianceRules(cr)
+	} else {
+		update = update.ClearComplianceRules()
 	}
-	if pl, ok := version.Data["payloads"].(map[string]any); ok {
+
+	if pl, ok := version.Data["payloads"].(map[string]any); ok && pl != nil {
 		update = update.SetPayloads(pl)
+	} else {
+		update = update.ClearPayloads()
 	}
+
 	if name, ok := version.Data["name"].(string); ok && name != "" {
 		update = update.SetName(name)
 	}
 
+	// Because we roll back, we must ensure Version decrements or matches the snapshot ID
+	if v_id, ok := version.Data["version"].(float64); ok {
+		update = update.SetVersion(int(v_id))
+	}
+	
 	_, err = update.Save(ctx)
 	if err != nil {
 		return apperror.ErrInternalServerError.WithMessage("Lỗi khi rollback").WithError(err)
@@ -385,3 +392,64 @@ func (r *profileRepositoryImpl) GetProfilesByDevice(ctx context.Context, deviceI
 	return profiles, nil
 }
 
+func (r *profileRepositoryImpl) GetFlattenedDeviceUDIDsByProfile(ctx context.Context, profileID uint) ([]string, error) {
+	// Directly assigned devices:
+	directAssignments, err := r.client.ProfileAssignment.Query().
+		Where(
+			profileassignment.ProfileIDEQ(profileID),
+			profileassignment.DeviceIDNotNil(),
+		).All(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	var udids []string
+	for _, a := range directAssignments {
+		if a.DeviceID != nil {
+			udids = append(udids, *a.DeviceID)
+		}
+	}
+
+    // Group assigned devices
+	groupAssignments, err := r.client.ProfileAssignment.Query().
+		Where(
+			profileassignment.ProfileIDEQ(profileID),
+			profileassignment.GroupIDNotNil(),
+		).All(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+    if len(groupAssignments) > 0 {
+		var groupIDs []uint
+		for _, a := range groupAssignments {
+			if a.GroupID != nil {
+				groupIDs = append(groupIDs, *a.GroupID)
+			}
+		}
+
+		groupDeviceUDIDs, err := r.client.Device.Query().
+			Where(
+				device.HasGroupsWith(devicegroup.IDIn(groupIDs...)),
+			).
+			Select(device.FieldUdid).
+			Strings(ctx)
+		if err != nil {
+			return nil, err
+		}
+
+		udids = append(udids, groupDeviceUDIDs...)
+    }
+
+	// deduplicate
+	unique := make(map[string]bool)
+	var final []string
+	for _, u := range udids {
+		if !unique[u] {
+			unique[u] = true
+			final = append(final, u)
+		}
+	}
+
+	return final, nil
+}
