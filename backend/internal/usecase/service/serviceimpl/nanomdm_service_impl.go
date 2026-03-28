@@ -70,7 +70,10 @@ func (s *nanomdmServiceImpl) doRequest(ctx context.Context, method, baseURL, pat
 	req.SetBasicAuth(username, password)
 	req.Header.Set("User-Agent", "MDM-Portal/1.0")
 	if body != nil {
-		if _, ok := body.([]byte); !ok {
+		if _, ok := body.([]byte); ok {
+			// Raw plist commands sent to NanoMDM /v1/enqueue must be text/plain per spec
+			req.Header.Set("Content-Type", "text/plain")
+		} else {
 			req.Header.Set("Content-Type", "application/json")
 		}
 	} else if method == http.MethodPost || method == http.MethodPut {
