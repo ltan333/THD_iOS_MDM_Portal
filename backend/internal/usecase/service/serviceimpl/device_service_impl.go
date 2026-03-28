@@ -292,9 +292,9 @@ func (s *deviceServiceImpl) HandleWebhook(ctx context.Context, payload *dto.Nano
 		return s.repo.UpdateCheckOut(ctx, udid)
 
 	// ------------------------------------------------------------------ //
-	// mdm.Acknowledge — device responded to a command                     //
+	// mdm.Connect — device responded to a command (Acknowledge)           //
 	// ------------------------------------------------------------------ //
-	case "mdm.Acknowledge":
+	case "mdm.Connect":
 		s.handleAcknowledge(ctx, payload)
 		return nil
 	}
