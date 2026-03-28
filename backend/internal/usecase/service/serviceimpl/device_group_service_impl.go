@@ -46,19 +46,21 @@ func (s *deviceGroupServiceImpl) Update(ctx context.Context, cmd service.UpdateD
 		return nil, apperror.ErrValidation.WithMessage("ID nhóm thiết bị là bắt buộc")
 	}
 
-	name := ""
-	if cmd.Name != nil {
-		name = *cmd.Name
-	}
-	desc := ""
-	if cmd.Description != nil {
-		desc = *cmd.Description
+	// Fetch existing state to resolve partial pointers
+	existing, err := s.repo.GetByID(ctx, cmd.ID)
+	if err != nil {
+		return nil, err
 	}
 
-	return s.repo.Update(ctx, cmd.ID, &ent.DeviceGroup{
-		Name:        name,
-		Description: desc,
-	})
+	if cmd.Name != nil {
+		existing.Name = *cmd.Name
+	}
+	// If the user passes "", it safely overlays and executes the clear action.
+	if cmd.Description != nil {
+		existing.Description = *cmd.Description
+	}
+
+	return s.repo.Update(ctx, cmd.ID, existing)
 }
 
 func (s *deviceGroupServiceImpl) Delete(ctx context.Context, id uint) error {
