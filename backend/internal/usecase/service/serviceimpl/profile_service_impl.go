@@ -133,28 +133,72 @@ func (s *profileServiceImpl) UpdateStatus(ctx context.Context, id uint, status s
 	return s.repo.UpdateStatus(ctx, id, status)
 }
 
+// snapshotAndIncrement fetches the current profile state and saves a version snapshot
+// before any granular mutator overwrites it. Ensures every field-level update is reversible.
+func (s *profileServiceImpl) snapshotAndIncrement(ctx context.Context, id uint) (*ent.Profile, error) {
+	old, err := s.repo.GetByID(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	snapshotData := map[string]any{
+		"name":              old.Name,
+		"platform":          string(old.Platform),
+		"scope":             string(old.Scope),
+		"security_settings": old.SecuritySettings,
+		"network_config":    old.NetworkConfig,
+		"restrictions":      old.Restrictions,
+		"content_filter":    old.ContentFilter,
+		"compliance_rules":  old.ComplianceRules,
+		"payloads":          old.Payloads,
+	}
+	if err = s.repo.SaveVersion(ctx, old.ID, old.Version, snapshotData, "Cập nhật qua Granular Mutator"); err != nil {
+		return nil, err
+	}
+	return old, nil
+}
+
 func (s *profileServiceImpl) UpdateSecuritySettings(ctx context.Context, id uint, settings map[string]any) error {
-	_, err := s.repo.Update(ctx, id, &ent.Profile{SecuritySettings: settings}, nil)
+	old, err := s.snapshotAndIncrement(ctx, id)
+	if err != nil {
+		return err
+	}
+	_, err = s.repo.Update(ctx, id, &ent.Profile{SecuritySettings: settings, Version: old.Version + 1}, nil)
 	return err
 }
 
 func (s *profileServiceImpl) UpdateNetworkConfig(ctx context.Context, id uint, config map[string]any) error {
-	_, err := s.repo.Update(ctx, id, &ent.Profile{NetworkConfig: config}, nil)
+	old, err := s.snapshotAndIncrement(ctx, id)
+	if err != nil {
+		return err
+	}
+	_, err = s.repo.Update(ctx, id, &ent.Profile{NetworkConfig: config, Version: old.Version + 1}, nil)
 	return err
 }
 
 func (s *profileServiceImpl) UpdateRestrictions(ctx context.Context, id uint, restrictions map[string]any) error {
-	_, err := s.repo.Update(ctx, id, &ent.Profile{Restrictions: restrictions}, nil)
+	old, err := s.snapshotAndIncrement(ctx, id)
+	if err != nil {
+		return err
+	}
+	_, err = s.repo.Update(ctx, id, &ent.Profile{Restrictions: restrictions, Version: old.Version + 1}, nil)
 	return err
 }
 
 func (s *profileServiceImpl) UpdateContentFilter(ctx context.Context, id uint, filter map[string]any) error {
-	_, err := s.repo.Update(ctx, id, &ent.Profile{ContentFilter: filter}, nil)
+	old, err := s.snapshotAndIncrement(ctx, id)
+	if err != nil {
+		return err
+	}
+	_, err = s.repo.Update(ctx, id, &ent.Profile{ContentFilter: filter, Version: old.Version + 1}, nil)
 	return err
 }
 
 func (s *profileServiceImpl) UpdateComplianceRules(ctx context.Context, id uint, rules map[string]any) error {
-	_, err := s.repo.Update(ctx, id, &ent.Profile{ComplianceRules: rules}, nil)
+	old, err := s.snapshotAndIncrement(ctx, id)
+	if err != nil {
+		return err
+	}
+	_, err = s.repo.Update(ctx, id, &ent.Profile{ComplianceRules: rules, Version: old.Version + 1}, nil)
 	return err
 }
 

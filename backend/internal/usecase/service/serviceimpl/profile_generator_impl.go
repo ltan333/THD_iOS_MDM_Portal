@@ -82,6 +82,10 @@ func (g *profileGeneratorImpl) createPayload(payloadType string, settings map[st
 
 	// Merge settings into payload
 	for k, v := range settings {
+		// Prevent API payloads from maliciously hijacking Apple MDM structural integrity keys
+		if k == "PayloadType" || k == "PayloadUUID" || k == "PayloadIdentifier" || k == "PayloadOrganization" || k == "PayloadVersion" || k == "PayloadDisplayName" {
+			continue
+		}
 		payload[k] = v
 	}
 
