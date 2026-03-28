@@ -284,3 +284,11 @@ func (r *applicationRepositoryImpl) UpdateDeploymentStatus(ctx context.Context, 
 	}
 	return nil
 }
+
+func (r *applicationRepositoryImpl) CountDeployments(ctx context.Context) (int, error) {
+	count, err := r.client.AppDeployment.Query().Count(ctx)
+	if err != nil {
+		return 0, apperror.ErrInternalServerError.WithMessage("Lỗi khi đếm số lượng triển khai").WithError(err)
+	}
+	return count, nil
+}

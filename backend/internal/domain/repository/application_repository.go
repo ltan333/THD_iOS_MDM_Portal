@@ -27,4 +27,5 @@ type ApplicationRepository interface {
 	AppVersionExists(ctx context.Context, id uint) (bool, error)
 	GetVersionByID(ctx context.Context, id uint) (*ent.AppVersion, error)
 	UpdateDeploymentStatus(ctx context.Context, id uint, status string, errorMessage string) error
+	CountDeployments(ctx context.Context) (int, error)
 }
