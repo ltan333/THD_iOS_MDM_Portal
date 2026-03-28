@@ -3,54 +3,41 @@ package serviceimpl
 import (
 	"context"
 
-	"github.com/thienel/go-backend-template/internal/ent"
-	"github.com/thienel/go-backend-template/internal/ent/device"
-	"github.com/thienel/go-backend-template/internal/ent/user"
+	"github.com/thienel/go-backend-template/internal/domain/repository"
 	"github.com/thienel/go-backend-template/internal/interface/api/dto"
 	"github.com/thienel/go-backend-template/internal/usecase/service"
 	apperror "github.com/thienel/go-backend-template/pkg/error"
 )
 
 type dashboardServiceImpl struct {
-	client *ent.Client
+	repo repository.DashboardRepository
 }
 
-func NewDashboardService(client *ent.Client) service.DashboardService {
-	return &dashboardServiceImpl{client: client}
+func NewDashboardService(repo repository.DashboardRepository) service.DashboardService {
+	return &dashboardServiceImpl{repo: repo}
 }
 
 func (s *dashboardServiceImpl) GetStats(ctx context.Context) (*dto.DashboardStatsResponse, error) {
-	// Count total devices
-	totalDevices, err := s.client.Device.Query().Count(ctx)
+	totalDevices, err := s.repo.CountDevices(ctx)
 	if err != nil {
 		return nil, apperror.ErrInternalServerError.WithMessage("Lỗi khi đếm thiết bị").WithError(err)
 	}
 
-	// Count active devices (enrolled)
-	activeDevices, err := s.client.Device.Query().
-		Where(device.IsEnrolledEQ(true)).
-		Count(ctx)
+	activeDevices, err := s.repo.CountEnrolledDevices(ctx)
 	if err != nil {
 		return nil, apperror.ErrInternalServerError.WithMessage("Lỗi khi đếm thiết bị hoạt động").WithError(err)
 	}
 
-	// Count total users
-	totalUsers, err := s.client.User.Query().
-		Where(user.DeletedAtIsNil()).
-		Count(ctx)
+	totalUsers, err := s.repo.CountUsers(ctx)
 	if err != nil {
 		return nil, apperror.ErrInternalServerError.WithMessage("Lỗi khi đếm người dùng").WithError(err)
 	}
 
-	// Count active users
-	activeUsers, err := s.client.User.Query().
-		Where(user.DeletedAtIsNil(), user.StatusEQ("ACTIVE")).
-		Count(ctx)
+	activeUsers, err := s.repo.CountActiveUsers(ctx)
 	if err != nil {
 		return nil, apperror.ErrInternalServerError.WithMessage("Lỗi khi đếm người dùng hoạt động").WithError(err)
 	}
 
-	// Compliance rate calculation (placeholder - will be updated when compliance entities exist)
 	complianceRate := 0
 	nonCompliantRate := 0
 	if totalDevices > 0 {
@@ -73,39 +60,27 @@ func (s *dashboardServiceImpl) GetStats(ctx context.Context) (*dto.DashboardStat
 }
 
 func (s *dashboardServiceImpl) GetDeviceStats(ctx context.Context) (*dto.DeviceStatsResponse, error) {
-	// Count total devices
-	total, err := s.client.Device.Query().Count(ctx)
+	total, err := s.repo.CountDevices(ctx)
 	if err != nil {
 		return nil, apperror.ErrInternalServerError.WithMessage("Lỗi khi đếm thiết bị").WithError(err)
 	}
 
-	// Count enrolled devices
-	enrolled, err := s.client.Device.Query().
-		Where(device.IsEnrolledEQ(true)).
-		Count(ctx)
+	enrolled, err := s.repo.CountEnrolledDevices(ctx)
 	if err != nil {
 		return nil, apperror.ErrInternalServerError.WithMessage("Lỗi khi đếm thiết bị đã đăng ký").WithError(err)
 	}
 
-	// Initialize platform counts
 	byPlatform := map[string]int64{
 		"ios":     0,
 		"android": 0,
 		"windows": 0,
 		"macos":   0,
 	}
-	var platformStats []struct {
-		Platform string `json:"platform"`
-		Count    int    `json:"count"`
-	}
-	if err := s.client.Device.Query().
-		GroupBy(device.FieldPlatform).
-		Aggregate(ent.Count()).
-		Scan(ctx, &platformStats); err == nil {
-		for _, stat := range platformStats {
-			if stat.Platform != "" {
-				byPlatform[stat.Platform] = int64(stat.Count)
-			}
+	
+	platformStats, err := s.repo.GetDevicePlatformCounts(ctx)
+	if err == nil {
+		for platform, count := range platformStats {
+			byPlatform[platform] = int64(count)
 		}
 	}
 
@@ -165,8 +140,8 @@ func (s *dashboardServiceImpl) GetChartData(ctx context.Context, chartType strin
 }
 
 func (s *dashboardServiceImpl) getDevicesChartData(ctx context.Context) (*dto.ChartDataResponse, error) {
-	total, _ := s.client.Device.Query().Count(ctx)
-	enrolled, _ := s.client.Device.Query().Where(device.IsEnrolledEQ(true)).Count(ctx)
+	total, _ := s.repo.CountDevices(ctx)
+	enrolled, _ := s.repo.CountEnrolledDevices(ctx)
 	notEnrolled := total - enrolled
 
 	return &dto.ChartDataResponse{
