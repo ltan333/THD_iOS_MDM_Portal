@@ -56,7 +56,7 @@ func (s *reportServiceImpl) ExportDevicesCSV(ctx context.Context, opts query.Que
 			enrolledStr,
 			d.MACAddress,
 			d.IPAddress,
-			d.CreatedAt.Format("2006-01-02 15:04:05"),
+			d.CreatedAt.UTC().Format("2006-01-02 15:04:05"),
 		}
 		if err := w.Write(record); err != nil {
 			return nil, apperror.ErrInternalServerError.WithMessage("Lỗi khi ghi dữ liệu dòng CSV").WithError(err)
@@ -89,7 +89,7 @@ func (s *reportServiceImpl) ExportAlertsCSV(ctx context.Context, opts query.Quer
 	for _, a := range alerts {
 		resolvedAt := ""
 		if a.ResolvedAt != nil {
-			resolvedAt = a.ResolvedAt.Format("2006-01-02 15:04:05")
+			resolvedAt = a.ResolvedAt.UTC().Format("2006-01-02 15:04:05")
 		}
 		
 		record := []string{
@@ -99,7 +99,7 @@ func (s *reportServiceImpl) ExportAlertsCSV(ctx context.Context, opts query.Quer
 			string(a.Type),
 			string(a.Status),
 			a.DeviceID,
-			a.CreatedAt.Format("2006-01-02 15:04:05"),
+			a.CreatedAt.UTC().Format("2006-01-02 15:04:05"),
 			resolvedAt,
 		}
 		if err := w.Write(record); err != nil {
@@ -137,7 +137,7 @@ func (s *reportServiceImpl) ExportApplicationsCSV(ctx context.Context, opts quer
 			a.BundleID,
 			string(a.Platform),
 			string(a.Type),
-			a.CreatedAt.Format("2006-01-02 15:04:05"),
+			a.CreatedAt.UTC().Format("2006-01-02 15:04:05"),
 		}
 		if err := w.Write(record); err != nil {
 			return nil, apperror.ErrInternalServerError.WithMessage("Lỗi khi ghi dữ liệu dòng CSV").WithError(err)

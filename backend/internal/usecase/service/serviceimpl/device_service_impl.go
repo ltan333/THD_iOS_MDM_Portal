@@ -391,8 +391,27 @@ func stringFromCheckin(payload *dto.NanoCMDWebhook, key string) string {
 	if payload.Checkin_event == nil {
 		return ""
 	}
-	v, _ := payload.Checkin_event[key].(string)
-	return v
+
+	// 1. Try exact match (snake_case if nanoMDM ever converts them)
+	if v, ok := payload.Checkin_event[key].(string); ok && v != "" {
+		return v
+	}
+
+	// 2. Fallback to Apple's Raw Plist Keys (PascalCase)
+	appleKeys := map[string]string{
+		"udid":          "UDID",
+		"serial_number": "SerialNumber",
+		"model":         "Model",
+		"os_version":    "OSVersion",
+	}
+
+	if appleKey, exists := appleKeys[key]; exists {
+		if v, ok := payload.Checkin_event[appleKey].(string); ok && v != "" {
+			return v
+		}
+	}
+
+	return ""
 }
 
 func nilIfEmpty(s string) *string {

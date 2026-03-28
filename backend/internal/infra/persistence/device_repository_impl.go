@@ -309,21 +309,23 @@ func (r *deviceRepositoryImpl) GetAll(ctx context.Context) ([]*ent.Device, error
 }
 
 func (r *deviceRepositoryImpl) EnsureMinimalByUDID(ctx context.Context, udid string, sn string) error {
-	exists, _ := r.client.Device.Query().Where(device.UdidEQ(udid)).Exist(ctx)
-	if !exists {
-		create := r.client.Device.Create().
-			SetID(uuid.NewString()).
-			SetUdid(udid).
-			SetStatus(device.StatusPending).
-			SetIsEnrolled(false)
-		
-		if sn != "" {
-			create = create.SetSerialNumber(sn)
-		}
-		
-		return create.Exec(ctx)
+	create := r.client.Device.Create().
+		SetID(uuid.NewString()).
+		SetUdid(udid).
+		SetStatus(device.StatusPending).
+		SetIsEnrolled(false)
+
+	if sn != "" {
+		create = create.SetSerialNumber(sn)
 	}
-	return nil
+
+	err := create.Exec(ctx)
+	// If a concurrent thread created the device just 1ms before us, 
+	// ignore the constraint error. The device is safely there.
+	if err != nil && ent.IsConstraintError(err) {
+		return nil
+	}
+	return err
 }
 
 func (r *deviceRepositoryImpl) UpdateTokenEnrolledBySN(ctx context.Context, udid string, sn string, model string, osVer string) error {
@@ -400,27 +402,18 @@ func (r *deviceRepositoryImpl) CreateEnrolledDevice(ctx context.Context, udid st
 }
 
 func (r *deviceRepositoryImpl) UpdateCheckOut(ctx context.Context, udid string) error {
-	d, err := r.client.Device.Query().Where(device.UdidEQ(udid)).Only(ctx)
-	if err != nil {
-		return nil // Device not found in portal — no-op
-	}
-	return r.client.Device.UpdateOneID(d.ID).
+	_, err := r.client.Device.Update().
+		Where(device.UdidEQ(udid)).
 		SetIsEnrolled(false).
 		SetStatus(device.StatusInactive).
-		Exec(ctx)
+		Save(ctx)
+	return err
 }
 
 func (r *deviceRepositoryImpl) ApplyDeviceInformation(ctx context.Context, udid string, qr map[string]any) error {
-	d, err := r.client.Device.Query().Where(device.UdidEQ(udid)).Only(ctx)
-	if ent.IsNotFound(err) {
-		return nil
-	}
-	if err != nil {
-		tlog.Error("applyDeviceInformation: device lookup failed", zap.String("udid", udid), zap.Error(err))
-		return err
-	}
-
-	updater := r.client.Device.UpdateOneID(d.ID).SetLastSeen(time.Now())
+	updater := r.client.Device.Update().
+		Where(device.UdidEQ(udid)).
+		SetLastSeen(time.Now())
 
 	if v, ok := qr["OSVersion"].(string); ok && v != "" {
 		updater = updater.SetOsVersion(v)
@@ -437,16 +430,20 @@ func (r *deviceRepositoryImpl) ApplyDeviceInformation(ctx context.Context, udid 
 	if v, ok := qr["BatteryLevel"].(float64); ok {
 		updater = updater.SetBatteryLevel(v * 100)
 	}
+
+	const bytesInGB = 1024 * 1024 * 1024
+
 	if v, ok := qr["DeviceCapacity"].(float64); ok {
-		updater = updater.SetStorageCapacity(uint64(v * 1024 * 1024))
+		updater = updater.SetStorageCapacity(uint64(v * float64(bytesInGB)))
 	}
 	if avail, ok := qr["AvailableDeviceCapacity"].(float64); ok {
 		if cap, ok := qr["DeviceCapacity"].(float64); ok && cap > 0 {
-			updater = updater.SetStorageUsed(uint64((cap - avail) * 1024 * 1024))
+			updater = updater.SetStorageUsed(uint64((cap - avail) * float64(bytesInGB)))
 		}
 	}
 
-	if _, err := updater.Save(ctx); err != nil {
+	_, err := updater.Save(ctx)
+	if err != nil {
 		tlog.Error("Failed to apply DeviceInformation", zap.String("udid", udid), zap.Error(err))
 		return err
 	}
