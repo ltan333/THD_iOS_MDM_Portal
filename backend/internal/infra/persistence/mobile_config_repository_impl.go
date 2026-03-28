@@ -10,6 +10,7 @@ import (
 	"github.com/thienel/go-backend-template/internal/ent/payloadproperty"
 	"github.com/thienel/go-backend-template/internal/ent/payloadpropertydefinition"
 	apperror "github.com/thienel/go-backend-template/pkg/error"
+	"github.com/thienel/go-backend-template/pkg/query"
 )
 
 type mobileConfigRepositoryImpl struct {
@@ -220,7 +221,61 @@ func (m *mobileConfigRepositoryImpl) GetFullForExport(ctx context.Context, id ui
 		}).
 		First(ctx)
 }
+func (m *mobileConfigRepositoryImpl) List(ctx context.Context, offset, limit int, opts query.QueryOptions) ([]*ent.MobileConfig, int64, error) {
+	q := m.client.MobileConfig.Query()
 
+	// Apply search filter
+	if searchFilter, ok := opts.Filters["search"]; ok {
+		searchValue := searchFilter.Value.(string)
+		q = q.Where(mobileconfig.Or(
+			mobileconfig.NameContainsFold(searchValue),
+			mobileconfig.PayloadTypeContainsFold(searchValue),
+			mobileconfig.PayloadDisplayNameContainsFold(searchValue),
+			mobileconfig.PayloadIdentifierContainsFold(searchValue),
+		))
+	}
+
+	// Apply other filters
+	if nameFilter, ok := opts.Filters["name"]; ok {
+		nameValue := nameFilter.Value.(string)
+		q = q.Where(mobileconfig.NameEQ(nameValue))
+	}
+	if payloadTypeFilter, ok := opts.Filters["payload_type"]; ok {
+		payloadTypeValue := payloadTypeFilter.Value.(string)
+		q = q.Where(mobileconfig.PayloadTypeEQ(payloadTypeValue))
+	}
+	if payloadDisplayNameFilter, ok := opts.Filters["payload_display_name"]; ok {
+		payloadDisplayNameValue := payloadDisplayNameFilter.Value.(string)
+		q = q.Where(mobileconfig.PayloadDisplayNameEQ(payloadDisplayNameValue))
+	}
+
+	// Get total count before pagination
+	total, err := q.Count(ctx)
+	if err != nil {
+		return nil, 0, apperror.ErrInternalServerError.WithMessage("Failed to count mobile configs").WithError(err)
+	}
+
+	// Apply sorting with default
+	if len(opts.Sort) > 0 {
+		for _, sort := range opts.Sort {
+			if sort.Desc {
+				q = q.Order(ent.Desc(sort.Field))
+			} else {
+				q = q.Order(ent.Asc(sort.Field))
+			}
+		}
+	} else {
+		q = q.Order(ent.Desc(mobileconfig.FieldCreatedAt))
+	}
+
+	// Apply pagination
+	items, err := q.Offset(offset).Limit(limit).All(ctx)
+	if err != nil {
+		return nil, 0, apperror.ErrInternalServerError.WithMessage("Failed to list mobile configs").WithError(err)
+	}
+
+	return items, int64(total), nil
+}
 func (m *mobileConfigRepositoryImpl) Update(ctx context.Context, id uint, entity *ent.MobileConfig, payloads []*ent.Payload) (*ent.MobileConfig, error) {
 	if entity == nil {
 		return nil, apperror.ErrBadRequest.WithMessage("MobileConfig is required")

@@ -23,6 +23,8 @@ func setupDependencies(cfg *config.Config) *gin.Engine {
 	client := database.GetClient()
 	userRepo := persistence.NewUserRepository(client)
 	depProfileRepo := persistence.NewDepProfileRepository(client)
+	mobileConfigRepo := persistence.NewMobileConfigRepository(client)
+	payloadPropertyDefinitionRepo := persistence.NewPayloadPropertyDefinitionRepository(client)
 
 	// Casbin Enforcer
 	enforcer, err := authorization.NewEnforcer(cfg.Casbin.ModelPath, database.GetDB())
@@ -49,6 +51,8 @@ func setupDependencies(cfg *config.Config) *gin.Engine {
 		cfg.NanoMDM.DEPPassword,
 	)
 	depProfileService := serviceimpl.NewDepProfileService(depProfileRepo, nanomdmService)
+	mobileConfigService := serviceimpl.NewMobileConfigService(mobileConfigRepo)
+	payloadPropertyDefinitionService := serviceimpl.NewPayloadPropertyDefinitionService(payloadPropertyDefinitionRepo)
 
 	// Middleware
 	origins := strings.Join(cfg.CORSAllowedOrigins, ",")
@@ -61,7 +65,9 @@ func setupDependencies(cfg *config.Config) *gin.Engine {
 	mdmHandler := handler.NewMDMHandler(client, nanomdmService)
 	depHandler := handler.NewDEPHandler(client, authzService, nanomdmService, depProfileService)
 	nanocmdHandler := handler.NewNanoCMDHandler(nanocmdService)
+	mobileConfigHandler := handler.NewMobileConfigHandler(mobileConfigService)
+	payloadPropertyDefinitionHandler := handler.NewPayloadPropertyDefinitionHandler(payloadPropertyDefinitionService)
 
 	// Build router
-	return router.SetupRouter(authHandler, userHandler, policyHandler, mdmHandler, depHandler, nanocmdHandler, mw)
+	return router.SetupRouter(authHandler, userHandler, policyHandler, mdmHandler, depHandler, nanocmdHandler, mobileConfigHandler, payloadPropertyDefinitionHandler, mw)
 }

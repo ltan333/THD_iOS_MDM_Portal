@@ -11,10 +11,12 @@ import (
 	"github.com/thienel/go-backend-template/internal/interface/api/dto"
 	"github.com/thienel/go-backend-template/internal/usecase/service"
 	apperror "github.com/thienel/go-backend-template/pkg/error"
+	"github.com/thienel/go-backend-template/pkg/query"
 	"github.com/thienel/go-backend-template/pkg/response"
 )
 
 type MobileConfigHandler interface {
+	List(c *gin.Context)
 	Create(c *gin.Context)
 	Update(c *gin.Context)
 	Delete(c *gin.Context)
@@ -27,6 +29,69 @@ type mobileConfigHandlerImpl struct {
 
 func NewMobileConfigHandler(mobileConfigService service.MobileConfigService) MobileConfigHandler {
 	return &mobileConfigHandlerImpl{mobileConfigService: mobileConfigService}
+}
+
+var mobileConfigAllowedFields = map[string]bool{
+	"id":                         true,
+	"name":                       true,
+	"payload_type":               true,
+	"payload_display_name":       true,
+	"payload_identifier":         true,
+	"payload_removal_disallowed": true,
+	"created_at":                 true,
+	"updated_at":                 true,
+	"search":                     true,
+}
+
+// List godoc
+// @Summary List mobile configs
+// @Description Get a paginated list of mobile configs with filtering and sorting
+// @Tags Mobile Config
+// @Produce json
+// @Param page query int false "Page number (default 1)"
+// @Param limit query int false "Items per page (default 20)"
+// @Param search query string false "Search by name, payload_type, payload_display_name, payload_identifier"
+// @Param name query string false "Filter by name"
+// @Param payload_type query string false "Filter by payload_type"
+// @Param payload_display_name query string false "Filter by payload_display_name"
+// @Param sort query string false "Sort by field (id,name,payload_type,created_at)"
+// @Success 200 {object} response.APIResponse[dto.ListResponse[dto.MobileConfigResponse]]
+// @Failure 400 {object} response.APIResponse[any]
+// @Failure 401 {object} response.APIResponse[any]
+// @Security BearerAuth
+// @Router /v1/mobile-configs [get]
+func (m *mobileConfigHandlerImpl) List(c *gin.Context) {
+	params := make(map[string]string)
+	for key, values := range c.Request.URL.Query() {
+		if len(values) > 0 {
+			params[key] = values[0]
+		}
+	}
+
+	offset, limit := query.GetPagination(params, 20)
+	opts := query.ParseQueryParams(params, mobileConfigAllowedFields)
+
+	items, total, err := m.mobileConfigService.List(c.Request.Context(), offset, limit, opts)
+	if err != nil {
+		response.WriteErrorResponse(c, err)
+		return
+	}
+
+	responses := make([]dto.MobileConfigResponse, len(items))
+	for i, item := range items {
+		responses[i] = toMobileConfigResponse(item)
+	}
+
+	page := (offset / limit) + 1
+	totalPages := int((total + int64(limit) - 1) / int64(limit))
+
+	response.OK(c, dto.ListResponse[dto.MobileConfigResponse]{
+		Items:      responses,
+		Total:      total,
+		Page:       page,
+		Limit:      limit,
+		TotalPages: totalPages,
+	}, "")
 }
 
 // Create godoc
@@ -43,7 +108,7 @@ func NewMobileConfigHandler(mobileConfigService service.MobileConfigService) Mob
 // @Failure 403 {object} APIErrorResponse
 // @Failure 409 {object} APIErrorResponse
 // @Failure 500 {object} APIErrorResponse
-// @Router /api/mobile-configs [post]
+// @Router /v1/mobile-configs [post]
 func (m *mobileConfigHandlerImpl) Create(c *gin.Context) {
 	var req dto.CreateMobileConfigRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -120,7 +185,7 @@ func (m *mobileConfigHandlerImpl) Create(c *gin.Context) {
 // @Failure 404 {object} APIErrorResponse
 // @Failure 409 {object} APIErrorResponse
 // @Failure 500 {object} APIErrorResponse
-// @Router /api/mobile-configs/{id} [put]
+// @Router /v1/mobile-configs/{id} [put]
 func (m *mobileConfigHandlerImpl) Update(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
 	if err != nil {
@@ -177,7 +242,7 @@ func (m *mobileConfigHandlerImpl) Update(c *gin.Context) {
 // @Failure 403 {object} APIErrorResponse
 // @Failure 404 {object} APIErrorResponse
 // @Failure 500 {object} APIErrorResponse
-// @Router /api/mobile-configs/{id} [delete]
+// @Router /v1/mobile-configs/{id} [delete]
 func (m *mobileConfigHandlerImpl) Delete(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
 	if err != nil {
@@ -320,7 +385,7 @@ func validateCreateMobileConfigRequest(req dto.CreateMobileConfigRequest) []resp
 // @Failure 400 {object} APIErrorResponse
 // @Failure 404 {object} APIErrorResponse
 // @Failure 500 {object} APIErrorResponse
-// @Router /api/mobile-configs/{id}/xml [get]
+// @Router /v1/mobile-configs/{id}/xml [get]
 func (m *mobileConfigHandlerImpl) GetXML(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
 	if err != nil {
