@@ -38,7 +38,15 @@ func setupDependencies(cfg *config.Config) *gin.Engine {
 	nanoRepo := persistence.NewNanoRepository(database.GetDB()) // read-only: nano server tables
 	_ = nanoRepo                                                  // injected into services as needed
 
-
+	dashboardRepo := persistence.NewDashboardRepository(client)
+	deviceGroupRepo := persistence.NewDeviceGroupRepository(client)
+	alertRepo := persistence.NewAlertRepository(client)
+	alertRuleRepo := persistence.NewAlertRuleRepository(client)
+	reportRepo := persistence.NewReportRepository(client)
+	settingRepo := persistence.NewSettingRepository(client)
+	appRepo := persistence.NewApplicationRepository(client)
+	deviceRepo := persistence.NewDeviceRepository(client)
+	profileRepo := persistence.NewProfileRepository(client)
 	// Casbin Enforcer
 	enforcer, err := authorization.NewEnforcer(cfg.Casbin.ModelPath, database.GetDB())
 	if err != nil {
@@ -70,21 +78,21 @@ func setupDependencies(cfg *config.Config) *gin.Engine {
 		cfg.NanoMDM.DEPPassword,
 	)
 	mobileConfigService := serviceimpl.NewMobileConfigService(mobileConfigRepo)
-	dashboardService := serviceimpl.NewDashboardService(client)
-	deviceGroupService := serviceimpl.NewDeviceGroupService(client)
+	dashboardService := serviceimpl.NewDashboardService(dashboardRepo)
+	deviceGroupService := serviceimpl.NewDeviceGroupService(deviceGroupRepo)
 	profileGenerator := serviceimpl.NewProfileGenerator("THD MDM", "com.thd.mdm")
-	profileService := serviceimpl.NewProfileService(client, profileGenerator, nanomdmService)
+	profileService := serviceimpl.NewProfileService(profileRepo, profileGenerator, nanomdmService)
 
 	// DeviceService now receives the event bus instead of profileService.
 	// Profile deployment and inventory sync are handled by background workers
 	// that subscribe to the bus, eliminating the circular dependency.
-	deviceService := serviceimpl.NewDeviceService(client, eventBus)
+	deviceService := serviceimpl.NewDeviceService(deviceRepo, eventBus)
 
-	applicationService := serviceimpl.NewApplicationService(client)
-	alertService := serviceimpl.NewAlertService(client)
-	alertRuleService := serviceimpl.NewAlertRuleService(client)
-	reportService := serviceimpl.NewReportService(client)
-	settingService := serviceimpl.NewSettingService(client)
+	applicationService := serviceimpl.NewApplicationService(appRepo)
+	alertService := serviceimpl.NewAlertService(alertRepo)
+	alertRuleService := serviceimpl.NewAlertRuleService(alertRuleRepo)
+	reportService := serviceimpl.NewReportService(reportRepo)
+	settingService := serviceimpl.NewSettingService(settingRepo)
 
 	// MDM Command Builder
 	cmdBuilder := mdmcmd.NewBuilder("com.thd.mdm")

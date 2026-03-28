@@ -6,41 +6,22 @@ import (
 	"encoding/csv"
 	"fmt"
 
-	"github.com/thienel/go-backend-template/internal/ent"
-	"github.com/thienel/go-backend-template/internal/ent/alert"
-	"github.com/thienel/go-backend-template/internal/ent/application"
-	"github.com/thienel/go-backend-template/internal/ent/device"
+	"github.com/thienel/go-backend-template/internal/domain/repository"
 	"github.com/thienel/go-backend-template/internal/usecase/service"
 	apperror "github.com/thienel/go-backend-template/pkg/error"
 	"github.com/thienel/go-backend-template/pkg/query"
 )
 
 type reportServiceImpl struct {
-	client *ent.Client
+	repo repository.ReportRepository
 }
 
-func NewReportService(client *ent.Client) service.ReportService {
-	return &reportServiceImpl{client: client}
+func NewReportService(repo repository.ReportRepository) service.ReportService {
+	return &reportServiceImpl{repo: repo}
 }
 
 func (s *reportServiceImpl) ExportDevicesCSV(ctx context.Context, opts query.QueryOptions) ([]byte, error) {
-	q := s.client.Device.Query()
-
-	// Apply search
-	if searchFilter, ok := opts.Filters["search"]; ok {
-		searchStr, _ := searchFilter.Value.(string)
-		if searchStr != "" {
-			q = q.Where(
-				device.Or(
-					device.NameContainsFold(searchStr),
-					device.SerialNumberContainsFold(searchStr),
-					device.ModelContainsFold(searchStr),
-				),
-			)
-		}
-	}
-
-	devices, err := q.Order(ent.Desc(device.FieldCreatedAt)).All(ctx)
+	devices, err := s.repo.GetDevicesForExport(ctx, opts)
 	if err != nil {
 		return nil, apperror.ErrInternalServerError.WithMessage("Lỗi khi truy xuất dữ liệu thiết bị").WithError(err)
 	}
@@ -91,16 +72,7 @@ func (s *reportServiceImpl) ExportDevicesCSV(ctx context.Context, opts query.Que
 }
 
 func (s *reportServiceImpl) ExportAlertsCSV(ctx context.Context, opts query.QueryOptions) ([]byte, error) {
-	q := s.client.Alert.Query()
-
-	if searchFilter, ok := opts.Filters["search"]; ok {
-		searchStr, _ := searchFilter.Value.(string)
-		if searchStr != "" {
-			q = q.Where(alert.TitleContainsFold(searchStr))
-		}
-	}
-
-	alerts, err := q.Order(ent.Desc(alert.FieldCreatedAt)).All(ctx)
+	alerts, err := s.repo.GetAlertsForExport(ctx, opts)
 	if err != nil {
 		return nil, apperror.ErrInternalServerError.WithMessage("Lỗi khi truy xuất dữ liệu cảnh báo").WithError(err)
 	}
@@ -144,21 +116,7 @@ func (s *reportServiceImpl) ExportAlertsCSV(ctx context.Context, opts query.Quer
 }
 
 func (s *reportServiceImpl) ExportApplicationsCSV(ctx context.Context, opts query.QueryOptions) ([]byte, error) {
-	q := s.client.Application.Query()
-
-	if searchFilter, ok := opts.Filters["search"]; ok {
-		searchStr, _ := searchFilter.Value.(string)
-		if searchStr != "" {
-			q = q.Where(
-				application.Or(
-					application.NameContainsFold(searchStr),
-					application.BundleIDContainsFold(searchStr),
-				),
-			)
-		}
-	}
-
-	apps, err := q.Order(ent.Desc(application.FieldCreatedAt)).All(ctx)
+	apps, err := s.repo.GetApplicationsForExport(ctx, opts)
 	if err != nil {
 		return nil, apperror.ErrInternalServerError.WithMessage("Lỗi khi truy xuất dữ liệu ứng dụng").WithError(err)
 	}
