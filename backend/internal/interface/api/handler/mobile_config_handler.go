@@ -444,8 +444,9 @@ func (m *mobileConfigHandlerImpl) GetXML(c *gin.Context) {
 		return
 	}
 
-	// Return raw XML
-	c.Data(http.StatusOK, "text/xml; charset=utf-8", xmlBytes)
+	// Return raw mobileconfig file with correct Apple MIME type for OTA installation
+	c.Header("Content-Disposition", "attachment; filename=profile.mobileconfig")
+	c.Data(http.StatusOK, "application/x-apple-aspen-config", xmlBytes)
 }
 
 func toMobileConfigResponse(mc *ent.MobileConfig) dto.MobileConfigResponse {

@@ -239,6 +239,9 @@ func (m *mobileConfigRepositoryImpl) Create(ctx context.Context, entity *ent.Mob
 			SetPayloadRemovalDisallowed(entity.PayloadRemovalDisallowed).
 			Save(ctx)
 		if txErr != nil {
+			if ent.IsConstraintError(txErr) {
+				return apperror.ErrConflict.WithMessage("Tên hoặc PayloadIdentifier đã tồn tại")
+			}
 			return apperror.ErrInternalServerError.WithMessage("Failed to create MobileConfig").WithError(txErr)
 		}
 
@@ -309,11 +312,12 @@ func (m *mobileConfigRepositoryImpl) Create(ctx context.Context, entity *ent.Mob
 
 func (m *mobileConfigRepositoryImpl) GetFullForExport(ctx context.Context, id uint) (*ent.MobileConfig, error) {
 	return m.client.MobileConfig.Query().
-		Where(mobileconfig.IDEQ(id)).
+		Where(mobileconfig.IDEQ(id), mobileconfig.DeletedAtIsNil()).
 		WithPayloads(func(q *ent.PayloadQuery) {
-			q.WithProperties(func(pq *ent.PayloadPropertyQuery) {
-				pq.WithDefinition()
-			})
+			q.Where(payload.DeletedAtIsNil()).
+				WithProperties(func(pq *ent.PayloadPropertyQuery) {
+					pq.Where(payloadproperty.DeletedAtIsNil()).WithDefinition()
+				})
 		}).
 		First(ctx)
 }
@@ -338,6 +342,9 @@ func (m *mobileConfigRepositoryImpl) Update(ctx context.Context, id uint, entity
 			Save(ctx)
 		if ent.IsNotFound(txErr) {
 			return apperror.ErrNotFound.WithMessage("MobileConfig không tồn tại")
+		}
+		if ent.IsConstraintError(txErr) {
+			return apperror.ErrConflict.WithMessage("Tên hoặc PayloadIdentifier đã tồn tại")
 		}
 		if txErr != nil {
 			return apperror.ErrInternalServerError.WithMessage("Failed to update MobileConfig").WithError(txErr)
