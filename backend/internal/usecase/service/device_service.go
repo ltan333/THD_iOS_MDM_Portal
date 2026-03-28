@@ -48,6 +48,10 @@ type UpdateDeviceCommand struct {
 type DeviceService interface {
 	List(ctx context.Context, offset, limit int, opts query.QueryOptions) ([]*ent.Device, int64, error)
 	GetByID(ctx context.Context, id string) (*ent.Device, error)
+	// GetUDID resolves a portal device ID to the device's MDM enrollment UDID.
+	// Returns the UDID string so callers can pass it to nanoMDM APIs.
+	// Returns an error if the device is not enrolled (UDID is nil).
+	GetUDID(ctx context.Context, id string) (string, error)
 	Create(ctx context.Context, cmd CreateDeviceCommand) (*ent.Device, error)
 	Update(ctx context.Context, cmd UpdateDeviceCommand) (*ent.Device, error)
 	Delete(ctx context.Context, id string) error

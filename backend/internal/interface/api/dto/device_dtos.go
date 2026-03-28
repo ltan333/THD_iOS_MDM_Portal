@@ -27,6 +27,8 @@ type UpdateDeviceRequest struct {
 
 type DeviceResponse struct {
 	ID               string     `json:"id"`
+	// UDID is the Apple MDM enrollment identifier. Empty for DEP devices not yet enrolled.
+	UDID             string     `json:"udid,omitempty"`
 	SerialNumber     string     `json:"serial_number"`
 	Model            string     `json:"model"`
 	Name             string     `json:"name"`
