@@ -4,6 +4,7 @@ package ent
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"sync"
@@ -13147,7 +13148,8 @@ type PayloadPropertyMutation struct {
 	op                Op
 	typ               string
 	id                *uint
-	value_json        *map[string]interface{}
+	value_json        *json.RawMessage
+	appendvalue_json  json.RawMessage
 	created_at        *time.Time
 	updated_at        *time.Time
 	deleted_at        *time.Time
@@ -13266,12 +13268,13 @@ func (m *PayloadPropertyMutation) IDs(ctx context.Context) ([]uint, error) {
 }
 
 // SetValueJSON sets the "value_json" field.
-func (m *PayloadPropertyMutation) SetValueJSON(value map[string]interface{}) {
-	m.value_json = &value
+func (m *PayloadPropertyMutation) SetValueJSON(jm json.RawMessage) {
+	m.value_json = &jm
+	m.appendvalue_json = nil
 }
 
 // ValueJSON returns the value of the "value_json" field in the mutation.
-func (m *PayloadPropertyMutation) ValueJSON() (r map[string]interface{}, exists bool) {
+func (m *PayloadPropertyMutation) ValueJSON() (r json.RawMessage, exists bool) {
 	v := m.value_json
 	if v == nil {
 		return
@@ -13282,7 +13285,7 @@ func (m *PayloadPropertyMutation) ValueJSON() (r map[string]interface{}, exists 
 // OldValueJSON returns the old "value_json" field's value of the PayloadProperty entity.
 // If the PayloadProperty object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *PayloadPropertyMutation) OldValueJSON(ctx context.Context) (v map[string]interface{}, err error) {
+func (m *PayloadPropertyMutation) OldValueJSON(ctx context.Context) (v json.RawMessage, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldValueJSON is only allowed on UpdateOne operations")
 	}
@@ -13296,9 +13299,23 @@ func (m *PayloadPropertyMutation) OldValueJSON(ctx context.Context) (v map[strin
 	return oldValue.ValueJSON, nil
 }
 
+// AppendValueJSON adds jm to the "value_json" field.
+func (m *PayloadPropertyMutation) AppendValueJSON(jm json.RawMessage) {
+	m.appendvalue_json = append(m.appendvalue_json, jm...)
+}
+
+// AppendedValueJSON returns the list of values that were appended to the "value_json" field in this mutation.
+func (m *PayloadPropertyMutation) AppendedValueJSON() (json.RawMessage, bool) {
+	if len(m.appendvalue_json) == 0 {
+		return nil, false
+	}
+	return m.appendvalue_json, true
+}
+
 // ClearValueJSON clears the value of the "value_json" field.
 func (m *PayloadPropertyMutation) ClearValueJSON() {
 	m.value_json = nil
+	m.appendvalue_json = nil
 	m.clearedFields[payloadproperty.FieldValueJSON] = struct{}{}
 }
 
@@ -13311,6 +13328,7 @@ func (m *PayloadPropertyMutation) ValueJSONCleared() bool {
 // ResetValueJSON resets all changes to the "value_json" field.
 func (m *PayloadPropertyMutation) ResetValueJSON() {
 	m.value_json = nil
+	m.appendvalue_json = nil
 	delete(m.clearedFields, payloadproperty.FieldValueJSON)
 }
 
@@ -13603,7 +13621,7 @@ func (m *PayloadPropertyMutation) OldField(ctx context.Context, name string) (en
 func (m *PayloadPropertyMutation) SetField(name string, value ent.Value) error {
 	switch name {
 	case payloadproperty.FieldValueJSON:
-		v, ok := value.(map[string]interface{})
+		v, ok := value.(json.RawMessage)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}

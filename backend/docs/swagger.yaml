@@ -403,8 +403,15 @@ definitions:
       key:
         type: string
       value_json:
-        additionalProperties: true
-        type: object
+        oneOf:
+        - type: boolean
+        - type: string
+        - type: number
+        - type: integer
+        - type: object
+        - type: array
+          items: {}
+        - type: 'null'
     required:
     - key
     - value_json
@@ -886,8 +893,15 @@ definitions:
       key:
         type: string
       value_json:
-        additionalProperties: true
-        type: object
+        oneOf:
+        - type: boolean
+        - type: string
+        - type: number
+        - type: integer
+        - type: object
+        - type: array
+          items: {}
+        - type: 'null'
     type: object
   github_com_thienel_go-backend-template_internal_interface_api_dto.MobileConfigResponse:
     properties:

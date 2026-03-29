@@ -131,7 +131,7 @@ func (m *mobileConfigHandlerImpl) Create(c *gin.Context) {
 		for _, propReq := range payloadReq.Properties {
 			properties = append(properties, service.CreateMobileConfigPropertyCommand{
 				Key:       propReq.Key,
-				ValueJSON: propReq.ValueJSON,
+				ValueJSON: propReq.ValueJSON.Value(),
 			})
 		}
 
@@ -307,7 +307,7 @@ func toCreatePayloadCommands(payloadReqs []dto.UpdateMobileConfigPayloadRequest)
 		for _, propReq := range payloadReq.Properties {
 			properties = append(properties, service.CreateMobileConfigPropertyCommand{
 				Key:       propReq.Key,
-				ValueJSON: propReq.ValueJSON,
+				ValueJSON: propReq.ValueJSON.Value(),
 			})
 		}
 
@@ -366,7 +366,7 @@ func validateCreateMobileConfigRequest(req dto.CreateMobileConfigRequest) []resp
 			if strings.TrimSpace(propReq.Key) == "" {
 				fieldErrors = append(fieldErrors, response.FieldError{Field: "payloads[" + strconv.Itoa(i) + "].properties[" + strconv.Itoa(j) + "].key", Message: "Trường này là bắt buộc"})
 			}
-			if propReq.ValueJSON == nil {
+			if !propReq.ValueJSON.IsSet() {
 				fieldErrors = append(fieldErrors, response.FieldError{Field: "payloads[" + strconv.Itoa(i) + "].properties[" + strconv.Itoa(j) + "].value_json", Message: "Trường này là bắt buộc"})
 			}
 		}
@@ -417,7 +417,7 @@ func toMobileConfigResponse(mc *ent.MobileConfig) dto.MobileConfigResponse {
 			propertyResponses = append(propertyResponses, dto.MobileConfigPropertyResponse{
 				ID:        prop.ID,
 				Key:       key,
-				ValueJSON: prop.ValueJSON,
+				ValueJSON: toJSONValueResponse(prop.ValueJSON),
 			})
 		}
 
@@ -448,5 +448,14 @@ func toMobileConfigResponse(mc *ent.MobileConfig) dto.MobileConfigResponse {
 		Payloads:                 payloadResponses,
 		CreatedAt:                mc.CreatedAt,
 		UpdatedAt:                mc.UpdatedAt,
+	}
+}
+
+func toJSONValueResponse(value any) dto.JSONValue {
+	switch v := value.(type) {
+	case []byte:
+		return dto.NewJSONValueFromRaw(v)
+	default:
+		return dto.NewJSONValue(v)
 	}
 }
