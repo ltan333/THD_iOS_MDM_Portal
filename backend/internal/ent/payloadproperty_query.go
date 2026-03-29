@@ -335,7 +335,7 @@ func (_q *PayloadPropertyQuery) WithDefinition(opts ...func(*PayloadPropertyDefi
 // Example:
 //
 //	var v []struct {
-//		ValueJSON map[string]interface {} `json:"value_json,omitempty"`
+//		ValueJSON json.RawMessage `json:"value_json,omitempty"`
 //		Count int `json:"count,omitempty"`
 //	}
 //
@@ -358,7 +358,7 @@ func (_q *PayloadPropertyQuery) GroupBy(field string, fields ...string) *Payload
 // Example:
 //
 //	var v []struct {
-//		ValueJSON map[string]interface {} `json:"value_json,omitempty"`
+//		ValueJSON json.RawMessage `json:"value_json,omitempty"`
 //	}
 //
 //	client.PayloadProperty.Query().

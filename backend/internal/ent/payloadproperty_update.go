@@ -4,12 +4,14 @@ package ent
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"time"
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
+	"entgo.io/ent/dialect/sql/sqljson"
 	"entgo.io/ent/schema/field"
 	"github.com/thienel/go-backend-template/internal/ent/payload"
 	"github.com/thienel/go-backend-template/internal/ent/payloadproperty"
@@ -31,8 +33,14 @@ func (_u *PayloadPropertyUpdate) Where(ps ...predicate.PayloadProperty) *Payload
 }
 
 // SetValueJSON sets the "value_json" field.
-func (_u *PayloadPropertyUpdate) SetValueJSON(v map[string]interface{}) *PayloadPropertyUpdate {
+func (_u *PayloadPropertyUpdate) SetValueJSON(v json.RawMessage) *PayloadPropertyUpdate {
 	_u.mutation.SetValueJSON(v)
+	return _u
+}
+
+// AppendValueJSON appends value to the "value_json" field.
+func (_u *PayloadPropertyUpdate) AppendValueJSON(v json.RawMessage) *PayloadPropertyUpdate {
+	_u.mutation.AppendValueJSON(v)
 	return _u
 }
 
@@ -169,6 +177,11 @@ func (_u *PayloadPropertyUpdate) sqlSave(ctx context.Context) (_node int, err er
 	if value, ok := _u.mutation.ValueJSON(); ok {
 		_spec.SetField(payloadproperty.FieldValueJSON, field.TypeJSON, value)
 	}
+	if value, ok := _u.mutation.AppendedValueJSON(); ok {
+		_spec.AddModifier(func(u *sql.UpdateBuilder) {
+			sqljson.Append(u, payloadproperty.FieldValueJSON, value)
+		})
+	}
 	if _u.mutation.ValueJSONCleared() {
 		_spec.ClearField(payloadproperty.FieldValueJSON, field.TypeJSON)
 	}
@@ -260,8 +273,14 @@ type PayloadPropertyUpdateOne struct {
 }
 
 // SetValueJSON sets the "value_json" field.
-func (_u *PayloadPropertyUpdateOne) SetValueJSON(v map[string]interface{}) *PayloadPropertyUpdateOne {
+func (_u *PayloadPropertyUpdateOne) SetValueJSON(v json.RawMessage) *PayloadPropertyUpdateOne {
 	_u.mutation.SetValueJSON(v)
+	return _u
+}
+
+// AppendValueJSON appends value to the "value_json" field.
+func (_u *PayloadPropertyUpdateOne) AppendValueJSON(v json.RawMessage) *PayloadPropertyUpdateOne {
+	_u.mutation.AppendValueJSON(v)
 	return _u
 }
 
@@ -427,6 +446,11 @@ func (_u *PayloadPropertyUpdateOne) sqlSave(ctx context.Context) (_node *Payload
 	}
 	if value, ok := _u.mutation.ValueJSON(); ok {
 		_spec.SetField(payloadproperty.FieldValueJSON, field.TypeJSON, value)
+	}
+	if value, ok := _u.mutation.AppendedValueJSON(); ok {
+		_spec.AddModifier(func(u *sql.UpdateBuilder) {
+			sqljson.Append(u, payloadproperty.FieldValueJSON, value)
+		})
 	}
 	if _u.mutation.ValueJSONCleared() {
 		_spec.ClearField(payloadproperty.FieldValueJSON, field.TypeJSON)
