@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/gin-gonic/gin"
@@ -31,9 +32,22 @@ func (m *Middleware) Auth() gin.HandlerFunc {
 			return
 		}
 
+		// Check if token is blacklisted in Redis
+		key := fmt.Sprintf("blacklist:%s", token)
+		isBlacklisted, _ := m.redisService.Exists(c.Request.Context(), key)
+		if isBlacklisted {
+			response.WriteErrorResponse(c, apperror.ErrUnauthorized.WithMessage("Token đã bị thu hồi (logged out)"))
+			c.Abort()
+			return
+		}
+
 		c.Set(string(UserContextKey), claims)
 		c.Next()
 	}
+}
+
+func GetToken(c *gin.Context) string {
+	return getTokenFromHeader(c.GetHeader("Authorization"))
 }
 
 func getTokenFromHeader(authHeader string) string {

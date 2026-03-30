@@ -4,6 +4,8 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"os"
+	"strconv"
 	"sync"
 	"time"
 
@@ -46,9 +48,10 @@ func Init(cfg *config.DatabaseConfig) error {
 			return
 		}
 
-		db.SetMaxIdleConns(10)
-		db.SetMaxOpenConns(100)
-		db.SetConnMaxLifetime(time.Minute * 5)
+		db.SetMaxIdleConns(getEnvInt("DB_MAX_IDLE_CONNS", 5))
+		db.SetMaxOpenConns(getEnvInt("DB_MAX_OPEN_CONNS", 20))
+		db.SetConnMaxLifetime(time.Minute * time.Duration(getEnvInt("DB_CONN_MAX_LIFETIME_MINUTES", 3)))
+		db.SetConnMaxIdleTime(time.Minute * 2)
 
 		if err := db.Ping(); err != nil {
 			initErr = fmt.Errorf("failed pinging database: %w", err)
@@ -107,4 +110,15 @@ func WithTx(ctx context.Context, fn func(tx *ent.Tx) error) error {
 		return err
 	}
 	return tx.Commit()
+}
+
+// getEnvInt reads an integer from an environment variable,
+// returning defaultVal if the variable is absent or unparseable.
+func getEnvInt(key string, defaultVal int) int {
+	if v := os.Getenv(key); v != "" {
+		if n, err := strconv.Atoi(v); err == nil && n > 0 {
+			return n
+		}
+	}
+	return defaultVal
 }

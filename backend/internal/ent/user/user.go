@@ -33,10 +33,10 @@ const (
 	// Table holds the table name of the user in the database.
 	Table = "portal_users"
 	// DevicesTable is the table that holds the devices relation/edge.
-	DevicesTable = "devices"
+	DevicesTable = "portal_devices"
 	// DevicesInverseTable is the table name for the Device entity.
 	// It exists in this package in order to avoid circular dependency with the "device" package.
-	DevicesInverseTable = "devices"
+	DevicesInverseTable = "portal_devices"
 	// DevicesColumn is the table column denoting the devices relation/edge.
 	DevicesColumn = "owner_id"
 )

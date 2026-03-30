@@ -9,12 +9,10 @@ import (
 
 type NanoMDMService interface {
 	// DEP related (proxied or direct)
-	DefineDEPProfile(ctx context.Context, depName string, profile interface{}) (string, error)
-	GetDEPProfile(ctx context.Context, depName, profileUUID string) (interface{}, error)
-	SyncDEPDevices(ctx context.Context, depName string, cursor string) (interface{}, error)
-	DisownDEPDevices(ctx context.Context, depName string, devices []string) (interface{}, error)
-	UploadDEPToken(ctx context.Context, depName string, tokenData []byte) (interface{}, error)
-	ListDEPProfiles(ctx context.Context, depName string) (interface{}, error)
+	GetDEPProfile(ctx context.Context, depName, profileUUID string) (any, error)
+	SyncDEPDevices(ctx context.Context, depName string, cursor string) (any, error)
+	DisownDEPDevices(ctx context.Context, depName string, devices []string) (any, error)
+	UploadDEPToken(ctx context.Context, depName string, tokenData []byte) (any, error)
 
 	// New methods from apidog / NanoDEP spec
 	ListDEPNames(ctx context.Context, depNames []string, limit, offset int, cursor string) (*dto.DEPNamesQueryResponse, error)
@@ -23,8 +21,8 @@ type NanoMDMService interface {
 	SetDEPConfig(ctx context.Context, depName string, config *dto.DEPConfig) (*dto.DEPConfig, error)
 	GetDEPAssigner(ctx context.Context, depName string) (*dto.AssignerProfileUUID, error)
 	SetDEPAssigner(ctx context.Context, depName string, profileUUID string) (*dto.AssignerProfileUUID, error)
-	GetDEPAccount(ctx context.Context, depName string) (interface{}, error)
-	GetDEPDevices(ctx context.Context, depName string, devices []string, cursor string) (interface{}, error)
+	GetDEPAccount(ctx context.Context, depName string) (any, error)
+	GetDEPDevices(ctx context.Context, depName string, devices []string, cursor string) (any, error)
 	GetDEPTokens(ctx context.Context, depName string) (*dto.OAuth1Tokens, error)
 	UpdateDEPTokens(ctx context.Context, depName string, tokens *dto.OAuth1Tokens) (*dto.OAuth1Tokens, error)
 	GetDEPTokenPKI(ctx context.Context, depName string, cn string, validityDays int) ([]byte, string, error)

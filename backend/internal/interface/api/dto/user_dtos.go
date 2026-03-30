@@ -45,6 +45,11 @@ type LoginRequest struct {
 	Password string `json:"password" binding:"required"`
 }
 
+// TokenRefreshRequest represents token refresh request
+type TokenRefreshRequest struct {
+	RefreshToken string `json:"refresh_token" binding:"required"`
+}
+
 // LoginResponse represents login response
 type LoginResponse struct {
 	User         UserResponse `json:"user"`
