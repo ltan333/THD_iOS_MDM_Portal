@@ -27,6 +27,22 @@ func (m *mobileConfigServiceImpl) List(ctx context.Context, offset, limit int, o
 	return m.mobileConfigRepo.List(ctx, offset, limit, opts)
 }
 
+func (m *mobileConfigServiceImpl) GetByID(ctx context.Context, id uint) (*ent.MobileConfig, error) {
+	if id == 0 {
+		return nil, apperror.ErrValidation.WithMessage("id là bắt buộc")
+	}
+
+	mc, err := m.mobileConfigRepo.GetFullForExport(ctx, id)
+	if ent.IsNotFound(err) {
+		return nil, apperror.ErrNotFound.WithMessage("MobileConfig không tồn tại")
+	}
+	if err != nil {
+		return nil, apperror.ErrInternalServerError.WithMessage("Lỗi khi truy xuất MobileConfig").WithError(err)
+	}
+
+	return mc, nil
+}
+
 func (m *mobileConfigServiceImpl) Create(ctx context.Context, cmd service.CreateMobileConfigCommand) (*ent.MobileConfig, error) {
 	if err := validateCreateMobileConfigCommand(cmd); err != nil {
 		return nil, err
