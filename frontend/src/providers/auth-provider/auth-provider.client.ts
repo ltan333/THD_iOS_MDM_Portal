@@ -336,6 +336,10 @@ export const authProviderClient = {
 
     // Gọi API kiểm tra session - backend sẽ check session cookies tự động
     try {
+      if (process.env.NEXT_PUBLIC_MOCK_LOGIN_ENABLED === "true") {
+        return { authenticated: true };
+      }
+
       const response = await get<ResponseAPI<UserResponse>>(AUTH_CONFIG.ME_ENDPOINT);
 
       if (response.is_success && response.data) {

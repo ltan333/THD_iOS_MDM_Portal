@@ -1,6 +1,9 @@
 package router
 
 import (
+	"net/url"
+	"strings"
+
 	"github.com/gin-gonic/gin"
 	"github.com/thienel/tlog"
 
@@ -9,7 +12,7 @@ import (
 
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
-	_ "github.com/thienel/go-backend-template/docs"
+	docs "github.com/thienel/go-backend-template/docs"
 )
 
 type routeRegister struct {
@@ -18,6 +21,7 @@ type routeRegister struct {
 	policy       handler.PolicyHandler
 	nanocmd      handler.NanoCMDHandler // Keep for webhook only
 	mobileConfig handler.MobileConfigHandler
+	ppd          handler.PayloadPropertyDefinitionHandler
 	dashboard    handler.DashboardHandler
 	device       handler.DeviceHandler
 	deviceGroup  handler.DeviceGroupHandler
@@ -44,6 +48,7 @@ func SetupRouter(
 	alertHandler handler.AlertHandler,
 	reportHandler handler.ReportHandler,
 	settingHandler handler.SettingHandler,
+	payloadPropertyDefinitionHandler handler.PayloadPropertyDefinitionHandler,
 	mw *middleware.Middleware,
 ) *gin.Engine {
 
@@ -53,6 +58,7 @@ func SetupRouter(
 		policy:       policyHandler,
 		nanocmd:      nanocmdHandler,
 		mobileConfig: mobileConfigHandler,
+		ppd:          payloadPropertyDefinitionHandler,
 		dashboard:    dashboardHandler,
 		device:       deviceHandler,
 		deviceGroup:  deviceGroupHandler,
@@ -79,6 +85,8 @@ func SetupRouter(
 	v1 := api.Group("/v1")
 	{
 		routes.registerAuthRoutes(v1)
+		routes.registerMobileConfigRoutes(v1)
+		routes.registerPayloadPropertyDefinitionRoutes(v1)
 
 		// Protected V1 routes
 		protected := v1.Group("", mw.Auth(), mw.Authorize())
@@ -100,10 +108,73 @@ func SetupRouter(
 		v1.POST("/nanocmd/webhook", routes.nanocmd.Webhook)
 	}
 
-	// Swagger documentation - keep at root level for convenience
-	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+	// Swagger documentation
+	// Resolve host/scheme from the current request so Swagger works behind public tunnels.
+	swaggerHandler := ginSwagger.WrapHandler(swaggerFiles.Handler)
+	router.GET("/swagger/*any", func(c *gin.Context) {
+		resolvedHost, resolvedScheme := resolveSwaggerEndpoint(c)
+		docs.SwaggerInfo.Host = resolvedHost
+		docs.SwaggerInfo.Schemes = []string{resolvedScheme}
+
+		swaggerHandler(c)
+	})
 
 	return router
+}
+
+func resolveSwaggerEndpoint(c *gin.Context) (string, string) {
+	host := firstHeaderValue(c.GetHeader("X-Forwarded-Host"))
+	scheme := firstHeaderValue(c.GetHeader("X-Forwarded-Proto"))
+
+	if originHost, originScheme := parseHostScheme(c.GetHeader("Origin")); originHost != "" {
+		if host == "" {
+			host = originHost
+		}
+		if scheme == "" {
+			scheme = originScheme
+		}
+	}
+
+	if refHost, refScheme := parseHostScheme(c.GetHeader("Referer")); refHost != "" {
+		if host == "" {
+			host = refHost
+		}
+		if scheme == "" {
+			scheme = refScheme
+		}
+	}
+
+	if host == "" {
+		host = c.Request.Host
+	}
+
+	if scheme == "" {
+		scheme = "http"
+		if c.Request.TLS != nil {
+			scheme = "https"
+		}
+	}
+
+	return host, strings.ToLower(scheme)
+}
+
+func firstHeaderValue(value string) string {
+	if value == "" {
+		return ""
+	}
+	parts := strings.Split(value, ",")
+	return strings.TrimSpace(parts[0])
+}
+
+func parseHostScheme(raw string) (string, string) {
+	if raw == "" {
+		return "", ""
+	}
+	parsed, err := url.Parse(raw)
+	if err != nil {
+		return "", ""
+	}
+	return parsed.Host, parsed.Scheme
 }
 
 func (r *routeRegister) registerAuthRoutes(rg *gin.RouterGroup) {
@@ -252,7 +323,7 @@ func (r *routeRegister) registerApplicationRoutes(rg *gin.RouterGroup) {
 			versions.DELETE("/:versionId", r.application.DeleteVersion)
 			versions.GET("/:versionId/deployments", r.application.ListDeployments)
 		}
-		
+
 		apps.POST("/deployments", r.application.Deploy)
 	}
 }
@@ -264,7 +335,7 @@ func (r *routeRegister) registerAlertRoutes(rg *gin.RouterGroup) {
 		alerts.POST("", r.alert.Create)
 		alerts.GET("/stats", r.alert.GetStats) // Needs to be above /:id
 		alerts.GET("/:id", r.alert.GetByID)
-		
+
 		alerts.PUT("/:id/acknowledge", r.alert.Acknowledge)
 		alerts.PUT("/:id/resolve", r.alert.Resolve)
 		alerts.POST("/bulk-resolve", r.alert.BulkResolve)
@@ -306,5 +377,19 @@ func (r *routeRegister) registerSettingRoutes(rg *gin.RouterGroup) {
 		settings.GET("/:key", r.setting.GetByKey)
 		settings.PUT("/:key", r.setting.Update)
 		settings.DELETE("/:key", r.setting.Delete)
+	}
+}
+
+func (r *routeRegister) registerPayloadPropertyDefinitionRoutes(rg *gin.RouterGroup) {
+	definitions := rg.Group("/payload-property-definitions")
+	{
+		// definitions.GET("", r.ppd.List)
+		definitions.GET("/payload-types", r.ppd.ListPayloadTypes)
+		// definitions.GET("/:id", r.ppd.GetByID)
+		// definitions.POST("", r.ppd.Create)
+		// definitions.PUT("/:id", r.ppd.Update)
+		// definitions.DELETE("/:id", r.ppd.Delete)
+		definitions.POST("/import", r.ppd.Import)
+		definitions.GET("/schema", r.ppd.GetNestedSchema)
 	}
 }
