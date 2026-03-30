@@ -20,7 +20,15 @@ func (PayloadPropertyDefinition) Fields() []ent.Field {
 		field.String("value_type").NotEmpty(),
 		field.JSON("default_value", map[string]any{}).Optional(),
 		field.JSON("enum_values", []any{}).Optional(),
+		field.Bool("deprecated").Default(false),
 		field.String("description").Optional(),
+		field.String("nested_reference").Optional().Nillable(),
+		// v1.2: array element metadata
+		field.String("items_type").Optional().Nillable(),
+		field.String("items_reference").Optional().Nillable(),
+		// v1.2: hierarchy helpers
+		field.Bool("is_nested").Default(false),
+		field.Int("order_index").Default(0),
 		field.Time("created_at").Default(time.Now).Immutable(),
 		field.Time("updated_at").Default(time.Now).UpdateDefault(time.Now),
 		field.Time("deleted_at").Optional().Nillable(),

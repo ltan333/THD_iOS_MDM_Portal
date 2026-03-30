@@ -102,6 +102,20 @@ func (_u *PayloadPropertyDefinitionUpdate) ClearEnumValues() *PayloadPropertyDef
 	return _u
 }
 
+// SetDeprecated sets the "deprecated" field.
+func (_u *PayloadPropertyDefinitionUpdate) SetDeprecated(v bool) *PayloadPropertyDefinitionUpdate {
+	_u.mutation.SetDeprecated(v)
+	return _u
+}
+
+// SetNillableDeprecated sets the "deprecated" field if the given value is not nil.
+func (_u *PayloadPropertyDefinitionUpdate) SetNillableDeprecated(v *bool) *PayloadPropertyDefinitionUpdate {
+	if v != nil {
+		_u.SetDeprecated(*v)
+	}
+	return _u
+}
+
 // SetDescription sets the "description" field.
 func (_u *PayloadPropertyDefinitionUpdate) SetDescription(v string) *PayloadPropertyDefinitionUpdate {
 	_u.mutation.SetDescription(v)
@@ -119,6 +133,101 @@ func (_u *PayloadPropertyDefinitionUpdate) SetNillableDescription(v *string) *Pa
 // ClearDescription clears the value of the "description" field.
 func (_u *PayloadPropertyDefinitionUpdate) ClearDescription() *PayloadPropertyDefinitionUpdate {
 	_u.mutation.ClearDescription()
+	return _u
+}
+
+// SetNestedReference sets the "nested_reference" field.
+func (_u *PayloadPropertyDefinitionUpdate) SetNestedReference(v string) *PayloadPropertyDefinitionUpdate {
+	_u.mutation.SetNestedReference(v)
+	return _u
+}
+
+// SetNillableNestedReference sets the "nested_reference" field if the given value is not nil.
+func (_u *PayloadPropertyDefinitionUpdate) SetNillableNestedReference(v *string) *PayloadPropertyDefinitionUpdate {
+	if v != nil {
+		_u.SetNestedReference(*v)
+	}
+	return _u
+}
+
+// ClearNestedReference clears the value of the "nested_reference" field.
+func (_u *PayloadPropertyDefinitionUpdate) ClearNestedReference() *PayloadPropertyDefinitionUpdate {
+	_u.mutation.ClearNestedReference()
+	return _u
+}
+
+// SetItemsType sets the "items_type" field.
+func (_u *PayloadPropertyDefinitionUpdate) SetItemsType(v string) *PayloadPropertyDefinitionUpdate {
+	_u.mutation.SetItemsType(v)
+	return _u
+}
+
+// SetNillableItemsType sets the "items_type" field if the given value is not nil.
+func (_u *PayloadPropertyDefinitionUpdate) SetNillableItemsType(v *string) *PayloadPropertyDefinitionUpdate {
+	if v != nil {
+		_u.SetItemsType(*v)
+	}
+	return _u
+}
+
+// ClearItemsType clears the value of the "items_type" field.
+func (_u *PayloadPropertyDefinitionUpdate) ClearItemsType() *PayloadPropertyDefinitionUpdate {
+	_u.mutation.ClearItemsType()
+	return _u
+}
+
+// SetItemsReference sets the "items_reference" field.
+func (_u *PayloadPropertyDefinitionUpdate) SetItemsReference(v string) *PayloadPropertyDefinitionUpdate {
+	_u.mutation.SetItemsReference(v)
+	return _u
+}
+
+// SetNillableItemsReference sets the "items_reference" field if the given value is not nil.
+func (_u *PayloadPropertyDefinitionUpdate) SetNillableItemsReference(v *string) *PayloadPropertyDefinitionUpdate {
+	if v != nil {
+		_u.SetItemsReference(*v)
+	}
+	return _u
+}
+
+// ClearItemsReference clears the value of the "items_reference" field.
+func (_u *PayloadPropertyDefinitionUpdate) ClearItemsReference() *PayloadPropertyDefinitionUpdate {
+	_u.mutation.ClearItemsReference()
+	return _u
+}
+
+// SetIsNested sets the "is_nested" field.
+func (_u *PayloadPropertyDefinitionUpdate) SetIsNested(v bool) *PayloadPropertyDefinitionUpdate {
+	_u.mutation.SetIsNested(v)
+	return _u
+}
+
+// SetNillableIsNested sets the "is_nested" field if the given value is not nil.
+func (_u *PayloadPropertyDefinitionUpdate) SetNillableIsNested(v *bool) *PayloadPropertyDefinitionUpdate {
+	if v != nil {
+		_u.SetIsNested(*v)
+	}
+	return _u
+}
+
+// SetOrderIndex sets the "order_index" field.
+func (_u *PayloadPropertyDefinitionUpdate) SetOrderIndex(v int) *PayloadPropertyDefinitionUpdate {
+	_u.mutation.ResetOrderIndex()
+	_u.mutation.SetOrderIndex(v)
+	return _u
+}
+
+// SetNillableOrderIndex sets the "order_index" field if the given value is not nil.
+func (_u *PayloadPropertyDefinitionUpdate) SetNillableOrderIndex(v *int) *PayloadPropertyDefinitionUpdate {
+	if v != nil {
+		_u.SetOrderIndex(*v)
+	}
+	return _u
+}
+
+// AddOrderIndex adds value to the "order_index" field.
+func (_u *PayloadPropertyDefinitionUpdate) AddOrderIndex(v int) *PayloadPropertyDefinitionUpdate {
+	_u.mutation.AddOrderIndex(v)
 	return _u
 }
 
@@ -283,11 +392,41 @@ func (_u *PayloadPropertyDefinitionUpdate) sqlSave(ctx context.Context) (_node i
 	if _u.mutation.EnumValuesCleared() {
 		_spec.ClearField(payloadpropertydefinition.FieldEnumValues, field.TypeJSON)
 	}
+	if value, ok := _u.mutation.Deprecated(); ok {
+		_spec.SetField(payloadpropertydefinition.FieldDeprecated, field.TypeBool, value)
+	}
 	if value, ok := _u.mutation.Description(); ok {
 		_spec.SetField(payloadpropertydefinition.FieldDescription, field.TypeString, value)
 	}
 	if _u.mutation.DescriptionCleared() {
 		_spec.ClearField(payloadpropertydefinition.FieldDescription, field.TypeString)
+	}
+	if value, ok := _u.mutation.NestedReference(); ok {
+		_spec.SetField(payloadpropertydefinition.FieldNestedReference, field.TypeString, value)
+	}
+	if _u.mutation.NestedReferenceCleared() {
+		_spec.ClearField(payloadpropertydefinition.FieldNestedReference, field.TypeString)
+	}
+	if value, ok := _u.mutation.ItemsType(); ok {
+		_spec.SetField(payloadpropertydefinition.FieldItemsType, field.TypeString, value)
+	}
+	if _u.mutation.ItemsTypeCleared() {
+		_spec.ClearField(payloadpropertydefinition.FieldItemsType, field.TypeString)
+	}
+	if value, ok := _u.mutation.ItemsReference(); ok {
+		_spec.SetField(payloadpropertydefinition.FieldItemsReference, field.TypeString, value)
+	}
+	if _u.mutation.ItemsReferenceCleared() {
+		_spec.ClearField(payloadpropertydefinition.FieldItemsReference, field.TypeString)
+	}
+	if value, ok := _u.mutation.IsNested(); ok {
+		_spec.SetField(payloadpropertydefinition.FieldIsNested, field.TypeBool, value)
+	}
+	if value, ok := _u.mutation.OrderIndex(); ok {
+		_spec.SetField(payloadpropertydefinition.FieldOrderIndex, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedOrderIndex(); ok {
+		_spec.AddField(payloadpropertydefinition.FieldOrderIndex, field.TypeInt, value)
 	}
 	if value, ok := _u.mutation.UpdatedAt(); ok {
 		_spec.SetField(payloadpropertydefinition.FieldUpdatedAt, field.TypeTime, value)
@@ -435,6 +574,20 @@ func (_u *PayloadPropertyDefinitionUpdateOne) ClearEnumValues() *PayloadProperty
 	return _u
 }
 
+// SetDeprecated sets the "deprecated" field.
+func (_u *PayloadPropertyDefinitionUpdateOne) SetDeprecated(v bool) *PayloadPropertyDefinitionUpdateOne {
+	_u.mutation.SetDeprecated(v)
+	return _u
+}
+
+// SetNillableDeprecated sets the "deprecated" field if the given value is not nil.
+func (_u *PayloadPropertyDefinitionUpdateOne) SetNillableDeprecated(v *bool) *PayloadPropertyDefinitionUpdateOne {
+	if v != nil {
+		_u.SetDeprecated(*v)
+	}
+	return _u
+}
+
 // SetDescription sets the "description" field.
 func (_u *PayloadPropertyDefinitionUpdateOne) SetDescription(v string) *PayloadPropertyDefinitionUpdateOne {
 	_u.mutation.SetDescription(v)
@@ -452,6 +605,101 @@ func (_u *PayloadPropertyDefinitionUpdateOne) SetNillableDescription(v *string) 
 // ClearDescription clears the value of the "description" field.
 func (_u *PayloadPropertyDefinitionUpdateOne) ClearDescription() *PayloadPropertyDefinitionUpdateOne {
 	_u.mutation.ClearDescription()
+	return _u
+}
+
+// SetNestedReference sets the "nested_reference" field.
+func (_u *PayloadPropertyDefinitionUpdateOne) SetNestedReference(v string) *PayloadPropertyDefinitionUpdateOne {
+	_u.mutation.SetNestedReference(v)
+	return _u
+}
+
+// SetNillableNestedReference sets the "nested_reference" field if the given value is not nil.
+func (_u *PayloadPropertyDefinitionUpdateOne) SetNillableNestedReference(v *string) *PayloadPropertyDefinitionUpdateOne {
+	if v != nil {
+		_u.SetNestedReference(*v)
+	}
+	return _u
+}
+
+// ClearNestedReference clears the value of the "nested_reference" field.
+func (_u *PayloadPropertyDefinitionUpdateOne) ClearNestedReference() *PayloadPropertyDefinitionUpdateOne {
+	_u.mutation.ClearNestedReference()
+	return _u
+}
+
+// SetItemsType sets the "items_type" field.
+func (_u *PayloadPropertyDefinitionUpdateOne) SetItemsType(v string) *PayloadPropertyDefinitionUpdateOne {
+	_u.mutation.SetItemsType(v)
+	return _u
+}
+
+// SetNillableItemsType sets the "items_type" field if the given value is not nil.
+func (_u *PayloadPropertyDefinitionUpdateOne) SetNillableItemsType(v *string) *PayloadPropertyDefinitionUpdateOne {
+	if v != nil {
+		_u.SetItemsType(*v)
+	}
+	return _u
+}
+
+// ClearItemsType clears the value of the "items_type" field.
+func (_u *PayloadPropertyDefinitionUpdateOne) ClearItemsType() *PayloadPropertyDefinitionUpdateOne {
+	_u.mutation.ClearItemsType()
+	return _u
+}
+
+// SetItemsReference sets the "items_reference" field.
+func (_u *PayloadPropertyDefinitionUpdateOne) SetItemsReference(v string) *PayloadPropertyDefinitionUpdateOne {
+	_u.mutation.SetItemsReference(v)
+	return _u
+}
+
+// SetNillableItemsReference sets the "items_reference" field if the given value is not nil.
+func (_u *PayloadPropertyDefinitionUpdateOne) SetNillableItemsReference(v *string) *PayloadPropertyDefinitionUpdateOne {
+	if v != nil {
+		_u.SetItemsReference(*v)
+	}
+	return _u
+}
+
+// ClearItemsReference clears the value of the "items_reference" field.
+func (_u *PayloadPropertyDefinitionUpdateOne) ClearItemsReference() *PayloadPropertyDefinitionUpdateOne {
+	_u.mutation.ClearItemsReference()
+	return _u
+}
+
+// SetIsNested sets the "is_nested" field.
+func (_u *PayloadPropertyDefinitionUpdateOne) SetIsNested(v bool) *PayloadPropertyDefinitionUpdateOne {
+	_u.mutation.SetIsNested(v)
+	return _u
+}
+
+// SetNillableIsNested sets the "is_nested" field if the given value is not nil.
+func (_u *PayloadPropertyDefinitionUpdateOne) SetNillableIsNested(v *bool) *PayloadPropertyDefinitionUpdateOne {
+	if v != nil {
+		_u.SetIsNested(*v)
+	}
+	return _u
+}
+
+// SetOrderIndex sets the "order_index" field.
+func (_u *PayloadPropertyDefinitionUpdateOne) SetOrderIndex(v int) *PayloadPropertyDefinitionUpdateOne {
+	_u.mutation.ResetOrderIndex()
+	_u.mutation.SetOrderIndex(v)
+	return _u
+}
+
+// SetNillableOrderIndex sets the "order_index" field if the given value is not nil.
+func (_u *PayloadPropertyDefinitionUpdateOne) SetNillableOrderIndex(v *int) *PayloadPropertyDefinitionUpdateOne {
+	if v != nil {
+		_u.SetOrderIndex(*v)
+	}
+	return _u
+}
+
+// AddOrderIndex adds value to the "order_index" field.
+func (_u *PayloadPropertyDefinitionUpdateOne) AddOrderIndex(v int) *PayloadPropertyDefinitionUpdateOne {
+	_u.mutation.AddOrderIndex(v)
 	return _u
 }
 
@@ -646,11 +894,41 @@ func (_u *PayloadPropertyDefinitionUpdateOne) sqlSave(ctx context.Context) (_nod
 	if _u.mutation.EnumValuesCleared() {
 		_spec.ClearField(payloadpropertydefinition.FieldEnumValues, field.TypeJSON)
 	}
+	if value, ok := _u.mutation.Deprecated(); ok {
+		_spec.SetField(payloadpropertydefinition.FieldDeprecated, field.TypeBool, value)
+	}
 	if value, ok := _u.mutation.Description(); ok {
 		_spec.SetField(payloadpropertydefinition.FieldDescription, field.TypeString, value)
 	}
 	if _u.mutation.DescriptionCleared() {
 		_spec.ClearField(payloadpropertydefinition.FieldDescription, field.TypeString)
+	}
+	if value, ok := _u.mutation.NestedReference(); ok {
+		_spec.SetField(payloadpropertydefinition.FieldNestedReference, field.TypeString, value)
+	}
+	if _u.mutation.NestedReferenceCleared() {
+		_spec.ClearField(payloadpropertydefinition.FieldNestedReference, field.TypeString)
+	}
+	if value, ok := _u.mutation.ItemsType(); ok {
+		_spec.SetField(payloadpropertydefinition.FieldItemsType, field.TypeString, value)
+	}
+	if _u.mutation.ItemsTypeCleared() {
+		_spec.ClearField(payloadpropertydefinition.FieldItemsType, field.TypeString)
+	}
+	if value, ok := _u.mutation.ItemsReference(); ok {
+		_spec.SetField(payloadpropertydefinition.FieldItemsReference, field.TypeString, value)
+	}
+	if _u.mutation.ItemsReferenceCleared() {
+		_spec.ClearField(payloadpropertydefinition.FieldItemsReference, field.TypeString)
+	}
+	if value, ok := _u.mutation.IsNested(); ok {
+		_spec.SetField(payloadpropertydefinition.FieldIsNested, field.TypeBool, value)
+	}
+	if value, ok := _u.mutation.OrderIndex(); ok {
+		_spec.SetField(payloadpropertydefinition.FieldOrderIndex, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedOrderIndex(); ok {
+		_spec.AddField(payloadpropertydefinition.FieldOrderIndex, field.TypeInt, value)
 	}
 	if value, ok := _u.mutation.UpdatedAt(); ok {
 		_spec.SetField(payloadpropertydefinition.FieldUpdatedAt, field.TypeTime, value)

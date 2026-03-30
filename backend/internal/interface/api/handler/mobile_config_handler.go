@@ -16,12 +16,15 @@ import (
 )
 
 var mobileConfigAllowedFields = map[string]bool{
-	"id":           true,
-	"name":         true,
-	"payload_type": true,
-	"search":       true,
-	"created_at":   true,
-	"updated_at":   true,
+	"id":                         true,
+	"name":                       true,
+	"payload_type":               true,
+	"payload_display_name":       true,
+	"payload_identifier":         true,
+	"payload_removal_disallowed": true,
+	"created_at":                 true,
+	"updated_at":                 true,
+	"search":                     true,
 }
 
 type MobileConfigHandler interface {
@@ -49,13 +52,15 @@ func NewMobileConfigHandler(mobileConfigService service.MobileConfigService) Mob
 // @Security BearerAuth
 // @Param page query int false "Page number (default 1)"
 // @Param limit query int false "Items per page (default 20)"
-// @Param search query string false "Search by name, identifier or display name"
+// @Param search query string false "Search by name, payload_type, payload_display_name, payload_identifier"
 // @Param name query string false "Filter by name"
-// @Param payload_type query string false "Filter by payload type"
-// @Param sort query string false "Sort by field (e.g. id,name,created_at)"
-// @Success 200 {object} response.APIResponse[dto.ListResponse[dto.MobileConfigResponse]] "List of mobile configs"
-// @Failure 401 {object} response.APIResponse[any] "Unauthorized"
-// @Failure 500 {object} response.APIResponse[any] "Internal server error"
+// @Param payload_type query string false "Filter by payload_type"
+// @Param payload_display_name query string false "Filter by payload_display_name"
+// @Param sort query string false "Sort by field (id,name,payload_type,created_at)"
+// @Success 200 {object} response.APIResponse[dto.ListResponse[dto.MobileConfigResponse]]
+// @Failure 400 {object} response.APIResponse[any]
+// @Failure 401 {object} response.APIResponse[any]
+// @Security BearerAuth
 // @Router /api/v1/mobile-configs [get]
 func (m *mobileConfigHandlerImpl) List(c *gin.Context) {
 	params := make(map[string]string)

@@ -37,6 +37,7 @@ func setupDependencies(cfg *config.Config) *gin.Engine {
 	mobileConfigRepo := persistence.NewMobileConfigRepository(client)
 	nanoRepo := persistence.NewNanoRepository(database.GetDB()) // read-only: nano server tables
 	_ = nanoRepo                                                  // injected into services as needed
+	payloadPropertyDefinitionRepo := persistence.NewPayloadPropertyDefinitionRepository(client)
 
 	dashboardRepo := persistence.NewDashboardRepository(client)
 	deviceGroupRepo := persistence.NewDeviceGroupRepository(client)
@@ -108,6 +109,8 @@ func setupDependencies(cfg *config.Config) *gin.Engine {
 	inventorySyncWorker := worker.NewInventorySyncWorker(nanomdmService, eventBus)
 	inventorySyncWorker.Start(workerCtx)
 
+	payloadPropertyDefinitionService := serviceimpl.NewPayloadPropertyDefinitionService(payloadPropertyDefinitionRepo)
+
 	// Middleware
 	origins := strings.Join(cfg.CORSAllowedOrigins, ",")
 	mw := middleware.New(jwtService, authzService, redisService, origins)
@@ -126,7 +129,8 @@ func setupDependencies(cfg *config.Config) *gin.Engine {
 	alertHandler := handler.NewAlertHandler(alertService, alertRuleService)
 	reportHandler := handler.NewReportHandler(reportService)
 	settingHandler := handler.NewSettingHandler(settingService)
+	payloadPropertyDefinitionHandler := handler.NewPayloadPropertyDefinitionHandler(payloadPropertyDefinitionService)
 
 	// Build router
-	return router.SetupRouter(authHandler, userHandler, policyHandler, nanocmdHandler, mobileConfigHandler, dashboardHandler, deviceHandler, deviceGroupHandler, profileHandler, applicationHandler, alertHandler, reportHandler, settingHandler, mw)
+	return router.SetupRouter(authHandler, userHandler, policyHandler, nanocmdHandler, mobileConfigHandler, dashboardHandler, deviceHandler, deviceGroupHandler, profileHandler, applicationHandler, alertHandler, reportHandler, settingHandler, payloadPropertyDefinitionHandler, mw)
 }
