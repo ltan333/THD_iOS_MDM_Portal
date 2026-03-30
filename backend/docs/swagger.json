@@ -3086,6 +3086,345 @@
                 }
             }
         },
+        "/api/v1/mobile-configs": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Get a paginated list of mobile configs with filtering and sorting",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Mobile Config"
+                ],
+                "summary": "List mobile configs",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Page number (default 1)",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Items per page (default 20)",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Search by name, payload_type, payload_display_name, payload_identifier",
+                        "name": "search",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Filter by name",
+                        "name": "name",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Filter by payload_type",
+                        "name": "payload_type",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Filter by payload_display_name",
+                        "name": "payload_display_name",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Sort by field (id,name,payload_type,created_at)",
+                        "name": "sort",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_ListResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_MobileConfigResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Create a new Apple mobileconfig with payloads and payload properties",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Mobile Config"
+                ],
+                "summary": "Create mobile config",
+                "parameters": [
+                    {
+                        "description": "Mobile config payload",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_internal_interface_api_dto.CreateMobileConfigRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/internal_interface_api_handler.MobileConfigSuccessResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/internal_interface_api_handler.APIErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/internal_interface_api_handler.APIErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/internal_interface_api_handler.APIErrorResponse"
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {
+                            "$ref": "#/definitions/internal_interface_api_handler.APIErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/internal_interface_api_handler.APIErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/mobile-configs/{id}": {
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Update an existing Apple mobileconfig with payloads and payload properties",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Mobile Config"
+                ],
+                "summary": "Update mobile config",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Mobile config ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Mobile config payload",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_internal_interface_api_dto.UpdateMobileConfigRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/internal_interface_api_handler.MobileConfigSuccessResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/internal_interface_api_handler.APIErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/internal_interface_api_handler.APIErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/internal_interface_api_handler.APIErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/internal_interface_api_handler.APIErrorResponse"
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {
+                            "$ref": "#/definitions/internal_interface_api_handler.APIErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/internal_interface_api_handler.APIErrorResponse"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Delete an existing Apple mobileconfig by ID",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Mobile Config"
+                ],
+                "summary": "Delete mobile config",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Mobile config ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/internal_interface_api_handler.EmptySuccessResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/internal_interface_api_handler.APIErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/internal_interface_api_handler.APIErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/internal_interface_api_handler.APIErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/internal_interface_api_handler.APIErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/internal_interface_api_handler.APIErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/mobile-configs/{id}/xml": {
+            "get": {
+                "description": "Generate and return raw Apple mobileconfig XML content by ID",
+                "produces": [
+                    "text/xml"
+                ],
+                "tags": [
+                    "Mobile Config"
+                ],
+                "summary": "Export mobile config XML",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Mobile config ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Raw XML",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/internal_interface_api_handler.APIErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/internal_interface_api_handler.APIErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/internal_interface_api_handler.APIErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/api/v1/nanocmd/cmdplan/{name}": {
             "get": {
                 "security": [
@@ -3771,6 +4110,136 @@
                     },
                     "500": {
                         "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/payload-property-definitions/import": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Upload one or more Apple documentation JSON files. The system auto-detects top-level payload files vs nested dictionary files and resolves nested properties recursively.",
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Payload Property Definitions"
+                ],
+                "summary": "Import payload property definitions from Apple JSON files",
+                "parameters": [
+                    {
+                        "type": "array",
+                        "items": {
+                            "type": "file"
+                        },
+                        "collectionFormat": "csv",
+                        "description": "Apple payload JSON files (upload nhiều files; bao gồm cả nested dictionary files để resolve đệ quy)",
+                        "name": "files",
+                        "in": "formData",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-github_com_thienel_go-backend-template_internal_usecase_service_ImportPayloadPropertyDefinitionsResult"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/payload-property-definitions/payload-types": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Get all distinct payload types from payload property definitions",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Payload Property Definitions"
+                ],
+                "summary": "List payload types",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-array_string"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/payload-property-definitions/schema": {
+            "get": {
+                "description": "Returns payload properties as nested JSON tree. If payload_type query param is provided, only that type is returned. Otherwise all payload types are returned.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Payload Property Definitions"
+                ],
+                "summary": "Get nested schema for one or all payload types",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Filter by payload type (e.g. com.apple.carddav.account). Omit to get all.",
+                        "name": "payload_type",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-array_github_com_thienel_go-backend-template_internal_usecase_service_NestedPayloadSchema"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
                         "schema": {
                             "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any"
                         }
@@ -6124,475 +6593,6 @@
                     },
                     "500": {
                         "description": "Internal server error",
-                        "schema": {
-                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any"
-                        }
-                    }
-                }
-            }
-        },
-        "/v1/mobile-configs": {
-            "get": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Get a paginated list of mobile configs with filtering and sorting",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Mobile Config"
-                ],
-                "summary": "List mobile configs",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "Page number (default 1)",
-                        "name": "page",
-                        "in": "query"
-                    },
-                    {
-                        "type": "integer",
-                        "description": "Items per page (default 20)",
-                        "name": "limit",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Search by name, payload_type, payload_display_name, payload_identifier",
-                        "name": "search",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Filter by name",
-                        "name": "name",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Filter by payload_type",
-                        "name": "payload_type",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Filter by payload_display_name",
-                        "name": "payload_display_name",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Sort by field (id,name,payload_type,created_at)",
-                        "name": "sort",
-                        "in": "query"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_ListResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_MobileConfigResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any"
-                        }
-                    }
-                }
-            },
-            "post": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Create a new Apple mobileconfig with payloads and payload properties",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Mobile Config"
-                ],
-                "summary": "Create mobile config",
-                "parameters": [
-                    {
-                        "description": "Mobile config payload",
-                        "name": "request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/github_com_thienel_go-backend-template_internal_interface_api_dto.CreateMobileConfigRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "201": {
-                        "description": "Created",
-                        "schema": {
-                            "$ref": "#/definitions/internal_interface_api_handler.MobileConfigSuccessResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/internal_interface_api_handler.APIErrorResponse"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/internal_interface_api_handler.APIErrorResponse"
-                        }
-                    },
-                    "403": {
-                        "description": "Forbidden",
-                        "schema": {
-                            "$ref": "#/definitions/internal_interface_api_handler.APIErrorResponse"
-                        }
-                    },
-                    "409": {
-                        "description": "Conflict",
-                        "schema": {
-                            "$ref": "#/definitions/internal_interface_api_handler.APIErrorResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/internal_interface_api_handler.APIErrorResponse"
-                        }
-                    }
-                }
-            }
-        },
-        "/v1/mobile-configs/{id}": {
-            "put": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Update an existing Apple mobileconfig with payloads and payload properties",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Mobile Config"
-                ],
-                "summary": "Update mobile config",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "Mobile config ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "description": "Mobile config payload",
-                        "name": "request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/github_com_thienel_go-backend-template_internal_interface_api_dto.UpdateMobileConfigRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/internal_interface_api_handler.MobileConfigSuccessResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/internal_interface_api_handler.APIErrorResponse"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/internal_interface_api_handler.APIErrorResponse"
-                        }
-                    },
-                    "403": {
-                        "description": "Forbidden",
-                        "schema": {
-                            "$ref": "#/definitions/internal_interface_api_handler.APIErrorResponse"
-                        }
-                    },
-                    "404": {
-                        "description": "Not Found",
-                        "schema": {
-                            "$ref": "#/definitions/internal_interface_api_handler.APIErrorResponse"
-                        }
-                    },
-                    "409": {
-                        "description": "Conflict",
-                        "schema": {
-                            "$ref": "#/definitions/internal_interface_api_handler.APIErrorResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/internal_interface_api_handler.APIErrorResponse"
-                        }
-                    }
-                }
-            },
-            "delete": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Delete an existing Apple mobileconfig by ID",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Mobile Config"
-                ],
-                "summary": "Delete mobile config",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "Mobile config ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/internal_interface_api_handler.EmptySuccessResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/internal_interface_api_handler.APIErrorResponse"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/internal_interface_api_handler.APIErrorResponse"
-                        }
-                    },
-                    "403": {
-                        "description": "Forbidden",
-                        "schema": {
-                            "$ref": "#/definitions/internal_interface_api_handler.APIErrorResponse"
-                        }
-                    },
-                    "404": {
-                        "description": "Not Found",
-                        "schema": {
-                            "$ref": "#/definitions/internal_interface_api_handler.APIErrorResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/internal_interface_api_handler.APIErrorResponse"
-                        }
-                    }
-                }
-            }
-        },
-        "/v1/mobile-configs/{id}/xml": {
-            "get": {
-                "description": "Generate and return raw Apple mobileconfig XML content by ID",
-                "produces": [
-                    "text/xml"
-                ],
-                "tags": [
-                    "Mobile Config"
-                ],
-                "summary": "Export mobile config XML",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "Mobile config ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Raw XML",
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/internal_interface_api_handler.APIErrorResponse"
-                        }
-                    },
-                    "404": {
-                        "description": "Not Found",
-                        "schema": {
-                            "$ref": "#/definitions/internal_interface_api_handler.APIErrorResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/internal_interface_api_handler.APIErrorResponse"
-                        }
-                    }
-                }
-            }
-        },
-        "/v1/payload-property-definitions/import": {
-            "post": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Upload one or more Apple documentation JSON files. The system auto-detects top-level payload files vs nested dictionary files and resolves nested properties recursively.",
-                "consumes": [
-                    "multipart/form-data"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Payload Property Definitions"
-                ],
-                "summary": "Import payload property definitions from Apple JSON files",
-                "parameters": [
-                    {
-                        "type": "array",
-                        "items": {
-                            "type": "file"
-                        },
-                        "collectionFormat": "csv",
-                        "description": "Apple payload JSON files (upload nhiều files; bao gồm cả nested dictionary files để resolve đệ quy)",
-                        "name": "files",
-                        "in": "formData",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-github_com_thienel_go-backend-template_internal_usecase_service_ImportPayloadPropertyDefinitionsResult"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any"
-                        }
-                    }
-                }
-            }
-        },
-        "/v1/payload-property-definitions/payload-types": {
-            "get": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Get all distinct payload types from payload property definitions",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Payload Property Definitions"
-                ],
-                "summary": "List payload types",
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-array_string"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any"
-                        }
-                    }
-                }
-            }
-        },
-        "/v1/payload-property-definitions/schema": {
-            "get": {
-                "description": "Returns payload properties as nested JSON tree. If payload_type query param is provided, only that type is returned. Otherwise all payload types are returned.",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Payload Property Definitions"
-                ],
-                "summary": "Get nested schema for one or all payload types",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Filter by payload type (e.g. com.apple.carddav.account). Omit to get all.",
-                        "name": "payload_type",
-                        "in": "query"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-array_github_com_thienel_go-backend-template_internal_usecase_service_NestedPayloadSchema"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
                         "schema": {
                             "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any"
                         }

@@ -4006,6 +4006,226 @@ paths:
       summary: System health check
       tags:
       - System
+  /api/v1/mobile-configs:
+    get:
+      description: Get a paginated list of mobile configs with filtering and sorting
+      parameters:
+      - description: Page number (default 1)
+        in: query
+        name: page
+        type: integer
+      - description: Items per page (default 20)
+        in: query
+        name: limit
+        type: integer
+      - description: Search by name, payload_type, payload_display_name, payload_identifier
+        in: query
+        name: search
+        type: string
+      - description: Filter by name
+        in: query
+        name: name
+        type: string
+      - description: Filter by payload_type
+        in: query
+        name: payload_type
+        type: string
+      - description: Filter by payload_display_name
+        in: query
+        name: payload_display_name
+        type: string
+      - description: Sort by field (id,name,payload_type,created_at)
+        in: query
+        name: sort
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_ListResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_MobileConfigResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+      security:
+      - BearerAuth: []
+      summary: List mobile configs
+      tags:
+      - Mobile Config
+    post:
+      consumes:
+      - application/json
+      description: Create a new Apple mobileconfig with payloads and payload properties
+      parameters:
+      - description: Mobile config payload
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_thienel_go-backend-template_internal_interface_api_dto.CreateMobileConfigRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/internal_interface_api_handler.MobileConfigSuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/internal_interface_api_handler.APIErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/internal_interface_api_handler.APIErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/internal_interface_api_handler.APIErrorResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/internal_interface_api_handler.APIErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/internal_interface_api_handler.APIErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Create mobile config
+      tags:
+      - Mobile Config
+  /api/v1/mobile-configs/{id}:
+    delete:
+      description: Delete an existing Apple mobileconfig by ID
+      parameters:
+      - description: Mobile config ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_interface_api_handler.EmptySuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/internal_interface_api_handler.APIErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/internal_interface_api_handler.APIErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/internal_interface_api_handler.APIErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/internal_interface_api_handler.APIErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/internal_interface_api_handler.APIErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Delete mobile config
+      tags:
+      - Mobile Config
+    put:
+      consumes:
+      - application/json
+      description: Update an existing Apple mobileconfig with payloads and payload
+        properties
+      parameters:
+      - description: Mobile config ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Mobile config payload
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_thienel_go-backend-template_internal_interface_api_dto.UpdateMobileConfigRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_interface_api_handler.MobileConfigSuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/internal_interface_api_handler.APIErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/internal_interface_api_handler.APIErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/internal_interface_api_handler.APIErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/internal_interface_api_handler.APIErrorResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/internal_interface_api_handler.APIErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/internal_interface_api_handler.APIErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Update mobile config
+      tags:
+      - Mobile Config
+  /api/v1/mobile-configs/{id}/xml:
+    get:
+      description: Generate and return raw Apple mobileconfig XML content by ID
+      parameters:
+      - description: Mobile config ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - text/xml
+      responses:
+        "200":
+          description: Raw XML
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/internal_interface_api_handler.APIErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/internal_interface_api_handler.APIErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/internal_interface_api_handler.APIErrorResponse'
+      summary: Export mobile config XML
+      tags:
+      - Mobile Config
   /api/v1/nanocmd/cmdplan/{name}:
     get:
       description: Retrieve a specific NanoCMD command plan definition by its name.
@@ -4454,6 +4674,95 @@ paths:
       summary: Start NanoCMD workflow
       tags:
       - NanoCMD
+  /api/v1/payload-property-definitions/import:
+    post:
+      consumes:
+      - multipart/form-data
+      description: Upload one or more Apple documentation JSON files. The system auto-detects
+        top-level payload files vs nested dictionary files and resolves nested properties
+        recursively.
+      parameters:
+      - collectionFormat: csv
+        description: Apple payload JSON files (upload nhiều files; bao gồm cả nested
+          dictionary files để resolve đệ quy)
+        in: formData
+        items:
+          type: file
+        name: files
+        required: true
+        type: array
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-github_com_thienel_go-backend-template_internal_usecase_service_ImportPayloadPropertyDefinitionsResult'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+      security:
+      - BearerAuth: []
+      summary: Import payload property definitions from Apple JSON files
+      tags:
+      - Payload Property Definitions
+  /api/v1/payload-property-definitions/payload-types:
+    get:
+      description: Get all distinct payload types from payload property definitions
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-array_string'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+      security:
+      - BearerAuth: []
+      summary: List payload types
+      tags:
+      - Payload Property Definitions
+  /api/v1/payload-property-definitions/schema:
+    get:
+      description: Returns payload properties as nested JSON tree. If payload_type
+        query param is provided, only that type is returned. Otherwise all payload
+        types are returned.
+      parameters:
+      - description: Filter by payload type (e.g. com.apple.carddav.account). Omit
+          to get all.
+        in: query
+        name: payload_type
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-array_github_com_thienel_go-backend-template_internal_usecase_service_NestedPayloadSchema'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+      summary: Get nested schema for one or all payload types
+      tags:
+      - Payload Property Definitions
   /api/v1/policies:
     delete:
       consumes:
@@ -5980,315 +6289,6 @@ paths:
       summary: Update user
       tags:
       - Users
-  /v1/mobile-configs:
-    get:
-      description: Get a paginated list of mobile configs with filtering and sorting
-      parameters:
-      - description: Page number (default 1)
-        in: query
-        name: page
-        type: integer
-      - description: Items per page (default 20)
-        in: query
-        name: limit
-        type: integer
-      - description: Search by name, payload_type, payload_display_name, payload_identifier
-        in: query
-        name: search
-        type: string
-      - description: Filter by name
-        in: query
-        name: name
-        type: string
-      - description: Filter by payload_type
-        in: query
-        name: payload_type
-        type: string
-      - description: Filter by payload_display_name
-        in: query
-        name: payload_display_name
-        type: string
-      - description: Sort by field (id,name,payload_type,created_at)
-        in: query
-        name: sort
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_ListResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_MobileConfigResponse'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
-      security:
-      - BearerAuth: []
-      summary: List mobile configs
-      tags:
-      - Mobile Config
-    post:
-      consumes:
-      - application/json
-      description: Create a new Apple mobileconfig with payloads and payload properties
-      parameters:
-      - description: Mobile config payload
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/github_com_thienel_go-backend-template_internal_interface_api_dto.CreateMobileConfigRequest'
-      produces:
-      - application/json
-      responses:
-        "201":
-          description: Created
-          schema:
-            $ref: '#/definitions/internal_interface_api_handler.MobileConfigSuccessResponse'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/internal_interface_api_handler.APIErrorResponse'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/internal_interface_api_handler.APIErrorResponse'
-        "403":
-          description: Forbidden
-          schema:
-            $ref: '#/definitions/internal_interface_api_handler.APIErrorResponse'
-        "409":
-          description: Conflict
-          schema:
-            $ref: '#/definitions/internal_interface_api_handler.APIErrorResponse'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/internal_interface_api_handler.APIErrorResponse'
-      security:
-      - BearerAuth: []
-      summary: Create mobile config
-      tags:
-      - Mobile Config
-  /v1/mobile-configs/{id}:
-    delete:
-      description: Delete an existing Apple mobileconfig by ID
-      parameters:
-      - description: Mobile config ID
-        in: path
-        name: id
-        required: true
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/internal_interface_api_handler.EmptySuccessResponse'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/internal_interface_api_handler.APIErrorResponse'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/internal_interface_api_handler.APIErrorResponse'
-        "403":
-          description: Forbidden
-          schema:
-            $ref: '#/definitions/internal_interface_api_handler.APIErrorResponse'
-        "404":
-          description: Not Found
-          schema:
-            $ref: '#/definitions/internal_interface_api_handler.APIErrorResponse'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/internal_interface_api_handler.APIErrorResponse'
-      security:
-      - BearerAuth: []
-      summary: Delete mobile config
-      tags:
-      - Mobile Config
-    put:
-      consumes:
-      - application/json
-      description: Update an existing Apple mobileconfig with payloads and payload
-        properties
-      parameters:
-      - description: Mobile config ID
-        in: path
-        name: id
-        required: true
-        type: integer
-      - description: Mobile config payload
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/github_com_thienel_go-backend-template_internal_interface_api_dto.UpdateMobileConfigRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/internal_interface_api_handler.MobileConfigSuccessResponse'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/internal_interface_api_handler.APIErrorResponse'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/internal_interface_api_handler.APIErrorResponse'
-        "403":
-          description: Forbidden
-          schema:
-            $ref: '#/definitions/internal_interface_api_handler.APIErrorResponse'
-        "404":
-          description: Not Found
-          schema:
-            $ref: '#/definitions/internal_interface_api_handler.APIErrorResponse'
-        "409":
-          description: Conflict
-          schema:
-            $ref: '#/definitions/internal_interface_api_handler.APIErrorResponse'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/internal_interface_api_handler.APIErrorResponse'
-      security:
-      - BearerAuth: []
-      summary: Update mobile config
-      tags:
-      - Mobile Config
-  /v1/mobile-configs/{id}/xml:
-    get:
-      description: Generate and return raw Apple mobileconfig XML content by ID
-      parameters:
-      - description: Mobile config ID
-        in: path
-        name: id
-        required: true
-        type: integer
-      produces:
-      - text/xml
-      responses:
-        "200":
-          description: Raw XML
-          schema:
-            type: string
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/internal_interface_api_handler.APIErrorResponse'
-        "404":
-          description: Not Found
-          schema:
-            $ref: '#/definitions/internal_interface_api_handler.APIErrorResponse'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/internal_interface_api_handler.APIErrorResponse'
-      summary: Export mobile config XML
-      tags:
-      - Mobile Config
-  /v1/payload-property-definitions/import:
-    post:
-      consumes:
-      - multipart/form-data
-      description: Upload one or more Apple documentation JSON files. The system auto-detects
-        top-level payload files vs nested dictionary files and resolves nested properties
-        recursively.
-      parameters:
-      - collectionFormat: csv
-        description: Apple payload JSON files (upload nhiều files; bao gồm cả nested
-          dictionary files để resolve đệ quy)
-        in: formData
-        items:
-          type: file
-        name: files
-        required: true
-        type: array
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-github_com_thienel_go-backend-template_internal_usecase_service_ImportPayloadPropertyDefinitionsResult'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
-      security:
-      - BearerAuth: []
-      summary: Import payload property definitions from Apple JSON files
-      tags:
-      - Payload Property Definitions
-  /v1/payload-property-definitions/payload-types:
-    get:
-      description: Get all distinct payload types from payload property definitions
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-array_string'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
-      security:
-      - BearerAuth: []
-      summary: List payload types
-      tags:
-      - Payload Property Definitions
-  /v1/payload-property-definitions/schema:
-    get:
-      description: Returns payload properties as nested JSON tree. If payload_type
-        query param is provided, only that type is returned. Otherwise all payload
-        types are returned.
-      parameters:
-      - description: Filter by payload type (e.g. com.apple.carddav.account). Omit
-          to get all.
-        in: query
-        name: payload_type
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-array_github_com_thienel_go-backend-template_internal_usecase_service_NestedPayloadSchema'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
-      summary: Get nested schema for one or all payload types
-      tags:
-      - Payload Property Definitions
 securityDefinitions:
   BasicAuth:
     type: basic
