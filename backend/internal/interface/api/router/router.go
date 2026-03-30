@@ -383,11 +383,12 @@ func (r *routeRegister) registerPayloadPropertyDefinitionRoutes(rg *gin.RouterGr
 	{
 		// definitions.GET("", r.ppd.List)
 		definitions.GET("/payload-types", r.ppd.ListPayloadTypes)
+		definitions.GET("/:payload_type/variants", r.ppd.ListVariants)
 		// definitions.GET("/:id", r.ppd.GetByID)
 		// definitions.POST("", r.ppd.Create)
 		// definitions.PUT("/:id", r.ppd.Update)
-		// definitions.DELETE("/:id", r.ppd.Delete)
-		definitions.POST("/import", r.ppd.Import)
+		definitions.DELETE("", r.ppd.DeleteAll)
+		definitions.POST("/import-yaml-folder", r.ppd.ImportYAMLFolder)
 		definitions.GET("/schema", r.ppd.GetNestedSchema)
 	}
 }
