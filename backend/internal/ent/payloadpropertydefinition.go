@@ -28,20 +28,8 @@ type PayloadPropertyDefinition struct {
 	DefaultValue map[string]interface{} `json:"default_value,omitempty"`
 	// EnumValues holds the value of the "enum_values" field.
 	EnumValues []interface{} `json:"enum_values,omitempty"`
-	// Deprecated holds the value of the "deprecated" field.
-	Deprecated bool `json:"deprecated,omitempty"`
 	// Description holds the value of the "description" field.
 	Description string `json:"description,omitempty"`
-	// NestedReference holds the value of the "nested_reference" field.
-	NestedReference *string `json:"nested_reference,omitempty"`
-	// ItemsType holds the value of the "items_type" field.
-	ItemsType *string `json:"items_type,omitempty"`
-	// ItemsReference holds the value of the "items_reference" field.
-	ItemsReference *string `json:"items_reference,omitempty"`
-	// IsNested holds the value of the "is_nested" field.
-	IsNested bool `json:"is_nested,omitempty"`
-	// OrderIndex holds the value of the "order_index" field.
-	OrderIndex int `json:"order_index,omitempty"`
 	// CreatedAt holds the value of the "created_at" field.
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	// UpdatedAt holds the value of the "updated_at" field.
@@ -79,11 +67,9 @@ func (*PayloadPropertyDefinition) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case payloadpropertydefinition.FieldDefaultValue, payloadpropertydefinition.FieldEnumValues:
 			values[i] = new([]byte)
-		case payloadpropertydefinition.FieldDeprecated, payloadpropertydefinition.FieldIsNested:
-			values[i] = new(sql.NullBool)
-		case payloadpropertydefinition.FieldID, payloadpropertydefinition.FieldOrderIndex:
+		case payloadpropertydefinition.FieldID:
 			values[i] = new(sql.NullInt64)
-		case payloadpropertydefinition.FieldPayloadType, payloadpropertydefinition.FieldKey, payloadpropertydefinition.FieldValueType, payloadpropertydefinition.FieldDescription, payloadpropertydefinition.FieldNestedReference, payloadpropertydefinition.FieldItemsType, payloadpropertydefinition.FieldItemsReference:
+		case payloadpropertydefinition.FieldPayloadType, payloadpropertydefinition.FieldKey, payloadpropertydefinition.FieldValueType, payloadpropertydefinition.FieldDescription:
 			values[i] = new(sql.NullString)
 		case payloadpropertydefinition.FieldCreatedAt, payloadpropertydefinition.FieldUpdatedAt, payloadpropertydefinition.FieldDeletedAt:
 			values[i] = new(sql.NullTime)
@@ -142,50 +128,11 @@ func (_m *PayloadPropertyDefinition) assignValues(columns []string, values []any
 					return fmt.Errorf("unmarshal field enum_values: %w", err)
 				}
 			}
-		case payloadpropertydefinition.FieldDeprecated:
-			if value, ok := values[i].(*sql.NullBool); !ok {
-				return fmt.Errorf("unexpected type %T for field deprecated", values[i])
-			} else if value.Valid {
-				_m.Deprecated = value.Bool
-			}
 		case payloadpropertydefinition.FieldDescription:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field description", values[i])
 			} else if value.Valid {
 				_m.Description = value.String
-			}
-		case payloadpropertydefinition.FieldNestedReference:
-			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field nested_reference", values[i])
-			} else if value.Valid {
-				_m.NestedReference = new(string)
-				*_m.NestedReference = value.String
-			}
-		case payloadpropertydefinition.FieldItemsType:
-			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field items_type", values[i])
-			} else if value.Valid {
-				_m.ItemsType = new(string)
-				*_m.ItemsType = value.String
-			}
-		case payloadpropertydefinition.FieldItemsReference:
-			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field items_reference", values[i])
-			} else if value.Valid {
-				_m.ItemsReference = new(string)
-				*_m.ItemsReference = value.String
-			}
-		case payloadpropertydefinition.FieldIsNested:
-			if value, ok := values[i].(*sql.NullBool); !ok {
-				return fmt.Errorf("unexpected type %T for field is_nested", values[i])
-			} else if value.Valid {
-				_m.IsNested = value.Bool
-			}
-		case payloadpropertydefinition.FieldOrderIndex:
-			if value, ok := values[i].(*sql.NullInt64); !ok {
-				return fmt.Errorf("unexpected type %T for field order_index", values[i])
-			} else if value.Valid {
-				_m.OrderIndex = int(value.Int64)
 			}
 		case payloadpropertydefinition.FieldCreatedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
@@ -262,32 +209,8 @@ func (_m *PayloadPropertyDefinition) String() string {
 	builder.WriteString("enum_values=")
 	builder.WriteString(fmt.Sprintf("%v", _m.EnumValues))
 	builder.WriteString(", ")
-	builder.WriteString("deprecated=")
-	builder.WriteString(fmt.Sprintf("%v", _m.Deprecated))
-	builder.WriteString(", ")
 	builder.WriteString("description=")
 	builder.WriteString(_m.Description)
-	builder.WriteString(", ")
-	if v := _m.NestedReference; v != nil {
-		builder.WriteString("nested_reference=")
-		builder.WriteString(*v)
-	}
-	builder.WriteString(", ")
-	if v := _m.ItemsType; v != nil {
-		builder.WriteString("items_type=")
-		builder.WriteString(*v)
-	}
-	builder.WriteString(", ")
-	if v := _m.ItemsReference; v != nil {
-		builder.WriteString("items_reference=")
-		builder.WriteString(*v)
-	}
-	builder.WriteString(", ")
-	builder.WriteString("is_nested=")
-	builder.WriteString(fmt.Sprintf("%v", _m.IsNested))
-	builder.WriteString(", ")
-	builder.WriteString("order_index=")
-	builder.WriteString(fmt.Sprintf("%v", _m.OrderIndex))
 	builder.WriteString(", ")
 	builder.WriteString("created_at=")
 	builder.WriteString(_m.CreatedAt.Format(time.ANSIC))

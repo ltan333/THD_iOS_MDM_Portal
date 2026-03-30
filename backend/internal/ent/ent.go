@@ -12,14 +12,25 @@ import (
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
+	"github.com/thienel/go-backend-template/internal/ent/alert"
+	"github.com/thienel/go-backend-template/internal/ent/alertrule"
 	"github.com/thienel/go-backend-template/internal/ent/apnsconfig"
+	"github.com/thienel/go-backend-template/internal/ent/appdeployment"
+	"github.com/thienel/go-backend-template/internal/ent/application"
+	"github.com/thienel/go-backend-template/internal/ent/appversion"
 	"github.com/thienel/go-backend-template/internal/ent/depprofile"
 	"github.com/thienel/go-backend-template/internal/ent/deptoken"
 	"github.com/thienel/go-backend-template/internal/ent/device"
+	"github.com/thienel/go-backend-template/internal/ent/devicegroup"
 	"github.com/thienel/go-backend-template/internal/ent/mobileconfig"
 	"github.com/thienel/go-backend-template/internal/ent/payload"
 	"github.com/thienel/go-backend-template/internal/ent/payloadproperty"
 	"github.com/thienel/go-backend-template/internal/ent/payloadpropertydefinition"
+	"github.com/thienel/go-backend-template/internal/ent/profile"
+	"github.com/thienel/go-backend-template/internal/ent/profileassignment"
+	"github.com/thienel/go-backend-template/internal/ent/profiledeploymentstatus"
+	"github.com/thienel/go-backend-template/internal/ent/profileversion"
+	"github.com/thienel/go-backend-template/internal/ent/setting"
 	"github.com/thienel/go-backend-template/internal/ent/user"
 )
 
@@ -82,13 +93,24 @@ func checkColumn(t, c string) error {
 	initCheck.Do(func() {
 		columnCheck = sql.NewColumnCheck(map[string]func(string) bool{
 			apnsconfig.Table:                apnsconfig.ValidColumn,
+			alert.Table:                     alert.ValidColumn,
+			alertrule.Table:                 alertrule.ValidColumn,
+			appdeployment.Table:             appdeployment.ValidColumn,
+			appversion.Table:                appversion.ValidColumn,
+			application.Table:               application.ValidColumn,
 			deptoken.Table:                  deptoken.ValidColumn,
 			depprofile.Table:                depprofile.ValidColumn,
 			device.Table:                    device.ValidColumn,
+			devicegroup.Table:               devicegroup.ValidColumn,
 			mobileconfig.Table:              mobileconfig.ValidColumn,
 			payload.Table:                   payload.ValidColumn,
 			payloadproperty.Table:           payloadproperty.ValidColumn,
 			payloadpropertydefinition.Table: payloadpropertydefinition.ValidColumn,
+			profile.Table:                   profile.ValidColumn,
+			profileassignment.Table:         profileassignment.ValidColumn,
+			profiledeploymentstatus.Table:   profiledeploymentstatus.ValidColumn,
+			profileversion.Table:            profileversion.ValidColumn,
+			setting.Table:                   setting.ValidColumn,
 			user.Table:                      user.ValidColumn,
 		})
 	})

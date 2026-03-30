@@ -2,6 +2,8 @@ package serviceimpl
 
 import (
 	"context"
+	"fmt"
+	"time"
 
 	"github.com/thienel/tlog"
 	"go.uber.org/zap"
@@ -18,14 +20,21 @@ type authServiceImpl struct {
 	userRepo     repository.UserRepository
 	jwtService   service.JWTService
 	authzService service.AuthorizationService
+	redisService service.RedisService
 }
 
 // NewAuthService creates a new auth service
-func NewAuthService(userRepo repository.UserRepository, jwtService service.JWTService, authzService service.AuthorizationService) service.AuthService {
+func NewAuthService(
+	userRepo repository.UserRepository,
+	jwtService service.JWTService,
+	authzService service.AuthorizationService,
+	redisService service.RedisService,
+) service.AuthService {
 	return &authServiceImpl{
 		userRepo:     userRepo,
 		jwtService:   jwtService,
 		authzService: authzService,
+		redisService: redisService,
 	}
 }
 
@@ -84,8 +93,61 @@ func (s *authServiceImpl) Login(ctx context.Context, username, password string) 
 	}, nil
 }
 
-func (s *authServiceImpl) Logout(ctx context.Context) error {
-	// For stateless JWT, logout is handled at the handler level by clearing cookies
-	// If you need blacklist/revocation, implement it here with Redis
-	return nil
+func (s *authServiceImpl) Logout(ctx context.Context, token string) error {
+	// Calculate remaining time for the token to set TTL in Redis
+	_, err := s.jwtService.ValidateToken(token)
+	if err != nil {
+		// Token already invalid or expired, no need to blacklist
+		return nil
+	}
+
+	// For now, let's just use the RefreshExpiry as a safe maximum
+	ttl := time.Duration(s.jwtService.GetRefreshExpirySeconds()) * time.Second
+
+	// Mark token as blacklisted in Redis
+	key := fmt.Sprintf("blacklist:%s", token)
+	return s.redisService.Set(ctx, key, "true", ttl)
+}
+
+func (s *authServiceImpl) Refresh(ctx context.Context, refreshToken string) (*dto.LoginResponse, error) {
+	// 1. Validate refresh token
+	claims, err := s.jwtService.ValidateToken(refreshToken)
+	if err != nil {
+		return nil, err
+	}
+
+	// 2. Find user
+	user, err := s.userRepo.FindByID(ctx, claims.UserID)
+	if err != nil {
+		return nil, apperror.ErrUnauthorized.WithMessage("Người dùng không tồn tại hoặc đã bị xóa")
+	}
+
+	if user.Status != entity.UserStatusActive {
+		return nil, apperror.ErrForbidden.WithMessage("Tài khoản đã bị vô hiệu hóa")
+	}
+
+	// 3. Generate new tokens (Rotation)
+	accessToken, err := s.jwtService.GenerateAccessToken(user.ID, user.Username, claims.Role)
+	if err != nil {
+		return nil, apperror.ErrInternalServerError.WithMessage("Không thể tạo access token").WithError(err)
+	}
+
+	newRefreshToken, err := s.jwtService.GenerateRefreshToken(user.ID, user.Username, claims.Role)
+	if err != nil {
+		return nil, apperror.ErrInternalServerError.WithMessage("Không thể tạo refresh token").WithError(err)
+	}
+
+	return &dto.LoginResponse{
+		User: dto.UserResponse{
+			ID:        user.ID,
+			Username:  user.Username,
+			Email:     user.Email,
+			Role:      claims.Role,
+			Status:    user.Status,
+			CreatedAt: user.CreatedAt,
+			UpdatedAt: user.UpdatedAt,
+		},
+		AccessToken:  accessToken,
+		RefreshToken: newRefreshToken,
+	}, nil
 }

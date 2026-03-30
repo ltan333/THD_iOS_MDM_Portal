@@ -51,7 +51,7 @@ func (m *Middleware) CORS() gin.HandlerFunc {
 
 // Recovery returns a custom recovery middleware
 func Recovery() gin.HandlerFunc {
-	return gin.CustomRecovery(func(c *gin.Context, recovered interface{}) {
+	return gin.CustomRecovery(func(c *gin.Context, recovered any) {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
 			"is_success": false,
 			"error": gin.H{

@@ -51,20 +51,6 @@ func (_c *PayloadPropertyDefinitionCreate) SetEnumValues(v []interface{}) *Paylo
 	return _c
 }
 
-// SetDeprecated sets the "deprecated" field.
-func (_c *PayloadPropertyDefinitionCreate) SetDeprecated(v bool) *PayloadPropertyDefinitionCreate {
-	_c.mutation.SetDeprecated(v)
-	return _c
-}
-
-// SetNillableDeprecated sets the "deprecated" field if the given value is not nil.
-func (_c *PayloadPropertyDefinitionCreate) SetNillableDeprecated(v *bool) *PayloadPropertyDefinitionCreate {
-	if v != nil {
-		_c.SetDeprecated(*v)
-	}
-	return _c
-}
-
 // SetDescription sets the "description" field.
 func (_c *PayloadPropertyDefinitionCreate) SetDescription(v string) *PayloadPropertyDefinitionCreate {
 	_c.mutation.SetDescription(v)
@@ -75,76 +61,6 @@ func (_c *PayloadPropertyDefinitionCreate) SetDescription(v string) *PayloadProp
 func (_c *PayloadPropertyDefinitionCreate) SetNillableDescription(v *string) *PayloadPropertyDefinitionCreate {
 	if v != nil {
 		_c.SetDescription(*v)
-	}
-	return _c
-}
-
-// SetNestedReference sets the "nested_reference" field.
-func (_c *PayloadPropertyDefinitionCreate) SetNestedReference(v string) *PayloadPropertyDefinitionCreate {
-	_c.mutation.SetNestedReference(v)
-	return _c
-}
-
-// SetNillableNestedReference sets the "nested_reference" field if the given value is not nil.
-func (_c *PayloadPropertyDefinitionCreate) SetNillableNestedReference(v *string) *PayloadPropertyDefinitionCreate {
-	if v != nil {
-		_c.SetNestedReference(*v)
-	}
-	return _c
-}
-
-// SetItemsType sets the "items_type" field.
-func (_c *PayloadPropertyDefinitionCreate) SetItemsType(v string) *PayloadPropertyDefinitionCreate {
-	_c.mutation.SetItemsType(v)
-	return _c
-}
-
-// SetNillableItemsType sets the "items_type" field if the given value is not nil.
-func (_c *PayloadPropertyDefinitionCreate) SetNillableItemsType(v *string) *PayloadPropertyDefinitionCreate {
-	if v != nil {
-		_c.SetItemsType(*v)
-	}
-	return _c
-}
-
-// SetItemsReference sets the "items_reference" field.
-func (_c *PayloadPropertyDefinitionCreate) SetItemsReference(v string) *PayloadPropertyDefinitionCreate {
-	_c.mutation.SetItemsReference(v)
-	return _c
-}
-
-// SetNillableItemsReference sets the "items_reference" field if the given value is not nil.
-func (_c *PayloadPropertyDefinitionCreate) SetNillableItemsReference(v *string) *PayloadPropertyDefinitionCreate {
-	if v != nil {
-		_c.SetItemsReference(*v)
-	}
-	return _c
-}
-
-// SetIsNested sets the "is_nested" field.
-func (_c *PayloadPropertyDefinitionCreate) SetIsNested(v bool) *PayloadPropertyDefinitionCreate {
-	_c.mutation.SetIsNested(v)
-	return _c
-}
-
-// SetNillableIsNested sets the "is_nested" field if the given value is not nil.
-func (_c *PayloadPropertyDefinitionCreate) SetNillableIsNested(v *bool) *PayloadPropertyDefinitionCreate {
-	if v != nil {
-		_c.SetIsNested(*v)
-	}
-	return _c
-}
-
-// SetOrderIndex sets the "order_index" field.
-func (_c *PayloadPropertyDefinitionCreate) SetOrderIndex(v int) *PayloadPropertyDefinitionCreate {
-	_c.mutation.SetOrderIndex(v)
-	return _c
-}
-
-// SetNillableOrderIndex sets the "order_index" field if the given value is not nil.
-func (_c *PayloadPropertyDefinitionCreate) SetNillableOrderIndex(v *int) *PayloadPropertyDefinitionCreate {
-	if v != nil {
-		_c.SetOrderIndex(*v)
 	}
 	return _c
 }
@@ -241,18 +157,6 @@ func (_c *PayloadPropertyDefinitionCreate) ExecX(ctx context.Context) {
 
 // defaults sets the default values of the builder before save.
 func (_c *PayloadPropertyDefinitionCreate) defaults() {
-	if _, ok := _c.mutation.Deprecated(); !ok {
-		v := payloadpropertydefinition.DefaultDeprecated
-		_c.mutation.SetDeprecated(v)
-	}
-	if _, ok := _c.mutation.IsNested(); !ok {
-		v := payloadpropertydefinition.DefaultIsNested
-		_c.mutation.SetIsNested(v)
-	}
-	if _, ok := _c.mutation.OrderIndex(); !ok {
-		v := payloadpropertydefinition.DefaultOrderIndex
-		_c.mutation.SetOrderIndex(v)
-	}
 	if _, ok := _c.mutation.CreatedAt(); !ok {
 		v := payloadpropertydefinition.DefaultCreatedAt()
 		_c.mutation.SetCreatedAt(v)
@@ -288,15 +192,6 @@ func (_c *PayloadPropertyDefinitionCreate) check() error {
 		if err := payloadpropertydefinition.ValueTypeValidator(v); err != nil {
 			return &ValidationError{Name: "value_type", err: fmt.Errorf(`ent: validator failed for field "PayloadPropertyDefinition.value_type": %w`, err)}
 		}
-	}
-	if _, ok := _c.mutation.Deprecated(); !ok {
-		return &ValidationError{Name: "deprecated", err: errors.New(`ent: missing required field "PayloadPropertyDefinition.deprecated"`)}
-	}
-	if _, ok := _c.mutation.IsNested(); !ok {
-		return &ValidationError{Name: "is_nested", err: errors.New(`ent: missing required field "PayloadPropertyDefinition.is_nested"`)}
-	}
-	if _, ok := _c.mutation.OrderIndex(); !ok {
-		return &ValidationError{Name: "order_index", err: errors.New(`ent: missing required field "PayloadPropertyDefinition.order_index"`)}
 	}
 	if _, ok := _c.mutation.CreatedAt(); !ok {
 		return &ValidationError{Name: "created_at", err: errors.New(`ent: missing required field "PayloadPropertyDefinition.created_at"`)}
@@ -350,33 +245,9 @@ func (_c *PayloadPropertyDefinitionCreate) createSpec() (*PayloadPropertyDefinit
 		_spec.SetField(payloadpropertydefinition.FieldEnumValues, field.TypeJSON, value)
 		_node.EnumValues = value
 	}
-	if value, ok := _c.mutation.Deprecated(); ok {
-		_spec.SetField(payloadpropertydefinition.FieldDeprecated, field.TypeBool, value)
-		_node.Deprecated = value
-	}
 	if value, ok := _c.mutation.Description(); ok {
 		_spec.SetField(payloadpropertydefinition.FieldDescription, field.TypeString, value)
 		_node.Description = value
-	}
-	if value, ok := _c.mutation.NestedReference(); ok {
-		_spec.SetField(payloadpropertydefinition.FieldNestedReference, field.TypeString, value)
-		_node.NestedReference = &value
-	}
-	if value, ok := _c.mutation.ItemsType(); ok {
-		_spec.SetField(payloadpropertydefinition.FieldItemsType, field.TypeString, value)
-		_node.ItemsType = &value
-	}
-	if value, ok := _c.mutation.ItemsReference(); ok {
-		_spec.SetField(payloadpropertydefinition.FieldItemsReference, field.TypeString, value)
-		_node.ItemsReference = &value
-	}
-	if value, ok := _c.mutation.IsNested(); ok {
-		_spec.SetField(payloadpropertydefinition.FieldIsNested, field.TypeBool, value)
-		_node.IsNested = value
-	}
-	if value, ok := _c.mutation.OrderIndex(); ok {
-		_spec.SetField(payloadpropertydefinition.FieldOrderIndex, field.TypeInt, value)
-		_node.OrderIndex = value
 	}
 	if value, ok := _c.mutation.CreatedAt(); ok {
 		_spec.SetField(payloadpropertydefinition.FieldCreatedAt, field.TypeTime, value)

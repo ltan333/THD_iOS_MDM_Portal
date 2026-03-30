@@ -43,13 +43,13 @@ export function LayoutWrapper({ children }: { children: React.ReactNode }) {
       <Sidebar />
       <div 
         className={cn(
-          "flex flex-col flex-1 min-w-0 overflow-hidden transition-all duration-300 ease-in-out bg-slate-50 dark:bg-slate-900",
+          "flex flex-col flex-1 min-w-0 overflow-hidden transition-all duration-300 ease-in-out",
           isCollapsed ? "lg:ml-[72px]" : "lg:ml-[260px]"
         )}
       >
         <Header />
-        <main className="flex-1 overflow-y-auto">
-          <div className="w-full h-full max-w-[1600px] mx-auto">
+        <main className="flex-1 overflow-y-auto p-4 sm:px-6 lg:px-8">
+          <div className="mx-auto max-w-7xl w-full h-full">
             {children}
           </div>
         </main>

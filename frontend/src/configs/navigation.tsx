@@ -11,7 +11,6 @@ import {
     Bell,
     User,
     History,
-    Smartphone,
 } from "lucide-react";
 import type { NavItem } from "@/types";
 
@@ -66,15 +65,6 @@ export const navItems: NavItem[] = [
         label: "Dự án",
         icon: <FolderKanban size={24} strokeWidth={1.5} />,
         href: "/projects",
-        roles: ["ADMIN", "SYSTEM_ADMIN"],
-    },
-
-    // Device Profiles
-    {
-        key: "profiles",
-        label: "Cấu hình thiết bị",
-        icon: <Smartphone size={24} strokeWidth={1.5} />,
-        href: "/profiles",
         roles: ["ADMIN", "SYSTEM_ADMIN"],
     },
 

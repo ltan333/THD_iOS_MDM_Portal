@@ -114,8 +114,8 @@ export function Sidebar() {
         <SidebarItem
           icon={Settings}
           label={t[currentLang].profile}
-          path="/profiles"
-          isActive={isRouteActive('/profiles')}
+          path="/profile"
+          isActive={isRouteActive('/profile')}
         />
         
         <SidebarSection

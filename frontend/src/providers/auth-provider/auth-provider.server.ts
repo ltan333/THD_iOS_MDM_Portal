@@ -36,8 +36,8 @@ export const authProviderServer: ExtendedAuthProvider = {
     const refreshToken = cookieStore.get("rcycles_refresh");
 
     // Nếu có ít nhất 1 trong 2 cookie thì coi như authenticated
-    // Hoặc nếu mock login được bật
-    if (authToken || refreshToken || process.env.NEXT_PUBLIC_MOCK_LOGIN_ENABLED === "true") {
+    // Backend middleware sẽ tự động refresh nếu access token hết hạn
+    if (authToken || refreshToken) {
       // Fetch user role from API
       try {
         const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";

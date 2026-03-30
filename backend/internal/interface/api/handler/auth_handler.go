@@ -14,6 +14,7 @@ import (
 // AuthHandler interface
 type AuthHandler interface {
 	Login(c *gin.Context)
+	Refresh(c *gin.Context)
 	Logout(c *gin.Context)
 	GetMe(c *gin.Context)
 }
@@ -35,15 +36,16 @@ func NewAuthHandler(authService service.AuthService, userService service.UserSer
 
 // Login godoc
 // @Summary User login
-// @Description Authenticate user and return JWT tokens
+// @Description Authenticate user with username and password to receive JWT tokens.
 // @Tags Authentication
 // @Accept json
 // @Produce json
 // @Param login body dto.LoginRequest true "Login credentials"
-// @Success 200 {object} response.APIResponse[dto.LoginResponse]
-// @Failure 400 {object} response.APIResponse[any]
-// @Failure 401 {object} response.APIResponse[any]
-// @Router /v1/auth/login [post]
+// @Success 200 {object} response.APIResponse[dto.LoginResponse] "Login successful"
+// @Failure 400 {object} response.APIResponse[any] "Invalid request data"
+// @Failure 401 {object} response.APIResponse[any] "Invalid username or password"
+// @Failure 500 {object} response.APIResponse[any] "Internal server error"
+// @Router /api/v1/auth/login [post]
 func (h *authHandlerImpl) Login(c *gin.Context) {
 	var req dto.LoginRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -60,17 +62,53 @@ func (h *authHandlerImpl) Login(c *gin.Context) {
 	response.OK(c, loginResp, "Đăng nhập thành công")
 }
 
+// Refresh godoc
+// @Summary Refresh access token
+// @Description Refresh existing access token using a valid refresh token.
+// @Tags Authentication
+// @Accept json
+// @Produce json
+// @Param refresh body dto.TokenRefreshRequest true "Refresh token"
+// @Success 200 {object} response.APIResponse[dto.LoginResponse] "Tokens refreshed"
+// @Failure 400 {object} response.APIResponse[any] "Invalid request data"
+// @Failure 401 {object} response.APIResponse[any] "Invalid or expired refresh token"
+// @Failure 500 {object} response.APIResponse[any] "Internal server error"
+// @Router /api/v1/auth/refresh [post]
+func (h *authHandlerImpl) Refresh(c *gin.Context) {
+	var req dto.TokenRefreshRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		response.WriteErrorResponse(c, apperror.ErrBadRequest.WithMessage("Dữ liệu không hợp lệ"))
+		return
+	}
+
+	loginResp, err := h.authService.Refresh(c.Request.Context(), req.RefreshToken)
+	if err != nil {
+		response.WriteErrorResponse(c, err)
+		return
+	}
+
+	response.OK(c, loginResp, "Làm mới token thành công")
+}
+
 // Logout godoc
 // @Summary User logout
-// @Description Invalidate the current session
+// @Description Invalidate the current session and blacklists the token.
 // @Tags Authentication
 // @Produce json
-// @Success 200 {object} response.APIResponse[any]
-// @Failure 401 {object} response.APIResponse[any]
+// @Success 200 {object} response.APIResponse[any] "Successfully logged out"
+// @Failure 401 {object} response.APIResponse[any] "Unauthorized"
+// @Failure 500 {object} response.APIResponse[any] "Internal server error"
 // @Security BearerAuth
-// @Router /v1/auth/logout [post]
+// @Router /api/v1/auth/logout [post]
 func (h *authHandlerImpl) Logout(c *gin.Context) {
-	if err := h.authService.Logout(c.Request.Context()); err != nil {
+	// Extract token from Authorization header
+	token := middleware.GetToken(c)
+	if token == "" {
+		response.WriteErrorResponse(c, apperror.ErrUnauthorized)
+		return
+	}
+
+	if err := h.authService.Logout(c.Request.Context(), token); err != nil {
 		response.WriteErrorResponse(c, err)
 		return
 	}
@@ -79,13 +117,14 @@ func (h *authHandlerImpl) Logout(c *gin.Context) {
 
 // GetMe godoc
 // @Summary Get current user info
-// @Description Return the profile of the currently authenticated user
+// @Description Returns the profile and permissions of the currently authenticated user.
 // @Tags Authentication
 // @Produce json
-// @Success 200 {object} response.APIResponse[dto.UserResponse]
-// @Failure 401 {object} response.APIResponse[any]
+// @Success 200 {object} response.APIResponse[dto.UserResponse] "User information"
+// @Failure 401 {object} response.APIResponse[any] "Unauthorized"
+// @Failure 500 {object} response.APIResponse[any] "Internal server error"
 // @Security BearerAuth
-// @Router /v1/auth/me [get]
+// @Router /api/v1/auth/me [get]
 func (h *authHandlerImpl) GetMe(c *gin.Context) {
 	userID := middleware.GetUserID(c)
 	user, err := h.userService.GetByID(c.Request.Context(), userID)

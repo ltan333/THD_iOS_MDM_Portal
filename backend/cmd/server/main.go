@@ -38,6 +38,39 @@ import (
 // @in header
 // @name Authorization
 // @description Type "Bearer" followed by a space and your JWT token.
+
+// @tag.name Device Actions
+// @tag.description Client-facing APIs for device management actions (lock, wipe, restart, etc.)
+
+// @tag.name Devices
+// @tag.description Client-facing APIs for device listing and information
+
+// @tag.name Profiles
+// @tag.description Client-facing APIs for configuration profile management
+
+// @tag.name Device Groups
+// @tag.description Client-facing APIs for device group management
+
+// @tag.name Applications
+// @tag.description Client-facing APIs for application management
+
+// @tag.name Dashboard
+// @tag.description Client-facing APIs for dashboard statistics and charts
+
+// @tag.name Alerts
+// @tag.description Client-facing APIs for alert management
+
+// @tag.name MDM Setup
+// @tag.description Admin APIs for MDM server configuration (requires admin role)
+
+// @tag.name DEP Setup
+// @tag.description Admin APIs for DEP/ABM configuration (requires admin role)
+
+// @tag.name NanoCMD Setup
+// @tag.description Admin APIs for NanoCMD workflow configuration (requires admin role)
+
+// @tag.name System
+// @tag.description Admin APIs for system settings, users, and policies
 func main() {
 	// Load configuration
 	cfg, err := config.Load()
