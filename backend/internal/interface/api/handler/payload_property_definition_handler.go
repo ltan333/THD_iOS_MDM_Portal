@@ -35,7 +35,7 @@ func NewPayloadPropertyDefinitionHandler(service service.PayloadPropertyDefiniti
 // @Success 200 {object} response.APIResponse[[]string]
 // @Failure 401 {object} response.APIResponse[any]
 // @Security BearerAuth
-// @Router /v1/payload-property-definitions/payload-types [get]
+// @Router /api/v1/payload-property-definitions/payload-types [get]
 func (h *payloadPropertyDefinitionHandlerImpl) ListPayloadTypes(c *gin.Context) {
 	types, err := h.service.ListPayloadTypes(c.Request.Context())
 	if err != nil {
@@ -58,7 +58,7 @@ func (h *payloadPropertyDefinitionHandlerImpl) ListPayloadTypes(c *gin.Context) 
 // @Failure 401 {object} response.APIResponse[any]
 // @Failure 500 {object} response.APIResponse[any]
 // @Security BearerAuth
-// @Router /v1/payload-property-definitions/import [post]
+// @Router /api/v1/payload-property-definitions/import [post]
 func (h *payloadPropertyDefinitionHandlerImpl) Import(c *gin.Context) {
 	form, err := c.MultipartForm()
 	if err != nil {
@@ -120,7 +120,7 @@ func (h *payloadPropertyDefinitionHandlerImpl) Import(c *gin.Context) {
 // @Success 200 {object} response.APIResponse[[]service.NestedPayloadSchema]
 // @Failure 400 {object} response.APIResponse[any]
 // @Failure 500 {object} response.APIResponse[any]
-// @Router /v1/payload-property-definitions/schema [get]
+// @Router /api/v1/payload-property-definitions/schema [get]
 func (h *payloadPropertyDefinitionHandlerImpl) GetNestedSchema(c *gin.Context) {
 	payloadType := c.Query("payload_type") // optional
 
