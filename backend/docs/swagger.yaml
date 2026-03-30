@@ -403,7 +403,7 @@ definitions:
       key:
         type: string
       value_json:
-        additionalProperties: {}
+        additionalProperties: true
         type: object
     required:
     - key
@@ -886,7 +886,7 @@ definitions:
       key:
         type: string
       value_json:
-        additionalProperties: {}
+        additionalProperties: true
         type: object
     type: object
   github_com_thienel_go-backend-template_internal_interface_api_dto.MobileConfigResponse:
@@ -1986,9 +1986,32 @@ definitions:
       message:
         type: string
     type: object
+  internal_interface_api_handler.APIErrorResponse:
+    properties:
+      error:
+        $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.Error'
+      is_success:
+        type: boolean
+    type: object
+  internal_interface_api_handler.EmptySuccessResponse:
+    properties:
+      is_success:
+        type: boolean
+      message:
+        type: string
+    type: object
   internal_interface_api_handler.HealthResponse:
     properties:
       status:
+        type: string
+    type: object
+  internal_interface_api_handler.MobileConfigSuccessResponse:
+    properties:
+      data:
+        $ref: '#/definitions/github_com_thienel_go-backend-template_internal_interface_api_dto.MobileConfigResponse'
+      is_success:
+        type: boolean
+      message:
         type: string
     type: object
   map_string_github_com_thienel_go-backend-template_internal_interface_api_dto.NanoCMDProfile:
@@ -3994,267 +4017,6 @@ paths:
       summary: System health check
       tags:
       - System
-  /api/v1/mobile-configs:
-    get:
-      description: Get a paginated list of Apple mobile configuration profiles with
-        support for filtering and sorting.
-      parameters:
-      - description: Page number (default 1)
-        in: query
-        name: page
-        type: integer
-      - description: Items per page (default 20)
-        in: query
-        name: limit
-        type: integer
-      - description: Search by name, payload_type, payload_display_name, payload_identifier
-        in: query
-        name: search
-        type: string
-      - description: Filter by name
-        in: query
-        name: name
-        type: string
-      - description: Filter by payload_type
-        in: query
-        name: payload_type
-        type: string
-      - description: Filter by payload_display_name
-        in: query
-        name: payload_display_name
-        type: string
-      - description: Sort by field (id,name,payload_type,created_at)
-        in: query
-        name: sort
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_ListResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_MobileConfigResponse'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
-      security:
-      - BearerAuth: []
-      - BearerAuth: []
-      summary: List mobile configs
-      tags:
-      - MobileConfig
-    post:
-      consumes:
-      - application/json
-      description: Create a new Apple mobileconfig definition with multiple payloads
-        and detailed properties.
-      parameters:
-      - description: Mobile config definition
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/github_com_thienel_go-backend-template_internal_interface_api_dto.CreateMobileConfigRequest'
-      produces:
-      - application/json
-      responses:
-        "201":
-          description: Mobile config created successfully
-          schema:
-            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_MobileConfigResponse'
-        "400":
-          description: Invalid request data or validation error
-          schema:
-            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
-        "403":
-          description: Forbidden - Insufficient permissions
-          schema:
-            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
-        "409":
-          description: Mobile config with this identifier already exists
-          schema:
-            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
-        "500":
-          description: Internal server error
-          schema:
-            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
-      security:
-      - BearerAuth: []
-      summary: Create mobile config
-      tags:
-      - MobileConfig
-  /api/v1/mobile-configs/{id}:
-    delete:
-      description: Permanently remove an Apple mobileconfig definition from the system.
-      parameters:
-      - description: Mobile config ID
-        in: path
-        name: id
-        required: true
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Mobile config deleted successfully
-          schema:
-            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
-        "400":
-          description: Invalid ID format
-          schema:
-            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
-        "403":
-          description: Forbidden - Insufficient permissions
-          schema:
-            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
-        "404":
-          description: Mobile config not found
-          schema:
-            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
-        "500":
-          description: Internal server error
-          schema:
-            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
-      security:
-      - BearerAuth: []
-      summary: Delete mobile config
-      tags:
-      - MobileConfig
-    get:
-      description: Retrieve details of a single Apple mobile configuration profile,
-        including its nested payloads and properties.
-      parameters:
-      - description: Mobile config ID
-        in: path
-        name: id
-        required: true
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Mobile config details
-          schema:
-            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_MobileConfigResponse'
-        "400":
-          description: Invalid ID format
-          schema:
-            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
-        "404":
-          description: Mobile config not found
-          schema:
-            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
-        "500":
-          description: Internal server error
-          schema:
-            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
-      security:
-      - BearerAuth: []
-      summary: Get mobile config by ID
-      tags:
-      - MobileConfig
-    put:
-      consumes:
-      - application/json
-      description: Modify an existing Apple mobileconfig definition, including its
-        nested payloads and properties.
-      parameters:
-      - description: Mobile config ID
-        in: path
-        name: id
-        required: true
-        type: integer
-      - description: Updated mobile config definition
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/github_com_thienel_go-backend-template_internal_interface_api_dto.UpdateMobileConfigRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Mobile config updated successfully
-          schema:
-            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_MobileConfigResponse'
-        "400":
-          description: Invalid ID or request data
-          schema:
-            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
-        "403":
-          description: Forbidden - Insufficient permissions
-          schema:
-            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
-        "404":
-          description: Mobile config not found
-          schema:
-            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
-        "409":
-          description: Conflict - record might have been modified
-          schema:
-            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
-        "500":
-          description: Internal server error
-          schema:
-            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
-      security:
-      - BearerAuth: []
-      summary: Update mobile config
-      tags:
-      - MobileConfig
-  /api/v1/mobile-configs/{id}/xml:
-    get:
-      description: Generate and return the raw .mobileconfig XML file content for
-        Apple devices.
-      parameters:
-      - description: Mobile config ID
-        in: path
-        name: id
-        required: true
-        type: integer
-      produces:
-      - application/x-apple-aspen-config
-      responses:
-        "200":
-          description: Apple mobileconfig file content
-          schema:
-            type: file
-        "400":
-          description: Invalid ID format
-          schema:
-            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
-        "404":
-          description: Mobile config not found
-          schema:
-            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
-        "500":
-          description: Internal server error
-          schema:
-            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
-      summary: Export mobile config XML
-      tags:
-      - MobileConfig
   /api/v1/nanocmd/cmdplan/{name}:
     get:
       description: Retrieve a specific NanoCMD command plan definition by its name.
@@ -6229,6 +5991,258 @@ paths:
       summary: Update user
       tags:
       - Users
+  /v1/mobile-configs:
+    get:
+      description: Get a paginated list of mobile configs with filtering and sorting
+      parameters:
+      - description: Page number (default 1)
+        in: query
+        name: page
+        type: integer
+      - description: Items per page (default 20)
+        in: query
+        name: limit
+        type: integer
+      - description: Search by name, payload_type, payload_display_name, payload_identifier
+        in: query
+        name: search
+        type: string
+      - description: Filter by name
+        in: query
+        name: name
+        type: string
+      - description: Filter by payload_type
+        in: query
+        name: payload_type
+        type: string
+      - description: Filter by payload_display_name
+        in: query
+        name: payload_display_name
+        type: string
+      - description: Sort by field (id,name,payload_type,created_at)
+        in: query
+        name: sort
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_ListResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_MobileConfigResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+      security:
+      - BearerAuth: []
+      summary: List mobile configs
+      tags:
+      - Mobile Config
+    post:
+      consumes:
+      - application/json
+      description: Create a new Apple mobileconfig with payloads and payload properties
+      parameters:
+      - description: Mobile config payload
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_thienel_go-backend-template_internal_interface_api_dto.CreateMobileConfigRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/internal_interface_api_handler.MobileConfigSuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/internal_interface_api_handler.APIErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/internal_interface_api_handler.APIErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/internal_interface_api_handler.APIErrorResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/internal_interface_api_handler.APIErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/internal_interface_api_handler.APIErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Create mobile config
+      tags:
+      - Mobile Config
+  /v1/mobile-configs/{id}:
+    delete:
+      description: Delete an existing Apple mobileconfig by ID
+      parameters:
+      - description: Mobile config ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_interface_api_handler.EmptySuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/internal_interface_api_handler.APIErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/internal_interface_api_handler.APIErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/internal_interface_api_handler.APIErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/internal_interface_api_handler.APIErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/internal_interface_api_handler.APIErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Delete mobile config
+      tags:
+      - Mobile Config
+    get:
+      description: Fetch detailed information for a single mobile config
+      parameters:
+      - description: Mobile config ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_MobileConfigResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+      security:
+      - BearerAuth: []
+      summary: Get mobile config by ID
+      tags:
+      - Mobile Config
+    put:
+      consumes:
+      - application/json
+      description: Update an existing Apple mobileconfig with payloads and payload
+        properties
+      parameters:
+      - description: Mobile config ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Mobile config payload
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_thienel_go-backend-template_internal_interface_api_dto.UpdateMobileConfigRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_interface_api_handler.MobileConfigSuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/internal_interface_api_handler.APIErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/internal_interface_api_handler.APIErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/internal_interface_api_handler.APIErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/internal_interface_api_handler.APIErrorResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/internal_interface_api_handler.APIErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/internal_interface_api_handler.APIErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Update mobile config
+      tags:
+      - Mobile Config
+  /v1/mobile-configs/{id}/xml:
+    get:
+      description: Generate and return raw Apple mobileconfig XML content by ID
+      parameters:
+      - description: Mobile config ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - text/xml
+      responses:
+        "200":
+          description: Raw XML
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/internal_interface_api_handler.APIErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/internal_interface_api_handler.APIErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/internal_interface_api_handler.APIErrorResponse'
+      summary: Export mobile config XML
+      tags:
+      - Mobile Config
   /v1/payload-property-definitions/import:
     post:
       consumes:
