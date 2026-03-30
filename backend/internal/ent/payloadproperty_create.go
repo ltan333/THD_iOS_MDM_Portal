@@ -4,6 +4,7 @@ package ent
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"time"
@@ -23,7 +24,7 @@ type PayloadPropertyCreate struct {
 }
 
 // SetValueJSON sets the "value_json" field.
-func (_c *PayloadPropertyCreate) SetValueJSON(v map[string]interface{}) *PayloadPropertyCreate {
+func (_c *PayloadPropertyCreate) SetValueJSON(v json.RawMessage) *PayloadPropertyCreate {
 	_c.mutation.SetValueJSON(v)
 	return _c
 }

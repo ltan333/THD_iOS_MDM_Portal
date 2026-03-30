@@ -13,16 +13,17 @@ import (
 )
 
 var payloadPropertyDefinitionAllowedFields = map[string]bool{
-	"id":            true,
-	"payload_type":  true,
-	"key":           true,
-	"value_type":    true,
-	"deprecated":    true,
-	"description":   true,
-	"order_index":   true,
-	"created_at":    true,
-	"updated_at":    true,
-	"search":        true,
+	"id":              true,
+	"payload_type":    true,
+	"payload_variant": true,
+	"key":             true,
+	"value_type":      true,
+	"deprecated":      true,
+	"description":     true,
+	"order_index":     true,
+	"created_at":      true,
+	"updated_at":      true,
+	"search":          true,
 }
 
 type payloadPropertyDefinitionRepositoryImpl struct {
@@ -37,17 +38,23 @@ func NewPayloadPropertyDefinitionRepository(client *ent.Client) repository.Paylo
 func (r *payloadPropertyDefinitionRepositoryImpl) Create(ctx context.Context, e *ent.PayloadPropertyDefinition) error {
 	created, err := r.client.PayloadPropertyDefinition.Create().
 		SetPayloadType(strings.TrimSpace(e.PayloadType)).
+		SetPayloadVariant(strings.TrimSpace(e.PayloadVariant)).
 		SetKey(strings.TrimSpace(e.Key)).
 		SetValueType(strings.TrimSpace(e.ValueType)).
+		SetNillableItemsType(e.ItemsType).
 		SetDefaultValue(e.DefaultValue).
 		SetEnumValues(e.EnumValues).
-		SetDeprecated(e.Deprecated).
+		SetNillableTitle(e.Title).
 		SetDescription(strings.TrimSpace(e.Description)).
-		SetNillableNestedReference(e.NestedReference).
-		SetNillableItemsType(e.ItemsType).
-		SetNillableItemsReference(e.ItemsReference).
+		SetPresence(e.Presence).
+		SetDeprecated(e.Deprecated).
 		SetIsNested(e.IsNested).
+		SetNillableNestedReference(e.NestedReference).
+		SetNillableItemsReference(e.ItemsReference).
+		SetSupportedOs(e.SupportedOs).
+		SetConditions(e.Conditions).
 		SetOrderIndex(e.OrderIndex).
+		SetNillableYamlSourceFile(e.YamlSourceFile).
 		Save(ctx)
 	if err != nil {
 		if ent.IsConstraintError(err) {
@@ -78,17 +85,23 @@ func (r *payloadPropertyDefinitionRepositoryImpl) FindByID(ctx context.Context, 
 func (r *payloadPropertyDefinitionRepositoryImpl) Update(ctx context.Context, e *ent.PayloadPropertyDefinition) error {
 	updated, err := r.client.PayloadPropertyDefinition.UpdateOneID(e.ID).
 		SetPayloadType(strings.TrimSpace(e.PayloadType)).
+		SetPayloadVariant(strings.TrimSpace(e.PayloadVariant)).
 		SetKey(strings.TrimSpace(e.Key)).
 		SetValueType(strings.TrimSpace(e.ValueType)).
+		SetNillableItemsType(e.ItemsType).
 		SetDefaultValue(e.DefaultValue).
 		SetEnumValues(e.EnumValues).
-		SetDeprecated(e.Deprecated).
+		SetNillableTitle(e.Title).
 		SetDescription(strings.TrimSpace(e.Description)).
-		SetNillableNestedReference(e.NestedReference).
-		SetNillableItemsType(e.ItemsType).
-		SetNillableItemsReference(e.ItemsReference).
+		SetPresence(e.Presence).
+		SetDeprecated(e.Deprecated).
 		SetIsNested(e.IsNested).
+		SetNillableNestedReference(e.NestedReference).
+		SetNillableItemsReference(e.ItemsReference).
+		SetSupportedOs(e.SupportedOs).
+		SetConditions(e.Conditions).
 		SetOrderIndex(e.OrderIndex).
+		SetNillableYamlSourceFile(e.YamlSourceFile).
 		Save(ctx)
 	if err != nil {
 		if ent.IsConstraintError(err) {
@@ -140,6 +153,17 @@ func (r *payloadPropertyDefinitionRepositoryImpl) ListWithQuery(ctx context.Cont
 		}
 	}
 
+	if filter, ok := opts.Filters["payload_variant"]; ok {
+		if value, ok := filter.Value.(string); ok {
+			trimmed := strings.TrimSpace(value)
+			if trimmed == "" {
+				q = q.Where(payloadpropertydefinition.PayloadVariantEQ(""))
+			} else {
+				q = q.Where(payloadpropertydefinition.PayloadVariantContainsFold(trimmed))
+			}
+		}
+	}
+
 	if filter, ok := opts.Filters["key"]; ok {
 		if value, ok := filter.Value.(string); ok && strings.TrimSpace(value) != "" {
 			q = q.Where(payloadpropertydefinition.KeyContainsFold(strings.TrimSpace(value)))
@@ -157,6 +181,7 @@ func (r *payloadPropertyDefinitionRepositoryImpl) ListWithQuery(ctx context.Cont
 			searchValue := strings.TrimSpace(value)
 			q = q.Where(payloadpropertydefinition.Or(
 				payloadpropertydefinition.PayloadTypeContainsFold(searchValue),
+				payloadpropertydefinition.PayloadVariantContainsFold(searchValue),
 				payloadpropertydefinition.KeyContainsFold(searchValue),
 				payloadpropertydefinition.DescriptionContainsFold(searchValue),
 			))
@@ -208,10 +233,20 @@ func (r *payloadPropertyDefinitionRepositoryImpl) ListPayloadTypes(ctx context.C
 	return types, nil
 }
 
-func (r *payloadPropertyDefinitionRepositoryImpl) FindByPayloadTypeAndKey(ctx context.Context, payloadType, key string) (*ent.PayloadPropertyDefinition, error) {
+func (r *payloadPropertyDefinitionRepositoryImpl) DeleteAll(ctx context.Context) (int, error) {
+	deletedCount, err := r.client.PayloadPropertyDefinition.Delete().Exec(ctx)
+	if err != nil {
+		return 0, wrapDeleteError(err, "định nghĩa thuộc tính payload")
+	}
+
+	return deletedCount, nil
+}
+
+func (r *payloadPropertyDefinitionRepositoryImpl) FindByPayloadTypeVariantAndKey(ctx context.Context, payloadType, payloadVariant, key string) (*ent.PayloadPropertyDefinition, error) {
 	item, err := r.client.PayloadPropertyDefinition.Query().
 		Where(
 			payloadpropertydefinition.PayloadTypeEQ(strings.TrimSpace(payloadType)),
+			payloadpropertydefinition.PayloadVariantEQ(strings.TrimSpace(payloadVariant)),
 			payloadpropertydefinition.KeyEQ(strings.TrimSpace(key)),
 		).
 		Only(ctx)
@@ -224,13 +259,15 @@ func (r *payloadPropertyDefinitionRepositoryImpl) FindByPayloadTypeAndKey(ctx co
 	return item, nil
 }
 
-func (r *payloadPropertyDefinitionRepositoryImpl) UpsertByPayloadTypeAndKey(ctx context.Context, e *ent.PayloadPropertyDefinition) (*ent.PayloadPropertyDefinition, bool, error) {
+func (r *payloadPropertyDefinitionRepositoryImpl) UpsertByPayloadTypeVariantAndKey(ctx context.Context, e *ent.PayloadPropertyDefinition) (*ent.PayloadPropertyDefinition, bool, error) {
 	payloadType := strings.TrimSpace(e.PayloadType)
+	payloadVariant := strings.TrimSpace(e.PayloadVariant)
 	key := strings.TrimSpace(e.Key)
 
 	existing, err := r.client.PayloadPropertyDefinition.Query().
 		Where(
 			payloadpropertydefinition.PayloadTypeEQ(payloadType),
+			payloadpropertydefinition.PayloadVariantEQ(payloadVariant),
 			payloadpropertydefinition.KeyEQ(key),
 		).
 		Only(ctx)
@@ -241,17 +278,23 @@ func (r *payloadPropertyDefinitionRepositoryImpl) UpsertByPayloadTypeAndKey(ctx 
 	if ent.IsNotFound(err) {
 		created := &ent.PayloadPropertyDefinition{
 			PayloadType:     payloadType,
+			PayloadVariant:  payloadVariant,
 			Key:             key,
 			ValueType:       strings.TrimSpace(e.ValueType),
+			ItemsType:       e.ItemsType,
 			DefaultValue:    e.DefaultValue,
 			EnumValues:      e.EnumValues,
-			Deprecated:      e.Deprecated,
+			Title:           e.Title,
 			Description:     strings.TrimSpace(e.Description),
-			NestedReference: e.NestedReference,
-			ItemsType:       e.ItemsType,
-			ItemsReference:  e.ItemsReference,
+			Presence:        e.Presence,
+			Deprecated:      e.Deprecated,
 			IsNested:        e.IsNested,
+			NestedReference: e.NestedReference,
+			ItemsReference:  e.ItemsReference,
+			SupportedOs:     e.SupportedOs,
+			Conditions:      e.Conditions,
 			OrderIndex:      e.OrderIndex,
+			YamlSourceFile:  e.YamlSourceFile,
 		}
 		if err := r.Create(ctx, created); err != nil {
 			return nil, false, err
@@ -260,17 +303,23 @@ func (r *payloadPropertyDefinitionRepositoryImpl) UpsertByPayloadTypeAndKey(ctx 
 	}
 
 	existing.PayloadType = payloadType
+	existing.PayloadVariant = payloadVariant
 	existing.Key = key
 	existing.ValueType = strings.TrimSpace(e.ValueType)
+	existing.ItemsType = e.ItemsType
 	existing.DefaultValue = e.DefaultValue
 	existing.EnumValues = e.EnumValues
-	existing.Deprecated = e.Deprecated
+	existing.Title = e.Title
 	existing.Description = strings.TrimSpace(e.Description)
-	existing.NestedReference = e.NestedReference
-	existing.ItemsType = e.ItemsType
-	existing.ItemsReference = e.ItemsReference
+	existing.Presence = e.Presence
+	existing.Deprecated = e.Deprecated
 	existing.IsNested = e.IsNested
+	existing.NestedReference = e.NestedReference
+	existing.ItemsReference = e.ItemsReference
+	existing.SupportedOs = e.SupportedOs
+	existing.Conditions = e.Conditions
 	existing.OrderIndex = e.OrderIndex
+	existing.YamlSourceFile = e.YamlSourceFile
 	if err := r.Update(ctx, existing); err != nil {
 		return nil, false, err
 	}
