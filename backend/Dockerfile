@@ -24,7 +24,9 @@ WORKDIR /app
 # Install runtime dependencies
 RUN apk add --no-cache ca-certificates tzdata \
 	&& addgroup -S app \
-	&& adduser -S app -G app
+	&& adduser -S app -G app \
+	&& mkdir -p /app/logs \
+	&& chown -R app:app /app
 
 # Copy binary from builder
 COPY --from=builder /app/bin/server ./server
