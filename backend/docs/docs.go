@@ -6286,56 +6286,6 @@ const docTemplate = `{
             }
         },
         "/v1/mobile-configs/{id}": {
-            "get": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Fetch detailed information for a single mobile config",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Mobile Config"
-                ],
-                "summary": "Get mobile config by ID",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "Mobile config ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_MobileConfigResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any"
-                        }
-                    },
-                    "404": {
-                        "description": "Not Found",
-                        "schema": {
-                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any"
-                        }
-                    }
-                }
-            },
             "put": {
                 "security": [
                     {
@@ -9406,23 +9356,6 @@ const docTemplate = `{
             "properties": {
                 "data": {
                     "$ref": "#/definitions/github_com_thienel_go-backend-template_internal_interface_api_dto.LoginResponse"
-                },
-                "error": {
-                    "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.Error"
-                },
-                "is_success": {
-                    "type": "boolean"
-                },
-                "message": {
-                    "type": "string"
-                }
-            }
-        },
-        "github_com_thienel_go-backend-template_pkg_response.APIResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_MobileConfigResponse": {
-            "type": "object",
-            "properties": {
-                "data": {
-                    "$ref": "#/definitions/github_com_thienel_go-backend-template_internal_interface_api_dto.MobileConfigResponse"
                 },
                 "error": {
                     "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.Error"

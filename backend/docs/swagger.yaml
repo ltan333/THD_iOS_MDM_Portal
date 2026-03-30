@@ -1847,17 +1847,6 @@ definitions:
       message:
         type: string
     type: object
-  ? github_com_thienel_go-backend-template_pkg_response.APIResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_MobileConfigResponse
-  : properties:
-      data:
-        $ref: '#/definitions/github_com_thienel_go-backend-template_internal_interface_api_dto.MobileConfigResponse'
-      error:
-        $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.Error'
-      is_success:
-        type: boolean
-      message:
-        type: string
-    type: object
   ? github_com_thienel_go-backend-template_pkg_response.APIResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_NanoCMDInventoryResponse
   : properties:
       data:
@@ -6125,38 +6114,6 @@ paths:
       security:
       - BearerAuth: []
       summary: Delete mobile config
-      tags:
-      - Mobile Config
-    get:
-      description: Fetch detailed information for a single mobile config
-      parameters:
-      - description: Mobile config ID
-        in: path
-        name: id
-        required: true
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_MobileConfigResponse'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
-        "404":
-          description: Not Found
-          schema:
-            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
-      security:
-      - BearerAuth: []
-      summary: Get mobile config by ID
       tags:
       - Mobile Config
     put:

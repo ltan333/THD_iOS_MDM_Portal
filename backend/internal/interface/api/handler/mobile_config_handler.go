@@ -17,7 +17,6 @@ import (
 
 type MobileConfigHandler interface {
 	List(c *gin.Context)
-	GetByID(c *gin.Context)
 	Create(c *gin.Context)
 	Update(c *gin.Context)
 	Delete(c *gin.Context)
@@ -93,34 +92,6 @@ func (m *mobileConfigHandlerImpl) List(c *gin.Context) {
 		Limit:      limit,
 		TotalPages: totalPages,
 	}, "")
-}
-
-// GetByID godoc
-// @Summary Get mobile config by ID
-// @Description Fetch detailed information for a single mobile config
-// @Tags Mobile Config
-// @Produce json
-// @Param id path int true "Mobile config ID"
-// @Success 200 {object} response.APIResponse[dto.MobileConfigResponse]
-// @Failure 400 {object} response.APIResponse[any]
-// @Failure 401 {object} response.APIResponse[any]
-// @Failure 404 {object} response.APIResponse[any]
-// @Security BearerAuth
-// @Router /v1/mobile-configs/{id} [get]
-func (m *mobileConfigHandlerImpl) GetByID(c *gin.Context) {
-	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
-	if err != nil {
-		response.WriteErrorResponse(c, apperror.ErrBadRequest.WithMessage("ID không hợp lệ"))
-		return
-	}
-
-	item, err := m.mobileConfigService.GetByID(c.Request.Context(), uint(id))
-	if err != nil {
-		response.WriteErrorResponse(c, err)
-		return
-	}
-
-	response.OK(c, toMobileConfigResponse(item), "")
 }
 
 // Create godoc

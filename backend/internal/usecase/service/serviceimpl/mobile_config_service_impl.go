@@ -26,10 +26,6 @@ func (m *mobileConfigServiceImpl) List(ctx context.Context, offset, limit int, o
 	return m.mobileConfigRepo.List(ctx, offset, limit, opts)
 }
 
-func (m *mobileConfigServiceImpl) GetByID(ctx context.Context, id uint) (*ent.MobileConfig, error) {
-	return m.mobileConfigRepo.GetByID(ctx, id)
-}
-
 func (m *mobileConfigServiceImpl) Create(ctx context.Context, cmd service.CreateMobileConfigCommand) (*ent.MobileConfig, error) {
 	if err := validateCreateMobileConfigCommand(cmd); err != nil {
 		return nil, err
