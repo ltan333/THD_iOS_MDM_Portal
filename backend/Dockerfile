@@ -3,7 +3,7 @@ FROM golang:1.23-alpine AS builder
 
 WORKDIR /app
 
-# Install dependencies
+# Install build dependencies
 RUN apk add --no-cache git
 
 # Copy go mod and sum files
@@ -14,18 +14,20 @@ RUN go mod download
 COPY . .
 
 # Build the application
-RUN CGO_ENABLED=0 GOOS=linux go build -o main ./cmd/server
+RUN CGO_ENABLED=0 GOOS=linux go build -trimpath -ldflags="-s -w" -o /app/bin/server ./cmd/server
 
 # Stage 2: Runtime
-FROM alpine:latest
+FROM alpine:3.20
 
 WORKDIR /app
 
 # Install runtime dependencies
-RUN apk add --no-cache ca-certificates tzdata
+RUN apk add --no-cache ca-certificates tzdata \
+	&& addgroup -S app \
+	&& adduser -S app -G app
 
 # Copy binary from builder
-COPY --from=builder /app/main .
+COPY --from=builder /app/bin/server ./server
 # Copy necessary runtime files
 COPY --from=builder /app/configs ./configs
 COPY --from=builder /app/internal/ent/migrate/migrations ./internal/ent/migrate/migrations
@@ -33,5 +35,8 @@ COPY --from=builder /app/internal/ent/migrate/migrations ./internal/ent/migrate/
 # Expose port
 EXPOSE 8000
 
+# Run as non-root
+USER app
+
 # Command to run
-CMD ["./main"]
+CMD ["./server"]
