@@ -8,6 +8,7 @@ services:
       dockerfile: Dockerfile
     image: thd-mdm-portal-backend:latest
     container_name: mdm-backend
+    user: "0:0"
     restart: unless-stopped
     ports:
       - "8000:8000"
