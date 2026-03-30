@@ -3,8 +3,8 @@ package dto
 import "time"
 
 type CreateMobileConfigPropertyRequest struct {
-	Key       string         `json:"key" binding:"required"`
-	ValueJSON map[string]any `json:"value_json" binding:"required"`
+	Key       string                 `json:"key" binding:"required"`
+	ValueJSON map[string]interface{} `json:"value_json" binding:"required"`
 }
 
 type CreateMobileConfigPayloadRequest struct {
@@ -46,9 +46,9 @@ type UpdateMobileConfigRequest struct {
 }
 
 type MobileConfigPropertyResponse struct {
-	ID        uint           `json:"id"`
-	Key       string         `json:"key"`
-	ValueJSON map[string]any `json:"value_json,omitempty"`
+	ID        uint                   `json:"id"`
+	Key       string                 `json:"key"`
+	ValueJSON map[string]interface{} `json:"value_json,omitempty"`
 }
 
 type MobileConfigPayloadResponse struct {

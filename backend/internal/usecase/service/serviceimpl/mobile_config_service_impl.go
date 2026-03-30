@@ -27,10 +27,7 @@ func (m *mobileConfigServiceImpl) List(ctx context.Context, offset, limit int, o
 }
 
 func (m *mobileConfigServiceImpl) GetByID(ctx context.Context, id uint) (*ent.MobileConfig, error) {
-	if id == 0 {
-		return nil, apperror.ErrValidation.WithMessage("id là bắt buộc")
-	}
-	return m.mobileConfigRepo.GetByIDWithPayloads(ctx, id)
+	return m.mobileConfigRepo.GetByID(ctx, id)
 }
 
 func (m *mobileConfigServiceImpl) Create(ctx context.Context, cmd service.CreateMobileConfigCommand) (*ent.MobileConfig, error) {
@@ -154,7 +151,7 @@ func buildCreateEntities(cmd service.CreateMobileConfigCommand) (*ent.MobileConf
 		for _, propCmd := range payloadCmd.Properties {
 			valueJSON := propCmd.ValueJSON
 			if valueJSON == nil {
-				valueJSON = map[string]any{}
+				valueJSON = map[string]interface{}{}
 			}
 
 			properties = append(properties, &ent.PayloadProperty{
@@ -264,7 +261,7 @@ func (m *mobileConfigServiceImpl) GenerateXML(ctx context.Context, cmd service.G
 }
 
 func buildMobileConfigXML(mc *ent.MobileConfig) ([]byte, error) {
-	root := map[string]any{
+	root := map[string]interface{}{
 		"PayloadDescription":       mc.PayloadDescription,
 		"PayloadDisplayName":       mc.PayloadDisplayName,
 		"PayloadIdentifier":        mc.PayloadIdentifier,
@@ -279,11 +276,11 @@ func buildMobileConfigXML(mc *ent.MobileConfig) ([]byte, error) {
 	return plist.MarshalIndent(root, plist.XMLFormat, "\t")
 }
 
-func buildPayloadContent(payloads []*ent.Payload) []map[string]any {
-	var content []map[string]any
+func buildPayloadContent(payloads []*ent.Payload) []map[string]interface{} {
+	var content []map[string]interface{}
 
 	for _, p := range payloads {
-		payloadDict := map[string]any{
+		payloadDict := map[string]interface{}{
 			"PayloadType":         p.PayloadType,
 			"PayloadVersion":      p.PayloadVersion,
 			"PayloadIdentifier":   p.PayloadIdentifier,
@@ -311,7 +308,7 @@ func buildPayloadContent(payloads []*ent.Payload) []map[string]any {
 	return content
 }
 
-func normalizeValue(val any, valueType string) any {
+func normalizeValue(val interface{}, valueType string) interface{} {
 	raw := extractRawValue(val)
 
 	switch strings.ToLower(valueType) {
@@ -342,8 +339,8 @@ func normalizeValue(val any, valueType string) any {
 	}
 }
 
-func extractRawValue(val any) any {
-	if m, ok := val.(map[string]any); ok {
+func extractRawValue(val interface{}) interface{} {
+	if m, ok := val.(map[string]interface{}); ok {
 		if unwrapped, exists := m["value"]; exists {
 			return unwrapped
 		}
