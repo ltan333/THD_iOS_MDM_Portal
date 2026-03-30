@@ -12,6 +12,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/thienel/go-backend-template/internal/ent/device"
+	"github.com/thienel/go-backend-template/internal/ent/devicegroup"
 	"github.com/thienel/go-backend-template/internal/ent/predicate"
 	"github.com/thienel/go-backend-template/internal/ent/user"
 )
@@ -26,6 +27,26 @@ type DeviceUpdate struct {
 // Where appends a list predicates to the DeviceUpdate builder.
 func (_u *DeviceUpdate) Where(ps ...predicate.Device) *DeviceUpdate {
 	_u.mutation.Where(ps...)
+	return _u
+}
+
+// SetUdid sets the "udid" field.
+func (_u *DeviceUpdate) SetUdid(v string) *DeviceUpdate {
+	_u.mutation.SetUdid(v)
+	return _u
+}
+
+// SetNillableUdid sets the "udid" field if the given value is not nil.
+func (_u *DeviceUpdate) SetNillableUdid(v *string) *DeviceUpdate {
+	if v != nil {
+		_u.SetUdid(*v)
+	}
+	return _u
+}
+
+// ClearUdid clears the value of the "udid" field.
+func (_u *DeviceUpdate) ClearUdid() *DeviceUpdate {
+	_u.mutation.ClearUdid()
 	return _u
 }
 
@@ -143,6 +164,301 @@ func (_u *DeviceUpdate) ClearLastSync() *DeviceUpdate {
 	return _u
 }
 
+// SetPlatform sets the "platform" field.
+func (_u *DeviceUpdate) SetPlatform(v device.Platform) *DeviceUpdate {
+	_u.mutation.SetPlatform(v)
+	return _u
+}
+
+// SetNillablePlatform sets the "platform" field if the given value is not nil.
+func (_u *DeviceUpdate) SetNillablePlatform(v *device.Platform) *DeviceUpdate {
+	if v != nil {
+		_u.SetPlatform(*v)
+	}
+	return _u
+}
+
+// ClearPlatform clears the value of the "platform" field.
+func (_u *DeviceUpdate) ClearPlatform() *DeviceUpdate {
+	_u.mutation.ClearPlatform()
+	return _u
+}
+
+// SetStatus sets the "status" field.
+func (_u *DeviceUpdate) SetStatus(v device.Status) *DeviceUpdate {
+	_u.mutation.SetStatus(v)
+	return _u
+}
+
+// SetNillableStatus sets the "status" field if the given value is not nil.
+func (_u *DeviceUpdate) SetNillableStatus(v *device.Status) *DeviceUpdate {
+	if v != nil {
+		_u.SetStatus(*v)
+	}
+	return _u
+}
+
+// ClearStatus clears the value of the "status" field.
+func (_u *DeviceUpdate) ClearStatus() *DeviceUpdate {
+	_u.mutation.ClearStatus()
+	return _u
+}
+
+// SetComplianceStatus sets the "compliance_status" field.
+func (_u *DeviceUpdate) SetComplianceStatus(v device.ComplianceStatus) *DeviceUpdate {
+	_u.mutation.SetComplianceStatus(v)
+	return _u
+}
+
+// SetNillableComplianceStatus sets the "compliance_status" field if the given value is not nil.
+func (_u *DeviceUpdate) SetNillableComplianceStatus(v *device.ComplianceStatus) *DeviceUpdate {
+	if v != nil {
+		_u.SetComplianceStatus(*v)
+	}
+	return _u
+}
+
+// ClearComplianceStatus clears the value of the "compliance_status" field.
+func (_u *DeviceUpdate) ClearComplianceStatus() *DeviceUpdate {
+	_u.mutation.ClearComplianceStatus()
+	return _u
+}
+
+// SetOsVersion sets the "os_version" field.
+func (_u *DeviceUpdate) SetOsVersion(v string) *DeviceUpdate {
+	_u.mutation.SetOsVersion(v)
+	return _u
+}
+
+// SetNillableOsVersion sets the "os_version" field if the given value is not nil.
+func (_u *DeviceUpdate) SetNillableOsVersion(v *string) *DeviceUpdate {
+	if v != nil {
+		_u.SetOsVersion(*v)
+	}
+	return _u
+}
+
+// ClearOsVersion clears the value of the "os_version" field.
+func (_u *DeviceUpdate) ClearOsVersion() *DeviceUpdate {
+	_u.mutation.ClearOsVersion()
+	return _u
+}
+
+// SetDeviceType sets the "device_type" field.
+func (_u *DeviceUpdate) SetDeviceType(v string) *DeviceUpdate {
+	_u.mutation.SetDeviceType(v)
+	return _u
+}
+
+// SetNillableDeviceType sets the "device_type" field if the given value is not nil.
+func (_u *DeviceUpdate) SetNillableDeviceType(v *string) *DeviceUpdate {
+	if v != nil {
+		_u.SetDeviceType(*v)
+	}
+	return _u
+}
+
+// ClearDeviceType clears the value of the "device_type" field.
+func (_u *DeviceUpdate) ClearDeviceType() *DeviceUpdate {
+	_u.mutation.ClearDeviceType()
+	return _u
+}
+
+// SetLastSeen sets the "last_seen" field.
+func (_u *DeviceUpdate) SetLastSeen(v time.Time) *DeviceUpdate {
+	_u.mutation.SetLastSeen(v)
+	return _u
+}
+
+// SetNillableLastSeen sets the "last_seen" field if the given value is not nil.
+func (_u *DeviceUpdate) SetNillableLastSeen(v *time.Time) *DeviceUpdate {
+	if v != nil {
+		_u.SetLastSeen(*v)
+	}
+	return _u
+}
+
+// ClearLastSeen clears the value of the "last_seen" field.
+func (_u *DeviceUpdate) ClearLastSeen() *DeviceUpdate {
+	_u.mutation.ClearLastSeen()
+	return _u
+}
+
+// SetEnrolledAt sets the "enrolled_at" field.
+func (_u *DeviceUpdate) SetEnrolledAt(v time.Time) *DeviceUpdate {
+	_u.mutation.SetEnrolledAt(v)
+	return _u
+}
+
+// SetNillableEnrolledAt sets the "enrolled_at" field if the given value is not nil.
+func (_u *DeviceUpdate) SetNillableEnrolledAt(v *time.Time) *DeviceUpdate {
+	if v != nil {
+		_u.SetEnrolledAt(*v)
+	}
+	return _u
+}
+
+// ClearEnrolledAt clears the value of the "enrolled_at" field.
+func (_u *DeviceUpdate) ClearEnrolledAt() *DeviceUpdate {
+	_u.mutation.ClearEnrolledAt()
+	return _u
+}
+
+// SetMACAddress sets the "mac_address" field.
+func (_u *DeviceUpdate) SetMACAddress(v string) *DeviceUpdate {
+	_u.mutation.SetMACAddress(v)
+	return _u
+}
+
+// SetNillableMACAddress sets the "mac_address" field if the given value is not nil.
+func (_u *DeviceUpdate) SetNillableMACAddress(v *string) *DeviceUpdate {
+	if v != nil {
+		_u.SetMACAddress(*v)
+	}
+	return _u
+}
+
+// ClearMACAddress clears the value of the "mac_address" field.
+func (_u *DeviceUpdate) ClearMACAddress() *DeviceUpdate {
+	_u.mutation.ClearMACAddress()
+	return _u
+}
+
+// SetIPAddress sets the "ip_address" field.
+func (_u *DeviceUpdate) SetIPAddress(v string) *DeviceUpdate {
+	_u.mutation.SetIPAddress(v)
+	return _u
+}
+
+// SetNillableIPAddress sets the "ip_address" field if the given value is not nil.
+func (_u *DeviceUpdate) SetNillableIPAddress(v *string) *DeviceUpdate {
+	if v != nil {
+		_u.SetIPAddress(*v)
+	}
+	return _u
+}
+
+// ClearIPAddress clears the value of the "ip_address" field.
+func (_u *DeviceUpdate) ClearIPAddress() *DeviceUpdate {
+	_u.mutation.ClearIPAddress()
+	return _u
+}
+
+// SetBatteryLevel sets the "battery_level" field.
+func (_u *DeviceUpdate) SetBatteryLevel(v float64) *DeviceUpdate {
+	_u.mutation.ResetBatteryLevel()
+	_u.mutation.SetBatteryLevel(v)
+	return _u
+}
+
+// SetNillableBatteryLevel sets the "battery_level" field if the given value is not nil.
+func (_u *DeviceUpdate) SetNillableBatteryLevel(v *float64) *DeviceUpdate {
+	if v != nil {
+		_u.SetBatteryLevel(*v)
+	}
+	return _u
+}
+
+// AddBatteryLevel adds value to the "battery_level" field.
+func (_u *DeviceUpdate) AddBatteryLevel(v float64) *DeviceUpdate {
+	_u.mutation.AddBatteryLevel(v)
+	return _u
+}
+
+// ClearBatteryLevel clears the value of the "battery_level" field.
+func (_u *DeviceUpdate) ClearBatteryLevel() *DeviceUpdate {
+	_u.mutation.ClearBatteryLevel()
+	return _u
+}
+
+// SetStorageCapacity sets the "storage_capacity" field.
+func (_u *DeviceUpdate) SetStorageCapacity(v uint64) *DeviceUpdate {
+	_u.mutation.ResetStorageCapacity()
+	_u.mutation.SetStorageCapacity(v)
+	return _u
+}
+
+// SetNillableStorageCapacity sets the "storage_capacity" field if the given value is not nil.
+func (_u *DeviceUpdate) SetNillableStorageCapacity(v *uint64) *DeviceUpdate {
+	if v != nil {
+		_u.SetStorageCapacity(*v)
+	}
+	return _u
+}
+
+// AddStorageCapacity adds value to the "storage_capacity" field.
+func (_u *DeviceUpdate) AddStorageCapacity(v int64) *DeviceUpdate {
+	_u.mutation.AddStorageCapacity(v)
+	return _u
+}
+
+// ClearStorageCapacity clears the value of the "storage_capacity" field.
+func (_u *DeviceUpdate) ClearStorageCapacity() *DeviceUpdate {
+	_u.mutation.ClearStorageCapacity()
+	return _u
+}
+
+// SetStorageUsed sets the "storage_used" field.
+func (_u *DeviceUpdate) SetStorageUsed(v uint64) *DeviceUpdate {
+	_u.mutation.ResetStorageUsed()
+	_u.mutation.SetStorageUsed(v)
+	return _u
+}
+
+// SetNillableStorageUsed sets the "storage_used" field if the given value is not nil.
+func (_u *DeviceUpdate) SetNillableStorageUsed(v *uint64) *DeviceUpdate {
+	if v != nil {
+		_u.SetStorageUsed(*v)
+	}
+	return _u
+}
+
+// AddStorageUsed adds value to the "storage_used" field.
+func (_u *DeviceUpdate) AddStorageUsed(v int64) *DeviceUpdate {
+	_u.mutation.AddStorageUsed(v)
+	return _u
+}
+
+// ClearStorageUsed clears the value of the "storage_used" field.
+func (_u *DeviceUpdate) ClearStorageUsed() *DeviceUpdate {
+	_u.mutation.ClearStorageUsed()
+	return _u
+}
+
+// SetIsJailbroken sets the "is_jailbroken" field.
+func (_u *DeviceUpdate) SetIsJailbroken(v bool) *DeviceUpdate {
+	_u.mutation.SetIsJailbroken(v)
+	return _u
+}
+
+// SetNillableIsJailbroken sets the "is_jailbroken" field if the given value is not nil.
+func (_u *DeviceUpdate) SetNillableIsJailbroken(v *bool) *DeviceUpdate {
+	if v != nil {
+		_u.SetIsJailbroken(*v)
+	}
+	return _u
+}
+
+// SetEnrollmentType sets the "enrollment_type" field.
+func (_u *DeviceUpdate) SetEnrollmentType(v device.EnrollmentType) *DeviceUpdate {
+	_u.mutation.SetEnrollmentType(v)
+	return _u
+}
+
+// SetNillableEnrollmentType sets the "enrollment_type" field if the given value is not nil.
+func (_u *DeviceUpdate) SetNillableEnrollmentType(v *device.EnrollmentType) *DeviceUpdate {
+	if v != nil {
+		_u.SetEnrollmentType(*v)
+	}
+	return _u
+}
+
+// ClearEnrollmentType clears the value of the "enrollment_type" field.
+func (_u *DeviceUpdate) ClearEnrollmentType() *DeviceUpdate {
+	_u.mutation.ClearEnrollmentType()
+	return _u
+}
+
 // SetUpdatedAt sets the "updated_at" field.
 func (_u *DeviceUpdate) SetUpdatedAt(v time.Time) *DeviceUpdate {
 	_u.mutation.SetUpdatedAt(v)
@@ -154,6 +470,21 @@ func (_u *DeviceUpdate) SetOwner(v *User) *DeviceUpdate {
 	return _u.SetOwnerID(v.ID)
 }
 
+// AddGroupIDs adds the "groups" edge to the DeviceGroup entity by IDs.
+func (_u *DeviceUpdate) AddGroupIDs(ids ...uint) *DeviceUpdate {
+	_u.mutation.AddGroupIDs(ids...)
+	return _u
+}
+
+// AddGroups adds the "groups" edges to the DeviceGroup entity.
+func (_u *DeviceUpdate) AddGroups(v ...*DeviceGroup) *DeviceUpdate {
+	ids := make([]uint, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddGroupIDs(ids...)
+}
+
 // Mutation returns the DeviceMutation object of the builder.
 func (_u *DeviceUpdate) Mutation() *DeviceMutation {
 	return _u.mutation
@@ -163,6 +494,27 @@ func (_u *DeviceUpdate) Mutation() *DeviceMutation {
 func (_u *DeviceUpdate) ClearOwner() *DeviceUpdate {
 	_u.mutation.ClearOwner()
 	return _u
+}
+
+// ClearGroups clears all "groups" edges to the DeviceGroup entity.
+func (_u *DeviceUpdate) ClearGroups() *DeviceUpdate {
+	_u.mutation.ClearGroups()
+	return _u
+}
+
+// RemoveGroupIDs removes the "groups" edge to DeviceGroup entities by IDs.
+func (_u *DeviceUpdate) RemoveGroupIDs(ids ...uint) *DeviceUpdate {
+	_u.mutation.RemoveGroupIDs(ids...)
+	return _u
+}
+
+// RemoveGroups removes "groups" edges to DeviceGroup entities.
+func (_u *DeviceUpdate) RemoveGroups(v ...*DeviceGroup) *DeviceUpdate {
+	ids := make([]uint, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveGroupIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -201,7 +553,35 @@ func (_u *DeviceUpdate) defaults() {
 	}
 }
 
+// check runs all checks and user-defined validators on the builder.
+func (_u *DeviceUpdate) check() error {
+	if v, ok := _u.mutation.Platform(); ok {
+		if err := device.PlatformValidator(v); err != nil {
+			return &ValidationError{Name: "platform", err: fmt.Errorf(`ent: validator failed for field "Device.platform": %w`, err)}
+		}
+	}
+	if v, ok := _u.mutation.Status(); ok {
+		if err := device.StatusValidator(v); err != nil {
+			return &ValidationError{Name: "status", err: fmt.Errorf(`ent: validator failed for field "Device.status": %w`, err)}
+		}
+	}
+	if v, ok := _u.mutation.ComplianceStatus(); ok {
+		if err := device.ComplianceStatusValidator(v); err != nil {
+			return &ValidationError{Name: "compliance_status", err: fmt.Errorf(`ent: validator failed for field "Device.compliance_status": %w`, err)}
+		}
+	}
+	if v, ok := _u.mutation.EnrollmentType(); ok {
+		if err := device.EnrollmentTypeValidator(v); err != nil {
+			return &ValidationError{Name: "enrollment_type", err: fmt.Errorf(`ent: validator failed for field "Device.enrollment_type": %w`, err)}
+		}
+	}
+	return nil
+}
+
 func (_u *DeviceUpdate) sqlSave(ctx context.Context) (_node int, err error) {
+	if err := _u.check(); err != nil {
+		return _node, err
+	}
 	_spec := sqlgraph.NewUpdateSpec(device.Table, device.Columns, sqlgraph.NewFieldSpec(device.FieldID, field.TypeString))
 	if ps := _u.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
@@ -209,6 +589,12 @@ func (_u *DeviceUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 				ps[i](selector)
 			}
 		}
+	}
+	if value, ok := _u.mutation.Udid(); ok {
+		_spec.SetField(device.FieldUdid, field.TypeString, value)
+	}
+	if _u.mutation.UdidCleared() {
+		_spec.ClearField(device.FieldUdid, field.TypeString)
 	}
 	if value, ok := _u.mutation.SerialNumber(); ok {
 		_spec.SetField(device.FieldSerialNumber, field.TypeString, value)
@@ -236,6 +622,96 @@ func (_u *DeviceUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	}
 	if _u.mutation.LastSyncCleared() {
 		_spec.ClearField(device.FieldLastSync, field.TypeTime)
+	}
+	if value, ok := _u.mutation.Platform(); ok {
+		_spec.SetField(device.FieldPlatform, field.TypeEnum, value)
+	}
+	if _u.mutation.PlatformCleared() {
+		_spec.ClearField(device.FieldPlatform, field.TypeEnum)
+	}
+	if value, ok := _u.mutation.Status(); ok {
+		_spec.SetField(device.FieldStatus, field.TypeEnum, value)
+	}
+	if _u.mutation.StatusCleared() {
+		_spec.ClearField(device.FieldStatus, field.TypeEnum)
+	}
+	if value, ok := _u.mutation.ComplianceStatus(); ok {
+		_spec.SetField(device.FieldComplianceStatus, field.TypeEnum, value)
+	}
+	if _u.mutation.ComplianceStatusCleared() {
+		_spec.ClearField(device.FieldComplianceStatus, field.TypeEnum)
+	}
+	if value, ok := _u.mutation.OsVersion(); ok {
+		_spec.SetField(device.FieldOsVersion, field.TypeString, value)
+	}
+	if _u.mutation.OsVersionCleared() {
+		_spec.ClearField(device.FieldOsVersion, field.TypeString)
+	}
+	if value, ok := _u.mutation.DeviceType(); ok {
+		_spec.SetField(device.FieldDeviceType, field.TypeString, value)
+	}
+	if _u.mutation.DeviceTypeCleared() {
+		_spec.ClearField(device.FieldDeviceType, field.TypeString)
+	}
+	if value, ok := _u.mutation.LastSeen(); ok {
+		_spec.SetField(device.FieldLastSeen, field.TypeTime, value)
+	}
+	if _u.mutation.LastSeenCleared() {
+		_spec.ClearField(device.FieldLastSeen, field.TypeTime)
+	}
+	if value, ok := _u.mutation.EnrolledAt(); ok {
+		_spec.SetField(device.FieldEnrolledAt, field.TypeTime, value)
+	}
+	if _u.mutation.EnrolledAtCleared() {
+		_spec.ClearField(device.FieldEnrolledAt, field.TypeTime)
+	}
+	if value, ok := _u.mutation.MACAddress(); ok {
+		_spec.SetField(device.FieldMACAddress, field.TypeString, value)
+	}
+	if _u.mutation.MACAddressCleared() {
+		_spec.ClearField(device.FieldMACAddress, field.TypeString)
+	}
+	if value, ok := _u.mutation.IPAddress(); ok {
+		_spec.SetField(device.FieldIPAddress, field.TypeString, value)
+	}
+	if _u.mutation.IPAddressCleared() {
+		_spec.ClearField(device.FieldIPAddress, field.TypeString)
+	}
+	if value, ok := _u.mutation.BatteryLevel(); ok {
+		_spec.SetField(device.FieldBatteryLevel, field.TypeFloat64, value)
+	}
+	if value, ok := _u.mutation.AddedBatteryLevel(); ok {
+		_spec.AddField(device.FieldBatteryLevel, field.TypeFloat64, value)
+	}
+	if _u.mutation.BatteryLevelCleared() {
+		_spec.ClearField(device.FieldBatteryLevel, field.TypeFloat64)
+	}
+	if value, ok := _u.mutation.StorageCapacity(); ok {
+		_spec.SetField(device.FieldStorageCapacity, field.TypeUint64, value)
+	}
+	if value, ok := _u.mutation.AddedStorageCapacity(); ok {
+		_spec.AddField(device.FieldStorageCapacity, field.TypeUint64, value)
+	}
+	if _u.mutation.StorageCapacityCleared() {
+		_spec.ClearField(device.FieldStorageCapacity, field.TypeUint64)
+	}
+	if value, ok := _u.mutation.StorageUsed(); ok {
+		_spec.SetField(device.FieldStorageUsed, field.TypeUint64, value)
+	}
+	if value, ok := _u.mutation.AddedStorageUsed(); ok {
+		_spec.AddField(device.FieldStorageUsed, field.TypeUint64, value)
+	}
+	if _u.mutation.StorageUsedCleared() {
+		_spec.ClearField(device.FieldStorageUsed, field.TypeUint64)
+	}
+	if value, ok := _u.mutation.IsJailbroken(); ok {
+		_spec.SetField(device.FieldIsJailbroken, field.TypeBool, value)
+	}
+	if value, ok := _u.mutation.EnrollmentType(); ok {
+		_spec.SetField(device.FieldEnrollmentType, field.TypeEnum, value)
+	}
+	if _u.mutation.EnrollmentTypeCleared() {
+		_spec.ClearField(device.FieldEnrollmentType, field.TypeEnum)
 	}
 	if value, ok := _u.mutation.UpdatedAt(); ok {
 		_spec.SetField(device.FieldUpdatedAt, field.TypeTime, value)
@@ -269,6 +745,51 @@ func (_u *DeviceUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if _u.mutation.GroupsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   device.GroupsTable,
+			Columns: device.GroupsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(devicegroup.FieldID, field.TypeUint),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedGroupsIDs(); len(nodes) > 0 && !_u.mutation.GroupsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   device.GroupsTable,
+			Columns: device.GroupsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(devicegroup.FieldID, field.TypeUint),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.GroupsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   device.GroupsTable,
+			Columns: device.GroupsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(devicegroup.FieldID, field.TypeUint),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if _node, err = sqlgraph.UpdateNodes(ctx, _u.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{device.Label}
@@ -287,6 +808,26 @@ type DeviceUpdateOne struct {
 	fields   []string
 	hooks    []Hook
 	mutation *DeviceMutation
+}
+
+// SetUdid sets the "udid" field.
+func (_u *DeviceUpdateOne) SetUdid(v string) *DeviceUpdateOne {
+	_u.mutation.SetUdid(v)
+	return _u
+}
+
+// SetNillableUdid sets the "udid" field if the given value is not nil.
+func (_u *DeviceUpdateOne) SetNillableUdid(v *string) *DeviceUpdateOne {
+	if v != nil {
+		_u.SetUdid(*v)
+	}
+	return _u
+}
+
+// ClearUdid clears the value of the "udid" field.
+func (_u *DeviceUpdateOne) ClearUdid() *DeviceUpdateOne {
+	_u.mutation.ClearUdid()
+	return _u
 }
 
 // SetSerialNumber sets the "serial_number" field.
@@ -403,6 +944,301 @@ func (_u *DeviceUpdateOne) ClearLastSync() *DeviceUpdateOne {
 	return _u
 }
 
+// SetPlatform sets the "platform" field.
+func (_u *DeviceUpdateOne) SetPlatform(v device.Platform) *DeviceUpdateOne {
+	_u.mutation.SetPlatform(v)
+	return _u
+}
+
+// SetNillablePlatform sets the "platform" field if the given value is not nil.
+func (_u *DeviceUpdateOne) SetNillablePlatform(v *device.Platform) *DeviceUpdateOne {
+	if v != nil {
+		_u.SetPlatform(*v)
+	}
+	return _u
+}
+
+// ClearPlatform clears the value of the "platform" field.
+func (_u *DeviceUpdateOne) ClearPlatform() *DeviceUpdateOne {
+	_u.mutation.ClearPlatform()
+	return _u
+}
+
+// SetStatus sets the "status" field.
+func (_u *DeviceUpdateOne) SetStatus(v device.Status) *DeviceUpdateOne {
+	_u.mutation.SetStatus(v)
+	return _u
+}
+
+// SetNillableStatus sets the "status" field if the given value is not nil.
+func (_u *DeviceUpdateOne) SetNillableStatus(v *device.Status) *DeviceUpdateOne {
+	if v != nil {
+		_u.SetStatus(*v)
+	}
+	return _u
+}
+
+// ClearStatus clears the value of the "status" field.
+func (_u *DeviceUpdateOne) ClearStatus() *DeviceUpdateOne {
+	_u.mutation.ClearStatus()
+	return _u
+}
+
+// SetComplianceStatus sets the "compliance_status" field.
+func (_u *DeviceUpdateOne) SetComplianceStatus(v device.ComplianceStatus) *DeviceUpdateOne {
+	_u.mutation.SetComplianceStatus(v)
+	return _u
+}
+
+// SetNillableComplianceStatus sets the "compliance_status" field if the given value is not nil.
+func (_u *DeviceUpdateOne) SetNillableComplianceStatus(v *device.ComplianceStatus) *DeviceUpdateOne {
+	if v != nil {
+		_u.SetComplianceStatus(*v)
+	}
+	return _u
+}
+
+// ClearComplianceStatus clears the value of the "compliance_status" field.
+func (_u *DeviceUpdateOne) ClearComplianceStatus() *DeviceUpdateOne {
+	_u.mutation.ClearComplianceStatus()
+	return _u
+}
+
+// SetOsVersion sets the "os_version" field.
+func (_u *DeviceUpdateOne) SetOsVersion(v string) *DeviceUpdateOne {
+	_u.mutation.SetOsVersion(v)
+	return _u
+}
+
+// SetNillableOsVersion sets the "os_version" field if the given value is not nil.
+func (_u *DeviceUpdateOne) SetNillableOsVersion(v *string) *DeviceUpdateOne {
+	if v != nil {
+		_u.SetOsVersion(*v)
+	}
+	return _u
+}
+
+// ClearOsVersion clears the value of the "os_version" field.
+func (_u *DeviceUpdateOne) ClearOsVersion() *DeviceUpdateOne {
+	_u.mutation.ClearOsVersion()
+	return _u
+}
+
+// SetDeviceType sets the "device_type" field.
+func (_u *DeviceUpdateOne) SetDeviceType(v string) *DeviceUpdateOne {
+	_u.mutation.SetDeviceType(v)
+	return _u
+}
+
+// SetNillableDeviceType sets the "device_type" field if the given value is not nil.
+func (_u *DeviceUpdateOne) SetNillableDeviceType(v *string) *DeviceUpdateOne {
+	if v != nil {
+		_u.SetDeviceType(*v)
+	}
+	return _u
+}
+
+// ClearDeviceType clears the value of the "device_type" field.
+func (_u *DeviceUpdateOne) ClearDeviceType() *DeviceUpdateOne {
+	_u.mutation.ClearDeviceType()
+	return _u
+}
+
+// SetLastSeen sets the "last_seen" field.
+func (_u *DeviceUpdateOne) SetLastSeen(v time.Time) *DeviceUpdateOne {
+	_u.mutation.SetLastSeen(v)
+	return _u
+}
+
+// SetNillableLastSeen sets the "last_seen" field if the given value is not nil.
+func (_u *DeviceUpdateOne) SetNillableLastSeen(v *time.Time) *DeviceUpdateOne {
+	if v != nil {
+		_u.SetLastSeen(*v)
+	}
+	return _u
+}
+
+// ClearLastSeen clears the value of the "last_seen" field.
+func (_u *DeviceUpdateOne) ClearLastSeen() *DeviceUpdateOne {
+	_u.mutation.ClearLastSeen()
+	return _u
+}
+
+// SetEnrolledAt sets the "enrolled_at" field.
+func (_u *DeviceUpdateOne) SetEnrolledAt(v time.Time) *DeviceUpdateOne {
+	_u.mutation.SetEnrolledAt(v)
+	return _u
+}
+
+// SetNillableEnrolledAt sets the "enrolled_at" field if the given value is not nil.
+func (_u *DeviceUpdateOne) SetNillableEnrolledAt(v *time.Time) *DeviceUpdateOne {
+	if v != nil {
+		_u.SetEnrolledAt(*v)
+	}
+	return _u
+}
+
+// ClearEnrolledAt clears the value of the "enrolled_at" field.
+func (_u *DeviceUpdateOne) ClearEnrolledAt() *DeviceUpdateOne {
+	_u.mutation.ClearEnrolledAt()
+	return _u
+}
+
+// SetMACAddress sets the "mac_address" field.
+func (_u *DeviceUpdateOne) SetMACAddress(v string) *DeviceUpdateOne {
+	_u.mutation.SetMACAddress(v)
+	return _u
+}
+
+// SetNillableMACAddress sets the "mac_address" field if the given value is not nil.
+func (_u *DeviceUpdateOne) SetNillableMACAddress(v *string) *DeviceUpdateOne {
+	if v != nil {
+		_u.SetMACAddress(*v)
+	}
+	return _u
+}
+
+// ClearMACAddress clears the value of the "mac_address" field.
+func (_u *DeviceUpdateOne) ClearMACAddress() *DeviceUpdateOne {
+	_u.mutation.ClearMACAddress()
+	return _u
+}
+
+// SetIPAddress sets the "ip_address" field.
+func (_u *DeviceUpdateOne) SetIPAddress(v string) *DeviceUpdateOne {
+	_u.mutation.SetIPAddress(v)
+	return _u
+}
+
+// SetNillableIPAddress sets the "ip_address" field if the given value is not nil.
+func (_u *DeviceUpdateOne) SetNillableIPAddress(v *string) *DeviceUpdateOne {
+	if v != nil {
+		_u.SetIPAddress(*v)
+	}
+	return _u
+}
+
+// ClearIPAddress clears the value of the "ip_address" field.
+func (_u *DeviceUpdateOne) ClearIPAddress() *DeviceUpdateOne {
+	_u.mutation.ClearIPAddress()
+	return _u
+}
+
+// SetBatteryLevel sets the "battery_level" field.
+func (_u *DeviceUpdateOne) SetBatteryLevel(v float64) *DeviceUpdateOne {
+	_u.mutation.ResetBatteryLevel()
+	_u.mutation.SetBatteryLevel(v)
+	return _u
+}
+
+// SetNillableBatteryLevel sets the "battery_level" field if the given value is not nil.
+func (_u *DeviceUpdateOne) SetNillableBatteryLevel(v *float64) *DeviceUpdateOne {
+	if v != nil {
+		_u.SetBatteryLevel(*v)
+	}
+	return _u
+}
+
+// AddBatteryLevel adds value to the "battery_level" field.
+func (_u *DeviceUpdateOne) AddBatteryLevel(v float64) *DeviceUpdateOne {
+	_u.mutation.AddBatteryLevel(v)
+	return _u
+}
+
+// ClearBatteryLevel clears the value of the "battery_level" field.
+func (_u *DeviceUpdateOne) ClearBatteryLevel() *DeviceUpdateOne {
+	_u.mutation.ClearBatteryLevel()
+	return _u
+}
+
+// SetStorageCapacity sets the "storage_capacity" field.
+func (_u *DeviceUpdateOne) SetStorageCapacity(v uint64) *DeviceUpdateOne {
+	_u.mutation.ResetStorageCapacity()
+	_u.mutation.SetStorageCapacity(v)
+	return _u
+}
+
+// SetNillableStorageCapacity sets the "storage_capacity" field if the given value is not nil.
+func (_u *DeviceUpdateOne) SetNillableStorageCapacity(v *uint64) *DeviceUpdateOne {
+	if v != nil {
+		_u.SetStorageCapacity(*v)
+	}
+	return _u
+}
+
+// AddStorageCapacity adds value to the "storage_capacity" field.
+func (_u *DeviceUpdateOne) AddStorageCapacity(v int64) *DeviceUpdateOne {
+	_u.mutation.AddStorageCapacity(v)
+	return _u
+}
+
+// ClearStorageCapacity clears the value of the "storage_capacity" field.
+func (_u *DeviceUpdateOne) ClearStorageCapacity() *DeviceUpdateOne {
+	_u.mutation.ClearStorageCapacity()
+	return _u
+}
+
+// SetStorageUsed sets the "storage_used" field.
+func (_u *DeviceUpdateOne) SetStorageUsed(v uint64) *DeviceUpdateOne {
+	_u.mutation.ResetStorageUsed()
+	_u.mutation.SetStorageUsed(v)
+	return _u
+}
+
+// SetNillableStorageUsed sets the "storage_used" field if the given value is not nil.
+func (_u *DeviceUpdateOne) SetNillableStorageUsed(v *uint64) *DeviceUpdateOne {
+	if v != nil {
+		_u.SetStorageUsed(*v)
+	}
+	return _u
+}
+
+// AddStorageUsed adds value to the "storage_used" field.
+func (_u *DeviceUpdateOne) AddStorageUsed(v int64) *DeviceUpdateOne {
+	_u.mutation.AddStorageUsed(v)
+	return _u
+}
+
+// ClearStorageUsed clears the value of the "storage_used" field.
+func (_u *DeviceUpdateOne) ClearStorageUsed() *DeviceUpdateOne {
+	_u.mutation.ClearStorageUsed()
+	return _u
+}
+
+// SetIsJailbroken sets the "is_jailbroken" field.
+func (_u *DeviceUpdateOne) SetIsJailbroken(v bool) *DeviceUpdateOne {
+	_u.mutation.SetIsJailbroken(v)
+	return _u
+}
+
+// SetNillableIsJailbroken sets the "is_jailbroken" field if the given value is not nil.
+func (_u *DeviceUpdateOne) SetNillableIsJailbroken(v *bool) *DeviceUpdateOne {
+	if v != nil {
+		_u.SetIsJailbroken(*v)
+	}
+	return _u
+}
+
+// SetEnrollmentType sets the "enrollment_type" field.
+func (_u *DeviceUpdateOne) SetEnrollmentType(v device.EnrollmentType) *DeviceUpdateOne {
+	_u.mutation.SetEnrollmentType(v)
+	return _u
+}
+
+// SetNillableEnrollmentType sets the "enrollment_type" field if the given value is not nil.
+func (_u *DeviceUpdateOne) SetNillableEnrollmentType(v *device.EnrollmentType) *DeviceUpdateOne {
+	if v != nil {
+		_u.SetEnrollmentType(*v)
+	}
+	return _u
+}
+
+// ClearEnrollmentType clears the value of the "enrollment_type" field.
+func (_u *DeviceUpdateOne) ClearEnrollmentType() *DeviceUpdateOne {
+	_u.mutation.ClearEnrollmentType()
+	return _u
+}
+
 // SetUpdatedAt sets the "updated_at" field.
 func (_u *DeviceUpdateOne) SetUpdatedAt(v time.Time) *DeviceUpdateOne {
 	_u.mutation.SetUpdatedAt(v)
@@ -414,6 +1250,21 @@ func (_u *DeviceUpdateOne) SetOwner(v *User) *DeviceUpdateOne {
 	return _u.SetOwnerID(v.ID)
 }
 
+// AddGroupIDs adds the "groups" edge to the DeviceGroup entity by IDs.
+func (_u *DeviceUpdateOne) AddGroupIDs(ids ...uint) *DeviceUpdateOne {
+	_u.mutation.AddGroupIDs(ids...)
+	return _u
+}
+
+// AddGroups adds the "groups" edges to the DeviceGroup entity.
+func (_u *DeviceUpdateOne) AddGroups(v ...*DeviceGroup) *DeviceUpdateOne {
+	ids := make([]uint, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddGroupIDs(ids...)
+}
+
 // Mutation returns the DeviceMutation object of the builder.
 func (_u *DeviceUpdateOne) Mutation() *DeviceMutation {
 	return _u.mutation
@@ -423,6 +1274,27 @@ func (_u *DeviceUpdateOne) Mutation() *DeviceMutation {
 func (_u *DeviceUpdateOne) ClearOwner() *DeviceUpdateOne {
 	_u.mutation.ClearOwner()
 	return _u
+}
+
+// ClearGroups clears all "groups" edges to the DeviceGroup entity.
+func (_u *DeviceUpdateOne) ClearGroups() *DeviceUpdateOne {
+	_u.mutation.ClearGroups()
+	return _u
+}
+
+// RemoveGroupIDs removes the "groups" edge to DeviceGroup entities by IDs.
+func (_u *DeviceUpdateOne) RemoveGroupIDs(ids ...uint) *DeviceUpdateOne {
+	_u.mutation.RemoveGroupIDs(ids...)
+	return _u
+}
+
+// RemoveGroups removes "groups" edges to DeviceGroup entities.
+func (_u *DeviceUpdateOne) RemoveGroups(v ...*DeviceGroup) *DeviceUpdateOne {
+	ids := make([]uint, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveGroupIDs(ids...)
 }
 
 // Where appends a list predicates to the DeviceUpdate builder.
@@ -474,7 +1346,35 @@ func (_u *DeviceUpdateOne) defaults() {
 	}
 }
 
+// check runs all checks and user-defined validators on the builder.
+func (_u *DeviceUpdateOne) check() error {
+	if v, ok := _u.mutation.Platform(); ok {
+		if err := device.PlatformValidator(v); err != nil {
+			return &ValidationError{Name: "platform", err: fmt.Errorf(`ent: validator failed for field "Device.platform": %w`, err)}
+		}
+	}
+	if v, ok := _u.mutation.Status(); ok {
+		if err := device.StatusValidator(v); err != nil {
+			return &ValidationError{Name: "status", err: fmt.Errorf(`ent: validator failed for field "Device.status": %w`, err)}
+		}
+	}
+	if v, ok := _u.mutation.ComplianceStatus(); ok {
+		if err := device.ComplianceStatusValidator(v); err != nil {
+			return &ValidationError{Name: "compliance_status", err: fmt.Errorf(`ent: validator failed for field "Device.compliance_status": %w`, err)}
+		}
+	}
+	if v, ok := _u.mutation.EnrollmentType(); ok {
+		if err := device.EnrollmentTypeValidator(v); err != nil {
+			return &ValidationError{Name: "enrollment_type", err: fmt.Errorf(`ent: validator failed for field "Device.enrollment_type": %w`, err)}
+		}
+	}
+	return nil
+}
+
 func (_u *DeviceUpdateOne) sqlSave(ctx context.Context) (_node *Device, err error) {
+	if err := _u.check(); err != nil {
+		return _node, err
+	}
 	_spec := sqlgraph.NewUpdateSpec(device.Table, device.Columns, sqlgraph.NewFieldSpec(device.FieldID, field.TypeString))
 	id, ok := _u.mutation.ID()
 	if !ok {
@@ -499,6 +1399,12 @@ func (_u *DeviceUpdateOne) sqlSave(ctx context.Context) (_node *Device, err erro
 				ps[i](selector)
 			}
 		}
+	}
+	if value, ok := _u.mutation.Udid(); ok {
+		_spec.SetField(device.FieldUdid, field.TypeString, value)
+	}
+	if _u.mutation.UdidCleared() {
+		_spec.ClearField(device.FieldUdid, field.TypeString)
 	}
 	if value, ok := _u.mutation.SerialNumber(); ok {
 		_spec.SetField(device.FieldSerialNumber, field.TypeString, value)
@@ -527,6 +1433,96 @@ func (_u *DeviceUpdateOne) sqlSave(ctx context.Context) (_node *Device, err erro
 	if _u.mutation.LastSyncCleared() {
 		_spec.ClearField(device.FieldLastSync, field.TypeTime)
 	}
+	if value, ok := _u.mutation.Platform(); ok {
+		_spec.SetField(device.FieldPlatform, field.TypeEnum, value)
+	}
+	if _u.mutation.PlatformCleared() {
+		_spec.ClearField(device.FieldPlatform, field.TypeEnum)
+	}
+	if value, ok := _u.mutation.Status(); ok {
+		_spec.SetField(device.FieldStatus, field.TypeEnum, value)
+	}
+	if _u.mutation.StatusCleared() {
+		_spec.ClearField(device.FieldStatus, field.TypeEnum)
+	}
+	if value, ok := _u.mutation.ComplianceStatus(); ok {
+		_spec.SetField(device.FieldComplianceStatus, field.TypeEnum, value)
+	}
+	if _u.mutation.ComplianceStatusCleared() {
+		_spec.ClearField(device.FieldComplianceStatus, field.TypeEnum)
+	}
+	if value, ok := _u.mutation.OsVersion(); ok {
+		_spec.SetField(device.FieldOsVersion, field.TypeString, value)
+	}
+	if _u.mutation.OsVersionCleared() {
+		_spec.ClearField(device.FieldOsVersion, field.TypeString)
+	}
+	if value, ok := _u.mutation.DeviceType(); ok {
+		_spec.SetField(device.FieldDeviceType, field.TypeString, value)
+	}
+	if _u.mutation.DeviceTypeCleared() {
+		_spec.ClearField(device.FieldDeviceType, field.TypeString)
+	}
+	if value, ok := _u.mutation.LastSeen(); ok {
+		_spec.SetField(device.FieldLastSeen, field.TypeTime, value)
+	}
+	if _u.mutation.LastSeenCleared() {
+		_spec.ClearField(device.FieldLastSeen, field.TypeTime)
+	}
+	if value, ok := _u.mutation.EnrolledAt(); ok {
+		_spec.SetField(device.FieldEnrolledAt, field.TypeTime, value)
+	}
+	if _u.mutation.EnrolledAtCleared() {
+		_spec.ClearField(device.FieldEnrolledAt, field.TypeTime)
+	}
+	if value, ok := _u.mutation.MACAddress(); ok {
+		_spec.SetField(device.FieldMACAddress, field.TypeString, value)
+	}
+	if _u.mutation.MACAddressCleared() {
+		_spec.ClearField(device.FieldMACAddress, field.TypeString)
+	}
+	if value, ok := _u.mutation.IPAddress(); ok {
+		_spec.SetField(device.FieldIPAddress, field.TypeString, value)
+	}
+	if _u.mutation.IPAddressCleared() {
+		_spec.ClearField(device.FieldIPAddress, field.TypeString)
+	}
+	if value, ok := _u.mutation.BatteryLevel(); ok {
+		_spec.SetField(device.FieldBatteryLevel, field.TypeFloat64, value)
+	}
+	if value, ok := _u.mutation.AddedBatteryLevel(); ok {
+		_spec.AddField(device.FieldBatteryLevel, field.TypeFloat64, value)
+	}
+	if _u.mutation.BatteryLevelCleared() {
+		_spec.ClearField(device.FieldBatteryLevel, field.TypeFloat64)
+	}
+	if value, ok := _u.mutation.StorageCapacity(); ok {
+		_spec.SetField(device.FieldStorageCapacity, field.TypeUint64, value)
+	}
+	if value, ok := _u.mutation.AddedStorageCapacity(); ok {
+		_spec.AddField(device.FieldStorageCapacity, field.TypeUint64, value)
+	}
+	if _u.mutation.StorageCapacityCleared() {
+		_spec.ClearField(device.FieldStorageCapacity, field.TypeUint64)
+	}
+	if value, ok := _u.mutation.StorageUsed(); ok {
+		_spec.SetField(device.FieldStorageUsed, field.TypeUint64, value)
+	}
+	if value, ok := _u.mutation.AddedStorageUsed(); ok {
+		_spec.AddField(device.FieldStorageUsed, field.TypeUint64, value)
+	}
+	if _u.mutation.StorageUsedCleared() {
+		_spec.ClearField(device.FieldStorageUsed, field.TypeUint64)
+	}
+	if value, ok := _u.mutation.IsJailbroken(); ok {
+		_spec.SetField(device.FieldIsJailbroken, field.TypeBool, value)
+	}
+	if value, ok := _u.mutation.EnrollmentType(); ok {
+		_spec.SetField(device.FieldEnrollmentType, field.TypeEnum, value)
+	}
+	if _u.mutation.EnrollmentTypeCleared() {
+		_spec.ClearField(device.FieldEnrollmentType, field.TypeEnum)
+	}
 	if value, ok := _u.mutation.UpdatedAt(); ok {
 		_spec.SetField(device.FieldUpdatedAt, field.TypeTime, value)
 	}
@@ -552,6 +1548,51 @@ func (_u *DeviceUpdateOne) sqlSave(ctx context.Context) (_node *Device, err erro
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeUint),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.GroupsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   device.GroupsTable,
+			Columns: device.GroupsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(devicegroup.FieldID, field.TypeUint),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedGroupsIDs(); len(nodes) > 0 && !_u.mutation.GroupsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   device.GroupsTable,
+			Columns: device.GroupsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(devicegroup.FieldID, field.TypeUint),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.GroupsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   device.GroupsTable,
+			Columns: device.GroupsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(devicegroup.FieldID, field.TypeUint),
 			},
 		}
 		for _, k := range nodes {

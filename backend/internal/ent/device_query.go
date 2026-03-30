@@ -4,6 +4,7 @@ package ent
 
 import (
 	"context"
+	"database/sql/driver"
 	"fmt"
 	"math"
 
@@ -12,6 +13,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/thienel/go-backend-template/internal/ent/device"
+	"github.com/thienel/go-backend-template/internal/ent/devicegroup"
 	"github.com/thienel/go-backend-template/internal/ent/predicate"
 	"github.com/thienel/go-backend-template/internal/ent/user"
 )
@@ -24,6 +26,7 @@ type DeviceQuery struct {
 	inters     []Interceptor
 	predicates []predicate.Device
 	withOwner  *UserQuery
+	withGroups *DeviceGroupQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -75,6 +78,28 @@ func (_q *DeviceQuery) QueryOwner() *UserQuery {
 			sqlgraph.From(device.Table, device.FieldID, selector),
 			sqlgraph.To(user.Table, user.FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, true, device.OwnerTable, device.OwnerColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryGroups chains the current query on the "groups" edge.
+func (_q *DeviceQuery) QueryGroups() *DeviceGroupQuery {
+	query := (&DeviceGroupClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(device.Table, device.FieldID, selector),
+			sqlgraph.To(devicegroup.Table, devicegroup.FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, true, device.GroupsTable, device.GroupsPrimaryKey...),
 		)
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
@@ -275,6 +300,7 @@ func (_q *DeviceQuery) Clone() *DeviceQuery {
 		inters:     append([]Interceptor{}, _q.inters...),
 		predicates: append([]predicate.Device{}, _q.predicates...),
 		withOwner:  _q.withOwner.Clone(),
+		withGroups: _q.withGroups.Clone(),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
 		path: _q.path,
@@ -292,18 +318,29 @@ func (_q *DeviceQuery) WithOwner(opts ...func(*UserQuery)) *DeviceQuery {
 	return _q
 }
 
+// WithGroups tells the query-builder to eager-load the nodes that are connected to
+// the "groups" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *DeviceQuery) WithGroups(opts ...func(*DeviceGroupQuery)) *DeviceQuery {
+	query := (&DeviceGroupClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withGroups = query
+	return _q
+}
+
 // GroupBy is used to group vertices by one or more fields/columns.
 // It is often used with aggregate functions, like: count, max, mean, min, sum.
 //
 // Example:
 //
 //	var v []struct {
-//		SerialNumber string `json:"serial_number,omitempty"`
+//		Udid string `json:"udid,omitempty"`
 //		Count int `json:"count,omitempty"`
 //	}
 //
 //	client.Device.Query().
-//		GroupBy(device.FieldSerialNumber).
+//		GroupBy(device.FieldUdid).
 //		Aggregate(ent.Count()).
 //		Scan(ctx, &v)
 func (_q *DeviceQuery) GroupBy(field string, fields ...string) *DeviceGroupBy {
@@ -321,11 +358,11 @@ func (_q *DeviceQuery) GroupBy(field string, fields ...string) *DeviceGroupBy {
 // Example:
 //
 //	var v []struct {
-//		SerialNumber string `json:"serial_number,omitempty"`
+//		Udid string `json:"udid,omitempty"`
 //	}
 //
 //	client.Device.Query().
-//		Select(device.FieldSerialNumber).
+//		Select(device.FieldUdid).
 //		Scan(ctx, &v)
 func (_q *DeviceQuery) Select(fields ...string) *DeviceSelect {
 	_q.ctx.Fields = append(_q.ctx.Fields, fields...)
@@ -370,8 +407,9 @@ func (_q *DeviceQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Devic
 	var (
 		nodes       = []*Device{}
 		_spec       = _q.querySpec()
-		loadedTypes = [1]bool{
+		loadedTypes = [2]bool{
 			_q.withOwner != nil,
+			_q.withGroups != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -395,6 +433,13 @@ func (_q *DeviceQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Devic
 	if query := _q.withOwner; query != nil {
 		if err := _q.loadOwner(ctx, query, nodes, nil,
 			func(n *Device, e *User) { n.Edges.Owner = e }); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withGroups; query != nil {
+		if err := _q.loadGroups(ctx, query, nodes,
+			func(n *Device) { n.Edges.Groups = []*DeviceGroup{} },
+			func(n *Device, e *DeviceGroup) { n.Edges.Groups = append(n.Edges.Groups, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -426,6 +471,67 @@ func (_q *DeviceQuery) loadOwner(ctx context.Context, query *UserQuery, nodes []
 		}
 		for i := range nodes {
 			assign(nodes[i], n)
+		}
+	}
+	return nil
+}
+func (_q *DeviceQuery) loadGroups(ctx context.Context, query *DeviceGroupQuery, nodes []*Device, init func(*Device), assign func(*Device, *DeviceGroup)) error {
+	edgeIDs := make([]driver.Value, len(nodes))
+	byID := make(map[string]*Device)
+	nids := make(map[uint]map[*Device]struct{})
+	for i, node := range nodes {
+		edgeIDs[i] = node.ID
+		byID[node.ID] = node
+		if init != nil {
+			init(node)
+		}
+	}
+	query.Where(func(s *sql.Selector) {
+		joinT := sql.Table(device.GroupsTable)
+		s.Join(joinT).On(s.C(devicegroup.FieldID), joinT.C(device.GroupsPrimaryKey[0]))
+		s.Where(sql.InValues(joinT.C(device.GroupsPrimaryKey[1]), edgeIDs...))
+		columns := s.SelectedColumns()
+		s.Select(joinT.C(device.GroupsPrimaryKey[1]))
+		s.AppendSelect(columns...)
+		s.SetDistinct(false)
+	})
+	if err := query.prepareQuery(ctx); err != nil {
+		return err
+	}
+	qr := QuerierFunc(func(ctx context.Context, q Query) (Value, error) {
+		return query.sqlAll(ctx, func(_ context.Context, spec *sqlgraph.QuerySpec) {
+			assign := spec.Assign
+			values := spec.ScanValues
+			spec.ScanValues = func(columns []string) ([]any, error) {
+				values, err := values(columns[1:])
+				if err != nil {
+					return nil, err
+				}
+				return append([]any{new(sql.NullString)}, values...), nil
+			}
+			spec.Assign = func(columns []string, values []any) error {
+				outValue := values[0].(*sql.NullString).String
+				inValue := uint(values[1].(*sql.NullInt64).Int64)
+				if nids[inValue] == nil {
+					nids[inValue] = map[*Device]struct{}{byID[outValue]: {}}
+					return assign(columns[1:], values[1:])
+				}
+				nids[inValue][byID[outValue]] = struct{}{}
+				return nil
+			}
+		})
+	})
+	neighbors, err := withInterceptors[[]*DeviceGroup](ctx, query, qr, query.inters)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected "groups" node returned %v`, n.ID)
+		}
+		for kn := range nodes {
+			assign(kn, n)
 		}
 	}
 	return nil

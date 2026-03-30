@@ -70,7 +70,7 @@ func (s *jwtServiceImpl) GenerateRefreshToken(userID uint, username, role string
 }
 
 func (s *jwtServiceImpl) ValidateToken(tokenString string) (*valueobject.JWTClaims, error) {
-	token, err := jwt.ParseWithClaims(tokenString, &jwtClaims{}, func(token *jwt.Token) (interface{}, error) {
+	token, err := jwt.ParseWithClaims(tokenString, &jwtClaims{}, func(token *jwt.Token) (any, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, errors.New("invalid signing method")
 		}

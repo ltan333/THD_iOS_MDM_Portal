@@ -17,7 +17,7 @@ type APNSConfig struct {
 // Annotations of the APNSConfig.
 func (APNSConfig) Annotations() []schema.Annotation {
 	return []schema.Annotation{
-		entsql.Annotation{Table: "push_certs"},
+		entsql.Annotation{Table: "portal_push_certs"},
 	}
 }
 

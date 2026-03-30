@@ -9,6 +9,21 @@ import (
 // APNSConfig is the predicate function for apnsconfig builders.
 type APNSConfig func(*sql.Selector)
 
+// Alert is the predicate function for alert builders.
+type Alert func(*sql.Selector)
+
+// AlertRule is the predicate function for alertrule builders.
+type AlertRule func(*sql.Selector)
+
+// AppDeployment is the predicate function for appdeployment builders.
+type AppDeployment func(*sql.Selector)
+
+// AppVersion is the predicate function for appversion builders.
+type AppVersion func(*sql.Selector)
+
+// Application is the predicate function for application builders.
+type Application func(*sql.Selector)
+
 // DEPToken is the predicate function for deptoken builders.
 type DEPToken func(*sql.Selector)
 
@@ -17,6 +32,9 @@ type DepProfile func(*sql.Selector)
 
 // Device is the predicate function for device builders.
 type Device func(*sql.Selector)
+
+// DeviceGroup is the predicate function for devicegroup builders.
+type DeviceGroup func(*sql.Selector)
 
 // MobileConfig is the predicate function for mobileconfig builders.
 type MobileConfig func(*sql.Selector)
@@ -29,6 +47,21 @@ type PayloadProperty func(*sql.Selector)
 
 // PayloadPropertyDefinition is the predicate function for payloadpropertydefinition builders.
 type PayloadPropertyDefinition func(*sql.Selector)
+
+// Profile is the predicate function for profile builders.
+type Profile func(*sql.Selector)
+
+// ProfileAssignment is the predicate function for profileassignment builders.
+type ProfileAssignment func(*sql.Selector)
+
+// ProfileDeploymentStatus is the predicate function for profiledeploymentstatus builders.
+type ProfileDeploymentStatus func(*sql.Selector)
+
+// ProfileVersion is the predicate function for profileversion builders.
+type ProfileVersion func(*sql.Selector)
+
+// Setting is the predicate function for setting builders.
+type Setting func(*sql.Selector)
 
 // User is the predicate function for user builders.
 type User func(*sql.Selector)

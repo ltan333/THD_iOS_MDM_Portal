@@ -3,6 +3,7 @@
 package device
 
 import (
+	"fmt"
 	"time"
 
 	"entgo.io/ent/dialect/sql"
@@ -14,6 +15,8 @@ const (
 	Label = "device"
 	// FieldID holds the string denoting the id field in the database.
 	FieldID = "id"
+	// FieldUdid holds the string denoting the udid field in the database.
+	FieldUdid = "udid"
 	// FieldSerialNumber holds the string denoting the serial_number field in the database.
 	FieldSerialNumber = "serial_number"
 	// FieldModel holds the string denoting the model field in the database.
@@ -26,35 +29,91 @@ const (
 	FieldName = "name"
 	// FieldLastSync holds the string denoting the last_sync field in the database.
 	FieldLastSync = "last_sync"
+	// FieldPlatform holds the string denoting the platform field in the database.
+	FieldPlatform = "platform"
+	// FieldStatus holds the string denoting the status field in the database.
+	FieldStatus = "status"
+	// FieldComplianceStatus holds the string denoting the compliance_status field in the database.
+	FieldComplianceStatus = "compliance_status"
+	// FieldOsVersion holds the string denoting the os_version field in the database.
+	FieldOsVersion = "os_version"
+	// FieldDeviceType holds the string denoting the device_type field in the database.
+	FieldDeviceType = "device_type"
+	// FieldLastSeen holds the string denoting the last_seen field in the database.
+	FieldLastSeen = "last_seen"
+	// FieldEnrolledAt holds the string denoting the enrolled_at field in the database.
+	FieldEnrolledAt = "enrolled_at"
+	// FieldMACAddress holds the string denoting the mac_address field in the database.
+	FieldMACAddress = "mac_address"
+	// FieldIPAddress holds the string denoting the ip_address field in the database.
+	FieldIPAddress = "ip_address"
+	// FieldBatteryLevel holds the string denoting the battery_level field in the database.
+	FieldBatteryLevel = "battery_level"
+	// FieldStorageCapacity holds the string denoting the storage_capacity field in the database.
+	FieldStorageCapacity = "storage_capacity"
+	// FieldStorageUsed holds the string denoting the storage_used field in the database.
+	FieldStorageUsed = "storage_used"
+	// FieldIsJailbroken holds the string denoting the is_jailbroken field in the database.
+	FieldIsJailbroken = "is_jailbroken"
+	// FieldEnrollmentType holds the string denoting the enrollment_type field in the database.
+	FieldEnrollmentType = "enrollment_type"
 	// FieldCreatedAt holds the string denoting the created_at field in the database.
 	FieldCreatedAt = "created_at"
 	// FieldUpdatedAt holds the string denoting the updated_at field in the database.
 	FieldUpdatedAt = "updated_at"
 	// EdgeOwner holds the string denoting the owner edge name in mutations.
 	EdgeOwner = "owner"
+	// EdgeGroups holds the string denoting the groups edge name in mutations.
+	EdgeGroups = "groups"
 	// Table holds the table name of the device in the database.
-	Table = "devices"
+	Table = "portal_devices"
 	// OwnerTable is the table that holds the owner relation/edge.
-	OwnerTable = "devices"
+	OwnerTable = "portal_devices"
 	// OwnerInverseTable is the table name for the User entity.
 	// It exists in this package in order to avoid circular dependency with the "user" package.
 	OwnerInverseTable = "portal_users"
 	// OwnerColumn is the table column denoting the owner relation/edge.
 	OwnerColumn = "owner_id"
+	// GroupsTable is the table that holds the groups relation/edge. The primary key declared below.
+	GroupsTable = "device_group_devices"
+	// GroupsInverseTable is the table name for the DeviceGroup entity.
+	// It exists in this package in order to avoid circular dependency with the "devicegroup" package.
+	GroupsInverseTable = "device_groups"
 )
 
 // Columns holds all SQL columns for device fields.
 var Columns = []string{
 	FieldID,
+	FieldUdid,
 	FieldSerialNumber,
 	FieldModel,
 	FieldOwnerID,
 	FieldIsEnrolled,
 	FieldName,
 	FieldLastSync,
+	FieldPlatform,
+	FieldStatus,
+	FieldComplianceStatus,
+	FieldOsVersion,
+	FieldDeviceType,
+	FieldLastSeen,
+	FieldEnrolledAt,
+	FieldMACAddress,
+	FieldIPAddress,
+	FieldBatteryLevel,
+	FieldStorageCapacity,
+	FieldStorageUsed,
+	FieldIsJailbroken,
+	FieldEnrollmentType,
 	FieldCreatedAt,
 	FieldUpdatedAt,
 }
+
+var (
+	// GroupsPrimaryKey and GroupsColumn2 are the table columns denoting the
+	// primary key for the groups relation (M2M).
+	GroupsPrimaryKey = []string{"device_group_id", "device_id"}
+)
 
 // ValidColumn reports if the column name is valid (part of the table columns).
 func ValidColumn(column string) bool {
@@ -69,6 +128,8 @@ func ValidColumn(column string) bool {
 var (
 	// DefaultIsEnrolled holds the default value on creation for the "is_enrolled" field.
 	DefaultIsEnrolled bool
+	// DefaultIsJailbroken holds the default value on creation for the "is_jailbroken" field.
+	DefaultIsJailbroken bool
 	// DefaultCreatedAt holds the default value on creation for the "created_at" field.
 	DefaultCreatedAt func() time.Time
 	// DefaultUpdatedAt holds the default value on creation for the "updated_at" field.
@@ -79,12 +140,130 @@ var (
 	IDValidator func(string) error
 )
 
+// Platform defines the type for the "platform" enum field.
+type Platform string
+
+// PlatformOther is the default value of the Platform enum.
+const DefaultPlatform = PlatformOther
+
+// Platform values.
+const (
+	PlatformIos     Platform = "ios"
+	PlatformAndroid Platform = "android"
+	PlatformWindows Platform = "windows"
+	PlatformMacos   Platform = "macos"
+	PlatformOther   Platform = "other"
+)
+
+func (pl Platform) String() string {
+	return string(pl)
+}
+
+// PlatformValidator is a validator for the "platform" field enum values. It is called by the builders before save.
+func PlatformValidator(pl Platform) error {
+	switch pl {
+	case PlatformIos, PlatformAndroid, PlatformWindows, PlatformMacos, PlatformOther:
+		return nil
+	default:
+		return fmt.Errorf("device: invalid enum value for platform field: %q", pl)
+	}
+}
+
+// Status defines the type for the "status" enum field.
+type Status string
+
+// StatusPending is the default value of the Status enum.
+const DefaultStatus = StatusPending
+
+// Status values.
+const (
+	StatusActive   Status = "active"
+	StatusInactive Status = "inactive"
+	StatusPending  Status = "pending"
+	StatusLost     Status = "lost"
+	StatusWiped    Status = "wiped"
+)
+
+func (s Status) String() string {
+	return string(s)
+}
+
+// StatusValidator is a validator for the "status" field enum values. It is called by the builders before save.
+func StatusValidator(s Status) error {
+	switch s {
+	case StatusActive, StatusInactive, StatusPending, StatusLost, StatusWiped:
+		return nil
+	default:
+		return fmt.Errorf("device: invalid enum value for status field: %q", s)
+	}
+}
+
+// ComplianceStatus defines the type for the "compliance_status" enum field.
+type ComplianceStatus string
+
+// ComplianceStatusUnknown is the default value of the ComplianceStatus enum.
+const DefaultComplianceStatus = ComplianceStatusUnknown
+
+// ComplianceStatus values.
+const (
+	ComplianceStatusCompliant    ComplianceStatus = "compliant"
+	ComplianceStatusNonCompliant ComplianceStatus = "non_compliant"
+	ComplianceStatusUnknown      ComplianceStatus = "unknown"
+)
+
+func (cs ComplianceStatus) String() string {
+	return string(cs)
+}
+
+// ComplianceStatusValidator is a validator for the "compliance_status" field enum values. It is called by the builders before save.
+func ComplianceStatusValidator(cs ComplianceStatus) error {
+	switch cs {
+	case ComplianceStatusCompliant, ComplianceStatusNonCompliant, ComplianceStatusUnknown:
+		return nil
+	default:
+		return fmt.Errorf("device: invalid enum value for compliance_status field: %q", cs)
+	}
+}
+
+// EnrollmentType defines the type for the "enrollment_type" enum field.
+type EnrollmentType string
+
+// EnrollmentTypeUnknown is the default value of the EnrollmentType enum.
+const DefaultEnrollmentType = EnrollmentTypeUnknown
+
+// EnrollmentType values.
+const (
+	EnrollmentTypeDep     EnrollmentType = "dep"
+	EnrollmentTypeQr      EnrollmentType = "qr"
+	EnrollmentTypeManual  EnrollmentType = "manual"
+	EnrollmentTypeUnknown EnrollmentType = "unknown"
+)
+
+func (et EnrollmentType) String() string {
+	return string(et)
+}
+
+// EnrollmentTypeValidator is a validator for the "enrollment_type" field enum values. It is called by the builders before save.
+func EnrollmentTypeValidator(et EnrollmentType) error {
+	switch et {
+	case EnrollmentTypeDep, EnrollmentTypeQr, EnrollmentTypeManual, EnrollmentTypeUnknown:
+		return nil
+	default:
+		return fmt.Errorf("device: invalid enum value for enrollment_type field: %q", et)
+	}
+}
+
 // OrderOption defines the ordering options for the Device queries.
 type OrderOption func(*sql.Selector)
 
 // ByID orders the results by the id field.
 func ByID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldID, opts...).ToFunc()
+}
+
+// ByUdid orders the results by the udid field.
+func ByUdid(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldUdid, opts...).ToFunc()
 }
 
 // BySerialNumber orders the results by the serial_number field.
@@ -117,6 +296,76 @@ func ByLastSync(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldLastSync, opts...).ToFunc()
 }
 
+// ByPlatform orders the results by the platform field.
+func ByPlatform(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldPlatform, opts...).ToFunc()
+}
+
+// ByStatus orders the results by the status field.
+func ByStatus(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldStatus, opts...).ToFunc()
+}
+
+// ByComplianceStatus orders the results by the compliance_status field.
+func ByComplianceStatus(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldComplianceStatus, opts...).ToFunc()
+}
+
+// ByOsVersion orders the results by the os_version field.
+func ByOsVersion(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldOsVersion, opts...).ToFunc()
+}
+
+// ByDeviceType orders the results by the device_type field.
+func ByDeviceType(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldDeviceType, opts...).ToFunc()
+}
+
+// ByLastSeen orders the results by the last_seen field.
+func ByLastSeen(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldLastSeen, opts...).ToFunc()
+}
+
+// ByEnrolledAt orders the results by the enrolled_at field.
+func ByEnrolledAt(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldEnrolledAt, opts...).ToFunc()
+}
+
+// ByMACAddress orders the results by the mac_address field.
+func ByMACAddress(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldMACAddress, opts...).ToFunc()
+}
+
+// ByIPAddress orders the results by the ip_address field.
+func ByIPAddress(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldIPAddress, opts...).ToFunc()
+}
+
+// ByBatteryLevel orders the results by the battery_level field.
+func ByBatteryLevel(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldBatteryLevel, opts...).ToFunc()
+}
+
+// ByStorageCapacity orders the results by the storage_capacity field.
+func ByStorageCapacity(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldStorageCapacity, opts...).ToFunc()
+}
+
+// ByStorageUsed orders the results by the storage_used field.
+func ByStorageUsed(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldStorageUsed, opts...).ToFunc()
+}
+
+// ByIsJailbroken orders the results by the is_jailbroken field.
+func ByIsJailbroken(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldIsJailbroken, opts...).ToFunc()
+}
+
+// ByEnrollmentType orders the results by the enrollment_type field.
+func ByEnrollmentType(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldEnrollmentType, opts...).ToFunc()
+}
+
 // ByCreatedAt orders the results by the created_at field.
 func ByCreatedAt(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldCreatedAt, opts...).ToFunc()
@@ -133,10 +382,31 @@ func ByOwnerField(field string, opts ...sql.OrderTermOption) OrderOption {
 		sqlgraph.OrderByNeighborTerms(s, newOwnerStep(), sql.OrderByField(field, opts...))
 	}
 }
+
+// ByGroupsCount orders the results by groups count.
+func ByGroupsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newGroupsStep(), opts...)
+	}
+}
+
+// ByGroups orders the results by groups terms.
+func ByGroups(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newGroupsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
 func newOwnerStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(OwnerInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.M2O, true, OwnerTable, OwnerColumn),
+	)
+}
+func newGroupsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(GroupsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2M, true, GroupsTable, GroupsPrimaryKey...),
 	)
 }

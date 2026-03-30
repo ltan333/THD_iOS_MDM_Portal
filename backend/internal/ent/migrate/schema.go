@@ -9,8 +9,8 @@ import (
 )
 
 var (
-	// PushCertsColumns holds the columns for the "push_certs" table.
-	PushCertsColumns = []*schema.Column{
+	// PortalPushCertsColumns holds the columns for the "portal_push_certs" table.
+	PortalPushCertsColumns = []*schema.Column{
 		{Name: "topic", Type: field.TypeString, Unique: true},
 		{Name: "cert_pem", Type: field.TypeString, Size: 2147483647},
 		{Name: "key_pem", Type: field.TypeString, Size: 2147483647},
@@ -18,14 +18,122 @@ var (
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
 	}
-	// PushCertsTable holds the schema information for the "push_certs" table.
-	PushCertsTable = &schema.Table{
-		Name:       "push_certs",
-		Columns:    PushCertsColumns,
-		PrimaryKey: []*schema.Column{PushCertsColumns[0]},
+	// PortalPushCertsTable holds the schema information for the "portal_push_certs" table.
+	PortalPushCertsTable = &schema.Table{
+		Name:       "portal_push_certs",
+		Columns:    PortalPushCertsColumns,
+		PrimaryKey: []*schema.Column{PortalPushCertsColumns[0]},
 	}
-	// DepNamesColumns holds the columns for the "dep_names" table.
-	DepNamesColumns = []*schema.Column{
+	// AlertsColumns holds the columns for the "alerts" table.
+	AlertsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUint, Increment: true},
+		{Name: "severity", Type: field.TypeEnum, Enums: []string{"critical", "high", "medium", "low"}, Default: "medium"},
+		{Name: "title", Type: field.TypeString, Size: 255},
+		{Name: "type", Type: field.TypeEnum, Enums: []string{"security", "compliance", "connectivity", "application", "device_health"}, Default: "security"},
+		{Name: "status", Type: field.TypeEnum, Enums: []string{"open", "acknowledged", "resolved"}, Default: "open"},
+		{Name: "device_id", Type: field.TypeString, Nullable: true},
+		{Name: "user_id", Type: field.TypeUint, Nullable: true},
+		{Name: "details", Type: field.TypeJSON, Nullable: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "acknowledged_at", Type: field.TypeTime, Nullable: true},
+		{Name: "resolved_at", Type: field.TypeTime, Nullable: true},
+	}
+	// AlertsTable holds the schema information for the "alerts" table.
+	AlertsTable = &schema.Table{
+		Name:       "alerts",
+		Columns:    AlertsColumns,
+		PrimaryKey: []*schema.Column{AlertsColumns[0]},
+	}
+	// AlertRulesColumns holds the columns for the "alert_rules" table.
+	AlertRulesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUint, Increment: true},
+		{Name: "name", Type: field.TypeString, Size: 255},
+		{Name: "description", Type: field.TypeString, Nullable: true, Size: 500},
+		{Name: "condition", Type: field.TypeJSON, Nullable: true},
+		{Name: "actions", Type: field.TypeJSON, Nullable: true},
+		{Name: "enabled", Type: field.TypeBool, Default: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+	}
+	// AlertRulesTable holds the schema information for the "alert_rules" table.
+	AlertRulesTable = &schema.Table{
+		Name:       "alert_rules",
+		Columns:    AlertRulesColumns,
+		PrimaryKey: []*schema.Column{AlertRulesColumns[0]},
+	}
+	// AppDeploymentsColumns holds the columns for the "app_deployments" table.
+	AppDeploymentsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUint, Increment: true},
+		{Name: "target_type", Type: field.TypeEnum, Enums: []string{"device", "group", "user"}},
+		{Name: "target_id", Type: field.TypeString},
+		{Name: "status", Type: field.TypeEnum, Enums: []string{"pending", "installing", "success", "failed"}, Default: "pending"},
+		{Name: "error_message", Type: field.TypeString, Nullable: true},
+		{Name: "installed_at", Type: field.TypeTime, Nullable: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "app_version_id", Type: field.TypeUint},
+	}
+	// AppDeploymentsTable holds the schema information for the "app_deployments" table.
+	AppDeploymentsTable = &schema.Table{
+		Name:       "app_deployments",
+		Columns:    AppDeploymentsColumns,
+		PrimaryKey: []*schema.Column{AppDeploymentsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "app_deployments_app_versions_deployments",
+				Columns:    []*schema.Column{AppDeploymentsColumns[8]},
+				RefColumns: []*schema.Column{AppVersionsColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+	}
+	// AppVersionsColumns holds the columns for the "app_versions" table.
+	AppVersionsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUint, Increment: true},
+		{Name: "version", Type: field.TypeString},
+		{Name: "build_number", Type: field.TypeString},
+		{Name: "minimum_os_version", Type: field.TypeString, Nullable: true},
+		{Name: "file_url", Type: field.TypeString, Nullable: true},
+		{Name: "size", Type: field.TypeInt64, Nullable: true},
+		{Name: "metadata", Type: field.TypeJSON, Nullable: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "application_id", Type: field.TypeUint},
+	}
+	// AppVersionsTable holds the schema information for the "app_versions" table.
+	AppVersionsTable = &schema.Table{
+		Name:       "app_versions",
+		Columns:    AppVersionsColumns,
+		PrimaryKey: []*schema.Column{AppVersionsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "app_versions_applications_versions",
+				Columns:    []*schema.Column{AppVersionsColumns[9]},
+				RefColumns: []*schema.Column{ApplicationsColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+	}
+	// ApplicationsColumns holds the columns for the "applications" table.
+	ApplicationsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUint, Increment: true},
+		{Name: "name", Type: field.TypeString, Size: 255},
+		{Name: "bundle_id", Type: field.TypeString, Unique: true, Size: 255},
+		{Name: "platform", Type: field.TypeEnum, Enums: []string{"ios", "android", "windows", "macos"}},
+		{Name: "type", Type: field.TypeEnum, Enums: []string{"app_store", "enterprise", "web_clip"}, Default: "app_store"},
+		{Name: "description", Type: field.TypeString, Nullable: true},
+		{Name: "icon_url", Type: field.TypeString, Nullable: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+	}
+	// ApplicationsTable holds the schema information for the "applications" table.
+	ApplicationsTable = &schema.Table{
+		Name:       "applications",
+		Columns:    ApplicationsColumns,
+		PrimaryKey: []*schema.Column{ApplicationsColumns[0]},
+	}
+	// PortalDepNamesColumns holds the columns for the "portal_dep_names" table.
+	PortalDepNamesColumns = []*schema.Column{
 		{Name: "name", Type: field.TypeString, Unique: true},
 		{Name: "consumer_key", Type: field.TypeString, Nullable: true, Size: 2147483647},
 		{Name: "consumer_secret", Type: field.TypeString, Nullable: true, Size: 2147483647},
@@ -40,11 +148,11 @@ var (
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
 	}
-	// DepNamesTable holds the schema information for the "dep_names" table.
-	DepNamesTable = &schema.Table{
-		Name:       "dep_names",
-		Columns:    DepNamesColumns,
-		PrimaryKey: []*schema.Column{DepNamesColumns[0]},
+	// PortalDepNamesTable holds the schema information for the "portal_dep_names" table.
+	PortalDepNamesTable = &schema.Table{
+		Name:       "portal_dep_names",
+		Columns:    PortalDepNamesColumns,
+		PrimaryKey: []*schema.Column{PortalDepNamesColumns[0]},
 	}
 	// DepProfilesColumns holds the columns for the "dep_profiles" table.
 	DepProfilesColumns = []*schema.Column{
@@ -82,31 +190,60 @@ var (
 		Columns:    DepProfilesColumns,
 		PrimaryKey: []*schema.Column{DepProfilesColumns[0]},
 	}
-	// DevicesColumns holds the columns for the "devices" table.
-	DevicesColumns = []*schema.Column{
+	// PortalDevicesColumns holds the columns for the "portal_devices" table.
+	PortalDevicesColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeString, Unique: true, SchemaType: map[string]string{"postgres": "character varying(255)"}},
+		{Name: "udid", Type: field.TypeString, Unique: true, Nullable: true, SchemaType: map[string]string{"postgres": "character varying(255)"}},
 		{Name: "serial_number", Type: field.TypeString, Unique: true, Nullable: true, SchemaType: map[string]string{"postgres": "character varying(127)"}},
 		{Name: "model", Type: field.TypeString, Nullable: true, SchemaType: map[string]string{"postgres": "character varying(255)"}},
 		{Name: "is_enrolled", Type: field.TypeBool, Default: false},
 		{Name: "name", Type: field.TypeString, Nullable: true},
 		{Name: "last_sync", Type: field.TypeTime, Nullable: true},
+		{Name: "platform", Type: field.TypeEnum, Nullable: true, Enums: []string{"ios", "android", "windows", "macos", "other"}, Default: "other"},
+		{Name: "status", Type: field.TypeEnum, Nullable: true, Enums: []string{"active", "inactive", "pending", "lost", "wiped"}, Default: "pending"},
+		{Name: "compliance_status", Type: field.TypeEnum, Nullable: true, Enums: []string{"compliant", "non_compliant", "unknown"}, Default: "unknown"},
+		{Name: "os_version", Type: field.TypeString, Nullable: true},
+		{Name: "device_type", Type: field.TypeString, Nullable: true},
+		{Name: "last_seen", Type: field.TypeTime, Nullable: true},
+		{Name: "enrolled_at", Type: field.TypeTime, Nullable: true},
+		{Name: "mac_address", Type: field.TypeString, Nullable: true},
+		{Name: "ip_address", Type: field.TypeString, Nullable: true},
+		{Name: "battery_level", Type: field.TypeFloat64, Nullable: true},
+		{Name: "storage_capacity", Type: field.TypeUint64, Nullable: true},
+		{Name: "storage_used", Type: field.TypeUint64, Nullable: true},
+		{Name: "is_jailbroken", Type: field.TypeBool, Default: false},
+		{Name: "enrollment_type", Type: field.TypeEnum, Nullable: true, Enums: []string{"dep", "qr", "manual", "unknown"}, Default: "unknown"},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
 		{Name: "owner_id", Type: field.TypeUint, Nullable: true},
 	}
-	// DevicesTable holds the schema information for the "devices" table.
-	DevicesTable = &schema.Table{
-		Name:       "devices",
-		Columns:    DevicesColumns,
-		PrimaryKey: []*schema.Column{DevicesColumns[0]},
+	// PortalDevicesTable holds the schema information for the "portal_devices" table.
+	PortalDevicesTable = &schema.Table{
+		Name:       "portal_devices",
+		Columns:    PortalDevicesColumns,
+		PrimaryKey: []*schema.Column{PortalDevicesColumns[0]},
 		ForeignKeys: []*schema.ForeignKey{
 			{
-				Symbol:     "devices_portal_users_devices",
-				Columns:    []*schema.Column{DevicesColumns[8]},
+				Symbol:     "portal_devices_portal_users_devices",
+				Columns:    []*schema.Column{PortalDevicesColumns[23]},
 				RefColumns: []*schema.Column{PortalUsersColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 		},
+	}
+	// DeviceGroupsColumns holds the columns for the "device_groups" table.
+	DeviceGroupsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUint, Increment: true},
+		{Name: "name", Type: field.TypeString, Size: 100},
+		{Name: "description", Type: field.TypeString, Nullable: true, Size: 500},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+	}
+	// DeviceGroupsTable holds the schema information for the "device_groups" table.
+	DeviceGroupsTable = &schema.Table{
+		Name:       "device_groups",
+		Columns:    DeviceGroupsColumns,
+		PrimaryKey: []*schema.Column{DeviceGroupsColumns[0]},
 	}
 	// MobileConfigsColumns holds the columns for the "mobile_configs" table.
 	MobileConfigsColumns = []*schema.Column{
@@ -228,6 +365,135 @@ var (
 			},
 		},
 	}
+	// ProfilesColumns holds the columns for the "profiles" table.
+	ProfilesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUint, Increment: true},
+		{Name: "name", Type: field.TypeString, Unique: true, Size: 255},
+		{Name: "platform", Type: field.TypeEnum, Enums: []string{"ios", "android", "windows", "macos", "all"}, Default: "all"},
+		{Name: "scope", Type: field.TypeEnum, Enums: []string{"device", "user", "group"}, Default: "device"},
+		{Name: "status", Type: field.TypeEnum, Enums: []string{"active", "draft", "archived"}, Default: "draft"},
+		{Name: "security_settings", Type: field.TypeJSON, Nullable: true},
+		{Name: "network_config", Type: field.TypeJSON, Nullable: true},
+		{Name: "restrictions", Type: field.TypeJSON, Nullable: true},
+		{Name: "content_filter", Type: field.TypeJSON, Nullable: true},
+		{Name: "compliance_rules", Type: field.TypeJSON, Nullable: true},
+		{Name: "payloads", Type: field.TypeJSON, Nullable: true},
+		{Name: "version", Type: field.TypeInt, Default: 1},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+	}
+	// ProfilesTable holds the schema information for the "profiles" table.
+	ProfilesTable = &schema.Table{
+		Name:       "profiles",
+		Columns:    ProfilesColumns,
+		PrimaryKey: []*schema.Column{ProfilesColumns[0]},
+	}
+	// ProfileAssignmentsColumns holds the columns for the "profile_assignments" table.
+	ProfileAssignmentsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUint, Increment: true},
+		{Name: "target_type", Type: field.TypeEnum, Enums: []string{"device", "group", "user"}},
+		{Name: "schedule_type", Type: field.TypeEnum, Enums: []string{"immediate", "scheduled"}, Default: "immediate"},
+		{Name: "scheduled_at", Type: field.TypeTime, Nullable: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "profile_id", Type: field.TypeUint},
+		{Name: "device_id", Type: field.TypeString, Nullable: true, SchemaType: map[string]string{"postgres": "character varying(255)"}},
+		{Name: "group_id", Type: field.TypeUint, Nullable: true},
+	}
+	// ProfileAssignmentsTable holds the schema information for the "profile_assignments" table.
+	ProfileAssignmentsTable = &schema.Table{
+		Name:       "profile_assignments",
+		Columns:    ProfileAssignmentsColumns,
+		PrimaryKey: []*schema.Column{ProfileAssignmentsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "profile_assignments_profiles_assignments",
+				Columns:    []*schema.Column{ProfileAssignmentsColumns[5]},
+				RefColumns: []*schema.Column{ProfilesColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+			{
+				Symbol:     "profile_assignments_portal_devices_device",
+				Columns:    []*schema.Column{ProfileAssignmentsColumns[6]},
+				RefColumns: []*schema.Column{PortalDevicesColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+			{
+				Symbol:     "profile_assignments_device_groups_group",
+				Columns:    []*schema.Column{ProfileAssignmentsColumns[7]},
+				RefColumns: []*schema.Column{DeviceGroupsColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+		},
+	}
+	// ProfileDeploymentStatusesColumns holds the columns for the "profile_deployment_statuses" table.
+	ProfileDeploymentStatusesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUint, Increment: true},
+		{Name: "status", Type: field.TypeEnum, Enums: []string{"pending", "success", "failed"}, Default: "pending"},
+		{Name: "error_message", Type: field.TypeString, Nullable: true},
+		{Name: "applied_at", Type: field.TypeTime, Nullable: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "profile_id", Type: field.TypeUint},
+		{Name: "device_id", Type: field.TypeString, SchemaType: map[string]string{"postgres": "character varying(255)"}},
+	}
+	// ProfileDeploymentStatusesTable holds the schema information for the "profile_deployment_statuses" table.
+	ProfileDeploymentStatusesTable = &schema.Table{
+		Name:       "profile_deployment_statuses",
+		Columns:    ProfileDeploymentStatusesColumns,
+		PrimaryKey: []*schema.Column{ProfileDeploymentStatusesColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "profile_deployment_statuses_profiles_deployment_statuses",
+				Columns:    []*schema.Column{ProfileDeploymentStatusesColumns[6]},
+				RefColumns: []*schema.Column{ProfilesColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+			{
+				Symbol:     "profile_deployment_statuses_portal_devices_device",
+				Columns:    []*schema.Column{ProfileDeploymentStatusesColumns[7]},
+				RefColumns: []*schema.Column{PortalDevicesColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+	}
+	// ProfileVersionsColumns holds the columns for the "profile_versions" table.
+	ProfileVersionsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUint, Increment: true},
+		{Name: "version", Type: field.TypeInt},
+		{Name: "data", Type: field.TypeJSON, Nullable: true},
+		{Name: "change_notes", Type: field.TypeString, Nullable: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "profile_id", Type: field.TypeUint},
+	}
+	// ProfileVersionsTable holds the schema information for the "profile_versions" table.
+	ProfileVersionsTable = &schema.Table{
+		Name:       "profile_versions",
+		Columns:    ProfileVersionsColumns,
+		PrimaryKey: []*schema.Column{ProfileVersionsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "profile_versions_profiles_versions",
+				Columns:    []*schema.Column{ProfileVersionsColumns[5]},
+				RefColumns: []*schema.Column{ProfilesColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+		},
+	}
+	// SettingsColumns holds the columns for the "settings" table.
+	SettingsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUint, Increment: true},
+		{Name: "key", Type: field.TypeString, Unique: true},
+		{Name: "value", Type: field.TypeString, Size: 2147483647},
+		{Name: "description", Type: field.TypeString, Nullable: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+	}
+	// SettingsTable holds the schema information for the "settings" table.
+	SettingsTable = &schema.Table{
+		Name:       "settings",
+		Columns:    SettingsColumns,
+		PrimaryKey: []*schema.Column{SettingsColumns[0]},
+	}
 	// PortalUsersColumns holds the columns for the "portal_users" table.
 	PortalUsersColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUint, Increment: true},
@@ -245,35 +511,143 @@ var (
 		Columns:    PortalUsersColumns,
 		PrimaryKey: []*schema.Column{PortalUsersColumns[0]},
 	}
+	// DeviceGroupDevicesColumns holds the columns for the "device_group_devices" table.
+	DeviceGroupDevicesColumns = []*schema.Column{
+		{Name: "device_group_id", Type: field.TypeUint},
+		{Name: "device_id", Type: field.TypeString, SchemaType: map[string]string{"postgres": "character varying(255)"}},
+	}
+	// DeviceGroupDevicesTable holds the schema information for the "device_group_devices" table.
+	DeviceGroupDevicesTable = &schema.Table{
+		Name:       "device_group_devices",
+		Columns:    DeviceGroupDevicesColumns,
+		PrimaryKey: []*schema.Column{DeviceGroupDevicesColumns[0], DeviceGroupDevicesColumns[1]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "device_group_devices_device_group_id",
+				Columns:    []*schema.Column{DeviceGroupDevicesColumns[0]},
+				RefColumns: []*schema.Column{DeviceGroupsColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+			{
+				Symbol:     "device_group_devices_device_id",
+				Columns:    []*schema.Column{DeviceGroupDevicesColumns[1]},
+				RefColumns: []*schema.Column{PortalDevicesColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+		},
+	}
+	// DeviceGroupProfilesColumns holds the columns for the "device_group_profiles" table.
+	DeviceGroupProfilesColumns = []*schema.Column{
+		{Name: "device_group_id", Type: field.TypeUint},
+		{Name: "profile_id", Type: field.TypeUint},
+	}
+	// DeviceGroupProfilesTable holds the schema information for the "device_group_profiles" table.
+	DeviceGroupProfilesTable = &schema.Table{
+		Name:       "device_group_profiles",
+		Columns:    DeviceGroupProfilesColumns,
+		PrimaryKey: []*schema.Column{DeviceGroupProfilesColumns[0], DeviceGroupProfilesColumns[1]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "device_group_profiles_device_group_id",
+				Columns:    []*schema.Column{DeviceGroupProfilesColumns[0]},
+				RefColumns: []*schema.Column{DeviceGroupsColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+			{
+				Symbol:     "device_group_profiles_profile_id",
+				Columns:    []*schema.Column{DeviceGroupProfilesColumns[1]},
+				RefColumns: []*schema.Column{ProfilesColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+		},
+	}
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
-		PushCertsTable,
-		DepNamesTable,
+		PortalPushCertsTable,
+		AlertsTable,
+		AlertRulesTable,
+		AppDeploymentsTable,
+		AppVersionsTable,
+		ApplicationsTable,
+		PortalDepNamesTable,
 		DepProfilesTable,
-		DevicesTable,
+		PortalDevicesTable,
+		DeviceGroupsTable,
 		MobileConfigsTable,
 		PayloadsTable,
 		PayloadPropertiesTable,
 		PayloadPropertyDefinitionsTable,
+		ProfilesTable,
+		ProfileAssignmentsTable,
+		ProfileDeploymentStatusesTable,
+		ProfileVersionsTable,
+		SettingsTable,
 		PortalUsersTable,
+		DeviceGroupDevicesTable,
+		DeviceGroupProfilesTable,
 	}
 )
 
 func init() {
-	PushCertsTable.Annotation = &entsql.Annotation{
-		Table: "push_certs",
+	PortalPushCertsTable.Annotation = &entsql.Annotation{
+		Table: "portal_push_certs",
 	}
-	DepNamesTable.Annotation = &entsql.Annotation{
-		Table: "dep_names",
+	AlertsTable.Annotation = &entsql.Annotation{
+		Table: "alerts",
 	}
-	DevicesTable.ForeignKeys[0].RefTable = PortalUsersTable
-	DevicesTable.Annotation = &entsql.Annotation{
-		Table: "devices",
+	AlertRulesTable.Annotation = &entsql.Annotation{
+		Table: "alert_rules",
+	}
+	AppDeploymentsTable.ForeignKeys[0].RefTable = AppVersionsTable
+	AppDeploymentsTable.Annotation = &entsql.Annotation{
+		Table: "app_deployments",
+	}
+	AppVersionsTable.ForeignKeys[0].RefTable = ApplicationsTable
+	AppVersionsTable.Annotation = &entsql.Annotation{
+		Table: "app_versions",
+	}
+	ApplicationsTable.Annotation = &entsql.Annotation{
+		Table: "applications",
+	}
+	PortalDepNamesTable.Annotation = &entsql.Annotation{
+		Table: "portal_dep_names",
+	}
+	PortalDevicesTable.ForeignKeys[0].RefTable = PortalUsersTable
+	PortalDevicesTable.Annotation = &entsql.Annotation{
+		Table: "portal_devices",
+	}
+	DeviceGroupsTable.Annotation = &entsql.Annotation{
+		Table: "device_groups",
 	}
 	PayloadsTable.ForeignKeys[0].RefTable = MobileConfigsTable
 	PayloadPropertiesTable.ForeignKeys[0].RefTable = PayloadsTable
 	PayloadPropertiesTable.ForeignKeys[1].RefTable = PayloadPropertyDefinitionsTable
+	ProfilesTable.Annotation = &entsql.Annotation{
+		Table: "profiles",
+	}
+	ProfileAssignmentsTable.ForeignKeys[0].RefTable = ProfilesTable
+	ProfileAssignmentsTable.ForeignKeys[1].RefTable = PortalDevicesTable
+	ProfileAssignmentsTable.ForeignKeys[2].RefTable = DeviceGroupsTable
+	ProfileAssignmentsTable.Annotation = &entsql.Annotation{
+		Table: "profile_assignments",
+	}
+	ProfileDeploymentStatusesTable.ForeignKeys[0].RefTable = ProfilesTable
+	ProfileDeploymentStatusesTable.ForeignKeys[1].RefTable = PortalDevicesTable
+	ProfileDeploymentStatusesTable.Annotation = &entsql.Annotation{
+		Table: "profile_deployment_statuses",
+	}
+	ProfileVersionsTable.ForeignKeys[0].RefTable = ProfilesTable
+	ProfileVersionsTable.Annotation = &entsql.Annotation{
+		Table: "profile_versions",
+	}
+	SettingsTable.Annotation = &entsql.Annotation{
+		Table: "settings",
+	}
 	PortalUsersTable.Annotation = &entsql.Annotation{
 		Table: "portal_users",
 	}
+	DeviceGroupDevicesTable.ForeignKeys[0].RefTable = DeviceGroupsTable
+	DeviceGroupDevicesTable.ForeignKeys[1].RefTable = PortalDevicesTable
+	DeviceGroupProfilesTable.ForeignKeys[0].RefTable = DeviceGroupsTable
+	DeviceGroupProfilesTable.ForeignKeys[1].RefTable = ProfilesTable
 }

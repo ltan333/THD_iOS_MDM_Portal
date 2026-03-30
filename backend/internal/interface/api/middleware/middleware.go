@@ -10,13 +10,14 @@ import (
 type Middleware struct {
 	jwtService     service.JWTService
 	authzService   service.AuthorizationService
+	redisService   service.RedisService
 	origins        string
 	allowedOrigins []string
 	allowAll       bool
 }
 
 // New creates a new Middleware instance
-func New(jwtService service.JWTService, authzService service.AuthorizationService, origins string) *Middleware {
+func New(jwtService service.JWTService, authzService service.AuthorizationService, redisService service.RedisService, origins string) *Middleware {
 	allowed := strings.Split(origins, ",")
 	allowAll := len(allowed) == 1 && strings.TrimSpace(allowed[0]) == "*"
 
@@ -27,6 +28,7 @@ func New(jwtService service.JWTService, authzService service.AuthorizationServic
 	return &Middleware{
 		jwtService:     jwtService,
 		authzService:   authzService,
+		redisService:   redisService,
 		origins:        origins,
 		allowedOrigins: allowed,
 		allowAll:       allowAll,
