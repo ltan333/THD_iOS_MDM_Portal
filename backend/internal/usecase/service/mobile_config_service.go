@@ -9,7 +9,7 @@ import (
 
 type CreateMobileConfigPropertyCommand struct {
 	Key       string
-	ValueJSON map[string]any
+	ValueJSON map[string]interface{}
 }
 
 type CreateMobileConfigPayloadCommand struct {
