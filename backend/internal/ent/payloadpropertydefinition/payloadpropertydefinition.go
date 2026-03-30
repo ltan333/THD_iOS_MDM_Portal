@@ -16,28 +16,40 @@ const (
 	FieldID = "id"
 	// FieldPayloadType holds the string denoting the payload_type field in the database.
 	FieldPayloadType = "payload_type"
+	// FieldPayloadVariant holds the string denoting the payload_variant field in the database.
+	FieldPayloadVariant = "payload_variant"
 	// FieldKey holds the string denoting the key field in the database.
 	FieldKey = "key"
 	// FieldValueType holds the string denoting the value_type field in the database.
 	FieldValueType = "value_type"
+	// FieldItemsType holds the string denoting the items_type field in the database.
+	FieldItemsType = "items_type"
 	// FieldDefaultValue holds the string denoting the default_value field in the database.
 	FieldDefaultValue = "default_value"
 	// FieldEnumValues holds the string denoting the enum_values field in the database.
 	FieldEnumValues = "enum_values"
-	// FieldDeprecated holds the string denoting the deprecated field in the database.
-	FieldDeprecated = "deprecated"
+	// FieldTitle holds the string denoting the title field in the database.
+	FieldTitle = "title"
 	// FieldDescription holds the string denoting the description field in the database.
 	FieldDescription = "description"
-	// FieldNestedReference holds the string denoting the nested_reference field in the database.
-	FieldNestedReference = "nested_reference"
-	// FieldItemsType holds the string denoting the items_type field in the database.
-	FieldItemsType = "items_type"
-	// FieldItemsReference holds the string denoting the items_reference field in the database.
-	FieldItemsReference = "items_reference"
+	// FieldPresence holds the string denoting the presence field in the database.
+	FieldPresence = "presence"
+	// FieldDeprecated holds the string denoting the deprecated field in the database.
+	FieldDeprecated = "deprecated"
 	// FieldIsNested holds the string denoting the is_nested field in the database.
 	FieldIsNested = "is_nested"
+	// FieldNestedReference holds the string denoting the nested_reference field in the database.
+	FieldNestedReference = "nested_reference"
+	// FieldItemsReference holds the string denoting the items_reference field in the database.
+	FieldItemsReference = "items_reference"
+	// FieldSupportedOs holds the string denoting the supported_os field in the database.
+	FieldSupportedOs = "supported_os"
+	// FieldConditions holds the string denoting the conditions field in the database.
+	FieldConditions = "conditions"
 	// FieldOrderIndex holds the string denoting the order_index field in the database.
 	FieldOrderIndex = "order_index"
+	// FieldYamlSourceFile holds the string denoting the yaml_source_file field in the database.
+	FieldYamlSourceFile = "yaml_source_file"
 	// FieldCreatedAt holds the string denoting the created_at field in the database.
 	FieldCreatedAt = "created_at"
 	// FieldUpdatedAt holds the string denoting the updated_at field in the database.
@@ -61,17 +73,23 @@ const (
 var Columns = []string{
 	FieldID,
 	FieldPayloadType,
+	FieldPayloadVariant,
 	FieldKey,
 	FieldValueType,
+	FieldItemsType,
 	FieldDefaultValue,
 	FieldEnumValues,
-	FieldDeprecated,
+	FieldTitle,
 	FieldDescription,
-	FieldNestedReference,
-	FieldItemsType,
-	FieldItemsReference,
+	FieldPresence,
+	FieldDeprecated,
 	FieldIsNested,
+	FieldNestedReference,
+	FieldItemsReference,
+	FieldSupportedOs,
+	FieldConditions,
 	FieldOrderIndex,
+	FieldYamlSourceFile,
 	FieldCreatedAt,
 	FieldUpdatedAt,
 	FieldDeletedAt,
@@ -90,10 +108,14 @@ func ValidColumn(column string) bool {
 var (
 	// PayloadTypeValidator is a validator for the "payload_type" field. It is called by the builders before save.
 	PayloadTypeValidator func(string) error
+	// DefaultPayloadVariant holds the default value on creation for the "payload_variant" field.
+	DefaultPayloadVariant string
 	// KeyValidator is a validator for the "key" field. It is called by the builders before save.
 	KeyValidator func(string) error
 	// ValueTypeValidator is a validator for the "value_type" field. It is called by the builders before save.
 	ValueTypeValidator func(string) error
+	// DefaultPresence holds the default value on creation for the "presence" field.
+	DefaultPresence string
 	// DefaultDeprecated holds the default value on creation for the "deprecated" field.
 	DefaultDeprecated bool
 	// DefaultIsNested holds the default value on creation for the "is_nested" field.
@@ -121,6 +143,11 @@ func ByPayloadType(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldPayloadType, opts...).ToFunc()
 }
 
+// ByPayloadVariant orders the results by the payload_variant field.
+func ByPayloadVariant(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldPayloadVariant, opts...).ToFunc()
+}
+
 // ByKey orders the results by the key field.
 func ByKey(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldKey, opts...).ToFunc()
@@ -131,9 +158,14 @@ func ByValueType(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldValueType, opts...).ToFunc()
 }
 
-// ByDeprecated orders the results by the deprecated field.
-func ByDeprecated(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldDeprecated, opts...).ToFunc()
+// ByItemsType orders the results by the items_type field.
+func ByItemsType(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldItemsType, opts...).ToFunc()
+}
+
+// ByTitle orders the results by the title field.
+func ByTitle(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldTitle, opts...).ToFunc()
 }
 
 // ByDescription orders the results by the description field.
@@ -141,19 +173,14 @@ func ByDescription(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldDescription, opts...).ToFunc()
 }
 
-// ByNestedReference orders the results by the nested_reference field.
-func ByNestedReference(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldNestedReference, opts...).ToFunc()
+// ByPresence orders the results by the presence field.
+func ByPresence(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldPresence, opts...).ToFunc()
 }
 
-// ByItemsType orders the results by the items_type field.
-func ByItemsType(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldItemsType, opts...).ToFunc()
-}
-
-// ByItemsReference orders the results by the items_reference field.
-func ByItemsReference(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldItemsReference, opts...).ToFunc()
+// ByDeprecated orders the results by the deprecated field.
+func ByDeprecated(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldDeprecated, opts...).ToFunc()
 }
 
 // ByIsNested orders the results by the is_nested field.
@@ -161,9 +188,24 @@ func ByIsNested(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldIsNested, opts...).ToFunc()
 }
 
+// ByNestedReference orders the results by the nested_reference field.
+func ByNestedReference(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldNestedReference, opts...).ToFunc()
+}
+
+// ByItemsReference orders the results by the items_reference field.
+func ByItemsReference(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldItemsReference, opts...).ToFunc()
+}
+
 // ByOrderIndex orders the results by the order_index field.
 func ByOrderIndex(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldOrderIndex, opts...).ToFunc()
+}
+
+// ByYamlSourceFile orders the results by the yaml_source_file field.
+func ByYamlSourceFile(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldYamlSourceFile, opts...).ToFunc()
 }
 
 // ByCreatedAt orders the results by the created_at field.

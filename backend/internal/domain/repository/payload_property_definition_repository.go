@@ -13,6 +13,7 @@ type PayloadPropertyDefinitionRepository interface {
 
 	ListWithQuery(ctx context.Context, offset, limit int, opts query.QueryOptions) ([]*ent.PayloadPropertyDefinition, int64, error)
 	ListPayloadTypes(ctx context.Context) ([]string, error)
-	FindByPayloadTypeAndKey(ctx context.Context, payloadType, key string) (*ent.PayloadPropertyDefinition, error)
-	UpsertByPayloadTypeAndKey(ctx context.Context, entity *ent.PayloadPropertyDefinition) (*ent.PayloadPropertyDefinition, bool, error)
+	DeleteAll(ctx context.Context) (int, error)
+	FindByPayloadTypeVariantAndKey(ctx context.Context, payloadType, payloadVariant, key string) (*ent.PayloadPropertyDefinition, error)
+	UpsertByPayloadTypeVariantAndKey(ctx context.Context, entity *ent.PayloadPropertyDefinition) (*ent.PayloadPropertyDefinition, bool, error)
 }

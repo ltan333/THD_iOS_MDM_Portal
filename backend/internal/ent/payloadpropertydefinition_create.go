@@ -27,6 +27,20 @@ func (_c *PayloadPropertyDefinitionCreate) SetPayloadType(v string) *PayloadProp
 	return _c
 }
 
+// SetPayloadVariant sets the "payload_variant" field.
+func (_c *PayloadPropertyDefinitionCreate) SetPayloadVariant(v string) *PayloadPropertyDefinitionCreate {
+	_c.mutation.SetPayloadVariant(v)
+	return _c
+}
+
+// SetNillablePayloadVariant sets the "payload_variant" field if the given value is not nil.
+func (_c *PayloadPropertyDefinitionCreate) SetNillablePayloadVariant(v *string) *PayloadPropertyDefinitionCreate {
+	if v != nil {
+		_c.SetPayloadVariant(*v)
+	}
+	return _c
+}
+
 // SetKey sets the "key" field.
 func (_c *PayloadPropertyDefinitionCreate) SetKey(v string) *PayloadPropertyDefinitionCreate {
 	_c.mutation.SetKey(v)
@@ -36,6 +50,20 @@ func (_c *PayloadPropertyDefinitionCreate) SetKey(v string) *PayloadPropertyDefi
 // SetValueType sets the "value_type" field.
 func (_c *PayloadPropertyDefinitionCreate) SetValueType(v string) *PayloadPropertyDefinitionCreate {
 	_c.mutation.SetValueType(v)
+	return _c
+}
+
+// SetItemsType sets the "items_type" field.
+func (_c *PayloadPropertyDefinitionCreate) SetItemsType(v string) *PayloadPropertyDefinitionCreate {
+	_c.mutation.SetItemsType(v)
+	return _c
+}
+
+// SetNillableItemsType sets the "items_type" field if the given value is not nil.
+func (_c *PayloadPropertyDefinitionCreate) SetNillableItemsType(v *string) *PayloadPropertyDefinitionCreate {
+	if v != nil {
+		_c.SetItemsType(*v)
+	}
 	return _c
 }
 
@@ -51,16 +79,16 @@ func (_c *PayloadPropertyDefinitionCreate) SetEnumValues(v []interface{}) *Paylo
 	return _c
 }
 
-// SetDeprecated sets the "deprecated" field.
-func (_c *PayloadPropertyDefinitionCreate) SetDeprecated(v bool) *PayloadPropertyDefinitionCreate {
-	_c.mutation.SetDeprecated(v)
+// SetTitle sets the "title" field.
+func (_c *PayloadPropertyDefinitionCreate) SetTitle(v string) *PayloadPropertyDefinitionCreate {
+	_c.mutation.SetTitle(v)
 	return _c
 }
 
-// SetNillableDeprecated sets the "deprecated" field if the given value is not nil.
-func (_c *PayloadPropertyDefinitionCreate) SetNillableDeprecated(v *bool) *PayloadPropertyDefinitionCreate {
+// SetNillableTitle sets the "title" field if the given value is not nil.
+func (_c *PayloadPropertyDefinitionCreate) SetNillableTitle(v *string) *PayloadPropertyDefinitionCreate {
 	if v != nil {
-		_c.SetDeprecated(*v)
+		_c.SetTitle(*v)
 	}
 	return _c
 }
@@ -79,44 +107,30 @@ func (_c *PayloadPropertyDefinitionCreate) SetNillableDescription(v *string) *Pa
 	return _c
 }
 
-// SetNestedReference sets the "nested_reference" field.
-func (_c *PayloadPropertyDefinitionCreate) SetNestedReference(v string) *PayloadPropertyDefinitionCreate {
-	_c.mutation.SetNestedReference(v)
+// SetPresence sets the "presence" field.
+func (_c *PayloadPropertyDefinitionCreate) SetPresence(v string) *PayloadPropertyDefinitionCreate {
+	_c.mutation.SetPresence(v)
 	return _c
 }
 
-// SetNillableNestedReference sets the "nested_reference" field if the given value is not nil.
-func (_c *PayloadPropertyDefinitionCreate) SetNillableNestedReference(v *string) *PayloadPropertyDefinitionCreate {
+// SetNillablePresence sets the "presence" field if the given value is not nil.
+func (_c *PayloadPropertyDefinitionCreate) SetNillablePresence(v *string) *PayloadPropertyDefinitionCreate {
 	if v != nil {
-		_c.SetNestedReference(*v)
+		_c.SetPresence(*v)
 	}
 	return _c
 }
 
-// SetItemsType sets the "items_type" field.
-func (_c *PayloadPropertyDefinitionCreate) SetItemsType(v string) *PayloadPropertyDefinitionCreate {
-	_c.mutation.SetItemsType(v)
+// SetDeprecated sets the "deprecated" field.
+func (_c *PayloadPropertyDefinitionCreate) SetDeprecated(v bool) *PayloadPropertyDefinitionCreate {
+	_c.mutation.SetDeprecated(v)
 	return _c
 }
 
-// SetNillableItemsType sets the "items_type" field if the given value is not nil.
-func (_c *PayloadPropertyDefinitionCreate) SetNillableItemsType(v *string) *PayloadPropertyDefinitionCreate {
+// SetNillableDeprecated sets the "deprecated" field if the given value is not nil.
+func (_c *PayloadPropertyDefinitionCreate) SetNillableDeprecated(v *bool) *PayloadPropertyDefinitionCreate {
 	if v != nil {
-		_c.SetItemsType(*v)
-	}
-	return _c
-}
-
-// SetItemsReference sets the "items_reference" field.
-func (_c *PayloadPropertyDefinitionCreate) SetItemsReference(v string) *PayloadPropertyDefinitionCreate {
-	_c.mutation.SetItemsReference(v)
-	return _c
-}
-
-// SetNillableItemsReference sets the "items_reference" field if the given value is not nil.
-func (_c *PayloadPropertyDefinitionCreate) SetNillableItemsReference(v *string) *PayloadPropertyDefinitionCreate {
-	if v != nil {
-		_c.SetItemsReference(*v)
+		_c.SetDeprecated(*v)
 	}
 	return _c
 }
@@ -135,6 +149,46 @@ func (_c *PayloadPropertyDefinitionCreate) SetNillableIsNested(v *bool) *Payload
 	return _c
 }
 
+// SetNestedReference sets the "nested_reference" field.
+func (_c *PayloadPropertyDefinitionCreate) SetNestedReference(v string) *PayloadPropertyDefinitionCreate {
+	_c.mutation.SetNestedReference(v)
+	return _c
+}
+
+// SetNillableNestedReference sets the "nested_reference" field if the given value is not nil.
+func (_c *PayloadPropertyDefinitionCreate) SetNillableNestedReference(v *string) *PayloadPropertyDefinitionCreate {
+	if v != nil {
+		_c.SetNestedReference(*v)
+	}
+	return _c
+}
+
+// SetItemsReference sets the "items_reference" field.
+func (_c *PayloadPropertyDefinitionCreate) SetItemsReference(v string) *PayloadPropertyDefinitionCreate {
+	_c.mutation.SetItemsReference(v)
+	return _c
+}
+
+// SetNillableItemsReference sets the "items_reference" field if the given value is not nil.
+func (_c *PayloadPropertyDefinitionCreate) SetNillableItemsReference(v *string) *PayloadPropertyDefinitionCreate {
+	if v != nil {
+		_c.SetItemsReference(*v)
+	}
+	return _c
+}
+
+// SetSupportedOs sets the "supported_os" field.
+func (_c *PayloadPropertyDefinitionCreate) SetSupportedOs(v map[string]interface{}) *PayloadPropertyDefinitionCreate {
+	_c.mutation.SetSupportedOs(v)
+	return _c
+}
+
+// SetConditions sets the "conditions" field.
+func (_c *PayloadPropertyDefinitionCreate) SetConditions(v map[string]interface{}) *PayloadPropertyDefinitionCreate {
+	_c.mutation.SetConditions(v)
+	return _c
+}
+
 // SetOrderIndex sets the "order_index" field.
 func (_c *PayloadPropertyDefinitionCreate) SetOrderIndex(v int) *PayloadPropertyDefinitionCreate {
 	_c.mutation.SetOrderIndex(v)
@@ -145,6 +199,20 @@ func (_c *PayloadPropertyDefinitionCreate) SetOrderIndex(v int) *PayloadProperty
 func (_c *PayloadPropertyDefinitionCreate) SetNillableOrderIndex(v *int) *PayloadPropertyDefinitionCreate {
 	if v != nil {
 		_c.SetOrderIndex(*v)
+	}
+	return _c
+}
+
+// SetYamlSourceFile sets the "yaml_source_file" field.
+func (_c *PayloadPropertyDefinitionCreate) SetYamlSourceFile(v string) *PayloadPropertyDefinitionCreate {
+	_c.mutation.SetYamlSourceFile(v)
+	return _c
+}
+
+// SetNillableYamlSourceFile sets the "yaml_source_file" field if the given value is not nil.
+func (_c *PayloadPropertyDefinitionCreate) SetNillableYamlSourceFile(v *string) *PayloadPropertyDefinitionCreate {
+	if v != nil {
+		_c.SetYamlSourceFile(*v)
 	}
 	return _c
 }
@@ -241,6 +309,14 @@ func (_c *PayloadPropertyDefinitionCreate) ExecX(ctx context.Context) {
 
 // defaults sets the default values of the builder before save.
 func (_c *PayloadPropertyDefinitionCreate) defaults() {
+	if _, ok := _c.mutation.PayloadVariant(); !ok {
+		v := payloadpropertydefinition.DefaultPayloadVariant
+		_c.mutation.SetPayloadVariant(v)
+	}
+	if _, ok := _c.mutation.Presence(); !ok {
+		v := payloadpropertydefinition.DefaultPresence
+		_c.mutation.SetPresence(v)
+	}
 	if _, ok := _c.mutation.Deprecated(); !ok {
 		v := payloadpropertydefinition.DefaultDeprecated
 		_c.mutation.SetDeprecated(v)
@@ -273,6 +349,9 @@ func (_c *PayloadPropertyDefinitionCreate) check() error {
 			return &ValidationError{Name: "payload_type", err: fmt.Errorf(`ent: validator failed for field "PayloadPropertyDefinition.payload_type": %w`, err)}
 		}
 	}
+	if _, ok := _c.mutation.PayloadVariant(); !ok {
+		return &ValidationError{Name: "payload_variant", err: errors.New(`ent: missing required field "PayloadPropertyDefinition.payload_variant"`)}
+	}
 	if _, ok := _c.mutation.Key(); !ok {
 		return &ValidationError{Name: "key", err: errors.New(`ent: missing required field "PayloadPropertyDefinition.key"`)}
 	}
@@ -288,6 +367,9 @@ func (_c *PayloadPropertyDefinitionCreate) check() error {
 		if err := payloadpropertydefinition.ValueTypeValidator(v); err != nil {
 			return &ValidationError{Name: "value_type", err: fmt.Errorf(`ent: validator failed for field "PayloadPropertyDefinition.value_type": %w`, err)}
 		}
+	}
+	if _, ok := _c.mutation.Presence(); !ok {
+		return &ValidationError{Name: "presence", err: errors.New(`ent: missing required field "PayloadPropertyDefinition.presence"`)}
 	}
 	if _, ok := _c.mutation.Deprecated(); !ok {
 		return &ValidationError{Name: "deprecated", err: errors.New(`ent: missing required field "PayloadPropertyDefinition.deprecated"`)}
@@ -334,6 +416,10 @@ func (_c *PayloadPropertyDefinitionCreate) createSpec() (*PayloadPropertyDefinit
 		_spec.SetField(payloadpropertydefinition.FieldPayloadType, field.TypeString, value)
 		_node.PayloadType = value
 	}
+	if value, ok := _c.mutation.PayloadVariant(); ok {
+		_spec.SetField(payloadpropertydefinition.FieldPayloadVariant, field.TypeString, value)
+		_node.PayloadVariant = value
+	}
 	if value, ok := _c.mutation.Key(); ok {
 		_spec.SetField(payloadpropertydefinition.FieldKey, field.TypeString, value)
 		_node.Key = value
@@ -341,6 +427,10 @@ func (_c *PayloadPropertyDefinitionCreate) createSpec() (*PayloadPropertyDefinit
 	if value, ok := _c.mutation.ValueType(); ok {
 		_spec.SetField(payloadpropertydefinition.FieldValueType, field.TypeString, value)
 		_node.ValueType = value
+	}
+	if value, ok := _c.mutation.ItemsType(); ok {
+		_spec.SetField(payloadpropertydefinition.FieldItemsType, field.TypeString, value)
+		_node.ItemsType = &value
 	}
 	if value, ok := _c.mutation.DefaultValue(); ok {
 		_spec.SetField(payloadpropertydefinition.FieldDefaultValue, field.TypeJSON, value)
@@ -350,33 +440,49 @@ func (_c *PayloadPropertyDefinitionCreate) createSpec() (*PayloadPropertyDefinit
 		_spec.SetField(payloadpropertydefinition.FieldEnumValues, field.TypeJSON, value)
 		_node.EnumValues = value
 	}
-	if value, ok := _c.mutation.Deprecated(); ok {
-		_spec.SetField(payloadpropertydefinition.FieldDeprecated, field.TypeBool, value)
-		_node.Deprecated = value
+	if value, ok := _c.mutation.Title(); ok {
+		_spec.SetField(payloadpropertydefinition.FieldTitle, field.TypeString, value)
+		_node.Title = &value
 	}
 	if value, ok := _c.mutation.Description(); ok {
 		_spec.SetField(payloadpropertydefinition.FieldDescription, field.TypeString, value)
 		_node.Description = value
 	}
-	if value, ok := _c.mutation.NestedReference(); ok {
-		_spec.SetField(payloadpropertydefinition.FieldNestedReference, field.TypeString, value)
-		_node.NestedReference = &value
+	if value, ok := _c.mutation.Presence(); ok {
+		_spec.SetField(payloadpropertydefinition.FieldPresence, field.TypeString, value)
+		_node.Presence = value
 	}
-	if value, ok := _c.mutation.ItemsType(); ok {
-		_spec.SetField(payloadpropertydefinition.FieldItemsType, field.TypeString, value)
-		_node.ItemsType = &value
-	}
-	if value, ok := _c.mutation.ItemsReference(); ok {
-		_spec.SetField(payloadpropertydefinition.FieldItemsReference, field.TypeString, value)
-		_node.ItemsReference = &value
+	if value, ok := _c.mutation.Deprecated(); ok {
+		_spec.SetField(payloadpropertydefinition.FieldDeprecated, field.TypeBool, value)
+		_node.Deprecated = value
 	}
 	if value, ok := _c.mutation.IsNested(); ok {
 		_spec.SetField(payloadpropertydefinition.FieldIsNested, field.TypeBool, value)
 		_node.IsNested = value
 	}
+	if value, ok := _c.mutation.NestedReference(); ok {
+		_spec.SetField(payloadpropertydefinition.FieldNestedReference, field.TypeString, value)
+		_node.NestedReference = &value
+	}
+	if value, ok := _c.mutation.ItemsReference(); ok {
+		_spec.SetField(payloadpropertydefinition.FieldItemsReference, field.TypeString, value)
+		_node.ItemsReference = &value
+	}
+	if value, ok := _c.mutation.SupportedOs(); ok {
+		_spec.SetField(payloadpropertydefinition.FieldSupportedOs, field.TypeJSON, value)
+		_node.SupportedOs = value
+	}
+	if value, ok := _c.mutation.Conditions(); ok {
+		_spec.SetField(payloadpropertydefinition.FieldConditions, field.TypeJSON, value)
+		_node.Conditions = value
+	}
 	if value, ok := _c.mutation.OrderIndex(); ok {
 		_spec.SetField(payloadpropertydefinition.FieldOrderIndex, field.TypeInt, value)
 		_node.OrderIndex = value
+	}
+	if value, ok := _c.mutation.YamlSourceFile(); ok {
+		_spec.SetField(payloadpropertydefinition.FieldYamlSourceFile, field.TypeString, value)
+		_node.YamlSourceFile = &value
 	}
 	if value, ok := _c.mutation.CreatedAt(); ok {
 		_spec.SetField(payloadpropertydefinition.FieldCreatedAt, field.TypeTime, value)

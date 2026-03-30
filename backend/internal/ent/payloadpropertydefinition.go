@@ -20,28 +20,40 @@ type PayloadPropertyDefinition struct {
 	ID int `json:"id,omitempty"`
 	// PayloadType holds the value of the "payload_type" field.
 	PayloadType string `json:"payload_type,omitempty"`
+	// PayloadVariant holds the value of the "payload_variant" field.
+	PayloadVariant string `json:"payload_variant,omitempty"`
 	// Key holds the value of the "key" field.
 	Key string `json:"key,omitempty"`
 	// ValueType holds the value of the "value_type" field.
 	ValueType string `json:"value_type,omitempty"`
+	// ItemsType holds the value of the "items_type" field.
+	ItemsType *string `json:"items_type,omitempty"`
 	// DefaultValue holds the value of the "default_value" field.
 	DefaultValue map[string]interface{} `json:"default_value,omitempty"`
 	// EnumValues holds the value of the "enum_values" field.
 	EnumValues []interface{} `json:"enum_values,omitempty"`
-	// Deprecated holds the value of the "deprecated" field.
-	Deprecated bool `json:"deprecated,omitempty"`
+	// Title holds the value of the "title" field.
+	Title *string `json:"title,omitempty"`
 	// Description holds the value of the "description" field.
 	Description string `json:"description,omitempty"`
-	// NestedReference holds the value of the "nested_reference" field.
-	NestedReference *string `json:"nested_reference,omitempty"`
-	// ItemsType holds the value of the "items_type" field.
-	ItemsType *string `json:"items_type,omitempty"`
-	// ItemsReference holds the value of the "items_reference" field.
-	ItemsReference *string `json:"items_reference,omitempty"`
+	// Presence holds the value of the "presence" field.
+	Presence string `json:"presence,omitempty"`
+	// Deprecated holds the value of the "deprecated" field.
+	Deprecated bool `json:"deprecated,omitempty"`
 	// IsNested holds the value of the "is_nested" field.
 	IsNested bool `json:"is_nested,omitempty"`
+	// NestedReference holds the value of the "nested_reference" field.
+	NestedReference *string `json:"nested_reference,omitempty"`
+	// ItemsReference holds the value of the "items_reference" field.
+	ItemsReference *string `json:"items_reference,omitempty"`
+	// SupportedOs holds the value of the "supported_os" field.
+	SupportedOs map[string]interface{} `json:"supported_os,omitempty"`
+	// Conditions holds the value of the "conditions" field.
+	Conditions map[string]interface{} `json:"conditions,omitempty"`
 	// OrderIndex holds the value of the "order_index" field.
 	OrderIndex int `json:"order_index,omitempty"`
+	// YamlSourceFile holds the value of the "yaml_source_file" field.
+	YamlSourceFile *string `json:"yaml_source_file,omitempty"`
 	// CreatedAt holds the value of the "created_at" field.
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	// UpdatedAt holds the value of the "updated_at" field.
@@ -77,13 +89,13 @@ func (*PayloadPropertyDefinition) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case payloadpropertydefinition.FieldDefaultValue, payloadpropertydefinition.FieldEnumValues:
+		case payloadpropertydefinition.FieldDefaultValue, payloadpropertydefinition.FieldEnumValues, payloadpropertydefinition.FieldSupportedOs, payloadpropertydefinition.FieldConditions:
 			values[i] = new([]byte)
 		case payloadpropertydefinition.FieldDeprecated, payloadpropertydefinition.FieldIsNested:
 			values[i] = new(sql.NullBool)
 		case payloadpropertydefinition.FieldID, payloadpropertydefinition.FieldOrderIndex:
 			values[i] = new(sql.NullInt64)
-		case payloadpropertydefinition.FieldPayloadType, payloadpropertydefinition.FieldKey, payloadpropertydefinition.FieldValueType, payloadpropertydefinition.FieldDescription, payloadpropertydefinition.FieldNestedReference, payloadpropertydefinition.FieldItemsType, payloadpropertydefinition.FieldItemsReference:
+		case payloadpropertydefinition.FieldPayloadType, payloadpropertydefinition.FieldPayloadVariant, payloadpropertydefinition.FieldKey, payloadpropertydefinition.FieldValueType, payloadpropertydefinition.FieldItemsType, payloadpropertydefinition.FieldTitle, payloadpropertydefinition.FieldDescription, payloadpropertydefinition.FieldPresence, payloadpropertydefinition.FieldNestedReference, payloadpropertydefinition.FieldItemsReference, payloadpropertydefinition.FieldYamlSourceFile:
 			values[i] = new(sql.NullString)
 		case payloadpropertydefinition.FieldCreatedAt, payloadpropertydefinition.FieldUpdatedAt, payloadpropertydefinition.FieldDeletedAt:
 			values[i] = new(sql.NullTime)
@@ -114,6 +126,12 @@ func (_m *PayloadPropertyDefinition) assignValues(columns []string, values []any
 			} else if value.Valid {
 				_m.PayloadType = value.String
 			}
+		case payloadpropertydefinition.FieldPayloadVariant:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field payload_variant", values[i])
+			} else if value.Valid {
+				_m.PayloadVariant = value.String
+			}
 		case payloadpropertydefinition.FieldKey:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field key", values[i])
@@ -125,6 +143,13 @@ func (_m *PayloadPropertyDefinition) assignValues(columns []string, values []any
 				return fmt.Errorf("unexpected type %T for field value_type", values[i])
 			} else if value.Valid {
 				_m.ValueType = value.String
+			}
+		case payloadpropertydefinition.FieldItemsType:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field items_type", values[i])
+			} else if value.Valid {
+				_m.ItemsType = new(string)
+				*_m.ItemsType = value.String
 			}
 		case payloadpropertydefinition.FieldDefaultValue:
 			if value, ok := values[i].(*[]byte); !ok {
@@ -142,17 +167,36 @@ func (_m *PayloadPropertyDefinition) assignValues(columns []string, values []any
 					return fmt.Errorf("unmarshal field enum_values: %w", err)
 				}
 			}
-		case payloadpropertydefinition.FieldDeprecated:
-			if value, ok := values[i].(*sql.NullBool); !ok {
-				return fmt.Errorf("unexpected type %T for field deprecated", values[i])
+		case payloadpropertydefinition.FieldTitle:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field title", values[i])
 			} else if value.Valid {
-				_m.Deprecated = value.Bool
+				_m.Title = new(string)
+				*_m.Title = value.String
 			}
 		case payloadpropertydefinition.FieldDescription:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field description", values[i])
 			} else if value.Valid {
 				_m.Description = value.String
+			}
+		case payloadpropertydefinition.FieldPresence:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field presence", values[i])
+			} else if value.Valid {
+				_m.Presence = value.String
+			}
+		case payloadpropertydefinition.FieldDeprecated:
+			if value, ok := values[i].(*sql.NullBool); !ok {
+				return fmt.Errorf("unexpected type %T for field deprecated", values[i])
+			} else if value.Valid {
+				_m.Deprecated = value.Bool
+			}
+		case payloadpropertydefinition.FieldIsNested:
+			if value, ok := values[i].(*sql.NullBool); !ok {
+				return fmt.Errorf("unexpected type %T for field is_nested", values[i])
+			} else if value.Valid {
+				_m.IsNested = value.Bool
 			}
 		case payloadpropertydefinition.FieldNestedReference:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -161,13 +205,6 @@ func (_m *PayloadPropertyDefinition) assignValues(columns []string, values []any
 				_m.NestedReference = new(string)
 				*_m.NestedReference = value.String
 			}
-		case payloadpropertydefinition.FieldItemsType:
-			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field items_type", values[i])
-			} else if value.Valid {
-				_m.ItemsType = new(string)
-				*_m.ItemsType = value.String
-			}
 		case payloadpropertydefinition.FieldItemsReference:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field items_reference", values[i])
@@ -175,17 +212,34 @@ func (_m *PayloadPropertyDefinition) assignValues(columns []string, values []any
 				_m.ItemsReference = new(string)
 				*_m.ItemsReference = value.String
 			}
-		case payloadpropertydefinition.FieldIsNested:
-			if value, ok := values[i].(*sql.NullBool); !ok {
-				return fmt.Errorf("unexpected type %T for field is_nested", values[i])
-			} else if value.Valid {
-				_m.IsNested = value.Bool
+		case payloadpropertydefinition.FieldSupportedOs:
+			if value, ok := values[i].(*[]byte); !ok {
+				return fmt.Errorf("unexpected type %T for field supported_os", values[i])
+			} else if value != nil && len(*value) > 0 {
+				if err := json.Unmarshal(*value, &_m.SupportedOs); err != nil {
+					return fmt.Errorf("unmarshal field supported_os: %w", err)
+				}
+			}
+		case payloadpropertydefinition.FieldConditions:
+			if value, ok := values[i].(*[]byte); !ok {
+				return fmt.Errorf("unexpected type %T for field conditions", values[i])
+			} else if value != nil && len(*value) > 0 {
+				if err := json.Unmarshal(*value, &_m.Conditions); err != nil {
+					return fmt.Errorf("unmarshal field conditions: %w", err)
+				}
 			}
 		case payloadpropertydefinition.FieldOrderIndex:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for field order_index", values[i])
 			} else if value.Valid {
 				_m.OrderIndex = int(value.Int64)
+			}
+		case payloadpropertydefinition.FieldYamlSourceFile:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field yaml_source_file", values[i])
+			} else if value.Valid {
+				_m.YamlSourceFile = new(string)
+				*_m.YamlSourceFile = value.String
 			}
 		case payloadpropertydefinition.FieldCreatedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
@@ -250,11 +304,19 @@ func (_m *PayloadPropertyDefinition) String() string {
 	builder.WriteString("payload_type=")
 	builder.WriteString(_m.PayloadType)
 	builder.WriteString(", ")
+	builder.WriteString("payload_variant=")
+	builder.WriteString(_m.PayloadVariant)
+	builder.WriteString(", ")
 	builder.WriteString("key=")
 	builder.WriteString(_m.Key)
 	builder.WriteString(", ")
 	builder.WriteString("value_type=")
 	builder.WriteString(_m.ValueType)
+	builder.WriteString(", ")
+	if v := _m.ItemsType; v != nil {
+		builder.WriteString("items_type=")
+		builder.WriteString(*v)
+	}
 	builder.WriteString(", ")
 	builder.WriteString("default_value=")
 	builder.WriteString(fmt.Sprintf("%v", _m.DefaultValue))
@@ -262,19 +324,25 @@ func (_m *PayloadPropertyDefinition) String() string {
 	builder.WriteString("enum_values=")
 	builder.WriteString(fmt.Sprintf("%v", _m.EnumValues))
 	builder.WriteString(", ")
-	builder.WriteString("deprecated=")
-	builder.WriteString(fmt.Sprintf("%v", _m.Deprecated))
+	if v := _m.Title; v != nil {
+		builder.WriteString("title=")
+		builder.WriteString(*v)
+	}
 	builder.WriteString(", ")
 	builder.WriteString("description=")
 	builder.WriteString(_m.Description)
 	builder.WriteString(", ")
+	builder.WriteString("presence=")
+	builder.WriteString(_m.Presence)
+	builder.WriteString(", ")
+	builder.WriteString("deprecated=")
+	builder.WriteString(fmt.Sprintf("%v", _m.Deprecated))
+	builder.WriteString(", ")
+	builder.WriteString("is_nested=")
+	builder.WriteString(fmt.Sprintf("%v", _m.IsNested))
+	builder.WriteString(", ")
 	if v := _m.NestedReference; v != nil {
 		builder.WriteString("nested_reference=")
-		builder.WriteString(*v)
-	}
-	builder.WriteString(", ")
-	if v := _m.ItemsType; v != nil {
-		builder.WriteString("items_type=")
 		builder.WriteString(*v)
 	}
 	builder.WriteString(", ")
@@ -283,11 +351,19 @@ func (_m *PayloadPropertyDefinition) String() string {
 		builder.WriteString(*v)
 	}
 	builder.WriteString(", ")
-	builder.WriteString("is_nested=")
-	builder.WriteString(fmt.Sprintf("%v", _m.IsNested))
+	builder.WriteString("supported_os=")
+	builder.WriteString(fmt.Sprintf("%v", _m.SupportedOs))
+	builder.WriteString(", ")
+	builder.WriteString("conditions=")
+	builder.WriteString(fmt.Sprintf("%v", _m.Conditions))
 	builder.WriteString(", ")
 	builder.WriteString("order_index=")
 	builder.WriteString(fmt.Sprintf("%v", _m.OrderIndex))
+	builder.WriteString(", ")
+	if v := _m.YamlSourceFile; v != nil {
+		builder.WriteString("yaml_source_file=")
+		builder.WriteString(*v)
+	}
 	builder.WriteString(", ")
 	builder.WriteString("created_at=")
 	builder.WriteString(_m.CreatedAt.Format(time.ANSIC))
