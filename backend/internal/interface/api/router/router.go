@@ -85,7 +85,6 @@ func SetupRouter(
 	v1 := api.Group("/v1")
 	{
 		routes.registerAuthRoutes(v1)
-		routes.registerMobileConfigRoutes(v1)
 		routes.registerPayloadPropertyDefinitionRoutes(v1)
 
 		// Protected V1 routes
