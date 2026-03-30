@@ -7200,8 +7200,30 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "value_json": {
-                    "type": "object",
-                    "additionalProperties": true
+                    "oneOf": [
+                        {
+                            "type": "boolean"
+                        },
+                        {
+                            "type": "string"
+                        },
+                        {
+                            "type": "number"
+                        },
+                        {
+                            "type": "integer"
+                        },
+                        {
+                            "type": "object"
+                        },
+                        {
+                            "type": "array",
+                            "items": {}
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ]
                 }
             }
         },
@@ -7914,8 +7936,30 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "value_json": {
-                    "type": "object",
-                    "additionalProperties": true
+                    "oneOf": [
+                        {
+                            "type": "boolean"
+                        },
+                        {
+                            "type": "string"
+                        },
+                        {
+                            "type": "number"
+                        },
+                        {
+                            "type": "integer"
+                        },
+                        {
+                            "type": "object"
+                        },
+                        {
+                            "type": "array",
+                            "items": {}
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ]
                 }
             }
         },

@@ -60,6 +60,11 @@ func PayloadType(v string) predicate.PayloadPropertyDefinition {
 	return predicate.PayloadPropertyDefinition(sql.FieldEQ(FieldPayloadType, v))
 }
 
+// PayloadVariant applies equality check predicate on the "payload_variant" field. It's identical to PayloadVariantEQ.
+func PayloadVariant(v string) predicate.PayloadPropertyDefinition {
+	return predicate.PayloadPropertyDefinition(sql.FieldEQ(FieldPayloadVariant, v))
+}
+
 // Key applies equality check predicate on the "key" field. It's identical to KeyEQ.
 func Key(v string) predicate.PayloadPropertyDefinition {
 	return predicate.PayloadPropertyDefinition(sql.FieldEQ(FieldKey, v))
@@ -70,9 +75,14 @@ func ValueType(v string) predicate.PayloadPropertyDefinition {
 	return predicate.PayloadPropertyDefinition(sql.FieldEQ(FieldValueType, v))
 }
 
-// Deprecated applies equality check predicate on the "deprecated" field. It's identical to DeprecatedEQ.
-func Deprecated(v bool) predicate.PayloadPropertyDefinition {
-	return predicate.PayloadPropertyDefinition(sql.FieldEQ(FieldDeprecated, v))
+// ItemsType applies equality check predicate on the "items_type" field. It's identical to ItemsTypeEQ.
+func ItemsType(v string) predicate.PayloadPropertyDefinition {
+	return predicate.PayloadPropertyDefinition(sql.FieldEQ(FieldItemsType, v))
+}
+
+// Title applies equality check predicate on the "title" field. It's identical to TitleEQ.
+func Title(v string) predicate.PayloadPropertyDefinition {
+	return predicate.PayloadPropertyDefinition(sql.FieldEQ(FieldTitle, v))
 }
 
 // Description applies equality check predicate on the "description" field. It's identical to DescriptionEQ.
@@ -80,19 +90,14 @@ func Description(v string) predicate.PayloadPropertyDefinition {
 	return predicate.PayloadPropertyDefinition(sql.FieldEQ(FieldDescription, v))
 }
 
-// NestedReference applies equality check predicate on the "nested_reference" field. It's identical to NestedReferenceEQ.
-func NestedReference(v string) predicate.PayloadPropertyDefinition {
-	return predicate.PayloadPropertyDefinition(sql.FieldEQ(FieldNestedReference, v))
+// Presence applies equality check predicate on the "presence" field. It's identical to PresenceEQ.
+func Presence(v string) predicate.PayloadPropertyDefinition {
+	return predicate.PayloadPropertyDefinition(sql.FieldEQ(FieldPresence, v))
 }
 
-// ItemsType applies equality check predicate on the "items_type" field. It's identical to ItemsTypeEQ.
-func ItemsType(v string) predicate.PayloadPropertyDefinition {
-	return predicate.PayloadPropertyDefinition(sql.FieldEQ(FieldItemsType, v))
-}
-
-// ItemsReference applies equality check predicate on the "items_reference" field. It's identical to ItemsReferenceEQ.
-func ItemsReference(v string) predicate.PayloadPropertyDefinition {
-	return predicate.PayloadPropertyDefinition(sql.FieldEQ(FieldItemsReference, v))
+// Deprecated applies equality check predicate on the "deprecated" field. It's identical to DeprecatedEQ.
+func Deprecated(v bool) predicate.PayloadPropertyDefinition {
+	return predicate.PayloadPropertyDefinition(sql.FieldEQ(FieldDeprecated, v))
 }
 
 // IsNested applies equality check predicate on the "is_nested" field. It's identical to IsNestedEQ.
@@ -100,9 +105,24 @@ func IsNested(v bool) predicate.PayloadPropertyDefinition {
 	return predicate.PayloadPropertyDefinition(sql.FieldEQ(FieldIsNested, v))
 }
 
+// NestedReference applies equality check predicate on the "nested_reference" field. It's identical to NestedReferenceEQ.
+func NestedReference(v string) predicate.PayloadPropertyDefinition {
+	return predicate.PayloadPropertyDefinition(sql.FieldEQ(FieldNestedReference, v))
+}
+
+// ItemsReference applies equality check predicate on the "items_reference" field. It's identical to ItemsReferenceEQ.
+func ItemsReference(v string) predicate.PayloadPropertyDefinition {
+	return predicate.PayloadPropertyDefinition(sql.FieldEQ(FieldItemsReference, v))
+}
+
 // OrderIndex applies equality check predicate on the "order_index" field. It's identical to OrderIndexEQ.
 func OrderIndex(v int) predicate.PayloadPropertyDefinition {
 	return predicate.PayloadPropertyDefinition(sql.FieldEQ(FieldOrderIndex, v))
+}
+
+// YamlSourceFile applies equality check predicate on the "yaml_source_file" field. It's identical to YamlSourceFileEQ.
+func YamlSourceFile(v string) predicate.PayloadPropertyDefinition {
+	return predicate.PayloadPropertyDefinition(sql.FieldEQ(FieldYamlSourceFile, v))
 }
 
 // CreatedAt applies equality check predicate on the "created_at" field. It's identical to CreatedAtEQ.
@@ -183,6 +203,71 @@ func PayloadTypeEqualFold(v string) predicate.PayloadPropertyDefinition {
 // PayloadTypeContainsFold applies the ContainsFold predicate on the "payload_type" field.
 func PayloadTypeContainsFold(v string) predicate.PayloadPropertyDefinition {
 	return predicate.PayloadPropertyDefinition(sql.FieldContainsFold(FieldPayloadType, v))
+}
+
+// PayloadVariantEQ applies the EQ predicate on the "payload_variant" field.
+func PayloadVariantEQ(v string) predicate.PayloadPropertyDefinition {
+	return predicate.PayloadPropertyDefinition(sql.FieldEQ(FieldPayloadVariant, v))
+}
+
+// PayloadVariantNEQ applies the NEQ predicate on the "payload_variant" field.
+func PayloadVariantNEQ(v string) predicate.PayloadPropertyDefinition {
+	return predicate.PayloadPropertyDefinition(sql.FieldNEQ(FieldPayloadVariant, v))
+}
+
+// PayloadVariantIn applies the In predicate on the "payload_variant" field.
+func PayloadVariantIn(vs ...string) predicate.PayloadPropertyDefinition {
+	return predicate.PayloadPropertyDefinition(sql.FieldIn(FieldPayloadVariant, vs...))
+}
+
+// PayloadVariantNotIn applies the NotIn predicate on the "payload_variant" field.
+func PayloadVariantNotIn(vs ...string) predicate.PayloadPropertyDefinition {
+	return predicate.PayloadPropertyDefinition(sql.FieldNotIn(FieldPayloadVariant, vs...))
+}
+
+// PayloadVariantGT applies the GT predicate on the "payload_variant" field.
+func PayloadVariantGT(v string) predicate.PayloadPropertyDefinition {
+	return predicate.PayloadPropertyDefinition(sql.FieldGT(FieldPayloadVariant, v))
+}
+
+// PayloadVariantGTE applies the GTE predicate on the "payload_variant" field.
+func PayloadVariantGTE(v string) predicate.PayloadPropertyDefinition {
+	return predicate.PayloadPropertyDefinition(sql.FieldGTE(FieldPayloadVariant, v))
+}
+
+// PayloadVariantLT applies the LT predicate on the "payload_variant" field.
+func PayloadVariantLT(v string) predicate.PayloadPropertyDefinition {
+	return predicate.PayloadPropertyDefinition(sql.FieldLT(FieldPayloadVariant, v))
+}
+
+// PayloadVariantLTE applies the LTE predicate on the "payload_variant" field.
+func PayloadVariantLTE(v string) predicate.PayloadPropertyDefinition {
+	return predicate.PayloadPropertyDefinition(sql.FieldLTE(FieldPayloadVariant, v))
+}
+
+// PayloadVariantContains applies the Contains predicate on the "payload_variant" field.
+func PayloadVariantContains(v string) predicate.PayloadPropertyDefinition {
+	return predicate.PayloadPropertyDefinition(sql.FieldContains(FieldPayloadVariant, v))
+}
+
+// PayloadVariantHasPrefix applies the HasPrefix predicate on the "payload_variant" field.
+func PayloadVariantHasPrefix(v string) predicate.PayloadPropertyDefinition {
+	return predicate.PayloadPropertyDefinition(sql.FieldHasPrefix(FieldPayloadVariant, v))
+}
+
+// PayloadVariantHasSuffix applies the HasSuffix predicate on the "payload_variant" field.
+func PayloadVariantHasSuffix(v string) predicate.PayloadPropertyDefinition {
+	return predicate.PayloadPropertyDefinition(sql.FieldHasSuffix(FieldPayloadVariant, v))
+}
+
+// PayloadVariantEqualFold applies the EqualFold predicate on the "payload_variant" field.
+func PayloadVariantEqualFold(v string) predicate.PayloadPropertyDefinition {
+	return predicate.PayloadPropertyDefinition(sql.FieldEqualFold(FieldPayloadVariant, v))
+}
+
+// PayloadVariantContainsFold applies the ContainsFold predicate on the "payload_variant" field.
+func PayloadVariantContainsFold(v string) predicate.PayloadPropertyDefinition {
+	return predicate.PayloadPropertyDefinition(sql.FieldContainsFold(FieldPayloadVariant, v))
 }
 
 // KeyEQ applies the EQ predicate on the "key" field.
@@ -315,6 +400,81 @@ func ValueTypeContainsFold(v string) predicate.PayloadPropertyDefinition {
 	return predicate.PayloadPropertyDefinition(sql.FieldContainsFold(FieldValueType, v))
 }
 
+// ItemsTypeEQ applies the EQ predicate on the "items_type" field.
+func ItemsTypeEQ(v string) predicate.PayloadPropertyDefinition {
+	return predicate.PayloadPropertyDefinition(sql.FieldEQ(FieldItemsType, v))
+}
+
+// ItemsTypeNEQ applies the NEQ predicate on the "items_type" field.
+func ItemsTypeNEQ(v string) predicate.PayloadPropertyDefinition {
+	return predicate.PayloadPropertyDefinition(sql.FieldNEQ(FieldItemsType, v))
+}
+
+// ItemsTypeIn applies the In predicate on the "items_type" field.
+func ItemsTypeIn(vs ...string) predicate.PayloadPropertyDefinition {
+	return predicate.PayloadPropertyDefinition(sql.FieldIn(FieldItemsType, vs...))
+}
+
+// ItemsTypeNotIn applies the NotIn predicate on the "items_type" field.
+func ItemsTypeNotIn(vs ...string) predicate.PayloadPropertyDefinition {
+	return predicate.PayloadPropertyDefinition(sql.FieldNotIn(FieldItemsType, vs...))
+}
+
+// ItemsTypeGT applies the GT predicate on the "items_type" field.
+func ItemsTypeGT(v string) predicate.PayloadPropertyDefinition {
+	return predicate.PayloadPropertyDefinition(sql.FieldGT(FieldItemsType, v))
+}
+
+// ItemsTypeGTE applies the GTE predicate on the "items_type" field.
+func ItemsTypeGTE(v string) predicate.PayloadPropertyDefinition {
+	return predicate.PayloadPropertyDefinition(sql.FieldGTE(FieldItemsType, v))
+}
+
+// ItemsTypeLT applies the LT predicate on the "items_type" field.
+func ItemsTypeLT(v string) predicate.PayloadPropertyDefinition {
+	return predicate.PayloadPropertyDefinition(sql.FieldLT(FieldItemsType, v))
+}
+
+// ItemsTypeLTE applies the LTE predicate on the "items_type" field.
+func ItemsTypeLTE(v string) predicate.PayloadPropertyDefinition {
+	return predicate.PayloadPropertyDefinition(sql.FieldLTE(FieldItemsType, v))
+}
+
+// ItemsTypeContains applies the Contains predicate on the "items_type" field.
+func ItemsTypeContains(v string) predicate.PayloadPropertyDefinition {
+	return predicate.PayloadPropertyDefinition(sql.FieldContains(FieldItemsType, v))
+}
+
+// ItemsTypeHasPrefix applies the HasPrefix predicate on the "items_type" field.
+func ItemsTypeHasPrefix(v string) predicate.PayloadPropertyDefinition {
+	return predicate.PayloadPropertyDefinition(sql.FieldHasPrefix(FieldItemsType, v))
+}
+
+// ItemsTypeHasSuffix applies the HasSuffix predicate on the "items_type" field.
+func ItemsTypeHasSuffix(v string) predicate.PayloadPropertyDefinition {
+	return predicate.PayloadPropertyDefinition(sql.FieldHasSuffix(FieldItemsType, v))
+}
+
+// ItemsTypeIsNil applies the IsNil predicate on the "items_type" field.
+func ItemsTypeIsNil() predicate.PayloadPropertyDefinition {
+	return predicate.PayloadPropertyDefinition(sql.FieldIsNull(FieldItemsType))
+}
+
+// ItemsTypeNotNil applies the NotNil predicate on the "items_type" field.
+func ItemsTypeNotNil() predicate.PayloadPropertyDefinition {
+	return predicate.PayloadPropertyDefinition(sql.FieldNotNull(FieldItemsType))
+}
+
+// ItemsTypeEqualFold applies the EqualFold predicate on the "items_type" field.
+func ItemsTypeEqualFold(v string) predicate.PayloadPropertyDefinition {
+	return predicate.PayloadPropertyDefinition(sql.FieldEqualFold(FieldItemsType, v))
+}
+
+// ItemsTypeContainsFold applies the ContainsFold predicate on the "items_type" field.
+func ItemsTypeContainsFold(v string) predicate.PayloadPropertyDefinition {
+	return predicate.PayloadPropertyDefinition(sql.FieldContainsFold(FieldItemsType, v))
+}
+
 // DefaultValueIsNil applies the IsNil predicate on the "default_value" field.
 func DefaultValueIsNil() predicate.PayloadPropertyDefinition {
 	return predicate.PayloadPropertyDefinition(sql.FieldIsNull(FieldDefaultValue))
@@ -335,14 +495,79 @@ func EnumValuesNotNil() predicate.PayloadPropertyDefinition {
 	return predicate.PayloadPropertyDefinition(sql.FieldNotNull(FieldEnumValues))
 }
 
-// DeprecatedEQ applies the EQ predicate on the "deprecated" field.
-func DeprecatedEQ(v bool) predicate.PayloadPropertyDefinition {
-	return predicate.PayloadPropertyDefinition(sql.FieldEQ(FieldDeprecated, v))
+// TitleEQ applies the EQ predicate on the "title" field.
+func TitleEQ(v string) predicate.PayloadPropertyDefinition {
+	return predicate.PayloadPropertyDefinition(sql.FieldEQ(FieldTitle, v))
 }
 
-// DeprecatedNEQ applies the NEQ predicate on the "deprecated" field.
-func DeprecatedNEQ(v bool) predicate.PayloadPropertyDefinition {
-	return predicate.PayloadPropertyDefinition(sql.FieldNEQ(FieldDeprecated, v))
+// TitleNEQ applies the NEQ predicate on the "title" field.
+func TitleNEQ(v string) predicate.PayloadPropertyDefinition {
+	return predicate.PayloadPropertyDefinition(sql.FieldNEQ(FieldTitle, v))
+}
+
+// TitleIn applies the In predicate on the "title" field.
+func TitleIn(vs ...string) predicate.PayloadPropertyDefinition {
+	return predicate.PayloadPropertyDefinition(sql.FieldIn(FieldTitle, vs...))
+}
+
+// TitleNotIn applies the NotIn predicate on the "title" field.
+func TitleNotIn(vs ...string) predicate.PayloadPropertyDefinition {
+	return predicate.PayloadPropertyDefinition(sql.FieldNotIn(FieldTitle, vs...))
+}
+
+// TitleGT applies the GT predicate on the "title" field.
+func TitleGT(v string) predicate.PayloadPropertyDefinition {
+	return predicate.PayloadPropertyDefinition(sql.FieldGT(FieldTitle, v))
+}
+
+// TitleGTE applies the GTE predicate on the "title" field.
+func TitleGTE(v string) predicate.PayloadPropertyDefinition {
+	return predicate.PayloadPropertyDefinition(sql.FieldGTE(FieldTitle, v))
+}
+
+// TitleLT applies the LT predicate on the "title" field.
+func TitleLT(v string) predicate.PayloadPropertyDefinition {
+	return predicate.PayloadPropertyDefinition(sql.FieldLT(FieldTitle, v))
+}
+
+// TitleLTE applies the LTE predicate on the "title" field.
+func TitleLTE(v string) predicate.PayloadPropertyDefinition {
+	return predicate.PayloadPropertyDefinition(sql.FieldLTE(FieldTitle, v))
+}
+
+// TitleContains applies the Contains predicate on the "title" field.
+func TitleContains(v string) predicate.PayloadPropertyDefinition {
+	return predicate.PayloadPropertyDefinition(sql.FieldContains(FieldTitle, v))
+}
+
+// TitleHasPrefix applies the HasPrefix predicate on the "title" field.
+func TitleHasPrefix(v string) predicate.PayloadPropertyDefinition {
+	return predicate.PayloadPropertyDefinition(sql.FieldHasPrefix(FieldTitle, v))
+}
+
+// TitleHasSuffix applies the HasSuffix predicate on the "title" field.
+func TitleHasSuffix(v string) predicate.PayloadPropertyDefinition {
+	return predicate.PayloadPropertyDefinition(sql.FieldHasSuffix(FieldTitle, v))
+}
+
+// TitleIsNil applies the IsNil predicate on the "title" field.
+func TitleIsNil() predicate.PayloadPropertyDefinition {
+	return predicate.PayloadPropertyDefinition(sql.FieldIsNull(FieldTitle))
+}
+
+// TitleNotNil applies the NotNil predicate on the "title" field.
+func TitleNotNil() predicate.PayloadPropertyDefinition {
+	return predicate.PayloadPropertyDefinition(sql.FieldNotNull(FieldTitle))
+}
+
+// TitleEqualFold applies the EqualFold predicate on the "title" field.
+func TitleEqualFold(v string) predicate.PayloadPropertyDefinition {
+	return predicate.PayloadPropertyDefinition(sql.FieldEqualFold(FieldTitle, v))
+}
+
+// TitleContainsFold applies the ContainsFold predicate on the "title" field.
+func TitleContainsFold(v string) predicate.PayloadPropertyDefinition {
+	return predicate.PayloadPropertyDefinition(sql.FieldContainsFold(FieldTitle, v))
 }
 
 // DescriptionEQ applies the EQ predicate on the "description" field.
@@ -420,6 +645,91 @@ func DescriptionContainsFold(v string) predicate.PayloadPropertyDefinition {
 	return predicate.PayloadPropertyDefinition(sql.FieldContainsFold(FieldDescription, v))
 }
 
+// PresenceEQ applies the EQ predicate on the "presence" field.
+func PresenceEQ(v string) predicate.PayloadPropertyDefinition {
+	return predicate.PayloadPropertyDefinition(sql.FieldEQ(FieldPresence, v))
+}
+
+// PresenceNEQ applies the NEQ predicate on the "presence" field.
+func PresenceNEQ(v string) predicate.PayloadPropertyDefinition {
+	return predicate.PayloadPropertyDefinition(sql.FieldNEQ(FieldPresence, v))
+}
+
+// PresenceIn applies the In predicate on the "presence" field.
+func PresenceIn(vs ...string) predicate.PayloadPropertyDefinition {
+	return predicate.PayloadPropertyDefinition(sql.FieldIn(FieldPresence, vs...))
+}
+
+// PresenceNotIn applies the NotIn predicate on the "presence" field.
+func PresenceNotIn(vs ...string) predicate.PayloadPropertyDefinition {
+	return predicate.PayloadPropertyDefinition(sql.FieldNotIn(FieldPresence, vs...))
+}
+
+// PresenceGT applies the GT predicate on the "presence" field.
+func PresenceGT(v string) predicate.PayloadPropertyDefinition {
+	return predicate.PayloadPropertyDefinition(sql.FieldGT(FieldPresence, v))
+}
+
+// PresenceGTE applies the GTE predicate on the "presence" field.
+func PresenceGTE(v string) predicate.PayloadPropertyDefinition {
+	return predicate.PayloadPropertyDefinition(sql.FieldGTE(FieldPresence, v))
+}
+
+// PresenceLT applies the LT predicate on the "presence" field.
+func PresenceLT(v string) predicate.PayloadPropertyDefinition {
+	return predicate.PayloadPropertyDefinition(sql.FieldLT(FieldPresence, v))
+}
+
+// PresenceLTE applies the LTE predicate on the "presence" field.
+func PresenceLTE(v string) predicate.PayloadPropertyDefinition {
+	return predicate.PayloadPropertyDefinition(sql.FieldLTE(FieldPresence, v))
+}
+
+// PresenceContains applies the Contains predicate on the "presence" field.
+func PresenceContains(v string) predicate.PayloadPropertyDefinition {
+	return predicate.PayloadPropertyDefinition(sql.FieldContains(FieldPresence, v))
+}
+
+// PresenceHasPrefix applies the HasPrefix predicate on the "presence" field.
+func PresenceHasPrefix(v string) predicate.PayloadPropertyDefinition {
+	return predicate.PayloadPropertyDefinition(sql.FieldHasPrefix(FieldPresence, v))
+}
+
+// PresenceHasSuffix applies the HasSuffix predicate on the "presence" field.
+func PresenceHasSuffix(v string) predicate.PayloadPropertyDefinition {
+	return predicate.PayloadPropertyDefinition(sql.FieldHasSuffix(FieldPresence, v))
+}
+
+// PresenceEqualFold applies the EqualFold predicate on the "presence" field.
+func PresenceEqualFold(v string) predicate.PayloadPropertyDefinition {
+	return predicate.PayloadPropertyDefinition(sql.FieldEqualFold(FieldPresence, v))
+}
+
+// PresenceContainsFold applies the ContainsFold predicate on the "presence" field.
+func PresenceContainsFold(v string) predicate.PayloadPropertyDefinition {
+	return predicate.PayloadPropertyDefinition(sql.FieldContainsFold(FieldPresence, v))
+}
+
+// DeprecatedEQ applies the EQ predicate on the "deprecated" field.
+func DeprecatedEQ(v bool) predicate.PayloadPropertyDefinition {
+	return predicate.PayloadPropertyDefinition(sql.FieldEQ(FieldDeprecated, v))
+}
+
+// DeprecatedNEQ applies the NEQ predicate on the "deprecated" field.
+func DeprecatedNEQ(v bool) predicate.PayloadPropertyDefinition {
+	return predicate.PayloadPropertyDefinition(sql.FieldNEQ(FieldDeprecated, v))
+}
+
+// IsNestedEQ applies the EQ predicate on the "is_nested" field.
+func IsNestedEQ(v bool) predicate.PayloadPropertyDefinition {
+	return predicate.PayloadPropertyDefinition(sql.FieldEQ(FieldIsNested, v))
+}
+
+// IsNestedNEQ applies the NEQ predicate on the "is_nested" field.
+func IsNestedNEQ(v bool) predicate.PayloadPropertyDefinition {
+	return predicate.PayloadPropertyDefinition(sql.FieldNEQ(FieldIsNested, v))
+}
+
 // NestedReferenceEQ applies the EQ predicate on the "nested_reference" field.
 func NestedReferenceEQ(v string) predicate.PayloadPropertyDefinition {
 	return predicate.PayloadPropertyDefinition(sql.FieldEQ(FieldNestedReference, v))
@@ -493,81 +803,6 @@ func NestedReferenceEqualFold(v string) predicate.PayloadPropertyDefinition {
 // NestedReferenceContainsFold applies the ContainsFold predicate on the "nested_reference" field.
 func NestedReferenceContainsFold(v string) predicate.PayloadPropertyDefinition {
 	return predicate.PayloadPropertyDefinition(sql.FieldContainsFold(FieldNestedReference, v))
-}
-
-// ItemsTypeEQ applies the EQ predicate on the "items_type" field.
-func ItemsTypeEQ(v string) predicate.PayloadPropertyDefinition {
-	return predicate.PayloadPropertyDefinition(sql.FieldEQ(FieldItemsType, v))
-}
-
-// ItemsTypeNEQ applies the NEQ predicate on the "items_type" field.
-func ItemsTypeNEQ(v string) predicate.PayloadPropertyDefinition {
-	return predicate.PayloadPropertyDefinition(sql.FieldNEQ(FieldItemsType, v))
-}
-
-// ItemsTypeIn applies the In predicate on the "items_type" field.
-func ItemsTypeIn(vs ...string) predicate.PayloadPropertyDefinition {
-	return predicate.PayloadPropertyDefinition(sql.FieldIn(FieldItemsType, vs...))
-}
-
-// ItemsTypeNotIn applies the NotIn predicate on the "items_type" field.
-func ItemsTypeNotIn(vs ...string) predicate.PayloadPropertyDefinition {
-	return predicate.PayloadPropertyDefinition(sql.FieldNotIn(FieldItemsType, vs...))
-}
-
-// ItemsTypeGT applies the GT predicate on the "items_type" field.
-func ItemsTypeGT(v string) predicate.PayloadPropertyDefinition {
-	return predicate.PayloadPropertyDefinition(sql.FieldGT(FieldItemsType, v))
-}
-
-// ItemsTypeGTE applies the GTE predicate on the "items_type" field.
-func ItemsTypeGTE(v string) predicate.PayloadPropertyDefinition {
-	return predicate.PayloadPropertyDefinition(sql.FieldGTE(FieldItemsType, v))
-}
-
-// ItemsTypeLT applies the LT predicate on the "items_type" field.
-func ItemsTypeLT(v string) predicate.PayloadPropertyDefinition {
-	return predicate.PayloadPropertyDefinition(sql.FieldLT(FieldItemsType, v))
-}
-
-// ItemsTypeLTE applies the LTE predicate on the "items_type" field.
-func ItemsTypeLTE(v string) predicate.PayloadPropertyDefinition {
-	return predicate.PayloadPropertyDefinition(sql.FieldLTE(FieldItemsType, v))
-}
-
-// ItemsTypeContains applies the Contains predicate on the "items_type" field.
-func ItemsTypeContains(v string) predicate.PayloadPropertyDefinition {
-	return predicate.PayloadPropertyDefinition(sql.FieldContains(FieldItemsType, v))
-}
-
-// ItemsTypeHasPrefix applies the HasPrefix predicate on the "items_type" field.
-func ItemsTypeHasPrefix(v string) predicate.PayloadPropertyDefinition {
-	return predicate.PayloadPropertyDefinition(sql.FieldHasPrefix(FieldItemsType, v))
-}
-
-// ItemsTypeHasSuffix applies the HasSuffix predicate on the "items_type" field.
-func ItemsTypeHasSuffix(v string) predicate.PayloadPropertyDefinition {
-	return predicate.PayloadPropertyDefinition(sql.FieldHasSuffix(FieldItemsType, v))
-}
-
-// ItemsTypeIsNil applies the IsNil predicate on the "items_type" field.
-func ItemsTypeIsNil() predicate.PayloadPropertyDefinition {
-	return predicate.PayloadPropertyDefinition(sql.FieldIsNull(FieldItemsType))
-}
-
-// ItemsTypeNotNil applies the NotNil predicate on the "items_type" field.
-func ItemsTypeNotNil() predicate.PayloadPropertyDefinition {
-	return predicate.PayloadPropertyDefinition(sql.FieldNotNull(FieldItemsType))
-}
-
-// ItemsTypeEqualFold applies the EqualFold predicate on the "items_type" field.
-func ItemsTypeEqualFold(v string) predicate.PayloadPropertyDefinition {
-	return predicate.PayloadPropertyDefinition(sql.FieldEqualFold(FieldItemsType, v))
-}
-
-// ItemsTypeContainsFold applies the ContainsFold predicate on the "items_type" field.
-func ItemsTypeContainsFold(v string) predicate.PayloadPropertyDefinition {
-	return predicate.PayloadPropertyDefinition(sql.FieldContainsFold(FieldItemsType, v))
 }
 
 // ItemsReferenceEQ applies the EQ predicate on the "items_reference" field.
@@ -645,14 +880,24 @@ func ItemsReferenceContainsFold(v string) predicate.PayloadPropertyDefinition {
 	return predicate.PayloadPropertyDefinition(sql.FieldContainsFold(FieldItemsReference, v))
 }
 
-// IsNestedEQ applies the EQ predicate on the "is_nested" field.
-func IsNestedEQ(v bool) predicate.PayloadPropertyDefinition {
-	return predicate.PayloadPropertyDefinition(sql.FieldEQ(FieldIsNested, v))
+// SupportedOsIsNil applies the IsNil predicate on the "supported_os" field.
+func SupportedOsIsNil() predicate.PayloadPropertyDefinition {
+	return predicate.PayloadPropertyDefinition(sql.FieldIsNull(FieldSupportedOs))
 }
 
-// IsNestedNEQ applies the NEQ predicate on the "is_nested" field.
-func IsNestedNEQ(v bool) predicate.PayloadPropertyDefinition {
-	return predicate.PayloadPropertyDefinition(sql.FieldNEQ(FieldIsNested, v))
+// SupportedOsNotNil applies the NotNil predicate on the "supported_os" field.
+func SupportedOsNotNil() predicate.PayloadPropertyDefinition {
+	return predicate.PayloadPropertyDefinition(sql.FieldNotNull(FieldSupportedOs))
+}
+
+// ConditionsIsNil applies the IsNil predicate on the "conditions" field.
+func ConditionsIsNil() predicate.PayloadPropertyDefinition {
+	return predicate.PayloadPropertyDefinition(sql.FieldIsNull(FieldConditions))
+}
+
+// ConditionsNotNil applies the NotNil predicate on the "conditions" field.
+func ConditionsNotNil() predicate.PayloadPropertyDefinition {
+	return predicate.PayloadPropertyDefinition(sql.FieldNotNull(FieldConditions))
 }
 
 // OrderIndexEQ applies the EQ predicate on the "order_index" field.
@@ -693,6 +938,81 @@ func OrderIndexLT(v int) predicate.PayloadPropertyDefinition {
 // OrderIndexLTE applies the LTE predicate on the "order_index" field.
 func OrderIndexLTE(v int) predicate.PayloadPropertyDefinition {
 	return predicate.PayloadPropertyDefinition(sql.FieldLTE(FieldOrderIndex, v))
+}
+
+// YamlSourceFileEQ applies the EQ predicate on the "yaml_source_file" field.
+func YamlSourceFileEQ(v string) predicate.PayloadPropertyDefinition {
+	return predicate.PayloadPropertyDefinition(sql.FieldEQ(FieldYamlSourceFile, v))
+}
+
+// YamlSourceFileNEQ applies the NEQ predicate on the "yaml_source_file" field.
+func YamlSourceFileNEQ(v string) predicate.PayloadPropertyDefinition {
+	return predicate.PayloadPropertyDefinition(sql.FieldNEQ(FieldYamlSourceFile, v))
+}
+
+// YamlSourceFileIn applies the In predicate on the "yaml_source_file" field.
+func YamlSourceFileIn(vs ...string) predicate.PayloadPropertyDefinition {
+	return predicate.PayloadPropertyDefinition(sql.FieldIn(FieldYamlSourceFile, vs...))
+}
+
+// YamlSourceFileNotIn applies the NotIn predicate on the "yaml_source_file" field.
+func YamlSourceFileNotIn(vs ...string) predicate.PayloadPropertyDefinition {
+	return predicate.PayloadPropertyDefinition(sql.FieldNotIn(FieldYamlSourceFile, vs...))
+}
+
+// YamlSourceFileGT applies the GT predicate on the "yaml_source_file" field.
+func YamlSourceFileGT(v string) predicate.PayloadPropertyDefinition {
+	return predicate.PayloadPropertyDefinition(sql.FieldGT(FieldYamlSourceFile, v))
+}
+
+// YamlSourceFileGTE applies the GTE predicate on the "yaml_source_file" field.
+func YamlSourceFileGTE(v string) predicate.PayloadPropertyDefinition {
+	return predicate.PayloadPropertyDefinition(sql.FieldGTE(FieldYamlSourceFile, v))
+}
+
+// YamlSourceFileLT applies the LT predicate on the "yaml_source_file" field.
+func YamlSourceFileLT(v string) predicate.PayloadPropertyDefinition {
+	return predicate.PayloadPropertyDefinition(sql.FieldLT(FieldYamlSourceFile, v))
+}
+
+// YamlSourceFileLTE applies the LTE predicate on the "yaml_source_file" field.
+func YamlSourceFileLTE(v string) predicate.PayloadPropertyDefinition {
+	return predicate.PayloadPropertyDefinition(sql.FieldLTE(FieldYamlSourceFile, v))
+}
+
+// YamlSourceFileContains applies the Contains predicate on the "yaml_source_file" field.
+func YamlSourceFileContains(v string) predicate.PayloadPropertyDefinition {
+	return predicate.PayloadPropertyDefinition(sql.FieldContains(FieldYamlSourceFile, v))
+}
+
+// YamlSourceFileHasPrefix applies the HasPrefix predicate on the "yaml_source_file" field.
+func YamlSourceFileHasPrefix(v string) predicate.PayloadPropertyDefinition {
+	return predicate.PayloadPropertyDefinition(sql.FieldHasPrefix(FieldYamlSourceFile, v))
+}
+
+// YamlSourceFileHasSuffix applies the HasSuffix predicate on the "yaml_source_file" field.
+func YamlSourceFileHasSuffix(v string) predicate.PayloadPropertyDefinition {
+	return predicate.PayloadPropertyDefinition(sql.FieldHasSuffix(FieldYamlSourceFile, v))
+}
+
+// YamlSourceFileIsNil applies the IsNil predicate on the "yaml_source_file" field.
+func YamlSourceFileIsNil() predicate.PayloadPropertyDefinition {
+	return predicate.PayloadPropertyDefinition(sql.FieldIsNull(FieldYamlSourceFile))
+}
+
+// YamlSourceFileNotNil applies the NotNil predicate on the "yaml_source_file" field.
+func YamlSourceFileNotNil() predicate.PayloadPropertyDefinition {
+	return predicate.PayloadPropertyDefinition(sql.FieldNotNull(FieldYamlSourceFile))
+}
+
+// YamlSourceFileEqualFold applies the EqualFold predicate on the "yaml_source_file" field.
+func YamlSourceFileEqualFold(v string) predicate.PayloadPropertyDefinition {
+	return predicate.PayloadPropertyDefinition(sql.FieldEqualFold(FieldYamlSourceFile, v))
+}
+
+// YamlSourceFileContainsFold applies the ContainsFold predicate on the "yaml_source_file" field.
+func YamlSourceFileContainsFold(v string) predicate.PayloadPropertyDefinition {
+	return predicate.PayloadPropertyDefinition(sql.FieldContainsFold(FieldYamlSourceFile, v))
 }
 
 // CreatedAtEQ applies the EQ predicate on the "created_at" field.

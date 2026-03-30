@@ -472,32 +472,40 @@ func init() {
 	payloadpropertydefinitionDescPayloadType := payloadpropertydefinitionFields[0].Descriptor()
 	// payloadpropertydefinition.PayloadTypeValidator is a validator for the "payload_type" field. It is called by the builders before save.
 	payloadpropertydefinition.PayloadTypeValidator = payloadpropertydefinitionDescPayloadType.Validators[0].(func(string) error)
+	// payloadpropertydefinitionDescPayloadVariant is the schema descriptor for payload_variant field.
+	payloadpropertydefinitionDescPayloadVariant := payloadpropertydefinitionFields[1].Descriptor()
+	// payloadpropertydefinition.DefaultPayloadVariant holds the default value on creation for the payload_variant field.
+	payloadpropertydefinition.DefaultPayloadVariant = payloadpropertydefinitionDescPayloadVariant.Default.(string)
 	// payloadpropertydefinitionDescKey is the schema descriptor for key field.
-	payloadpropertydefinitionDescKey := payloadpropertydefinitionFields[1].Descriptor()
+	payloadpropertydefinitionDescKey := payloadpropertydefinitionFields[2].Descriptor()
 	// payloadpropertydefinition.KeyValidator is a validator for the "key" field. It is called by the builders before save.
 	payloadpropertydefinition.KeyValidator = payloadpropertydefinitionDescKey.Validators[0].(func(string) error)
 	// payloadpropertydefinitionDescValueType is the schema descriptor for value_type field.
-	payloadpropertydefinitionDescValueType := payloadpropertydefinitionFields[2].Descriptor()
+	payloadpropertydefinitionDescValueType := payloadpropertydefinitionFields[3].Descriptor()
 	// payloadpropertydefinition.ValueTypeValidator is a validator for the "value_type" field. It is called by the builders before save.
 	payloadpropertydefinition.ValueTypeValidator = payloadpropertydefinitionDescValueType.Validators[0].(func(string) error)
+	// payloadpropertydefinitionDescPresence is the schema descriptor for presence field.
+	payloadpropertydefinitionDescPresence := payloadpropertydefinitionFields[9].Descriptor()
+	// payloadpropertydefinition.DefaultPresence holds the default value on creation for the presence field.
+	payloadpropertydefinition.DefaultPresence = payloadpropertydefinitionDescPresence.Default.(string)
 	// payloadpropertydefinitionDescDeprecated is the schema descriptor for deprecated field.
-	payloadpropertydefinitionDescDeprecated := payloadpropertydefinitionFields[5].Descriptor()
+	payloadpropertydefinitionDescDeprecated := payloadpropertydefinitionFields[10].Descriptor()
 	// payloadpropertydefinition.DefaultDeprecated holds the default value on creation for the deprecated field.
 	payloadpropertydefinition.DefaultDeprecated = payloadpropertydefinitionDescDeprecated.Default.(bool)
 	// payloadpropertydefinitionDescIsNested is the schema descriptor for is_nested field.
-	payloadpropertydefinitionDescIsNested := payloadpropertydefinitionFields[10].Descriptor()
+	payloadpropertydefinitionDescIsNested := payloadpropertydefinitionFields[11].Descriptor()
 	// payloadpropertydefinition.DefaultIsNested holds the default value on creation for the is_nested field.
 	payloadpropertydefinition.DefaultIsNested = payloadpropertydefinitionDescIsNested.Default.(bool)
 	// payloadpropertydefinitionDescOrderIndex is the schema descriptor for order_index field.
-	payloadpropertydefinitionDescOrderIndex := payloadpropertydefinitionFields[11].Descriptor()
+	payloadpropertydefinitionDescOrderIndex := payloadpropertydefinitionFields[16].Descriptor()
 	// payloadpropertydefinition.DefaultOrderIndex holds the default value on creation for the order_index field.
 	payloadpropertydefinition.DefaultOrderIndex = payloadpropertydefinitionDescOrderIndex.Default.(int)
 	// payloadpropertydefinitionDescCreatedAt is the schema descriptor for created_at field.
-	payloadpropertydefinitionDescCreatedAt := payloadpropertydefinitionFields[12].Descriptor()
+	payloadpropertydefinitionDescCreatedAt := payloadpropertydefinitionFields[18].Descriptor()
 	// payloadpropertydefinition.DefaultCreatedAt holds the default value on creation for the created_at field.
 	payloadpropertydefinition.DefaultCreatedAt = payloadpropertydefinitionDescCreatedAt.Default.(func() time.Time)
 	// payloadpropertydefinitionDescUpdatedAt is the schema descriptor for updated_at field.
-	payloadpropertydefinitionDescUpdatedAt := payloadpropertydefinitionFields[13].Descriptor()
+	payloadpropertydefinitionDescUpdatedAt := payloadpropertydefinitionFields[19].Descriptor()
 	// payloadpropertydefinition.DefaultUpdatedAt holds the default value on creation for the updated_at field.
 	payloadpropertydefinition.DefaultUpdatedAt = payloadpropertydefinitionDescUpdatedAt.Default.(func() time.Time)
 	// payloadpropertydefinition.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.

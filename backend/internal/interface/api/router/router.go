@@ -85,13 +85,15 @@ func SetupRouter(
 	v1 := api.Group("/v1")
 	{
 		routes.registerAuthRoutes(v1)
-		routes.registerPayloadPropertyDefinitionRoutes(v1)
 
 		// Protected V1 routes
 		protected := v1.Group("", mw.Auth(), mw.Authorize())
 		{
 			routes.registerUserRoutes(protected)
 			routes.registerPolicyRoutes(protected)
+			routes.registerMDMRoutes(protected)
+			routes.registerDEPRoutes(protected)
+			routes.registerNanoCMDRoutes(protected)
 			routes.registerMobileConfigRoutes(protected)
 			routes.registerDashboardRoutes(protected)
 			routes.registerDeviceRoutes(protected)
@@ -101,6 +103,7 @@ func SetupRouter(
 			routes.registerAlertRoutes(protected)
 			routes.registerReportRoutes(protected)
 			routes.registerSettingRoutes(protected)
+			routes.registerPayloadPropertyDefinitionRoutes(protected)
 		}
 
 		// NanoCMD Webhook (Public) - now consistently in v1
@@ -383,11 +386,12 @@ func (r *routeRegister) registerPayloadPropertyDefinitionRoutes(rg *gin.RouterGr
 	{
 		// definitions.GET("", r.ppd.List)
 		definitions.GET("/payload-types", r.ppd.ListPayloadTypes)
+		definitions.GET("/:payload_type/variants", r.ppd.ListVariants)
 		// definitions.GET("/:id", r.ppd.GetByID)
 		// definitions.POST("", r.ppd.Create)
 		// definitions.PUT("/:id", r.ppd.Update)
-		// definitions.DELETE("/:id", r.ppd.Delete)
-		definitions.POST("/import", r.ppd.Import)
+		definitions.DELETE("", r.ppd.DeleteAll)
+		definitions.POST("/import-yaml-folder", r.ppd.ImportYAMLFolder)
 		definitions.GET("/schema", r.ppd.GetNestedSchema)
 	}
 }

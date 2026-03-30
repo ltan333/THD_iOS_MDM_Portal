@@ -17,6 +17,7 @@ import (
 
 type MobileConfigHandler interface {
 	List(c *gin.Context)
+	GetByID(c *gin.Context)
 	Create(c *gin.Context)
 	Update(c *gin.Context)
 	Delete(c *gin.Context)
@@ -94,6 +95,35 @@ func (m *mobileConfigHandlerImpl) List(c *gin.Context) {
 	}, "")
 }
 
+// GetByID godoc
+// @Summary Get mobile config by ID
+// @Description Get the full detail of a mobile config by its ID
+// @Tags Mobile Config
+// @Produce json
+// @Security BearerAuth
+// @Param id path int true "Mobile config ID"
+// @Success 200 {object} MobileConfigSuccessResponse
+// @Failure 400 {object} APIErrorResponse
+// @Failure 401 {object} APIErrorResponse
+// @Failure 404 {object} APIErrorResponse
+// @Failure 500 {object} APIErrorResponse
+// @Router /v1/mobile-configs/{id} [get]
+func (m *mobileConfigHandlerImpl) GetByID(c *gin.Context) {
+	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
+	if err != nil {
+		response.WriteErrorResponse(c, apperror.ErrBadRequest.WithMessage("ID không hợp lệ"))
+		return
+	}
+
+	mc, err := m.mobileConfigService.GetByID(c.Request.Context(), uint(id))
+	if err != nil {
+		response.WriteErrorResponse(c, err)
+		return
+	}
+
+	response.OK(c, toMobileConfigResponse(mc), "")
+}
+
 // Create godoc
 // @Summary Create mobile config
 // @Description Create a new Apple mobileconfig with payloads and payload properties
@@ -131,7 +161,7 @@ func (m *mobileConfigHandlerImpl) Create(c *gin.Context) {
 		for _, propReq := range payloadReq.Properties {
 			properties = append(properties, service.CreateMobileConfigPropertyCommand{
 				Key:       propReq.Key,
-				ValueJSON: propReq.ValueJSON,
+				ValueJSON: propReq.ValueJSON.Value(),
 			})
 		}
 
@@ -307,7 +337,7 @@ func toCreatePayloadCommands(payloadReqs []dto.UpdateMobileConfigPayloadRequest)
 		for _, propReq := range payloadReq.Properties {
 			properties = append(properties, service.CreateMobileConfigPropertyCommand{
 				Key:       propReq.Key,
-				ValueJSON: propReq.ValueJSON,
+				ValueJSON: propReq.ValueJSON.Value(),
 			})
 		}
 
@@ -366,7 +396,7 @@ func validateCreateMobileConfigRequest(req dto.CreateMobileConfigRequest) []resp
 			if strings.TrimSpace(propReq.Key) == "" {
 				fieldErrors = append(fieldErrors, response.FieldError{Field: "payloads[" + strconv.Itoa(i) + "].properties[" + strconv.Itoa(j) + "].key", Message: "Trường này là bắt buộc"})
 			}
-			if propReq.ValueJSON == nil {
+			if !propReq.ValueJSON.IsSet() {
 				fieldErrors = append(fieldErrors, response.FieldError{Field: "payloads[" + strconv.Itoa(i) + "].properties[" + strconv.Itoa(j) + "].value_json", Message: "Trường này là bắt buộc"})
 			}
 		}
@@ -417,7 +447,7 @@ func toMobileConfigResponse(mc *ent.MobileConfig) dto.MobileConfigResponse {
 			propertyResponses = append(propertyResponses, dto.MobileConfigPropertyResponse{
 				ID:        prop.ID,
 				Key:       key,
-				ValueJSON: prop.ValueJSON,
+				ValueJSON: toJSONValueResponse(prop.ValueJSON),
 			})
 		}
 
@@ -448,5 +478,14 @@ func toMobileConfigResponse(mc *ent.MobileConfig) dto.MobileConfigResponse {
 		Payloads:                 payloadResponses,
 		CreatedAt:                mc.CreatedAt,
 		UpdatedAt:                mc.UpdatedAt,
+	}
+}
+
+func toJSONValueResponse(value any) dto.JSONValue {
+	switch v := value.(type) {
+	case []byte:
+		return dto.NewJSONValueFromRaw(v)
+	default:
+		return dto.NewJSONValue(v)
 	}
 }

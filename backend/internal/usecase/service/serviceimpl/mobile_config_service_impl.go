@@ -2,6 +2,7 @@ package serviceimpl
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"strings"
 
@@ -26,6 +27,22 @@ func (m *mobileConfigServiceImpl) List(ctx context.Context, offset, limit int, o
 	return m.mobileConfigRepo.List(ctx, offset, limit, opts)
 }
 
+func (m *mobileConfigServiceImpl) GetByID(ctx context.Context, id uint) (*ent.MobileConfig, error) {
+	if id == 0 {
+		return nil, apperror.ErrValidation.WithMessage("id là bắt buộc")
+	}
+
+	mc, err := m.mobileConfigRepo.GetFullForExport(ctx, id)
+	if ent.IsNotFound(err) {
+		return nil, apperror.ErrNotFound.WithMessage("MobileConfig không tồn tại")
+	}
+	if err != nil {
+		return nil, apperror.ErrInternalServerError.WithMessage("Lỗi khi truy xuất MobileConfig").WithError(err)
+	}
+
+	return mc, nil
+}
+
 func (m *mobileConfigServiceImpl) Create(ctx context.Context, cmd service.CreateMobileConfigCommand) (*ent.MobileConfig, error) {
 	if err := validateCreateMobileConfigCommand(cmd); err != nil {
 		return nil, err
@@ -46,7 +63,10 @@ func (m *mobileConfigServiceImpl) Create(ctx context.Context, cmd service.Create
 		return nil, apperror.ErrConflict.WithMessage(fmt.Sprintf("%s đã tồn tại: %s", conflict.Field, conflict.Value))
 	}
 
-	entity, payloads := buildCreateEntities(cmd)
+	entity, payloads, err := buildCreateEntities(cmd)
+	if err != nil {
+		return nil, err
+	}
 
 	created, err := m.mobileConfigRepo.Create(ctx, entity, payloads)
 	if err != nil {
@@ -96,7 +116,11 @@ func (m *mobileConfigServiceImpl) Update(ctx context.Context, cmd service.Update
 		return nil, apperror.ErrConflict.WithMessage(fmt.Sprintf("%s đã tồn tại: %s", conflict.Field, conflict.Value))
 	}
 
-	entity, payloads := buildCreateEntities(createCmd)
+	entity, payloads, err := buildCreateEntities(createCmd)
+	if err != nil {
+		return nil, err
+	}
+
 	updated, err := m.mobileConfigRepo.Update(ctx, cmd.ID, entity, payloads)
 	if err != nil {
 		return nil, err
@@ -117,7 +141,7 @@ func (m *mobileConfigServiceImpl) Delete(ctx context.Context, id uint) error {
 	return m.mobileConfigRepo.Delete(ctx, id)
 }
 
-func buildCreateEntities(cmd service.CreateMobileConfigCommand) (*ent.MobileConfig, []*ent.Payload) {
+func buildCreateEntities(cmd service.CreateMobileConfigCommand) (*ent.MobileConfig, []*ent.Payload, error) {
 
 	payloadVersion := cmd.PayloadVersion
 	if payloadVersion <= 0 {
@@ -137,21 +161,23 @@ func buildCreateEntities(cmd service.CreateMobileConfigCommand) (*ent.MobileConf
 	}
 
 	payloads := make([]*ent.Payload, 0, len(cmd.Payloads))
-	for _, payloadCmd := range cmd.Payloads {
+	for payloadIdx, payloadCmd := range cmd.Payloads {
 		payloadItemVersion := payloadCmd.PayloadVersion
 		if payloadItemVersion <= 0 {
 			payloadItemVersion = 1
 		}
 
 		properties := make([]*ent.PayloadProperty, 0, len(payloadCmd.Properties))
-		for _, propCmd := range payloadCmd.Properties {
-			valueJSON := propCmd.ValueJSON
-			if valueJSON == nil {
-				valueJSON = map[string]interface{}{}
+		for propIdx, propCmd := range payloadCmd.Properties {
+			rawValue, err := marshalJSONValue(propCmd.ValueJSON)
+			if err != nil {
+				return nil, nil, apperror.ErrValidation.WithMessage(
+					fmt.Sprintf("payloads[%d].properties[%d].value_json không phải JSON hợp lệ", payloadIdx, propIdx),
+				)
 			}
 
 			properties = append(properties, &ent.PayloadProperty{
-				ValueJSON: valueJSON,
+				ValueJSON: rawValue,
 				Edges: ent.PayloadPropertyEdges{
 					Definition: &ent.PayloadPropertyDefinition{Key: strings.TrimSpace(propCmd.Key)},
 				},
@@ -172,9 +198,17 @@ func buildCreateEntities(cmd service.CreateMobileConfigCommand) (*ent.MobileConf
 		})
 	}
 
-	return entity, payloads
+	return entity, payloads, nil
 }
 
+func marshalJSONValue(value any) (json.RawMessage, error) {
+	data, err := json.Marshal(value)
+	if err != nil {
+		return nil, err
+	}
+
+	return json.RawMessage(data), nil
+}
 func validateCreateMobileConfigCommand(cmd service.CreateMobileConfigCommand) error {
 	if strings.TrimSpace(cmd.Name) == "" {
 		return apperror.ErrValidation.WithMessage("name là bắt buộc")
@@ -305,7 +339,7 @@ func buildPayloadContent(payloads []*ent.Payload) []map[string]interface{} {
 }
 
 func normalizeValue(val interface{}, valueType string) interface{} {
-	raw := extractRawValue(val)
+	raw := decodeStoredJSONValue(val)
 
 	switch strings.ToLower(valueType) {
 	case "bool":
@@ -315,6 +349,14 @@ func normalizeValue(val interface{}, valueType string) interface{} {
 		return false
 	case "integer", "number":
 		switch v := raw.(type) {
+		case json.Number:
+			if i, err := v.Int64(); err == nil {
+				return int(i)
+			}
+			if f, err := v.Float64(); err == nil {
+				return int(f)
+			}
+			return 0
 		case float64:
 			return int(v)
 		case int:
@@ -335,11 +377,31 @@ func normalizeValue(val interface{}, valueType string) interface{} {
 	}
 }
 
-func extractRawValue(val interface{}) interface{} {
-	if m, ok := val.(map[string]interface{}); ok {
-		if unwrapped, exists := m["value"]; exists {
-			return unwrapped
+func decodeStoredJSONValue(val interface{}) interface{} {
+	switch v := val.(type) {
+	case json.RawMessage:
+		if len(v) == 0 {
+			return nil
 		}
+		dec := json.NewDecoder(strings.NewReader(string(v)))
+		dec.UseNumber()
+		var out interface{}
+		if err := dec.Decode(&out); err != nil {
+			return nil
+		}
+		return out
+	case []byte:
+		if len(v) == 0 {
+			return nil
+		}
+		dec := json.NewDecoder(strings.NewReader(string(v)))
+		dec.UseNumber()
+		var out interface{}
+		if err := dec.Decode(&out); err != nil {
+			return nil
+		}
+		return out
+	default:
+		return val
 	}
-	return val
 }
