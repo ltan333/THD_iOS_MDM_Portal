@@ -36,7 +36,7 @@ func setupDependencies(cfg *config.Config) *gin.Engine {
 	userRepo := persistence.NewUserRepository(client)
 	mobileConfigRepo := persistence.NewMobileConfigRepository(client)
 	nanoRepo := persistence.NewNanoRepository(database.GetDB()) // read-only: nano server tables
-	_ = nanoRepo                                                  // injected into services as needed
+	_ = nanoRepo                                                // injected into services as needed
 	payloadPropertyDefinitionRepo := persistence.NewPayloadPropertyDefinitionRepository(client)
 
 	dashboardRepo := persistence.NewDashboardRepository(client)
