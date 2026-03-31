@@ -6,10 +6,11 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"net"
 	"net/http"
 	"net/url"
-	"os/exec"
 	"strings"
+	"time"
 
 	"github.com/thienel/go-backend-template/internal/interface/api/dto"
 	"github.com/thienel/go-backend-template/internal/usecase/service"
@@ -565,30 +566,46 @@ func (s *nanomdmServiceImpl) GetVersion(ctx context.Context) (*dto.NanoMDMVersio
 
 // ReloadDEPSyncer sends SIGHUP to the DEP syncer container to reload its configuration.
 // This is useful after updating DEP tokens or configurations.
+// Uses Docker Engine API via Unix socket (/var/run/docker.sock) instead of docker CLI.
 func (s *nanomdmServiceImpl) ReloadDEPSyncer(ctx context.Context) error {
 	containerName := s.depSyncerContainer
 	if containerName == "" {
 		containerName = "mdm-nanodep-syncer-1"
 	}
 
-	var cmd *exec.Cmd
-	if s.sudoPassword != "" {
-		// Use sudo with password from stdin
-		cmd = exec.CommandContext(ctx, "sudo", "-S", "docker", "kill", "-s", "SIGHUP", containerName)
-		cmd.Stdin = strings.NewReader(s.sudoPassword + "\n")
-	} else {
-		// Try without sudo (assumes user has docker permissions or running as root)
-		cmd = exec.CommandContext(ctx, "docker", "kill", "-s", "SIGHUP", containerName)
+	// Create HTTP client that uses Unix socket
+	httpClient := &http.Client{
+		Transport: &http.Transport{
+			DialContext: func(ctx context.Context, network, addr string) (net.Conn, error) {
+				return net.Dial("unix", "/var/run/docker.sock")
+			},
+		},
+		Timeout: 10 * time.Second,
 	}
 
-	var stderr bytes.Buffer
-	cmd.Stderr = &stderr
-
-	if err := cmd.Run(); err != nil {
+	// Docker Engine API: POST /containers/{id}/kill?signal=SIGHUP
+	url := fmt.Sprintf("http://localhost/containers/%s/kill?signal=SIGHUP", containerName)
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, url, nil)
+	if err != nil {
 		return apperror.ErrInternalServerError.WithMessage(
-			fmt.Sprintf("failed to reload DEP syncer: %v, stderr: %s", err, stderr.String()),
+			fmt.Sprintf("failed to create request: %v", err),
 		)
 	}
 
-	return nil
+	resp, err := httpClient.Do(req)
+	if err != nil {
+		return apperror.ErrInternalServerError.WithMessage(
+			fmt.Sprintf("failed to send SIGHUP to DEP syncer container: %v", err),
+		)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode == http.StatusNoContent || resp.StatusCode == http.StatusOK {
+		return nil
+	}
+
+	body, _ := io.ReadAll(resp.Body)
+	return apperror.ErrInternalServerError.WithMessage(
+		fmt.Sprintf("failed to reload DEP syncer: status %d, body: %s", resp.StatusCode, string(body)),
+	)
 }
