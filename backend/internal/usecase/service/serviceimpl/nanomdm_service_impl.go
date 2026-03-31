@@ -171,9 +171,10 @@ func (s *nanomdmServiceImpl) AssignDEPProfile(ctx context.Context, depName, prof
 		ProfileUUID: profileUUID,
 		Devices:     serials,
 	}
-	resp, err := s.doRequest(ctx, http.MethodPost, s.depBaseURL, fmt.Sprintf("/proxy/%s/profile/devices", depName), body, nil, s.depUsername, s.depPassword)
+	endpoint := fmt.Sprintf("/proxy/%s/profile/devices", depName)
+	resp, err := s.doRequest(ctx, http.MethodPost, s.depBaseURL, endpoint, body, nil, s.depUsername, s.depPassword)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("AssignDEPProfile request failed (url=%s%s): %w", s.depBaseURL, endpoint, err)
 	}
 
 	var result dto.DEPProfileAssignResponse
