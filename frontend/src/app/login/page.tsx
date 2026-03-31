@@ -4,13 +4,28 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-import { Mail, Lock, ArrowRight, Smartphone, Globe } from 'lucide-react';
-import { useLanguageStore } from '@/stores/languageStore';
+import { Mail, Lock, ArrowRight, Smartphone, Globe, Eye, EyeOff } from 'lucide-react';
+import { create } from 'zustand';
+import { authProviderClient } from '@/providers/auth-provider/auth-provider.client';
+
+type Language = 'en' | 'vi';
+
+interface LanguageState {
+  language: Language;
+  toggleLanguage: () => void;
+}
+
+export const useLanguageStore = create<LanguageState>((set) => ({
+  language: 'en',
+  toggleLanguage: () =>
+    set((state) => ({ language: state.language === 'en' ? 'vi' : 'en' })),
+}));
 
 export default function LoginPage() {
   const { language, toggleLanguage } = useLanguageStore();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [mounted, setMounted] = useState(false);
   const router = useRouter();
@@ -20,29 +35,36 @@ export default function LoginPage() {
     setMounted(true);
   }, []);
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
 
-    // Check if mock login is enabled in env
     const isMockEnabled = process.env.NEXT_PUBLIC_MOCK_LOGIN_ENABLED === 'true';
     const mockEmail = process.env.NEXT_PUBLIC_MOCK_USERNAME || 'admin@thd.com';
     const mockPassword = process.env.NEXT_PUBLIC_MOCK_PASSWORD || 'password123';
 
     if (isMockEnabled) {
       if (email === mockEmail && password === mockPassword) {
-        // Set a mock token to localStorage to simulate successful auth
-        localStorage.setItem('auth_token', 'mock-jwt-token-12345');
         router.push('/dashboard');
-      } else {
-        setError(language === 'vi' ? 'Email hoặc mật khẩu không chính xác.' : 'Invalid email or password.');
+        return;
       }
-    } else {
-      // Temporary fallback if env is not loaded properly
-      if (email && password) {
-        localStorage.setItem('auth_token', 'mock-jwt-token-12345');
-        router.push('/dashboard');
+
+      setError(language === 'vi' ? 'Email hoặc mật khẩu không chính xác.' : 'Invalid email or password.');
+      return;
+    }
+
+    try {
+      const result = await authProviderClient.login({ username: email, password });
+
+      if (result.success) {
+        // Use window.location.href for a full page reload to clear any stale state
+        window.location.href = result.redirectTo || '/dashboard';
+        return;
       }
+
+      setError(result.error?.message || (language === 'vi' ? 'Đăng nhập thất bại.' : 'Login failed.'));
+    } catch {
+      setError(language === 'vi' ? 'Đăng nhập thất bại.' : 'Login failed.');
     }
   };
 
@@ -213,13 +235,13 @@ export default function LoginPage() {
                       <input
                         id="email"
                         name="email"
-                        type="email"
-                        autoComplete="email"
+                        type="text"
+                        autoComplete="username"
                         required
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
                         className="block w-full pl-10 pr-4 py-3 bg-white/60 border border-white/80 rounded-xl text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#de2a15]/50 focus:bg-white/80 transition-all backdrop-blur-md shadow-[inset_0_2px_4px_rgba(0,0,0,0.02)]"
-                        placeholder="admin@thd.com"
+                        placeholder="admin@thd.com hoặc admin"
                       />
                     </div>
                   </div>
@@ -235,14 +257,25 @@ export default function LoginPage() {
                       <input
                         id="password"
                         name="password"
-                        type="password"
+                        type={showPassword ? "text" : "password"}
                         autoComplete="current-password"
                         required
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
-                        className="block w-full pl-10 pr-4 py-3 bg-white/60 border border-white/80 rounded-xl text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#de2a15]/50 focus:bg-white/80 transition-all backdrop-blur-md shadow-[inset_0_2px_4px_rgba(0,0,0,0.02)]"
+                        className="block w-full pl-10 pr-10 py-3 bg-white/60 border border-white/80 rounded-xl text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#de2a15]/50 focus:bg-white/80 transition-all backdrop-blur-md shadow-[inset_0_2px_4px_rgba(0,0,0,0.02)]"
                         placeholder="••••••••"
                       />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-slate-600 transition-colors focus:outline-none"
+                      >
+                        {showPassword ? (
+                          <EyeOff className="h-4 w-4" />
+                        ) : (
+                          <Eye className="h-4 w-4" />
+                        )}
+                      </button>
                     </div>
                   </div>
                 </div>
