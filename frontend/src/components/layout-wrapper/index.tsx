@@ -6,6 +6,7 @@ import { Header } from '@/features/header';
 import { useSidebarStore } from '@/features/sidebar/stores/useSidebarStore';
 import { useEffect, useState } from 'react';
 import { cn } from '@/utils/cn';
+import { tokenManager } from '@/axios-config/utils/token-manager';
 
 export function LayoutWrapper({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -16,8 +17,8 @@ export function LayoutWrapper({ children }: { children: React.ReactNode }) {
   const isLoginPage = pathname === '/login';
 
   useEffect(() => {
-    // Check authentication status
-    const token = localStorage.getItem('auth_token');
+    // Check authentication status using standard token manager
+    const token = tokenManager.getAccessToken() || localStorage.getItem('auth_token');
     
     if (!token && !isLoginPage) {
       router.push('/login');
