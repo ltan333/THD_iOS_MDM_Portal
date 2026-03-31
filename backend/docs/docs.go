@@ -6088,6 +6088,43 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/v1/settings/dep-syncer/reload": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Send SIGHUP to the DEP syncer container to reload its configuration. Useful after updating DEP tokens or configurations.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Settings"
+                ],
+                "summary": "Reload DEP Syncer",
+                "responses": {
+                    "200": {
+                        "description": "DEP syncer reloaded successfully",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any"
+                        }
+                    },
+                    "500": {
+                        "description": "Failed to reload DEP syncer",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any"
+                        }
+                    }
+                }
+            }
+        },
         "/api/v1/settings/{key}": {
             "get": {
                 "security": [
@@ -7359,6 +7396,76 @@ const docTemplate = `{
                 }
             }
         },
+        "github_com_thienel_go-backend-template_internal_interface_api_dto.DEPDevice": {
+            "type": "object",
+            "properties": {
+                "asset_tag": {
+                    "type": "string"
+                },
+                "color": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "device_assigned_by": {
+                    "type": "string"
+                },
+                "device_assigned_date": {
+                    "type": "string"
+                },
+                "device_family": {
+                    "type": "string"
+                },
+                "model": {
+                    "type": "string"
+                },
+                "op_date": {
+                    "type": "string"
+                },
+                "op_type": {
+                    "type": "string"
+                },
+                "os": {
+                    "type": "string"
+                },
+                "profile_assign_time": {
+                    "type": "string"
+                },
+                "profile_push_time": {
+                    "type": "string"
+                },
+                "profile_status": {
+                    "type": "string"
+                },
+                "profile_uuid": {
+                    "type": "string"
+                },
+                "serial_number": {
+                    "type": "string"
+                }
+            }
+        },
+        "github_com_thienel_go-backend-template_internal_interface_api_dto.DEPSyncDeviceResponse": {
+            "type": "object",
+            "properties": {
+                "cursor": {
+                    "type": "string"
+                },
+                "devices": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_thienel_go-backend-template_internal_interface_api_dto.DEPDevice"
+                    }
+                },
+                "fetched_until": {
+                    "type": "string"
+                },
+                "more_to_follow": {
+                    "type": "boolean"
+                }
+            }
+        },
         "github_com_thienel_go-backend-template_internal_interface_api_dto.DashboardStatsResponse": {
             "type": "object",
             "properties": {
@@ -7564,6 +7671,17 @@ const docTemplate = `{
                 },
                 "updated_at": {
                     "type": "string"
+                }
+            }
+        },
+        "github_com_thienel_go-backend-template_internal_interface_api_dto.DeviceResponseEvent": {
+            "type": "object",
+            "properties": {
+                "dep_name": {
+                    "type": "string"
+                },
+                "device_response": {
+                    "$ref": "#/definitions/github_com_thienel_go-backend-template_internal_interface_api_dto.DEPSyncDeviceResponse"
                 }
             }
         },
@@ -8059,6 +8177,9 @@ const docTemplate = `{
                 },
                 "created_at": {
                     "type": "string"
+                },
+                "device_response_event": {
+                    "$ref": "#/definitions/github_com_thienel_go-backend-template_internal_interface_api_dto.DeviceResponseEvent"
                 },
                 "event_id": {
                     "type": "string"
