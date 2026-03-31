@@ -31,11 +31,11 @@ export const RETRY_CONFIG = {
 } as const;
 
 export const AUTH_CONFIG = {
-  // Core authentication
+  // Core authentication (Swagger: /api/v1/auth/*)
   LOGIN_ENDPOINT: `/auth/login`,
   LOGOUT_ENDPOINT: `/auth/logout`,
-  REFRESH_TOKEN_ENDPOINT: `/auth/refresh-token`,
-  ME_ENDPOINT: `/users/me`,
+  REFRESH_TOKEN_ENDPOINT: `/auth/refresh`,
+  ME_ENDPOINT: `/auth/me`,
 
   // 2FA (Two-Factor Authentication)
   SETUP_2FA_ENDPOINT: `/auth/setup-2fa`,

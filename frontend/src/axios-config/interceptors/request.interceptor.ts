@@ -3,7 +3,7 @@ import type {
   InternalAxiosRequestConfig,
 } from "axios";
 
-import { AUTH_CONFIG, HEADER_KEYS } from "../constants";
+import { HEADER_KEYS } from "../constants";
 import { tokenManager } from "../utils/token-manager";
 import { Enum } from "@/configs";
 import { DecryptBasic } from "@/utils/hashAes";
@@ -13,8 +13,10 @@ export const requestInterceptor = (
 ) => {
   request.use(
     (config: InternalAxiosRequestConfig) => {
-      // Backend sử dụng session cookies - browser tự động gửi qua withCredentials: true
-      // Không cần thêm Authorization header vì backend check session cookies
+      const accessToken = tokenManager.getAccessToken();
+      if (accessToken) {
+        config.headers.set(HEADER_KEYS.AUTHORIZATION, `Bearer ${accessToken}`);
+      }
 
       // Thêm organization key nếu có
       const orgToken = tokenManager.getOrgToken();

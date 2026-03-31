@@ -2,6 +2,8 @@
  * Auth Types - Authentication related types
  */
 
+import type { UserResponse } from "./user.type";
+
 // User roles
 export type UserRole = "ADMIN" | "SYSTEM_ADMIN" | "USER" | "MANAGER";
 
@@ -40,13 +42,9 @@ export interface LoginRequest {
 }
 
 export interface LoginResponse {
-    requires_2fa?: boolean;
-    requires_otp?: boolean;
-    user?: {
-        id: number;
-        username: string;
-        role: UserRole;
-    };
+    access_token: string;
+    refresh_token: string;
+    user: UserResponse;
 }
 
 // OTP verification
