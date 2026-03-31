@@ -5,17 +5,16 @@ import { HEADER_KEYS } from "./constants";
 import { requestInterceptor } from "./interceptors/request.interceptor";
 import { responseInterceptor } from "./interceptors/response.interceptor";
 
-// Trong development, sử dụng proxy qua Next.js rewrites để cookies hoạt động same-origin
-// Nếu NEXT_PUBLIC_USE_PROXY=true, gọi qua /api/v1 (proxy)
-// Nếu không, gọi trực tiếp backend URL (production hoặc khi có HTTPS)
-const useProxy = process.env.NEXT_PUBLIC_USE_PROXY === "true";
-const directUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost-fallback:8000/api/v1";
+// Trong development, sử dụng proxy qua Next.js rewrites để tránh lỗi CORS
+// Tùy chỉnh thông qua biến NEXT_PUBLIC_USE_PROXY=true (mặc định nên dùng proxy khi dev local)
+const useProxy = process.env.NEXT_PUBLIC_USE_PROXY !== "false"; // Mặc định là true nếu không set false
+const directUrl = process.env.NEXT_PUBLIC_API_URL || "https://mdm-9554.dichvu-it.vn/api/v1";
 const baseURL = useProxy ? "/api/v1" : directUrl;
 
 const axiosClient: AxiosInstance = axios.create({
   baseURL,
   timeout: 30000,
-  withCredentials: true, // Gửi cookies với mọi request
+  withCredentials: true, // Gửi cookies nếu có
   headers: {
     [HEADER_KEYS.CONTENT_TYPE]: "application/json",
   },

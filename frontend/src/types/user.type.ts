@@ -8,9 +8,11 @@ export interface UserResponse {
     id: number;
     username: string;
     email: string;
+    role: UserRole;
+    status?: string;
+    is_active?: boolean;
     full_name?: string;
     phone?: string;
-    role: UserRole;
     department_id?: number;
     department?: {
         id: number;
@@ -23,9 +25,9 @@ export interface UserResponse {
     };
     permissions?: Permission[];
     avatar_url?: string;
-    is_active: boolean;
     created_at: string;
     updated_at?: string;
+    deleted_at?: string;
 }
 
 export interface UserCreateRequest {

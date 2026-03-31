@@ -7,7 +7,7 @@ import { AUTH_CONFIG } from "../constants";
 import { post } from "../request";
 
 type RefreshTokenResponse = ResponseAPI<{
-  token: string;
+  access_token: string;
   refresh_token: string;
 }>;
 
@@ -73,7 +73,11 @@ const clearRefreshLock = () => {
 };
 
 // Base URL for refresh - bypass interceptors
-const getBaseUrl = () => process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
+const getBaseUrl = () => {
+  const useProxy = process.env.NEXT_PUBLIC_USE_PROXY !== "false";
+  const directUrl = process.env.NEXT_PUBLIC_API_URL || "https://mdm-9554.dichvu-it.vn/api/v1";
+  return useProxy ? "/api/v1" : directUrl;
+};
 
 async function doRefresh(): Promise<string> {
   const refreshToken = tokenManager.getRefreshToken();
@@ -96,8 +100,8 @@ async function doRefresh(): Promise<string> {
       }
     );
 
-    const responseData = response?.data
-    const token = responseData?.token;
+    const responseData = response?.data;
+    const token = responseData?.access_token;
     const refresh_token = responseData?.refresh_token;
 
     if (!token || !refresh_token) {

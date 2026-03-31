@@ -4,6 +4,8 @@ import { usePathname } from 'next/navigation';
 import { cn } from '@/utils/cn';
 import { useSidebarStore } from '../stores/useSidebarStore';
 import { useLanguageStore } from '@/stores/languageStore';
+import { tokenManager } from '@/axios-config/utils/token-manager';
+import { authProviderClient } from '@/providers/auth-provider/auth-provider.client';
 import { useEffect, useState } from 'react';
 import {
   LayoutDashboard,
@@ -197,8 +199,8 @@ export function Sidebar() {
               variant="light"
               className="text-slate-500 hover:text-red-600 dark:text-slate-400 dark:hover:text-red-400"
               aria-label="Logout"
-              onPress={() => {
-                localStorage.removeItem('auth_token');
+              onPress={async () => {
+                await authProviderClient.logout({});
                 window.location.href = '/login';
               }}
             >
