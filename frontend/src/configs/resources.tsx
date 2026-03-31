@@ -8,6 +8,7 @@ import {
     ProjectOutlined,
     LockOutlined,
     UserOutlined,
+    MobileOutlined,
 } from "@ant-design/icons";
 
 export const resources: ResourceProps[] = [
@@ -61,6 +62,29 @@ export const resources: ResourceProps[] = [
     },
 
     // Master Data
+    {
+        name: "devices",
+        meta: {
+            label: "Thiết bị",
+            icon: <MobileOutlined />,
+        },
+    },
+    {
+        name: "devices/all",
+        list: "/devices/all",
+        meta: {
+            label: "Tất cả thiết bị",
+            parent: "devices",
+        },
+    },
+    {
+        name: "devices/groups",
+        list: "/devices/groups",
+        meta: {
+            label: "Nhóm thiết bị",
+            parent: "devices",
+        },
+    },
     {
         name: "departments",
         list: "/departments",

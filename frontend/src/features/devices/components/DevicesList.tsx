@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useState } from "react";
-import { Table, Select, Input, Button, Tag, Modal, Tabs, Dropdown } from "antd";
+import React, { useState, useEffect, useCallback } from "react";
+import { Table, Select, Input, Button, Tag, Modal, Tabs, Dropdown, App } from "antd";
 import type { MenuProps } from "antd";
 import { 
     Search, 
@@ -23,137 +23,90 @@ import {
     MapPin,
     FolderPlus,
     FilePlus2,
-    MoreVertical
+    MoreVertical,
+    Lock,
+    Trash2,
+    Power,
+    PowerOff
 } from "lucide-react";
 import type { ColumnsType } from "antd/es/table";
+import { deviceService } from "@/services/device.service";
+import { deviceGroupService } from "@/services/device-group.service";
+import { DeviceResponse } from "@/types/device.type";
+import { DeviceGroupResponse } from "@/types/device-group.type";
 
-interface DeviceProfile {
-    id: string;
-    name: string;
-    status: "active" | "pending" | "failed";
-}
 
-interface DeviceType {
-    key: string;
-    name: string;
-    owner: string;
-    enrollmentDate: string;
-    os: "iOS" | "iPadOS" | "macOS";
-    model: string;
-    version: string;
-    batteryPercent: number;
-    availableMemory: string;
-    totalMemory: string;
-    addedBy: string;
-    lastSeen: string;
-    status: "online" | "offline";
-    profiles: DeviceProfile[];
-    serialNumber: string;
-    ipAddress: string;
-}
-
-const mockData: DeviceType[] = [
-    {
-        key: "1",
-        name: "iPhone",
-        owner: "Nguyễn Văn A",
-        enrollmentDate: "2026-03-20 08:00 AM",
-        os: "iOS",
-        model: "iPhone 15 Pro Max",
-        version: "17.4.1",
-        batteryPercent: 85,
-        availableMemory: "124 GB",
-        totalMemory: "256 GB",
-        addedBy: "Admin",
-        lastSeen: "2026-03-26 10:23 AM",
-        status: "online",
-        serialNumber: "F1234567890",
-        ipAddress: "192.168.1.101",
-        profiles: [
-            { id: "p1", name: "Allow SOTI MobiControl", status: "active" },
-            { id: "p2", name: "Corporate Wi-Fi", status: "active" }
-        ]
-    },
-    {
-        key: "2",
-        name: "iPad",
-        owner: "Marketing Dept",
-        enrollmentDate: "2026-03-21 09:30 AM",
-        os: "iPadOS",
-        model: "iPad Pro 11-inch (M4)",
-        version: "17.5",
-        batteryPercent: 42,
-        availableMemory: "45 GB",
-        totalMemory: "128 GB",
-        addedBy: "Le An",
-        lastSeen: "2026-03-25 04:12 PM",
-        status: "offline",
-        serialNumber: "F0987654321",
-        ipAddress: "192.168.1.105",
-        profiles: [
-            { id: "p1", name: "Allow SOTI MobiControl", status: "active" },
-            { id: "p3", name: "Disable Camera", status: "pending" }
-        ]
-    },
-    {
-        key: "3",
-        name: "MacBook Pro",
-        owner: "Dev Team",
-        enrollmentDate: "2026-03-22 10:15 AM",
-        os: "macOS",
-        model: "MacBook Pro 14-inch (M3)",
-        version: "14.4.1",
-        batteryPercent: 100,
-        availableMemory: "312 GB",
-        totalMemory: "512 GB",
-        addedBy: "Huy",
-        lastSeen: "2026-03-26 09:15 AM",
-        status: "online",
-        serialNumber: "M1234567890",
-        ipAddress: "192.168.1.110",
-        profiles: [
-            { id: "p1", name: "Allow SOTI MobiControl", status: "active" },
-            { id: "p4", name: "Developer Tools Config", status: "active" }
-        ]
-    },
-    {
-        key: "4",
-        name: "iPhone",
-        owner: "CEO",
-        enrollmentDate: "2026-03-23 11:00 AM",
-        os: "iOS",
-        model: "iPhone 16",
-        version: "18.0",
-        batteryPercent: 92,
-        availableMemory: "400 GB",
-        totalMemory: "512 GB",
-        addedBy: "Admin",
-        lastSeen: "2026-03-26 02:30 PM",
-        status: "online",
-        serialNumber: "F5555555555",
-        ipAddress: "192.168.1.102",
-        profiles: [
-            { id: "p1", name: "Allow SOTI MobiControl", status: "active" },
-            { id: "p2", name: "Corporate Wi-Fi", status: "active" },
-            { id: "p5", name: "Executive VPN", status: "active" }
-        ]
-    }
-];
 
 export function DevicesList() {
+    const { message: antdMessage } = App.useApp();
     const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
-    const [selectedDevice, setSelectedDevice] = useState<DeviceType | null>(null);
+    const [selectedDevice, setSelectedDevice] = useState<DeviceResponse | null>(null);
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [isGroupModalVisible, setIsGroupModalVisible] = useState(false);
     const [isProfileModalVisible, setIsProfileModalVisible] = useState(false);
+
+    // Data states
+    const [devices, setDevices] = useState<DeviceResponse[]>([]);
+    const [groups, setGroups] = useState<DeviceGroupResponse[]>([]);
+    const [loading, setLoading] = useState(false);
+    const [pagination, setPagination] = useState({ current: 1, pageSize: 50, total: 0 });
+    const [selectedGroupToAdd, setSelectedGroupToAdd] = useState<number | null>(null);
+    const [selectedProfileToAdd, setSelectedProfileToAdd] = useState<number | null>(null);
+
+    // Filters
+    const [search, setSearch] = useState("");
+    const [statusFilter, setStatusFilter] = useState("all");
+    const [platformFilter, setPlatformFilter] = useState("all");
+
+    const fetchDevices = useCallback(async () => {
+        setLoading(true);
+        try {
+            const params: any = {
+                page: pagination.current,
+                limit: pagination.pageSize,
+            };
+            if (search) params.search = search;
+            if (statusFilter !== "all") params.status = statusFilter;
+            if (platformFilter !== "all") params.platform = platformFilter;
+
+            const res = await deviceService.getDevices(params);
+            if (res.is_success && res.data) {
+                setDevices(res.data.items || []);
+                setPagination(prev => ({ ...prev, total: res.data?.total || 0 }));
+            }
+        } catch (error) {
+            console.error("Failed to fetch devices", error);
+            antdMessage.error("Failed to fetch devices");
+        } finally {
+            setLoading(false);
+        }
+    }, [pagination.current, pagination.pageSize, search, statusFilter, platformFilter, antdMessage]);
+
+    const fetchGroups = async () => {
+        try {
+            const res = await deviceGroupService.getGroups({ limit: 100 });
+            if (res.is_success && res.data) {
+                setGroups(res.data.items || []);
+            }
+        } catch (error) {
+            console.error("Failed to fetch groups", error);
+        }
+    };
+
+    useEffect(() => {
+        fetchDevices();
+    }, [fetchDevices]);
 
     const onSelectChange = (newSelectedRowKeys: React.Key[]) => {
         setSelectedRowKeys(newSelectedRowKeys);
     };
 
-    const handleDeviceClick = (record: DeviceType) => {
+    const handleDeviceClick = async (record: DeviceResponse) => {
         setSelectedDevice(record);
         setIsModalVisible(true);
+        // Optionally fetch more detailed info here
+        // const res = await deviceService.getDeviceById(record.id);
+        // if(res.is_success) setSelectedDevice(res.data);
     };
 
     const rowSelection = {
@@ -166,7 +119,10 @@ export function DevicesList() {
             key: 'add-to-group',
             icon: <FolderPlus className="w-4 h-4" />,
             label: 'Add to Group',
-            onClick: () => setIsGroupModalVisible(true)
+            onClick: () => {
+                fetchGroups();
+                setIsGroupModalVisible(true);
+            }
         },
         {
             key: 'assign-profile',
@@ -176,7 +132,7 @@ export function DevicesList() {
         }
     ];
 
-    const columns: ColumnsType<DeviceType> = [
+    const columns: ColumnsType<DeviceResponse> = [
         {
             title: "DEVICE NAME",
             dataIndex: "name",
@@ -184,7 +140,7 @@ export function DevicesList() {
             render: (text, record) => (
                 <div className="flex items-center gap-3">
                     <div className="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center">
-                        {record.os === "macOS" ? (
+                        {record.platform?.toLowerCase() === "macos" ? (
                             <Monitor className="w-4 h-4 text-slate-600" />
                         ) : (
                             <Smartphone className="w-4 h-4 text-slate-600" />
@@ -199,7 +155,7 @@ export function DevicesList() {
                                 handleDeviceClick(record);
                             }}
                         >
-                            {text}
+                            {text || record.model || "Unknown Device"}
                         </a>
                         <span className="text-xs text-slate-500">{record.model}</span>
                     </div>
@@ -208,59 +164,72 @@ export function DevicesList() {
         },
         {
             title: "OS",
-            dataIndex: "os",
-            key: "os",
+            dataIndex: "platform",
+            key: "platform",
             render: (text) => (
                 <div className="flex items-center gap-2 text-slate-700">
                     <Apple className="w-4 h-4" fill="currentColor" />
-                    <span className="font-medium">{text}</span>
+                    <span className="font-medium">{text || "iOS"}</span>
                 </div>
             ),
         },
         {
             title: "VERSION",
-            dataIndex: "version",
-            key: "version",
+            dataIndex: "os_version",
+            key: "os_version",
             render: (text) => <span className="text-slate-700 font-mono text-sm">{text}</span>,
         },
         {
             title: "BATTERY",
-            dataIndex: "batteryPercent",
-            key: "batteryPercent",
-            render: (percent) => (
-                <div className="flex items-center gap-2">
-                    <Battery className={`w-4 h-4 ${percent < 20 ? 'text-red-500' : percent < 50 ? 'text-orange-500' : 'text-emerald-500'}`} />
-                    <span className="text-slate-700">{percent}%</span>
-                </div>
-            ),
+            dataIndex: "battery_level",
+            key: "battery_level",
+            render: (percent) => {
+                if (percent == null) return <span className="text-slate-400">-</span>;
+                return (
+                    <div className="flex items-center gap-2">
+                        <Battery className={`w-4 h-4 ${percent < 20 ? 'text-red-500' : percent < 50 ? 'text-orange-500' : 'text-emerald-500'}`} />
+                        <span className="text-slate-700">{Math.round(percent * 100)}%</span>
+                    </div>
+                );
+            }
         },
         {
-            title: "AVAILABLE MEMORY",
-            dataIndex: "availableMemory",
-            key: "availableMemory",
-            render: (text, record) => (
-                <div className="flex items-center gap-2">
-                    <HardDrive className="w-4 h-4 text-slate-400" />
-                    <span className="text-slate-700">{text}</span>
-                    <span className="text-slate-400 text-xs">/ {record.totalMemory}</span>
-                </div>
-            ),
+            title: "STORAGE",
+            dataIndex: "storage_capacity",
+            key: "storage_capacity",
+            render: (_, record) => {
+                if (!record.storage_capacity) return <span className="text-slate-400">-</span>;
+                const totalGB = Math.round(record.storage_capacity / (1024 * 1024 * 1024));
+                const usedGB = record.storage_used ? Math.round(record.storage_used / (1024 * 1024 * 1024)) : 0;
+                const availableGB = totalGB - usedGB;
+                
+                return (
+                    <div className="flex items-center gap-2">
+                        <HardDrive className="w-4 h-4 text-slate-400" />
+                        <span className="text-slate-700">{availableGB} GB free</span>
+                        <span className="text-slate-400 text-xs">/ {totalGB} GB</span>
+                    </div>
+                );
+            }
         },
         {
             title: "STATUS",
             dataIndex: "status",
             key: "status",
             render: (status) => (
-                <Tag color={status === "online" ? "success" : "default"} className="rounded-full px-3">
-                    {status.toUpperCase()}
+                <Tag color={status?.toLowerCase() === "active" ? "success" : "default"} className="rounded-full px-3">
+                    {status?.toUpperCase() || "UNKNOWN"}
                 </Tag>
             ),
         },
         {
             title: "LAST SEEN",
-            dataIndex: "lastSeen",
-            key: "lastSeen",
-            render: (text) => <span className="text-slate-500 text-sm">{text}</span>,
+            dataIndex: "last_seen",
+            key: "last_seen",
+            render: (text) => {
+                if (!text) return <span className="text-slate-400">-</span>;
+                return <span className="text-slate-500 text-sm">{new Date(text).toLocaleString()}</span>;
+            }
         },
     ];
 
@@ -364,7 +333,9 @@ export function DevicesList() {
                 <Table
                     rowSelection={rowSelection}
                     columns={columns}
-                    dataSource={mockData}
+                    dataSource={devices}
+                    rowKey="id"
+                    loading={loading}
                     pagination={false}
                     className="custom-data-table"
                     rowClassName="hover:bg-slate-50 transition-colors cursor-pointer"
@@ -379,20 +350,20 @@ export function DevicesList() {
                 title={
                     <div className="flex items-center gap-3 pb-2">
                         <div className="w-10 h-10 rounded-lg bg-slate-100 flex items-center justify-center">
-                            {selectedDevice?.os === "macOS" ? (
+                            {selectedDevice?.platform?.toLowerCase() === "macos" ? (
                                 <Monitor className="w-5 h-5 text-slate-700" />
                             ) : (
                                 <Smartphone className="w-5 h-5 text-slate-700" />
                             )}
                         </div>
                         <div>
-                            <div className="font-bold text-slate-800 text-lg">{selectedDevice?.name}</div>
+                            <div className="font-bold text-slate-800 text-lg">{selectedDevice?.name || selectedDevice?.model || "Unknown Device"}</div>
                             <div className="text-xs text-slate-500 flex items-center gap-2">
-                                <span className={selectedDevice?.status === "online" ? "text-emerald-500 font-medium" : "text-slate-500"}>
-                                    ● {selectedDevice?.status === "online" ? "Online" : "Offline"}
+                                <span className={selectedDevice?.status?.toLowerCase() === "active" ? "text-emerald-500 font-medium" : "text-slate-500"}>
+                                    ● {selectedDevice?.status?.toUpperCase() || "UNKNOWN"}
                                 </span>
                                 <span>|</span>
-                                <span>Last seen: {selectedDevice?.lastSeen}</span>
+                                <span>Last seen: {selectedDevice?.last_seen ? new Date(selectedDevice.last_seen).toLocaleString() : "-"}</span>
                             </div>
                         </div>
                     </div>
@@ -425,34 +396,109 @@ export function DevicesList() {
                                     <div className="p-6 overflow-y-auto h-full scrollbar-hide space-y-6">
                                         <div className="bg-white rounded-xl border border-slate-200 p-5 shadow-sm">
                                             <h3 className="text-sm font-bold text-slate-800 uppercase tracking-wide mb-4 border-b border-slate-100 pb-2 flex items-center gap-2">
+                                                <AppWindow className="w-4 h-4 text-slate-600" /> Device Actions
+                                            </h3>
+                                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                                <Button 
+                                                    icon={<Lock className="w-4 h-4" />} 
+                                                    className="flex flex-col items-center justify-center h-20 text-slate-600 hover:text-[#de2a15] hover:border-[#de2a15] transition-colors"
+                                                    onClick={() => {
+                                                        Modal.confirm({
+                                                            title: 'Lock Device',
+                                                            content: 'Are you sure you want to remotely lock this device?',
+                                                            okText: 'Lock',
+                                                            okButtonProps: { danger: true },
+                                                            onOk: async () => {
+                                                                if(!selectedDevice?.id) return;
+                                                                try {
+                                                                    await deviceService.lockDevice(selectedDevice.id, { message: "Device locked by Admin" });
+                                                                    antdMessage.success("Lock command sent");
+                                                                } catch(e) { antdMessage.error("Failed to send command"); }
+                                                            }
+                                                        });
+                                                    }}
+                                                >
+                                                    <span className="mt-1 text-xs">Lock</span>
+                                                </Button>
+                                                <Button 
+                                                    icon={<Trash2 className="w-4 h-4" />} 
+                                                    danger
+                                                    className="flex flex-col items-center justify-center h-20"
+                                                    onClick={() => {
+                                                        Modal.confirm({
+                                                            title: 'Wipe Device',
+                                                            content: 'WARNING: This will factory reset the device. All data will be lost. Are you sure?',
+                                                            okText: 'Wipe',
+                                                            okButtonProps: { danger: true },
+                                                            onOk: async () => {
+                                                                if(!selectedDevice?.id) return;
+                                                                try {
+                                                                    await deviceService.wipeDevice(selectedDevice.id, {});
+                                                                    antdMessage.success("Wipe command sent");
+                                                                } catch(e) { antdMessage.error("Failed to send command"); }
+                                                            }
+                                                        });
+                                                    }}
+                                                >
+                                                    <span className="mt-1 text-xs">Wipe</span>
+                                                </Button>
+                                                <Button 
+                                                    icon={<Power className="w-4 h-4" />} 
+                                                    className="flex flex-col items-center justify-center h-20 text-slate-600 hover:text-orange-500 hover:border-orange-500 transition-colors"
+                                                    onClick={async () => {
+                                                        if(!selectedDevice?.id) return;
+                                                        try {
+                                                            await deviceService.restartDevice(selectedDevice.id);
+                                                            antdMessage.success("Restart command sent");
+                                                        } catch(e) { antdMessage.error("Failed to send command"); }
+                                                    }}
+                                                >
+                                                    <span className="mt-1 text-xs">Restart</span>
+                                                </Button>
+                                                <Button 
+                                                    icon={<PowerOff className="w-4 h-4" />} 
+                                                    className="flex flex-col items-center justify-center h-20 text-slate-600 hover:text-red-500 hover:border-red-500 transition-colors"
+                                                    onClick={async () => {
+                                                        if(!selectedDevice?.id) return;
+                                                        try {
+                                                            await deviceService.shutdownDevice(selectedDevice.id);
+                                                            antdMessage.success("Shutdown command sent");
+                                                        } catch(e) { antdMessage.error("Failed to send command"); }
+                                                    }}
+                                                >
+                                                    <span className="mt-1 text-xs">Shutdown</span>
+                                                </Button>
+                                            </div>
+                                        </div>
+                                        
+                                        <div className="bg-white rounded-xl border border-slate-200 p-5 shadow-sm">
+                                            <h3 className="text-sm font-bold text-slate-800 uppercase tracking-wide mb-4 border-b border-slate-100 pb-2 flex items-center gap-2">
                                                 <Apple className="w-4 h-4 text-slate-600" fill="currentColor" /> System Details
                                             </h3>
                                             <div className="grid grid-cols-2 gap-y-4 gap-x-6">
                                                 <div>
-                                                    <div className="text-xs text-slate-500 font-medium mb-1">Owner</div>
-                                                    <div className="text-sm text-slate-800 font-medium">{selectedDevice.owner}</div>
+                                                    <div className="text-xs text-slate-500 font-medium mb-1">Owner ID</div>
+                                                    <div className="text-sm text-slate-800 font-medium">{selectedDevice.owner_id || "-"}</div>
                                                 </div>
                                                 <div>
                                                     <div className="text-xs text-slate-500 font-medium mb-1">Enrollment Date</div>
-                                                    <div className="text-sm text-slate-800 font-medium">{selectedDevice.enrollmentDate}</div>
+                                                    <div className="text-sm text-slate-800 font-medium">{selectedDevice.enrolled_at ? new Date(selectedDevice.enrolled_at).toLocaleString() : "-"}</div>
                                                 </div>
                                                 <div>
                                                     <div className="text-xs text-slate-500 font-medium mb-1">Model</div>
-                                                    <div className="text-sm text-slate-800 font-medium">{selectedDevice.model}</div>
+                                                    <div className="text-sm text-slate-800 font-medium">{selectedDevice.model || "-"}</div>
                                                 </div>
                                                 <div>
                                                     <div className="text-xs text-slate-500 font-medium mb-1">OS Version</div>
-                                                    <div className="text-sm text-slate-800 font-medium">{selectedDevice.os} {selectedDevice.version}</div>
+                                                    <div className="text-sm text-slate-800 font-medium">{selectedDevice.platform} {selectedDevice.os_version}</div>
                                                 </div>
                                                 <div>
                                                     <div className="text-xs text-slate-500 font-medium mb-1">Serial Number</div>
-                                                    <div className="text-sm text-slate-800 font-mono">{selectedDevice.serialNumber}</div>
+                                                    <div className="text-sm text-slate-800 font-mono">{selectedDevice.serial_number || "-"}</div>
                                                 </div>
                                                 <div>
-                                                    <div className="text-xs text-slate-500 font-medium mb-1">Added By</div>
-                                                    <div className="flex items-center gap-1.5 text-sm text-slate-800 font-medium">
-                                                        <User className="w-3.5 h-3.5 text-slate-400" /> {selectedDevice.addedBy}
-                                                    </div>
+                                                    <div className="text-xs text-slate-500 font-medium mb-1">UDID</div>
+                                                    <div className="text-sm text-slate-800 font-mono text-[11px] truncate" title={selectedDevice.udid}>{selectedDevice.udid || "-"}</div>
                                                 </div>
                                             </div>
                                         </div>
@@ -465,33 +511,45 @@ export function DevicesList() {
                                                 <div>
                                                     <div className="text-xs text-slate-500 font-medium mb-1">Battery Level</div>
                                                     <div className="flex items-center gap-2">
-                                                        <Battery className={`w-4 h-4 ${selectedDevice.batteryPercent < 20 ? 'text-red-500' : selectedDevice.batteryPercent < 50 ? 'text-orange-500' : 'text-emerald-500'}`} />
-                                                        <span className="text-sm text-slate-800 font-medium">{selectedDevice.batteryPercent}%</span>
+                                                        <Battery className={`w-4 h-4 ${!selectedDevice.battery_level ? 'text-slate-400' : selectedDevice.battery_level < 0.2 ? 'text-red-500' : selectedDevice.battery_level < 0.5 ? 'text-orange-500' : 'text-emerald-500'}`} />
+                                                        <span className="text-sm text-slate-800 font-medium">{selectedDevice.battery_level ? Math.round(selectedDevice.battery_level * 100) + '%' : "-"}</span>
                                                     </div>
                                                 </div>
                                                 <div>
                                                     <div className="text-xs text-slate-500 font-medium mb-1">Storage</div>
                                                     <div className="text-sm text-slate-800 font-medium">
-                                                        {selectedDevice.availableMemory} free of {selectedDevice.totalMemory}
+                                                        {selectedDevice.storage_capacity && selectedDevice.storage_used 
+                                                            ? `${Math.round((selectedDevice.storage_capacity - selectedDevice.storage_used) / (1024*1024*1024))} GB free of ${Math.round(selectedDevice.storage_capacity / (1024*1024*1024))} GB`
+                                                            : "-"}
                                                     </div>
-                                                    <div className="w-full bg-slate-100 rounded-full h-1.5 mt-2">
-                                                        <div 
-                                                            className="bg-blue-500 h-1.5 rounded-full" 
-                                                            style={{ width: `${100 - (parseInt(selectedDevice.availableMemory) / parseInt(selectedDevice.totalMemory) * 100)}%` }}
-                                                        ></div>
-                                                    </div>
+                                                    {selectedDevice.storage_capacity && selectedDevice.storage_used && (
+                                                        <div className="w-full bg-slate-100 rounded-full h-1.5 mt-2">
+                                                            <div 
+                                                                className="bg-blue-500 h-1.5 rounded-full" 
+                                                                style={{ width: `${(selectedDevice.storage_used / selectedDevice.storage_capacity) * 100}%` }}
+                                                            ></div>
+                                                        </div>
+                                                    )}
                                                 </div>
                                             </div>
                                         </div>
                                         
                                         <div className="bg-white rounded-xl border border-slate-200 p-5 shadow-sm">
                                             <h3 className="text-sm font-bold text-slate-800 uppercase tracking-wide mb-4 border-b border-slate-100 pb-2 flex items-center gap-2">
-                                                <Wifi className="w-4 h-4 text-slate-600" /> Network
+                                                <Wifi className="w-4 h-4 text-slate-600" /> Network & Compliance
                                             </h3>
                                             <div className="grid grid-cols-2 gap-y-4 gap-x-6">
                                                 <div>
                                                     <div className="text-xs text-slate-500 font-medium mb-1">IP Address</div>
-                                                    <div className="text-sm text-slate-800 font-mono">{selectedDevice.ipAddress}</div>
+                                                    <div className="text-sm text-slate-800 font-mono">{selectedDevice.ip_address || "-"}</div>
+                                                </div>
+                                                <div>
+                                                    <div className="text-xs text-slate-500 font-medium mb-1">MAC Address</div>
+                                                    <div className="text-sm text-slate-800 font-mono">{selectedDevice.mac_address || "-"}</div>
+                                                </div>
+                                                <div>
+                                                    <div className="text-xs text-slate-500 font-medium mb-1">Compliance</div>
+                                                    <div className="text-sm text-slate-800 font-medium">{selectedDevice.compliance_status || "-"}</div>
                                                 </div>
                                             </div>
                                         </div>
@@ -511,10 +569,10 @@ export function DevicesList() {
                                         <div className="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm">
                                             <div className="px-5 py-4 border-b border-slate-200 bg-slate-50 flex items-center justify-between">
                                                 <h3 className="text-sm font-bold text-slate-800 uppercase tracking-wide m-0">Installed Profiles</h3>
-                                                <Tag className="m-0 bg-blue-50 text-blue-700 border-blue-200 font-medium">{selectedDevice.profiles.length} Profiles</Tag>
+                                                <Tag className="m-0 bg-blue-50 text-blue-700 border-blue-200 font-medium">{(selectedDevice as any).profiles?.length || 0} Profiles</Tag>
                                             </div>
                                             <div className="divide-y divide-slate-100">
-                                                {selectedDevice.profiles.map(profile => (
+                                                {(selectedDevice as any).profiles && (selectedDevice as any).profiles.length > 0 ? (selectedDevice as any).profiles.map((profile: any) => (
                                                     <div key={profile.id} className="p-4 flex items-center justify-between hover:bg-slate-50 transition-colors">
                                                         <div className="flex items-center gap-3">
                                                             <div className="w-8 h-8 rounded bg-slate-100 flex items-center justify-center border border-slate-200">
@@ -529,7 +587,11 @@ export function DevicesList() {
                                                             {profile.status.toUpperCase()}
                                                         </Tag>
                                                     </div>
-                                                ))}
+                                                )) : (
+                                                    <div className="p-6 text-center text-slate-500">
+                                                        No profiles installed on this device.
+                                                    </div>
+                                                )}
                                             </div>
                                         </div>
                                     </div>
@@ -598,13 +660,25 @@ export function DevicesList() {
             <Modal
                 title="Add Devices to Group"
                 open={isGroupModalVisible}
-                onOk={() => {
-                    setIsGroupModalVisible(false);
-                    // Add logic to save devices to group
+                onOk={async () => {
+                    if (!selectedGroupToAdd) {
+                        antdMessage.warning("Please select a group");
+                        return;
+                    }
+                    try {
+                        await deviceGroupService.addDevicesToGroup(selectedGroupToAdd, {
+                            device_ids: selectedRowKeys as string[]
+                        });
+                        antdMessage.success("Devices added to group successfully");
+                        setIsGroupModalVisible(false);
+                        setSelectedRowKeys([]);
+                    } catch (error) {
+                        antdMessage.error("Failed to add devices to group");
+                    }
                 }}
                 onCancel={() => setIsGroupModalVisible(false)}
                 okText="Add to Group"
-                okButtonProps={{ className: "bg-[#de2a15] hover:bg-[#c22412]" }}
+                okButtonProps={{ className: "bg-[#de2a15] hover:bg-[#c22412]", disabled: !selectedGroupToAdd }}
             >
                 <div className="py-4">
                     <p className="mb-4 text-slate-600">
@@ -613,11 +687,8 @@ export function DevicesList() {
                     <Select
                         className="w-full"
                         placeholder="Select a group"
-                        options={[
-                            { value: 'g1', label: 'Executive Team' },
-                            { value: 'g2', label: 'Development Team' },
-                            { value: 'g3', label: 'Marketing Department' }
-                        ]}
+                        onChange={(val) => setSelectedGroupToAdd(val)}
+                        options={groups.map(g => ({ value: g.id, label: g.name }))}
                     />
                 </div>
             </Modal>
@@ -626,13 +697,26 @@ export function DevicesList() {
             <Modal
                 title="Assign Configuration Profile"
                 open={isProfileModalVisible}
-                onOk={() => {
-                    setIsProfileModalVisible(false);
-                    // Add logic to assign profile
+                onOk={async () => {
+                    if (!selectedProfileToAdd) {
+                        antdMessage.warning("Please select a profile");
+                        return;
+                    }
+                    try {
+                        // Iterate through selected devices and assign profile
+                        for (const deviceId of selectedRowKeys) {
+                            await deviceService.installProfile(deviceId as string, selectedProfileToAdd);
+                        }
+                        antdMessage.success("Profiles assigned successfully");
+                        setIsProfileModalVisible(false);
+                        setSelectedRowKeys([]);
+                    } catch (error) {
+                        antdMessage.error("Failed to assign profile");
+                    }
                 }}
                 onCancel={() => setIsProfileModalVisible(false)}
                 okText="Assign Profile"
-                okButtonProps={{ className: "bg-[#de2a15] hover:bg-[#c22412]" }}
+                okButtonProps={{ className: "bg-[#de2a15] hover:bg-[#c22412]", disabled: !selectedProfileToAdd }}
             >
                 <div className="py-4">
                     <p className="mb-4 text-slate-600">
@@ -641,12 +725,13 @@ export function DevicesList() {
                     <Select
                         className="w-full"
                         placeholder="Select a profile"
+                        onChange={(val) => setSelectedProfileToAdd(val)}
                         options={[
-                            { value: 'p1', label: 'Allow SOTI MobiControl' },
-                            { value: 'p2', label: 'Corporate Wi-Fi' },
-                            { value: 'p3', label: 'Disable Camera' },
-                            { value: 'p4', label: 'Developer Tools Config' },
-                            { value: 'p5', label: 'Executive VPN' }
+                            { value: 1, label: 'Allow SOTI MobiControl' },
+                            { value: 2, label: 'Corporate Wi-Fi' },
+                            { value: 3, label: 'Disable Camera' },
+                            { value: 4, label: 'Developer Tools Config' },
+                            { value: 5, label: 'Executive VPN' }
                         ]}
                     />
                 </div>

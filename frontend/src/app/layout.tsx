@@ -1,6 +1,6 @@
+import React, { Suspense } from "react";
 import { Metadata } from "next";
 import { cookies } from "next/headers";
-import React from "react";
 import { Montserrat } from "next/font/google";
 
 import { AppProvider } from "@providers/app-provider";

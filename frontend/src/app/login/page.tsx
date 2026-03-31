@@ -45,7 +45,7 @@ export default function LoginPage() {
 
     if (isMockEnabled) {
       if (email === mockEmail && password === mockPassword) {
-        router.push('/dashboard');
+        window.location.href = '/dashboard';
         return;
       }
 

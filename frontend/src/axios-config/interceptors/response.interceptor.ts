@@ -75,6 +75,12 @@ export const responseInterceptor = (
                 // Set flag to prevent multiple redirects
                 isRedirecting = true;
                 toast.error("Phiên đăng nhập hết hạn. Vui lòng đăng nhập lại!");
+                // Clear tokens completely before redirecting
+                if (typeof window !== 'undefined') {
+                    localStorage.removeItem('access_token');
+                    localStorage.removeItem('refresh_token');
+                    localStorage.removeItem('auth_token');
+                }
                 // Use replace instead of href to prevent history pollution
                 window.location.replace("/login");
                 return Promise.reject(createErrorResponse(error));

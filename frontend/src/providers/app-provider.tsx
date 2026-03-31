@@ -5,7 +5,7 @@ import { Refine } from "@refinedev/core";
 import { RefineKbar, RefineKbarProvider } from "@refinedev/kbar";
 import routerProvider from "@refinedev/nextjs-router";
 import { AntdRegistry } from "@ant-design/nextjs-registry";
-import { ConfigProvider, theme as antdTheme } from "antd";
+import { ConfigProvider, theme as antdTheme, App as AntdApp } from "antd";
 import viVN from "antd/locale/vi_VN";
 
 import { ColorModeContextProvider } from "@contexts/color-mode";
@@ -35,68 +35,70 @@ export function AppProvider({
                     <HeroUIProvider>
                         <Suspense fallback={<FullPageLoader />}>
                             <LoadingProvider>
-                            <ConfigProvider
-                                locale={viVN}
-                                theme={{
-                                    algorithm:
-                                        defaultColorMode === "dark"
-                                            ? antdTheme.darkAlgorithm
-                                            : antdTheme.defaultAlgorithm,
-                                    token: {
-                                        // THD Brand Colors
-                                        colorPrimary: "#1890ff",
-                                        colorSuccess: "#52c41a",
-                                        colorWarning: "#faad14",
-                                        colorError: "#ff4d4f",
-                                        colorInfo: "#1890ff",
-                                        borderRadius: 6,
-                                        fontFamily: "Inter, system-ui, sans-serif",
-                                    },
-                                    components: {
-                                        Button: {
+                                <ConfigProvider
+                                    locale={viVN}
+                                    theme={{
+                                        algorithm:
+                                            defaultColorMode === "dark"
+                                                ? antdTheme.darkAlgorithm
+                                                : antdTheme.defaultAlgorithm,
+                                        token: {
+                                            // THD Brand Colors
+                                            colorPrimary: "#1890ff",
+                                            colorSuccess: "#52c41a",
+                                            colorWarning: "#faad14",
+                                            colorError: "#ff4d4f",
+                                            colorInfo: "#1890ff",
                                             borderRadius: 6,
+                                            fontFamily: "Inter, system-ui, sans-serif",
                                         },
-                                        Card: {
-                                            borderRadius: 8,
+                                        components: {
+                                            Button: {
+                                                borderRadius: 6,
+                                            },
+                                            Card: {
+                                                borderRadius: 8,
+                                            },
+                                            Table: {
+                                                borderRadius: 8,
+                                            },
+                                            Modal: {
+                                                borderRadius: 8,
+                                            },
                                         },
-                                        Table: {
-                                            borderRadius: 8,
-                                        },
-                                        Modal: {
-                                            borderRadius: 8,
-                                        },
-                                    },
-                                }}
-                            >
-                                <DevtoolsProvider>
-                                    <Refine
-                                        routerProvider={routerProvider}
-                                        dataProvider={dataProvider}
-                                        notificationProvider={sonnerNotificationProvider}
-                                        i18nProvider={i18nProvider}
-                                        authProvider={authProviderClient}
-                                        resources={resources}
-                                        options={{
-                                            syncWithLocation: true,
-                                            warnWhenUnsavedChanges: true,
-                                            projectId: "45Om88-hpfu3D-qlH1I2",
-                                            reactQuery: {
-                                                clientConfig: {
-                                                    defaultOptions: {
-                                                        queries: {
-                                                            retry: false, // Disable auto-retry, let user retry via UI button
-                                                            refetchOnWindowFocus: false,
+                                    }}
+                                >
+                                    <AntdApp>
+                                        <DevtoolsProvider>
+                                            <Refine
+                                                routerProvider={routerProvider}
+                                                dataProvider={dataProvider}
+                                                notificationProvider={sonnerNotificationProvider}
+                                                i18nProvider={i18nProvider}
+                                                authProvider={authProviderClient}
+                                                resources={resources}
+                                                options={{
+                                                    syncWithLocation: true,
+                                                    warnWhenUnsavedChanges: true,
+                                                    projectId: "45Om88-hpfu3D-qlH1I2",
+                                                    reactQuery: {
+                                                        clientConfig: {
+                                                            defaultOptions: {
+                                                                queries: {
+                                                                    retry: false, // Disable auto-retry, let user retry via UI button
+                                                                    refetchOnWindowFocus: false,
+                                                                },
+                                                            },
                                                         },
                                                     },
-                                                },
-                                            },
-                                        }}
-                                    >
-                                        {children}
-                                        <RefineKbar />
-                                    </Refine>
-                                </DevtoolsProvider>
-                            </ConfigProvider>
+                                                }}
+                                            >
+                                                {children}
+                                                <RefineKbar />
+                                            </Refine>
+                                        </DevtoolsProvider>
+                                    </AntdApp>
+                                </ConfigProvider>
                         </LoadingProvider>
                     </Suspense>
                 </HeroUIProvider>
