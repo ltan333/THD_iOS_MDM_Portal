@@ -627,7 +627,7 @@ func (s *nanomdmServiceImpl) ReloadDEPSyncer(ctx context.Context) error {
 			fmt.Sprintf("failed to send SIGHUP to DEP syncer container: %v", err),
 		)
 	}
-	defer resp.Body.Close()
+	defer resp.Body.Close() //nolint:errcheck
 
 	if resp.StatusCode == http.StatusNoContent || resp.StatusCode == http.StatusOK {
 		return nil

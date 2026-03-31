@@ -480,7 +480,7 @@ func (h *nanocmdHandler) forwardToNanoCMD(payload []byte, originalHeaders http.H
 		tlog.Error("Failed to forward webhook to NanoCMD", zap.String("url", url), zap.Error(err))
 		return
 	}
-	defer resp.Body.Close()
+	defer resp.Body.Close() //nolint:errcheck
 
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
 		tlog.Warn("NanoCMD returned non-OK status for forwarded webhook",

@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"path/filepath"
 	"strconv"
 	"strings"
 
@@ -22,11 +21,6 @@ import (
 // This file is an aggregate index and is never a payload definition document.
 func isProfileSpecificFile(name string) bool {
 	return strings.Contains(strings.ToLower(name), "profile-specific-payload-keys")
-}
-
-// normalizeFileName returns a lowercase, base-name-only key used as the key in a fileMap.
-func normalizeFileName(name string) string {
-	return strings.ToLower(filepath.Base(name))
 }
 
 type payloadPropertyDefinitionServiceImpl struct {

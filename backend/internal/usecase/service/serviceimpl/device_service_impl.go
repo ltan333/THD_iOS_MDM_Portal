@@ -424,13 +424,6 @@ func stringFromCheckin(payload *dto.NanoCMDWebhook, key string) string {
 	return ""
 }
 
-func nilIfEmpty(s string) *string {
-	if s == "" {
-		return nil
-	}
-	return &s
-}
-
 func boolToString(b bool) string {
 	if b {
 		return "true"
