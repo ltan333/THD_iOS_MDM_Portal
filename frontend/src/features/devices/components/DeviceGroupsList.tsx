@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useState } from "react";
-import { Table, Input, Button, Tag, Drawer, Select, Dropdown, MenuProps, Modal, Form } from "antd";
+import React, { useState, useEffect, useCallback } from "react";
+import { Table, Input, Button, Tag, Drawer, Select, Dropdown, MenuProps, Modal, Form, message, App } from "antd";
 import { 
     Search, 
     Plus, 
@@ -11,80 +11,108 @@ import {
     ChevronDown,
     MoreVertical,
     FolderOpen,
-    FolderPlus,
     FilePlus2,
-    Trash2,
-    Settings
+    Trash2
 } from "lucide-react";
 import type { ColumnsType } from "antd/es/table";
-
-interface Device {
-    id: string;
-    name: string;
-    os: "iOS" | "iPadOS" | "macOS";
-    model: string;
-    status: "online" | "offline";
-    lastSeen: string;
-}
-
-interface DeviceGroup {
-    id: string;
-    name: string;
-    description: string;
-    deviceCount: number;
-    createdDate: string;
-    devices: Device[];
-}
-
-const mockGroups: DeviceGroup[] = [
-    {
-        id: "g1",
-        name: "Executive Team",
-        description: "Devices belonging to the executive team",
-        deviceCount: 2,
-        createdDate: "2026-01-15",
-        devices: [
-            { id: "d1", name: "CEO's iPhone", os: "iOS", model: "iPhone 16", status: "online", lastSeen: "2026-03-26 02:30 PM" },
-            { id: "d2", name: "CEO's iPad", os: "iPadOS", model: "iPad Pro 13-inch", status: "offline", lastSeen: "2026-03-25 10:15 AM" }
-        ]
-    },
-    {
-        id: "g2",
-        name: "Development Team",
-        description: "All devices used by developers",
-        deviceCount: 3,
-        createdDate: "2026-02-10",
-        devices: [
-            { id: "d3", name: "Dev MacBook Pro", os: "macOS", model: "MacBook Pro 14-inch", status: "online", lastSeen: "2026-03-26 09:15 AM" },
-            { id: "d4", name: "Test iPhone 15", os: "iOS", model: "iPhone 15", status: "online", lastSeen: "2026-03-26 11:45 AM" },
-            { id: "d5", name: "Test iPad", os: "iPadOS", model: "iPad Air", status: "online", lastSeen: "2026-03-26 08:30 AM" }
-        ]
-    },
-    {
-        id: "g3",
-        name: "Marketing Department",
-        description: "Devices for marketing staff",
-        deviceCount: 1,
-        createdDate: "2026-03-05",
-        devices: [
-            { id: "d6", name: "Marketing iPad", os: "iPadOS", model: "iPad Pro 11-inch", status: "offline", lastSeen: "2026-03-25 04:12 PM" }
-        ]
-    }
-];
+import { deviceGroupService } from "@/services/device-group.service";
+import { DeviceGroupResponse } from "@/types/device-group.type";
+import { DeviceResponse } from "@/types/device.type";
+import dayjs from "dayjs";
 
 export function DeviceGroupsList() {
-    const [selectedGroup, setSelectedGroup] = useState<DeviceGroup | null>(null);
+    const { message: antdMessage, modal } = App.useApp();
+    const [groups, setGroups] = useState<DeviceGroupResponse[]>([]);
+    const [loading, setLoading] = useState(false);
+    const [selectedGroup, setSelectedGroup] = useState<DeviceGroupResponse | null>(null);
     const [isDrawerVisible, setIsDrawerVisible] = useState(false);
     const [isCreateModalVisible, setIsCreateModalVisible] = useState(false);
     const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
+    const [searchQuery, setSearchQuery] = useState("");
     const [form] = Form.useForm();
 
-    const handleGroupClick = (group: DeviceGroup) => {
-        setSelectedGroup(group);
-        setIsDrawerVisible(true);
+    const fetchGroups = useCallback(async () => {
+        try {
+            setLoading(true);
+            const response = await deviceGroupService.getGroups({ search: searchQuery });
+            if (response.is_success) {
+                setGroups(response.data.items || []);
+            } else {
+                antdMessage.error(response.message || "Failed to fetch device groups");
+            }
+        } catch (error) {
+            console.error("Fetch groups error:", error);
+            antdMessage.error("An error occurred while fetching device groups");
+        } finally {
+            setLoading(false);
+        }
+    }, [searchQuery, antdMessage]);
+
+    useEffect(() => {
+        fetchGroups();
+    }, [fetchGroups]);
+
+    const handleGroupClick = async (group: DeviceGroupResponse) => {
+        try {
+            // Fetch detail to get devices in group
+            const response = await deviceGroupService.getGroupById(group.id);
+            if (response.is_success) {
+                setSelectedGroup(response.data);
+                setIsDrawerVisible(true);
+            } else {
+                antdMessage.error(response.message || "Failed to fetch group details");
+            }
+        } catch (error) {
+            console.error("Fetch group detail error:", error);
+            antdMessage.error("An error occurred while fetching group details");
+        }
     };
 
-    const columns: ColumnsType<DeviceGroup> = [
+    const handleDeleteGroup = async (groupId: number) => {
+        try {
+            console.log("Calling delete API for group ID:", groupId);
+            const response = await deviceGroupService.deleteGroup(groupId);
+            
+            // Log response for debugging
+            console.log("Delete response:", response);
+
+            // Delete group API does not always return standard response structure
+            // If the call succeeds without throwing, we can assume it worked.
+            antdMessage.success("Group deleted successfully");
+            fetchGroups();
+            return true;
+        } catch (error: any) {
+            console.error("Delete group error details:", error);
+            // Some backends return success responses inside catch if status is 200 but parsing fails
+            if (error?.response?.status === 200 || error?.response?.status === 204) {
+                antdMessage.success("Group deleted successfully");
+                fetchGroups();
+                return true;
+            } else {
+                antdMessage.error(error?.response?.data?.message || "Failed to delete group");
+                return false;
+            }
+        }
+    };
+
+    const handleCreateGroup = async (values: { name: string; description?: string }) => {
+        try {
+            const response = await deviceGroupService.createGroup(values);
+            if (response.is_success) {
+                antdMessage.success("Group created successfully");
+                setIsCreateModalVisible(false);
+                form.resetFields();
+                fetchGroups();
+            } else {
+                antdMessage.error(response.message || "Failed to create group");
+            }
+        } catch (error) {
+            console.error("Create group error:", error);
+            antdMessage.error("An error occurred while creating group");
+        }
+    };
+
+    const columns: ColumnsType<DeviceGroupResponse> = [
         {
             title: "GROUP NAME",
             dataIndex: "name",
@@ -112,20 +140,20 @@ export function DeviceGroupsList() {
         },
         {
             title: "TOTAL DEVICES",
-            dataIndex: "deviceCount",
-            key: "deviceCount",
+            dataIndex: "device_count",
+            key: "device_count",
             render: (count) => (
                 <div className="flex items-center gap-2">
                     <Users className="w-4 h-4 text-slate-400" />
-                    <span className="font-medium text-slate-700">{count} devices</span>
+                    <span className="font-medium text-slate-700">{count || 0} devices</span>
                 </div>
             ),
         },
         {
             title: "CREATED DATE",
-            dataIndex: "createdDate",
-            key: "createdDate",
-            render: (date) => <span className="text-slate-600">{date}</span>,
+            dataIndex: "created_at",
+            key: "created_at",
+            render: (date) => <span className="text-slate-600">{date ? dayjs(date).format("YYYY-MM-DD HH:mm") : "-"}</span>,
         },
         {
             title: "ACTIONS",
@@ -137,7 +165,10 @@ export function DeviceGroupsList() {
                         key: 'assign-profile',
                         icon: <FilePlus2 className="w-4 h-4" />,
                         label: 'Assign Profile',
-                        onClick: () => console.log('Assign profile to group', record.id)
+                        onClick: (e) => {
+                            e.domEvent.stopPropagation();
+                            console.log('Assign profile to group', record.id);
+                        }
                     },
                     {
                         type: 'divider',
@@ -146,29 +177,47 @@ export function DeviceGroupsList() {
                         key: 'delete-group',
                         icon: <Trash2 className="w-4 h-4 text-red-500" />,
                         label: <span className="text-red-500">Delete Group</span>,
-                        onClick: () => {
-                            Modal.confirm({
-                                title: 'Delete Device Group',
-                                content: `Are you sure you want to delete the group "${record.name}"? Devices in this group will not be deleted.`,
-                                okText: 'Delete',
-                                okType: 'danger',
-                                cancelText: 'Cancel',
-                                onOk: () => console.log('Delete group:', record.id)
-                            });
+                        onClick: (e) => {
+                            e.domEvent.stopPropagation();
+                            
+                            // Sử dụng setTimeout để đảm bảo Dropdown đóng trước khi hiện Modal
+                            // và tránh xung đột event loop
+                            setTimeout(() => {
+                                modal.confirm({
+                                    title: 'Delete Device Group',
+                                    content: `Are you sure you want to delete the group "${record.name}"? Devices in this group will not be deleted.`,
+                                    okText: 'Delete',
+                                    okType: 'danger',
+                                    cancelText: 'Cancel',
+                                    onOk: () => {
+                                        return new Promise<void>((resolve) => {
+                                            handleDeleteGroup(record.id).then(() => {
+                                                resolve();
+                                            }).catch(() => {
+                                                resolve();
+                                            });
+                                        });
+                                    }
+                                });
+                            }, 10);
                         }
                     }
                 ];
 
                 return (
                     <Dropdown menu={{ items: actionMenu }} trigger={['click']} placement="bottomRight">
-                        <Button type="text" icon={<MoreVertical className="w-4 h-4 text-slate-500" />} />
+                        <Button 
+                            type="text" 
+                            icon={<MoreVertical className="w-4 h-4 text-slate-500" />} 
+                            onClick={(e) => e.stopPropagation()}
+                        />
                     </Dropdown>
                 );
             },
         }
     ];
 
-    const deviceColumns: ColumnsType<Device> = [
+    const deviceColumns: ColumnsType<DeviceResponse> = [
         {
             title: "DEVICE",
             dataIndex: "name",
@@ -176,15 +225,15 @@ export function DeviceGroupsList() {
             render: (text, record) => (
                 <div className="flex items-center gap-3">
                     <div className="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center">
-                        {record.os === "macOS" ? (
+                        {record.platform?.toLowerCase() === "macos" ? (
                             <Monitor className="w-4 h-4 text-slate-600" />
                         ) : (
                             <Smartphone className="w-4 h-4 text-slate-600" />
                         )}
                     </div>
                     <div className="flex flex-col">
-                        <span className="font-medium text-slate-800">{text}</span>
-                        <span className="text-xs text-slate-500">{record.model}</span>
+                        <span className="font-medium text-slate-800">{text || record.model || "Unknown Device"}</span>
+                        <span className="text-xs text-slate-500">{record.model || "Unknown Model"}</span>
                     </div>
                 </div>
             ),
@@ -194,8 +243,8 @@ export function DeviceGroupsList() {
             dataIndex: "status",
             key: "status",
             render: (status) => (
-                <Tag color={status === "online" ? "success" : "default"} className="rounded-full px-2">
-                    {status.toUpperCase()}
+                <Tag color={status?.toLowerCase() === "active" ? "success" : "default"} className="rounded-full px-2">
+                    {status?.toUpperCase() || "UNKNOWN"}
                 </Tag>
             ),
         }
@@ -227,11 +276,15 @@ export function DeviceGroupsList() {
                     <div className="flex group">
                         <Input
                             placeholder="Search group name..."
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            onPressEnter={() => fetchGroups()}
                             prefix={<Search className="w-4 h-4 text-slate-400 group-hover:text-current transition-colors" />}
                             className="w-64 h-8 rounded-r-none border-r-0 hover:border-[#de2a15] focus:border-[#de2a15] focus:shadow-none transition-colors"
                         />
                         <Button 
                             type="primary" 
+                            onClick={() => fetchGroups()}
                             className="bg-[#de2a15] hover:bg-[#c22412] rounded-l-none h-8 w-10 px-0 flex items-center justify-center border-none shadow-sm transition-colors"
                             icon={<Search className="w-4 h-4 text-white" strokeWidth={2.5} />}
                         />
@@ -252,7 +305,7 @@ export function DeviceGroupsList() {
             <div className="flex items-center justify-between px-4 py-3 bg-slate-50 border-b border-slate-200 z-10">
                 <div className="flex items-center gap-4 text-sm text-slate-600">
                     <span className="font-bold text-slate-800 tracking-wide uppercase">
-                        DEVICE GROUPS <span className="font-normal text-slate-500">(1 - 3 of 3)</span>
+                        DEVICE GROUPS <span className="font-normal text-slate-500">(1 - {groups.length} of {groups.length})</span>
                     </span>
                 </div>
 
@@ -275,7 +328,8 @@ export function DeviceGroupsList() {
                 <Table
                     rowSelection={rowSelection}
                     columns={columns}
-                    dataSource={mockGroups}
+                    dataSource={groups}
+                    loading={loading}
                     pagination={false}
                     rowKey="id"
                     className="custom-data-table"
@@ -304,7 +358,7 @@ export function DeviceGroupsList() {
                         <div>
                             <div className="font-bold text-slate-800 text-lg">{selectedGroup?.name}</div>
                             <div className="text-xs text-slate-500">
-                                Created on: {selectedGroup?.createdDate} • {selectedGroup?.deviceCount} devices
+                                Created on: {selectedGroup?.created_at ? dayjs(selectedGroup.created_at).format("YYYY-MM-DD") : "-"} • {selectedGroup?.device_count || 0} devices
                             </div>
                         </div>
                     </div>
@@ -345,9 +399,7 @@ export function DeviceGroupsList() {
                 open={isCreateModalVisible}
                 onOk={() => {
                     form.validateFields().then(values => {
-                        console.log('Create group:', values);
-                        setIsCreateModalVisible(false);
-                        form.resetFields();
+                        handleCreateGroup(values);
                     });
                 }}
                 onCancel={() => {

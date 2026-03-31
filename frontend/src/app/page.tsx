@@ -1,15 +1,22 @@
 "use client";
 
-import { Suspense } from "react";
-
+import { Suspense, useEffect } from "react";
 import { Authenticated } from "@refinedev/core";
-import { NavigateToResource } from "@refinedev/nextjs-router";
+import { useRouter } from "next/navigation";
+
+function RedirectToDashboard() {
+  const router = useRouter();
+  useEffect(() => {
+    router.replace("/dashboard");
+  }, [router]);
+  return null;
+}
 
 export default function IndexPage() {
   return (
     <Suspense>
       <Authenticated key="home-page">
-        <NavigateToResource />
+        <RedirectToDashboard />
       </Authenticated>
     </Suspense>
   );

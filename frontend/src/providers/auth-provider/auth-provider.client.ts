@@ -318,7 +318,8 @@ export const authProviderClient = {
     }
 
     // Nếu không có token, chặn luôn không cần gọi API (vì Bearer Auth yêu cầu token)
-    if (!tokenManager.getAccessToken() && process.env.NEXT_PUBLIC_MOCK_LOGIN_ENABLED !== "true") {
+    const token = tokenManager.getAccessToken();
+    if (!token && process.env.NEXT_PUBLIC_MOCK_LOGIN_ENABLED !== "true") {
        return {
          authenticated: false,
          redirectTo: "/login",
@@ -330,27 +331,37 @@ export const authProviderClient = {
         return { authenticated: true };
       }
 
-      // Khôi phục lại gọi API thật
+      // Vẫn cho phép pass bước check của Refine nếu có token local.
+      // Việc token thực sự sống hay chết sẽ do Axios interceptor bắt lỗi 401
+      // Nếu 401, nó sẽ gọi authProviderClient.onError -> xóa token -> logout.
+      
+      // We will perform a quick /auth/me call ONLY to verify the token is truly valid
+      // But we will catch and ignore network errors to prevent infinite loops during routing
       const response = await get<ResponseAPI<UserResponse>>(AUTH_CONFIG.ME_ENDPOINT);
-
-      if (response && response.is_success && response.data) {
-        return { 
+      
+      if (response && response.is_success) {
+        return {
           authenticated: true,
-          // Refine auth check often expects identity to be attached to decide roles,
-          // though typically roles are checked separately via getPermissions.
-          // Including this can help if a guard checks the response of `check`.
-          role: response.data.role
+          role: (response.data as any).user?.role || response.data?.role
         };
       }
-
+      
       return {
         authenticated: false,
-        redirectTo: "/login",
+        redirectTo: "/login"
       };
-    } catch {
+
+    } catch (error: any) {
+      // If error is strictly 401 (Unauthorized), the token is dead
+      if (error?.response?.status === 401) {
+        return {
+          authenticated: false,
+          redirectTo: "/login",
+        };
+      }
+      // For network errors, timeouts, or aborted requests, assume authenticated to prevent loop
       return {
-        authenticated: false,
-        redirectTo: "/login",
+        authenticated: true,
       };
     }
   },
@@ -362,7 +373,7 @@ export const authProviderClient = {
   getPermissions: async () => {
     try {
       const response = await get<ResponseAPI<UserResponse>>(AUTH_CONFIG.ME_ENDPOINT);
-      return response.data?.role || null;
+      return (response.data as any)?.user?.role || response.data?.role || null;
     } catch {
       return null;
     }
