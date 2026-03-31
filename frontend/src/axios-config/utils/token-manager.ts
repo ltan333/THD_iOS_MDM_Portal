@@ -65,6 +65,7 @@ class TokenManager {
     // Clear localStorage
     if (typeof window !== "undefined") {
       localStorage.removeItem("user_ifo");
+      localStorage.removeItem("auth_token");
     }
   }
 

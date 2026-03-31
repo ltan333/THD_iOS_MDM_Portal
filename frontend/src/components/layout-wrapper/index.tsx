@@ -18,7 +18,7 @@ export function LayoutWrapper({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     // Check authentication status using standard token manager
-    const token = tokenManager.getAccessToken() || localStorage.getItem('auth_token');
+    const token = tokenManager.getAccessToken();
     
     if (!token && !isLoginPage) {
       router.push('/login');
