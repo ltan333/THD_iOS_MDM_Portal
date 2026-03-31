@@ -26,11 +26,10 @@ type nanomdmServiceImpl struct {
 	mdmPassword        string
 	depUsername        string
 	depPassword        string
-	sudoPassword       string
 	depSyncerContainer string
 }
 
-func NewNanoMDMService(mdmBaseURL, depBaseURL, mdmUser, mdmPass, depUser, depPass, sudoPassword, depSyncerContainer string) service.NanoMDMService {
+func NewNanoMDMService(mdmBaseURL, depBaseURL, mdmUser, mdmPass, depUser, depPass, depSyncerContainer string) service.NanoMDMService {
 	return &nanomdmServiceImpl{
 		client:             httpclient.DefaultClient(),
 		mdmBaseURL:         strings.TrimSuffix(mdmBaseURL, "/"),
@@ -39,7 +38,6 @@ func NewNanoMDMService(mdmBaseURL, depBaseURL, mdmUser, mdmPass, depUser, depPas
 		mdmPassword:        mdmPass,
 		depUsername:        depUser,
 		depPassword:        depPass,
-		sudoPassword:       sudoPassword,
 		depSyncerContainer: depSyncerContainer,
 	}
 }

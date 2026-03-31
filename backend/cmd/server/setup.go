@@ -77,7 +77,6 @@ func setupDependencies(cfg *config.Config) *gin.Engine {
 		cfg.NanoMDM.MDMPassword,
 		cfg.NanoMDM.DEPUsername,
 		cfg.NanoMDM.DEPPassword,
-		cfg.NanoMDM.SudoPassword,
 		cfg.NanoMDM.DEPSyncerContainer,
 	)
 	mobileConfigService := serviceimpl.NewMobileConfigService(mobileConfigRepo)
