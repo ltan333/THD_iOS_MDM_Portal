@@ -85,6 +85,7 @@ type NanoMDMConfig struct {
 	DEPPassword        string `env:"NANODEP_PASSWORD"`
 	SudoPassword       string `env:"SUDO_PASSWORD"`
 	DEPSyncerContainer string `env:"NANODEP_SYNCER_CONTAINER_NAME"`
+	DEPServerName      string `env:"DEP_SERVER_NAME" env-default:"mdm-dep-server"`
 }
 
 // SeedConfig holds default user seeding configuration

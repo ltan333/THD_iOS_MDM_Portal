@@ -13,6 +13,7 @@ type NanoMDMService interface {
 	SyncDEPDevices(ctx context.Context, depName string, cursor string) (any, error)
 	DisownDEPDevices(ctx context.Context, depName string, devices []string) (any, error)
 	UploadDEPToken(ctx context.Context, depName string, tokenData []byte) (any, error)
+	AssignDEPProfile(ctx context.Context, depName, profileUUID string, serials []string) (map[string]string, error)
 
 	// New methods from apidog / NanoDEP spec
 	ListDEPNames(ctx context.Context, depNames []string, limit, offset int, cursor string) (*dto.DEPNamesQueryResponse, error)

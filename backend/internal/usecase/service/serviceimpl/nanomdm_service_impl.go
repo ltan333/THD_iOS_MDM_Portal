@@ -165,6 +165,25 @@ func (s *nanomdmServiceImpl) DisownDEPDevices(ctx context.Context, depName strin
 	return result, nil
 }
 
+// AssignDEPProfile assigns a DEP profile to the given device serials.
+// Returns a map of serial -> result (e.g., "SUCCESS", "NOT_ACCESSIBLE", "FAILED").
+func (s *nanomdmServiceImpl) AssignDEPProfile(ctx context.Context, depName, profileUUID string, serials []string) (map[string]string, error) {
+	body := dto.DEPProfileAssignRequest{
+		ProfileUUID: profileUUID,
+		Devices:     serials,
+	}
+	resp, err := s.doRequest(ctx, http.MethodPost, s.depBaseURL, fmt.Sprintf("/proxy/%s/profile/devices", depName), body, nil, s.depUsername, s.depPassword)
+	if err != nil {
+		return nil, err
+	}
+
+	var result dto.DEPProfileAssignResponse
+	if err := s.handleResponse(resp, &result); err != nil {
+		return nil, err
+	}
+	return result.Devices, nil
+}
+
 func (s *nanomdmServiceImpl) UploadDEPToken(ctx context.Context, depName string, tokenData []byte) (any, error) {
 	// Custom request to set proper Content-Type for PKCS7 data
 	u, err := url.Parse(fmt.Sprintf("%s/v1/tokenpki/%s", s.depBaseURL, depName))

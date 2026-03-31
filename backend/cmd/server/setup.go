@@ -121,7 +121,7 @@ func setupDependencies(cfg *config.Config) *gin.Engine {
 	authHandler := handler.NewAuthHandler(authService, userService, authzService)
 	userHandler := handler.NewUserHandler(userService, authzService)
 	policyHandler := handler.NewPolicyHandler(authzService)
-	nanocmdHandler := handler.NewNanoCMDHandler(nanocmdService, deviceService, cfg)
+	nanocmdHandler := handler.NewNanoCMDHandler(nanocmdService, deviceService, nanomdmService, cfg)
 	mobileConfigHandler := handler.NewMobileConfigHandler(mobileConfigService)
 	dashboardHandler := handler.NewDashboardHandler(dashboardService)
 	deviceHandler := handler.NewDeviceHandler(deviceService, nanomdmService, profileService, cmdBuilder)
@@ -130,7 +130,7 @@ func setupDependencies(cfg *config.Config) *gin.Engine {
 	applicationHandler := handler.NewApplicationHandler(applicationService)
 	alertHandler := handler.NewAlertHandler(alertService, alertRuleService)
 	reportHandler := handler.NewReportHandler(reportService)
-	settingHandler := handler.NewSettingHandler(settingService)
+	settingHandler := handler.NewSettingHandler(settingService, nanomdmService)
 	payloadPropertyDefinitionHandler := handler.NewPayloadPropertyDefinitionHandler(payloadPropertyDefinitionService)
 
 	// Build router

@@ -378,6 +378,7 @@ func (r *routeRegister) registerSettingRoutes(rg *gin.RouterGroup) {
 		settings.GET("/:key", r.setting.GetByKey)
 		settings.PUT("/:key", r.setting.Update)
 		settings.DELETE("/:key", r.setting.Delete)
+		settings.POST("/dep-syncer/reload", r.setting.ReloadDEPSyncer)
 	}
 }
 

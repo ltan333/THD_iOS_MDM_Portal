@@ -16,14 +16,19 @@ type SettingHandler interface {
 	Create(c *gin.Context)
 	Update(c *gin.Context)
 	Delete(c *gin.Context)
+	ReloadDEPSyncer(c *gin.Context)
 }
 
 type settingHandlerImpl struct {
 	settingService service.SettingService
+	nanomdmService service.NanoMDMService
 }
 
-func NewSettingHandler(settingService service.SettingService) SettingHandler {
-	return &settingHandlerImpl{settingService: settingService}
+func NewSettingHandler(settingService service.SettingService, nanomdmService service.NanoMDMService) SettingHandler {
+	return &settingHandlerImpl{
+		settingService: settingService,
+		nanomdmService: nanomdmService,
+	}
 }
 
 // List godoc
@@ -178,4 +183,23 @@ func mapSettingToResponse(s *ent.Setting) dto.SettingResponse {
 		CreatedAt:   s.CreatedAt,
 		UpdatedAt:   s.UpdatedAt,
 	}
+}
+
+// ReloadDEPSyncer godoc
+// @Summary Reload DEP Syncer
+// @Description Send SIGHUP to the DEP syncer container to reload its configuration. Useful after updating DEP tokens or configurations.
+// @Tags Settings
+// @Produce json
+// @Success 200 {object} response.APIResponse[any] "DEP syncer reloaded successfully"
+// @Failure 401 {object} response.APIResponse[any] "Unauthorized"
+// @Failure 500 {object} response.APIResponse[any] "Failed to reload DEP syncer"
+// @Security BearerAuth
+// @Router /api/v1/settings/dep-syncer/reload [post]
+func (h *settingHandlerImpl) ReloadDEPSyncer(c *gin.Context) {
+	if err := h.nanomdmService.ReloadDEPSyncer(c.Request.Context()); err != nil {
+		response.WriteErrorResponse(c, err)
+		return
+	}
+
+	response.OK[any](c, nil, "DEP syncer reloaded successfully")
 }

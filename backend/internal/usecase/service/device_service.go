@@ -9,19 +9,19 @@ import (
 )
 
 type CreateDeviceCommand struct {
-	ID             string
-	SerialNumber   string
-	Model          string
-	Name           string
-	Platform       string
-	OwnerID        *uint
-	MacAddress     string
-	IpAddress      string
-	BatteryLevel   float64
+	ID              string
+	SerialNumber    string
+	Model           string
+	Name            string
+	Platform        string
+	OwnerID         *uint
+	MacAddress      string
+	IpAddress       string
+	BatteryLevel    float64
 	StorageCapacity uint64
-	StorageUsed    uint64
-	IsJailbroken   bool
-	EnrollmentType string
+	StorageUsed     uint64
+	IsJailbroken    bool
+	EnrollmentType  string
 }
 
 type UpdateDeviceCommand struct {
@@ -60,6 +60,10 @@ type DeviceService interface {
 
 	// HandleWebhook processes MDM/NanoCMD webhook events
 	HandleWebhook(ctx context.Context, payload *dto.NanoCMDWebhook) error
+
+	// HandleDEPDeviceEvent processes DEP device events (FetchDevices/SyncDevices)
+	// and reassigns profile if needed
+	HandleDEPDeviceEvent(ctx context.Context, depName string, devices []dto.DEPDevice, assignerProfileUUID string, nanomdmSvc NanoMDMService) error
 
 	// UpsertFromDEP handles syncing multiple devices from DEP
 	UpsertFromDEP(ctx context.Context, devices []any) error

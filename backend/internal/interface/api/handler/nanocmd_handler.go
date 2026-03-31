@@ -2,6 +2,7 @@ package handler
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"io"
 	"net/http"
@@ -34,17 +35,19 @@ type NanoCMDHandler interface {
 }
 
 type nanocmdHandler struct {
-	service       service.NanoCMDService
-	deviceService service.DeviceService
-	cfg           *config.Config
-	httpClient    *http.Client
+	service        service.NanoCMDService
+	deviceService  service.DeviceService
+	nanomdmService service.NanoMDMService
+	cfg            *config.Config
+	httpClient     *http.Client
 }
 
-func NewNanoCMDHandler(svc service.NanoCMDService, deviceService service.DeviceService, cfg *config.Config) NanoCMDHandler {
+func NewNanoCMDHandler(svc service.NanoCMDService, deviceService service.DeviceService, nanomdmService service.NanoMDMService, cfg *config.Config) NanoCMDHandler {
 	return &nanocmdHandler{
-		service:       svc,
-		deviceService: deviceService,
-		cfg:           cfg,
+		service:        svc,
+		deviceService:  deviceService,
+		nanomdmService: nanomdmService,
+		cfg:            cfg,
 		httpClient: &http.Client{
 			Timeout: 5 * time.Second,
 		},
@@ -365,19 +368,85 @@ func (h *nanocmdHandler) Webhook(c *gin.Context) {
 		return
 	}
 
-	// 2. Keep Existing Logic (Local processing)
+	// 2. Log and route based on topic
 	tlog.Info("Received NanoCMD webhook", zap.String("topic", webhook.Topic))
-	
-	// Create a local copy of the status processing to avoid blocking response
+
+	// 3. Check for DEP device events - these are handled locally, NOT forwarded to NanoCMD
+	if webhook.Topic == "dep.FetchDevices" || webhook.Topic == "dep.SyncDevices" {
+		// Return 200 OK immediately, process in background
+		go h.handleDEPDeviceEvent(&webhook)
+		response.OK[any](c, nil, "DEP device event received, processing in background")
+		return
+	}
+
+	// 4. For other topics, keep existing logic (local processing + forward to NanoCMD)
 	if err := h.deviceService.HandleWebhook(c.Request.Context(), &webhook); err != nil {
 		tlog.Error("Failed to handle device webhook", zap.Error(err))
 	}
 
-	// 3. Asynchronous Forwarding to NanoCMD
+	// 5. Asynchronous Forwarding to NanoCMD (only for non-DEP topics)
 	go h.forwardToNanoCMD(body, c.Request.Header)
 
-	// 4. Return 200 OK to NanoMDM immediately
+	// 6. Return 200 OK to NanoMDM immediately
 	response.OK[any](c, nil, "Webhook processed and fan-out initiated")
+}
+
+// handleDEPDeviceEvent processes dep.FetchDevices and dep.SyncDevices webhooks.
+// It fetches the assigner profile UUID once, then processes each device.
+func (h *nanocmdHandler) handleDEPDeviceEvent(webhook *dto.NanoCMDWebhook) {
+	ctx := context.Background()
+
+	// Validate device_response_event
+	if webhook.DeviceResponseEvent == nil || webhook.DeviceResponseEvent.DeviceResponse == nil {
+		tlog.Warn("DEP webhook missing device_response_event", zap.String("topic", webhook.Topic))
+		return
+	}
+
+	devices := webhook.DeviceResponseEvent.DeviceResponse.Devices
+	if len(devices) == 0 {
+		tlog.Info("DEP webhook has no devices to process", zap.String("topic", webhook.Topic))
+		return
+	}
+
+	depName := webhook.DeviceResponseEvent.DEPName
+	if depName == "" {
+		depName = h.cfg.NanoMDM.DEPServerName
+	}
+
+	tlog.Info("Processing DEP device event",
+		zap.String("topic", webhook.Topic),
+		zap.String("dep_name", depName),
+		zap.Int("device_count", len(devices)))
+
+	// Step 1: Get assigner profile UUID (one call per webhook request)
+	assignerResp, err := h.nanomdmService.GetDEPAssigner(ctx, depName)
+	if err != nil {
+		tlog.Error("Failed to get DEP assigner profile",
+			zap.String("dep_name", depName),
+			zap.Error(err))
+		return
+	}
+
+	assignerProfileUUID := assignerResp.ProfileUUID
+	if assignerProfileUUID == "" {
+		tlog.Warn("No assigner profile configured for DEP server",
+			zap.String("dep_name", depName))
+	}
+
+	tlog.Info("Retrieved assigner profile UUID",
+		zap.String("dep_name", depName),
+		zap.String("profile_uuid", assignerProfileUUID))
+
+	// Step 2: Process devices - check and reassign profiles if needed, then upsert to DB
+	if err := h.deviceService.HandleDEPDeviceEvent(ctx, depName, devices, assignerProfileUUID, h.nanomdmService); err != nil {
+		tlog.Error("Failed to handle DEP device event",
+			zap.String("topic", webhook.Topic),
+			zap.Error(err))
+	}
+
+	tlog.Info("Completed DEP device event processing",
+		zap.String("topic", webhook.Topic),
+		zap.Int("device_count", len(devices)))
 }
 
 func (h *nanocmdHandler) forwardToNanoCMD(payload []byte, originalHeaders http.Header) {
@@ -412,8 +481,8 @@ func (h *nanocmdHandler) forwardToNanoCMD(payload []byte, originalHeaders http.H
 	defer resp.Body.Close()
 
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
-		tlog.Warn("NanoCMD returned non-OK status for forwarded webhook", 
-			zap.String("url", url), 
+		tlog.Warn("NanoCMD returned non-OK status for forwarded webhook",
+			zap.String("url", url),
 			zap.Int("status", resp.StatusCode))
 	} else {
 		tlog.Info("Successfully forwarded webhook to NanoCMD", zap.String("url", url))
