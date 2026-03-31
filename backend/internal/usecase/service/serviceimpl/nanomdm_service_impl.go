@@ -8,6 +8,7 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"os/exec"
 	"strings"
 
 	"github.com/thienel/go-backend-template/internal/interface/api/dto"
@@ -17,24 +18,28 @@ import (
 )
 
 type nanomdmServiceImpl struct {
-	client      *http.Client
-	mdmBaseURL  string
-	depBaseURL  string
-	mdmUsername string
-	mdmPassword string
-	depUsername string
-	depPassword string
+	client             *http.Client
+	mdmBaseURL         string
+	depBaseURL         string
+	mdmUsername        string
+	mdmPassword        string
+	depUsername        string
+	depPassword        string
+	sudoPassword       string
+	depSyncerContainer string
 }
 
-func NewNanoMDMService(mdmBaseURL, depBaseURL, mdmUser, mdmPass, depUser, depPass string) service.NanoMDMService {
+func NewNanoMDMService(mdmBaseURL, depBaseURL, mdmUser, mdmPass, depUser, depPass, sudoPassword, depSyncerContainer string) service.NanoMDMService {
 	return &nanomdmServiceImpl{
-		client:      httpclient.DefaultClient(),
-		mdmBaseURL:  strings.TrimSuffix(mdmBaseURL, "/"),
-		depBaseURL:  strings.TrimSuffix(depBaseURL, "/"),
-		mdmUsername: mdmUser,
-		mdmPassword: mdmPass,
-		depUsername: depUser,
-		depPassword: depPass,
+		client:             httpclient.DefaultClient(),
+		mdmBaseURL:         strings.TrimSuffix(mdmBaseURL, "/"),
+		depBaseURL:         strings.TrimSuffix(depBaseURL, "/"),
+		mdmUsername:        mdmUser,
+		mdmPassword:        mdmPass,
+		depUsername:        depUser,
+		depPassword:        depPass,
+		sudoPassword:       sudoPassword,
+		depSyncerContainer: depSyncerContainer,
 	}
 }
 
@@ -537,4 +542,34 @@ func (s *nanomdmServiceImpl) GetVersion(ctx context.Context) (*dto.NanoMDMVersio
 		return nil, err
 	}
 	return &result, nil
+}
+
+// ReloadDEPSyncer sends SIGHUP to the DEP syncer container to reload its configuration.
+// This is useful after updating DEP tokens or configurations.
+func (s *nanomdmServiceImpl) ReloadDEPSyncer(ctx context.Context) error {
+	containerName := s.depSyncerContainer
+	if containerName == "" {
+		containerName = "mdm-nanodep-syncer-1"
+	}
+
+	var cmd *exec.Cmd
+	if s.sudoPassword != "" {
+		// Use sudo with password from stdin
+		cmd = exec.CommandContext(ctx, "sudo", "-S", "docker", "kill", "-s", "SIGHUP", containerName)
+		cmd.Stdin = strings.NewReader(s.sudoPassword + "\n")
+	} else {
+		// Try without sudo (assumes user has docker permissions or running as root)
+		cmd = exec.CommandContext(ctx, "docker", "kill", "-s", "SIGHUP", containerName)
+	}
+
+	var stderr bytes.Buffer
+	cmd.Stderr = &stderr
+
+	if err := cmd.Run(); err != nil {
+		return apperror.ErrInternalServerError.WithMessage(
+			fmt.Sprintf("failed to reload DEP syncer: %v, stderr: %s", err, stderr.String()),
+		)
+	}
+
+	return nil
 }

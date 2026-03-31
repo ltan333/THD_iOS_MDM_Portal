@@ -36,4 +36,7 @@ type NanoMDMService interface {
 	// Push Certificate related
 	UploadPushCert(ctx context.Context, certData []byte) (*dto.PushCertResponse, error)
 	GetPushCert(ctx context.Context, topic string) (*dto.PushCertResponse, error)
+
+	// DEP Syncer management
+	ReloadDEPSyncer(ctx context.Context) error
 }

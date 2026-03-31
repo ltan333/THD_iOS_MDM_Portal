@@ -77,12 +77,14 @@ type NanoCMDConfig struct {
 
 // NanoMDMConfig holds NanoMDM and NanoDEP server configuration
 type NanoMDMConfig struct {
-	MDMBaseURL  string `env:"NANOMDM_URL"`
-	DEPBaseURL  string `env:"NANODEP_URL"`
-	MDMUsername string `env:"NANOMDM_USERNAME"`
-	MDMPassword string `env:"NANOMDM_PASSWORD"`
-	DEPUsername string `env:"NANODEP_USERNAME"`
-	DEPPassword string `env:"NANODEP_PASSWORD"`
+	MDMBaseURL         string `env:"NANOMDM_URL"`
+	DEPBaseURL         string `env:"NANODEP_URL"`
+	MDMUsername        string `env:"NANOMDM_USERNAME"`
+	MDMPassword        string `env:"NANOMDM_PASSWORD"`
+	DEPUsername        string `env:"NANODEP_USERNAME"`
+	DEPPassword        string `env:"NANODEP_PASSWORD"`
+	SudoPassword       string `env:"SUDO_PASSWORD"`
+	DEPSyncerContainer string `env:"NANODEP_SYNCER_CONTAINER_NAME"`
 }
 
 // SeedConfig holds default user seeding configuration
