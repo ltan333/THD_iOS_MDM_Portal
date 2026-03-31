@@ -129,6 +129,36 @@ func (s *nanomdmServiceImpl) GetDEPProfile(ctx context.Context, depName, profile
 	return &result, nil
 }
 
+// CreateDEPProfile creates/defines a new DEP profile via Apple DEP API.
+// POST /proxy/{name}/profile
+func (s *nanomdmServiceImpl) CreateDEPProfile(ctx context.Context, depName string, profile *dto.DEPProfileRequest) (*dto.DEPProfileResponse, error) {
+	resp, err := s.doRequest(ctx, http.MethodPost, s.depBaseURL, fmt.Sprintf("/proxy/%s/profile", depName), profile, nil, s.depUsername, s.depPassword)
+	if err != nil {
+		return nil, err
+	}
+
+	var result dto.DEPProfileResponse
+	if err := s.handleResponse(resp, &result); err != nil {
+		return nil, err
+	}
+	return &result, nil
+}
+
+// RemoveDEPProfile removes/clears the profile from devices via Apple DEP API.
+// DELETE /proxy/{name}/profile/devices
+func (s *nanomdmServiceImpl) RemoveDEPProfile(ctx context.Context, depName string, profileUUID string) error {
+	body := map[string]string{"profile_uuid": profileUUID}
+	resp, err := s.doRequest(ctx, http.MethodDelete, s.depBaseURL, fmt.Sprintf("/proxy/%s/profile/devices", depName), body, nil, s.depUsername, s.depPassword)
+	if err != nil {
+		return err
+	}
+
+	if err := s.handleResponse(resp, nil); err != nil {
+		return err
+	}
+	return nil
+}
+
 func (s *nanomdmServiceImpl) SyncDEPDevices(ctx context.Context, depName string, cursor string) (any, error) {
 	var body any
 	if cursor != "" {

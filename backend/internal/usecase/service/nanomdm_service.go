@@ -10,6 +10,8 @@ import (
 type NanoMDMService interface {
 	// DEP related (proxied or direct)
 	GetDEPProfile(ctx context.Context, depName, profileUUID string) (any, error)
+	CreateDEPProfile(ctx context.Context, depName string, profile *dto.DEPProfileRequest) (*dto.DEPProfileResponse, error)
+	RemoveDEPProfile(ctx context.Context, depName string, profileUUID string) error
 	SyncDEPDevices(ctx context.Context, depName string, cursor string) (any, error)
 	DisownDEPDevices(ctx context.Context, depName string, devices []string) (any, error)
 	UploadDEPToken(ctx context.Context, depName string, tokenData []byte) (any, error)

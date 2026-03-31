@@ -26,6 +26,7 @@ type routeRegister struct {
 	device       handler.DeviceHandler
 	deviceGroup  handler.DeviceGroupHandler
 	profile      handler.ProfileHandler
+	depProfile   handler.DepProfileHandler
 	application  handler.ApplicationHandler
 	alert        handler.AlertHandler
 	report       handler.ReportHandler
@@ -44,6 +45,7 @@ func SetupRouter(
 	deviceHandler handler.DeviceHandler,
 	deviceGroupHandler handler.DeviceGroupHandler,
 	profileHandler handler.ProfileHandler,
+	depProfileHandler handler.DepProfileHandler,
 	applicationHandler handler.ApplicationHandler,
 	alertHandler handler.AlertHandler,
 	reportHandler handler.ReportHandler,
@@ -63,6 +65,7 @@ func SetupRouter(
 		device:       deviceHandler,
 		deviceGroup:  deviceGroupHandler,
 		profile:      profileHandler,
+		depProfile:   depProfileHandler,
 		application:  applicationHandler,
 		alert:        alertHandler,
 		report:       reportHandler,
@@ -99,6 +102,7 @@ func SetupRouter(
 			routes.registerDeviceRoutes(protected)
 			routes.registerDeviceGroupRoutes(protected)
 			routes.registerProfileRoutes(protected)
+			routes.registerDepProfileRoutes(protected)
 			routes.registerApplicationRoutes(protected)
 			routes.registerAlertRoutes(protected)
 			routes.registerReportRoutes(protected)
@@ -305,6 +309,22 @@ func (r *routeRegister) registerProfileRoutes(rg *gin.RouterGroup) {
 		profiles.GET("/:id/deployment-status", r.profile.GetDeploymentStatus)
 		profiles.POST("/:id/repush", r.profile.Repush)
 		profiles.POST("/:id/duplicate", r.profile.Duplicate)
+	}
+}
+
+func (r *routeRegister) registerDepProfileRoutes(rg *gin.RouterGroup) {
+	dep := rg.Group("/dep")
+	{
+		profiles := dep.Group("/profiles")
+		{
+			profiles.GET("", r.depProfile.List)
+			profiles.POST("", r.depProfile.Create)
+			profiles.GET("/assigner", r.depProfile.GetAssigner)
+			profiles.GET("/:id", r.depProfile.GetByID)
+			profiles.PUT("/:id", r.depProfile.Update)
+			profiles.DELETE("/:id", r.depProfile.Delete)
+			profiles.POST("/:id/set-assigner", r.depProfile.SetAsAssigner)
+		}
 	}
 }
 

@@ -49,6 +49,7 @@ func setupDependencies(cfg *config.Config) *gin.Engine {
 	deviceRepo := persistence.NewDeviceRepository(client)
 	profileRepo := persistence.NewProfileRepository(client)
 	depDeviceRepo := persistence.NewDepDeviceRepository(client)
+	depProfileRepo := persistence.NewDepProfileRepository(client)
 	// Casbin Enforcer
 	enforcer, err := authorization.NewEnforcer(cfg.Casbin.ModelPath, database.GetDB())
 	if err != nil {
@@ -91,6 +92,7 @@ func setupDependencies(cfg *config.Config) *gin.Engine {
 	// that subscribe to the bus, eliminating the circular dependency.
 	deviceService := serviceimpl.NewDeviceService(deviceRepo, eventBus)
 	depDeviceService := serviceimpl.NewDepDeviceService(depDeviceRepo)
+	depProfileService := serviceimpl.NewDepProfileService(depProfileRepo, nanomdmService)
 
 	applicationService := serviceimpl.NewApplicationService(appRepo, nanomdmService)
 	alertService := serviceimpl.NewAlertService(alertRepo, alertRuleRepo, nanomdmService)
@@ -128,6 +130,7 @@ func setupDependencies(cfg *config.Config) *gin.Engine {
 	deviceHandler := handler.NewDeviceHandler(deviceService, nanomdmService, profileService, cmdBuilder)
 	deviceGroupHandler := handler.NewDeviceGroupHandler(deviceGroupService)
 	profileHandler := handler.NewProfileHandler(profileService)
+	depProfileHandler := handler.NewDepProfileHandler(depProfileService, cfg.NanoMDM.DEPServerName)
 	applicationHandler := handler.NewApplicationHandler(applicationService)
 	alertHandler := handler.NewAlertHandler(alertService, alertRuleService)
 	reportHandler := handler.NewReportHandler(reportService)
@@ -135,5 +138,5 @@ func setupDependencies(cfg *config.Config) *gin.Engine {
 	payloadPropertyDefinitionHandler := handler.NewPayloadPropertyDefinitionHandler(payloadPropertyDefinitionService)
 
 	// Build router
-	return router.SetupRouter(authHandler, userHandler, policyHandler, nanocmdHandler, mobileConfigHandler, dashboardHandler, deviceHandler, deviceGroupHandler, profileHandler, applicationHandler, alertHandler, reportHandler, settingHandler, payloadPropertyDefinitionHandler, mw)
+	return router.SetupRouter(authHandler, userHandler, policyHandler, nanocmdHandler, mobileConfigHandler, dashboardHandler, deviceHandler, deviceGroupHandler, profileHandler, depProfileHandler, applicationHandler, alertHandler, reportHandler, settingHandler, payloadPropertyDefinitionHandler, mw)
 }
