@@ -48,6 +48,7 @@ func setupDependencies(cfg *config.Config) *gin.Engine {
 	appRepo := persistence.NewApplicationRepository(client)
 	deviceRepo := persistence.NewDeviceRepository(client)
 	profileRepo := persistence.NewProfileRepository(client)
+	depDeviceRepo := persistence.NewDepDeviceRepository(client)
 	// Casbin Enforcer
 	enforcer, err := authorization.NewEnforcer(cfg.Casbin.ModelPath, database.GetDB())
 	if err != nil {
@@ -89,6 +90,7 @@ func setupDependencies(cfg *config.Config) *gin.Engine {
 	// Profile deployment and inventory sync are handled by background workers
 	// that subscribe to the bus, eliminating the circular dependency.
 	deviceService := serviceimpl.NewDeviceService(deviceRepo, eventBus)
+	depDeviceService := serviceimpl.NewDepDeviceService(depDeviceRepo)
 
 	applicationService := serviceimpl.NewApplicationService(appRepo, nanomdmService)
 	alertService := serviceimpl.NewAlertService(alertRepo, alertRuleRepo, nanomdmService)
@@ -120,7 +122,7 @@ func setupDependencies(cfg *config.Config) *gin.Engine {
 	authHandler := handler.NewAuthHandler(authService, userService, authzService)
 	userHandler := handler.NewUserHandler(userService, authzService)
 	policyHandler := handler.NewPolicyHandler(authzService)
-	nanocmdHandler := handler.NewNanoCMDHandler(nanocmdService, deviceService, nanomdmService, cfg)
+	nanocmdHandler := handler.NewNanoCMDHandler(nanocmdService, deviceService, depDeviceService, nanomdmService, cfg)
 	mobileConfigHandler := handler.NewMobileConfigHandler(mobileConfigService)
 	dashboardHandler := handler.NewDashboardHandler(dashboardService)
 	deviceHandler := handler.NewDeviceHandler(deviceService, nanomdmService, profileService, cmdBuilder)

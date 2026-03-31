@@ -61,10 +61,6 @@ type DeviceService interface {
 	// HandleWebhook processes MDM/NanoCMD webhook events
 	HandleWebhook(ctx context.Context, payload *dto.NanoCMDWebhook) error
 
-	// HandleDEPDeviceEvent processes DEP device events (FetchDevices/SyncDevices)
-	// and reassigns profile if needed
-	HandleDEPDeviceEvent(ctx context.Context, depName string, devices []dto.DEPDevice, assignerProfileUUID string, nanomdmSvc NanoMDMService) error
-
 	// UpsertFromDEP handles syncing multiple devices from DEP
 	UpsertFromDEP(ctx context.Context, devices []any) error
 }

@@ -154,6 +154,64 @@ var (
 		Columns:    PortalDepNamesColumns,
 		PrimaryKey: []*schema.Column{PortalDepNamesColumns[0]},
 	}
+	// DepDevicesColumns holds the columns for the "dep_devices" table.
+	DepDevicesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeString, Unique: true},
+		{Name: "serial_number", Type: field.TypeString},
+		{Name: "dep_name", Type: field.TypeString},
+		{Name: "model", Type: field.TypeString, Nullable: true},
+		{Name: "description", Type: field.TypeString, Nullable: true},
+		{Name: "color", Type: field.TypeString, Nullable: true},
+		{Name: "asset_tag", Type: field.TypeString, Nullable: true},
+		{Name: "os", Type: field.TypeString, Nullable: true},
+		{Name: "device_family", Type: field.TypeString, Nullable: true},
+		{Name: "profile_uuid", Type: field.TypeString, Nullable: true},
+		{Name: "profile_status", Type: field.TypeString, Nullable: true},
+		{Name: "profile_assign_time", Type: field.TypeTime, Nullable: true},
+		{Name: "profile_push_time", Type: field.TypeTime, Nullable: true},
+		{Name: "device_assigned_by", Type: field.TypeString, Nullable: true},
+		{Name: "device_assigned_date", Type: field.TypeTime, Nullable: true},
+		{Name: "op_type", Type: field.TypeString, Nullable: true},
+		{Name: "op_date", Type: field.TypeTime, Nullable: true},
+		{Name: "needs_manual_reassign", Type: field.TypeBool, Default: false},
+		{Name: "reassign_error", Type: field.TypeString, Nullable: true},
+		{Name: "is_active", Type: field.TypeBool, Default: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+	}
+	// DepDevicesTable holds the schema information for the "dep_devices" table.
+	DepDevicesTable = &schema.Table{
+		Name:       "dep_devices",
+		Columns:    DepDevicesColumns,
+		PrimaryKey: []*schema.Column{DepDevicesColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "depdevice_serial_number",
+				Unique:  true,
+				Columns: []*schema.Column{DepDevicesColumns[1]},
+			},
+			{
+				Name:    "depdevice_dep_name",
+				Unique:  false,
+				Columns: []*schema.Column{DepDevicesColumns[2]},
+			},
+			{
+				Name:    "depdevice_profile_uuid",
+				Unique:  false,
+				Columns: []*schema.Column{DepDevicesColumns[9]},
+			},
+			{
+				Name:    "depdevice_needs_manual_reassign",
+				Unique:  false,
+				Columns: []*schema.Column{DepDevicesColumns[17]},
+			},
+			{
+				Name:    "depdevice_op_type",
+				Unique:  false,
+				Columns: []*schema.Column{DepDevicesColumns[15]},
+			},
+		},
+	}
 	// DepProfilesColumns holds the columns for the "dep_profiles" table.
 	DepProfilesColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUint, Increment: true},
@@ -591,6 +649,7 @@ var (
 		AppVersionsTable,
 		ApplicationsTable,
 		PortalDepNamesTable,
+		DepDevicesTable,
 		DepProfilesTable,
 		PortalDevicesTable,
 		DeviceGroupsTable,
@@ -632,6 +691,9 @@ func init() {
 	}
 	PortalDepNamesTable.Annotation = &entsql.Annotation{
 		Table: "portal_dep_names",
+	}
+	DepDevicesTable.Annotation = &entsql.Annotation{
+		Table: "dep_devices",
 	}
 	PortalDevicesTable.ForeignKeys[0].RefTable = PortalUsersTable
 	PortalDevicesTable.Annotation = &entsql.Annotation{

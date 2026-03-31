@@ -35,19 +35,21 @@ type NanoCMDHandler interface {
 }
 
 type nanocmdHandler struct {
-	service        service.NanoCMDService
-	deviceService  service.DeviceService
-	nanomdmService service.NanoMDMService
-	cfg            *config.Config
-	httpClient     *http.Client
+	service          service.NanoCMDService
+	deviceService    service.DeviceService
+	depDeviceService service.DepDeviceService
+	nanomdmService   service.NanoMDMService
+	cfg              *config.Config
+	httpClient       *http.Client
 }
 
-func NewNanoCMDHandler(svc service.NanoCMDService, deviceService service.DeviceService, nanomdmService service.NanoMDMService, cfg *config.Config) NanoCMDHandler {
+func NewNanoCMDHandler(svc service.NanoCMDService, deviceService service.DeviceService, depDeviceService service.DepDeviceService, nanomdmService service.NanoMDMService, cfg *config.Config) NanoCMDHandler {
 	return &nanocmdHandler{
-		service:        svc,
-		deviceService:  deviceService,
-		nanomdmService: nanomdmService,
-		cfg:            cfg,
+		service:          svc,
+		deviceService:    deviceService,
+		depDeviceService: depDeviceService,
+		nanomdmService:   nanomdmService,
+		cfg:              cfg,
 		httpClient: &http.Client{
 			Timeout: 5 * time.Second,
 		},
@@ -438,7 +440,7 @@ func (h *nanocmdHandler) handleDEPDeviceEvent(webhook *dto.NanoCMDWebhook) {
 		zap.String("profile_uuid", assignerProfileUUID))
 
 	// Step 2: Process devices - check and reassign profiles if needed, then upsert to DB
-	if err := h.deviceService.HandleDEPDeviceEvent(ctx, depName, devices, assignerProfileUUID, h.nanomdmService); err != nil {
+	if err := h.depDeviceService.HandleDEPDeviceEvent(ctx, depName, devices, assignerProfileUUID, h.nanomdmService); err != nil {
 		tlog.Error("Failed to handle DEP device event",
 			zap.String("topic", webhook.Topic),
 			zap.Error(err))

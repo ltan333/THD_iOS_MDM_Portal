@@ -26,6 +26,8 @@ type Tx struct {
 	Application *ApplicationClient
 	// DEPToken is the client for interacting with the DEPToken builders.
 	DEPToken *DEPTokenClient
+	// DepDevice is the client for interacting with the DepDevice builders.
+	DepDevice *DepDeviceClient
 	// DepProfile is the client for interacting with the DepProfile builders.
 	DepProfile *DepProfileClient
 	// Device is the client for interacting with the Device builders.
@@ -190,6 +192,7 @@ func (tx *Tx) init() {
 	tx.AppVersion = NewAppVersionClient(tx.config)
 	tx.Application = NewApplicationClient(tx.config)
 	tx.DEPToken = NewDEPTokenClient(tx.config)
+	tx.DepDevice = NewDepDeviceClient(tx.config)
 	tx.DepProfile = NewDepProfileClient(tx.config)
 	tx.Device = NewDeviceClient(tx.config)
 	tx.DeviceGroup = NewDeviceGroupClient(tx.config)

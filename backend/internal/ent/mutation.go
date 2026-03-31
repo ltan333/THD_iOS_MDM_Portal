@@ -18,6 +18,7 @@ import (
 	"github.com/thienel/go-backend-template/internal/ent/appdeployment"
 	"github.com/thienel/go-backend-template/internal/ent/application"
 	"github.com/thienel/go-backend-template/internal/ent/appversion"
+	"github.com/thienel/go-backend-template/internal/ent/depdevice"
 	"github.com/thienel/go-backend-template/internal/ent/depprofile"
 	"github.com/thienel/go-backend-template/internal/ent/deptoken"
 	"github.com/thienel/go-backend-template/internal/ent/device"
@@ -51,6 +52,7 @@ const (
 	TypeAppVersion                = "AppVersion"
 	TypeApplication               = "Application"
 	TypeDEPToken                  = "DEPToken"
+	TypeDepDevice                 = "DepDevice"
 	TypeDepProfile                = "DepProfile"
 	TypeDevice                    = "Device"
 	TypeDeviceGroup               = "DeviceGroup"
@@ -6120,6 +6122,1706 @@ func (m *DEPTokenMutation) ClearEdge(name string) error {
 // It returns an error if the edge is not defined in the schema.
 func (m *DEPTokenMutation) ResetEdge(name string) error {
 	return fmt.Errorf("unknown DEPToken edge %s", name)
+}
+
+// DepDeviceMutation represents an operation that mutates the DepDevice nodes in the graph.
+type DepDeviceMutation struct {
+	config
+	op                    Op
+	typ                   string
+	id                    *string
+	serial_number         *string
+	dep_name              *string
+	model                 *string
+	description           *string
+	color                 *string
+	asset_tag             *string
+	os                    *string
+	device_family         *string
+	profile_uuid          *string
+	profile_status        *string
+	profile_assign_time   *time.Time
+	profile_push_time     *time.Time
+	device_assigned_by    *string
+	device_assigned_date  *time.Time
+	op_type               *string
+	op_date               *time.Time
+	needs_manual_reassign *bool
+	reassign_error        *string
+	is_active             *bool
+	created_at            *time.Time
+	updated_at            *time.Time
+	clearedFields         map[string]struct{}
+	done                  bool
+	oldValue              func(context.Context) (*DepDevice, error)
+	predicates            []predicate.DepDevice
+}
+
+var _ ent.Mutation = (*DepDeviceMutation)(nil)
+
+// depdeviceOption allows management of the mutation configuration using functional options.
+type depdeviceOption func(*DepDeviceMutation)
+
+// newDepDeviceMutation creates new mutation for the DepDevice entity.
+func newDepDeviceMutation(c config, op Op, opts ...depdeviceOption) *DepDeviceMutation {
+	m := &DepDeviceMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeDepDevice,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withDepDeviceID sets the ID field of the mutation.
+func withDepDeviceID(id string) depdeviceOption {
+	return func(m *DepDeviceMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *DepDevice
+		)
+		m.oldValue = func(ctx context.Context) (*DepDevice, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().DepDevice.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withDepDevice sets the old DepDevice of the mutation.
+func withDepDevice(node *DepDevice) depdeviceOption {
+	return func(m *DepDeviceMutation) {
+		m.oldValue = func(context.Context) (*DepDevice, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m DepDeviceMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m DepDeviceMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of DepDevice entities.
+func (m *DepDeviceMutation) SetID(id string) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *DepDeviceMutation) ID() (id string, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *DepDeviceMutation) IDs(ctx context.Context) ([]string, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []string{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().DepDevice.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetSerialNumber sets the "serial_number" field.
+func (m *DepDeviceMutation) SetSerialNumber(s string) {
+	m.serial_number = &s
+}
+
+// SerialNumber returns the value of the "serial_number" field in the mutation.
+func (m *DepDeviceMutation) SerialNumber() (r string, exists bool) {
+	v := m.serial_number
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSerialNumber returns the old "serial_number" field's value of the DepDevice entity.
+// If the DepDevice object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *DepDeviceMutation) OldSerialNumber(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSerialNumber is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSerialNumber requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSerialNumber: %w", err)
+	}
+	return oldValue.SerialNumber, nil
+}
+
+// ResetSerialNumber resets all changes to the "serial_number" field.
+func (m *DepDeviceMutation) ResetSerialNumber() {
+	m.serial_number = nil
+}
+
+// SetDepName sets the "dep_name" field.
+func (m *DepDeviceMutation) SetDepName(s string) {
+	m.dep_name = &s
+}
+
+// DepName returns the value of the "dep_name" field in the mutation.
+func (m *DepDeviceMutation) DepName() (r string, exists bool) {
+	v := m.dep_name
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDepName returns the old "dep_name" field's value of the DepDevice entity.
+// If the DepDevice object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *DepDeviceMutation) OldDepName(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDepName is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDepName requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDepName: %w", err)
+	}
+	return oldValue.DepName, nil
+}
+
+// ResetDepName resets all changes to the "dep_name" field.
+func (m *DepDeviceMutation) ResetDepName() {
+	m.dep_name = nil
+}
+
+// SetModel sets the "model" field.
+func (m *DepDeviceMutation) SetModel(s string) {
+	m.model = &s
+}
+
+// Model returns the value of the "model" field in the mutation.
+func (m *DepDeviceMutation) Model() (r string, exists bool) {
+	v := m.model
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldModel returns the old "model" field's value of the DepDevice entity.
+// If the DepDevice object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *DepDeviceMutation) OldModel(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldModel is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldModel requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldModel: %w", err)
+	}
+	return oldValue.Model, nil
+}
+
+// ClearModel clears the value of the "model" field.
+func (m *DepDeviceMutation) ClearModel() {
+	m.model = nil
+	m.clearedFields[depdevice.FieldModel] = struct{}{}
+}
+
+// ModelCleared returns if the "model" field was cleared in this mutation.
+func (m *DepDeviceMutation) ModelCleared() bool {
+	_, ok := m.clearedFields[depdevice.FieldModel]
+	return ok
+}
+
+// ResetModel resets all changes to the "model" field.
+func (m *DepDeviceMutation) ResetModel() {
+	m.model = nil
+	delete(m.clearedFields, depdevice.FieldModel)
+}
+
+// SetDescription sets the "description" field.
+func (m *DepDeviceMutation) SetDescription(s string) {
+	m.description = &s
+}
+
+// Description returns the value of the "description" field in the mutation.
+func (m *DepDeviceMutation) Description() (r string, exists bool) {
+	v := m.description
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDescription returns the old "description" field's value of the DepDevice entity.
+// If the DepDevice object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *DepDeviceMutation) OldDescription(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDescription is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDescription requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDescription: %w", err)
+	}
+	return oldValue.Description, nil
+}
+
+// ClearDescription clears the value of the "description" field.
+func (m *DepDeviceMutation) ClearDescription() {
+	m.description = nil
+	m.clearedFields[depdevice.FieldDescription] = struct{}{}
+}
+
+// DescriptionCleared returns if the "description" field was cleared in this mutation.
+func (m *DepDeviceMutation) DescriptionCleared() bool {
+	_, ok := m.clearedFields[depdevice.FieldDescription]
+	return ok
+}
+
+// ResetDescription resets all changes to the "description" field.
+func (m *DepDeviceMutation) ResetDescription() {
+	m.description = nil
+	delete(m.clearedFields, depdevice.FieldDescription)
+}
+
+// SetColor sets the "color" field.
+func (m *DepDeviceMutation) SetColor(s string) {
+	m.color = &s
+}
+
+// Color returns the value of the "color" field in the mutation.
+func (m *DepDeviceMutation) Color() (r string, exists bool) {
+	v := m.color
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldColor returns the old "color" field's value of the DepDevice entity.
+// If the DepDevice object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *DepDeviceMutation) OldColor(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldColor is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldColor requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldColor: %w", err)
+	}
+	return oldValue.Color, nil
+}
+
+// ClearColor clears the value of the "color" field.
+func (m *DepDeviceMutation) ClearColor() {
+	m.color = nil
+	m.clearedFields[depdevice.FieldColor] = struct{}{}
+}
+
+// ColorCleared returns if the "color" field was cleared in this mutation.
+func (m *DepDeviceMutation) ColorCleared() bool {
+	_, ok := m.clearedFields[depdevice.FieldColor]
+	return ok
+}
+
+// ResetColor resets all changes to the "color" field.
+func (m *DepDeviceMutation) ResetColor() {
+	m.color = nil
+	delete(m.clearedFields, depdevice.FieldColor)
+}
+
+// SetAssetTag sets the "asset_tag" field.
+func (m *DepDeviceMutation) SetAssetTag(s string) {
+	m.asset_tag = &s
+}
+
+// AssetTag returns the value of the "asset_tag" field in the mutation.
+func (m *DepDeviceMutation) AssetTag() (r string, exists bool) {
+	v := m.asset_tag
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldAssetTag returns the old "asset_tag" field's value of the DepDevice entity.
+// If the DepDevice object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *DepDeviceMutation) OldAssetTag(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldAssetTag is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldAssetTag requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldAssetTag: %w", err)
+	}
+	return oldValue.AssetTag, nil
+}
+
+// ClearAssetTag clears the value of the "asset_tag" field.
+func (m *DepDeviceMutation) ClearAssetTag() {
+	m.asset_tag = nil
+	m.clearedFields[depdevice.FieldAssetTag] = struct{}{}
+}
+
+// AssetTagCleared returns if the "asset_tag" field was cleared in this mutation.
+func (m *DepDeviceMutation) AssetTagCleared() bool {
+	_, ok := m.clearedFields[depdevice.FieldAssetTag]
+	return ok
+}
+
+// ResetAssetTag resets all changes to the "asset_tag" field.
+func (m *DepDeviceMutation) ResetAssetTag() {
+	m.asset_tag = nil
+	delete(m.clearedFields, depdevice.FieldAssetTag)
+}
+
+// SetOs sets the "os" field.
+func (m *DepDeviceMutation) SetOs(s string) {
+	m.os = &s
+}
+
+// Os returns the value of the "os" field in the mutation.
+func (m *DepDeviceMutation) Os() (r string, exists bool) {
+	v := m.os
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldOs returns the old "os" field's value of the DepDevice entity.
+// If the DepDevice object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *DepDeviceMutation) OldOs(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldOs is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldOs requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldOs: %w", err)
+	}
+	return oldValue.Os, nil
+}
+
+// ClearOs clears the value of the "os" field.
+func (m *DepDeviceMutation) ClearOs() {
+	m.os = nil
+	m.clearedFields[depdevice.FieldOs] = struct{}{}
+}
+
+// OsCleared returns if the "os" field was cleared in this mutation.
+func (m *DepDeviceMutation) OsCleared() bool {
+	_, ok := m.clearedFields[depdevice.FieldOs]
+	return ok
+}
+
+// ResetOs resets all changes to the "os" field.
+func (m *DepDeviceMutation) ResetOs() {
+	m.os = nil
+	delete(m.clearedFields, depdevice.FieldOs)
+}
+
+// SetDeviceFamily sets the "device_family" field.
+func (m *DepDeviceMutation) SetDeviceFamily(s string) {
+	m.device_family = &s
+}
+
+// DeviceFamily returns the value of the "device_family" field in the mutation.
+func (m *DepDeviceMutation) DeviceFamily() (r string, exists bool) {
+	v := m.device_family
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDeviceFamily returns the old "device_family" field's value of the DepDevice entity.
+// If the DepDevice object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *DepDeviceMutation) OldDeviceFamily(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDeviceFamily is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDeviceFamily requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDeviceFamily: %w", err)
+	}
+	return oldValue.DeviceFamily, nil
+}
+
+// ClearDeviceFamily clears the value of the "device_family" field.
+func (m *DepDeviceMutation) ClearDeviceFamily() {
+	m.device_family = nil
+	m.clearedFields[depdevice.FieldDeviceFamily] = struct{}{}
+}
+
+// DeviceFamilyCleared returns if the "device_family" field was cleared in this mutation.
+func (m *DepDeviceMutation) DeviceFamilyCleared() bool {
+	_, ok := m.clearedFields[depdevice.FieldDeviceFamily]
+	return ok
+}
+
+// ResetDeviceFamily resets all changes to the "device_family" field.
+func (m *DepDeviceMutation) ResetDeviceFamily() {
+	m.device_family = nil
+	delete(m.clearedFields, depdevice.FieldDeviceFamily)
+}
+
+// SetProfileUUID sets the "profile_uuid" field.
+func (m *DepDeviceMutation) SetProfileUUID(s string) {
+	m.profile_uuid = &s
+}
+
+// ProfileUUID returns the value of the "profile_uuid" field in the mutation.
+func (m *DepDeviceMutation) ProfileUUID() (r string, exists bool) {
+	v := m.profile_uuid
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldProfileUUID returns the old "profile_uuid" field's value of the DepDevice entity.
+// If the DepDevice object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *DepDeviceMutation) OldProfileUUID(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldProfileUUID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldProfileUUID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldProfileUUID: %w", err)
+	}
+	return oldValue.ProfileUUID, nil
+}
+
+// ClearProfileUUID clears the value of the "profile_uuid" field.
+func (m *DepDeviceMutation) ClearProfileUUID() {
+	m.profile_uuid = nil
+	m.clearedFields[depdevice.FieldProfileUUID] = struct{}{}
+}
+
+// ProfileUUIDCleared returns if the "profile_uuid" field was cleared in this mutation.
+func (m *DepDeviceMutation) ProfileUUIDCleared() bool {
+	_, ok := m.clearedFields[depdevice.FieldProfileUUID]
+	return ok
+}
+
+// ResetProfileUUID resets all changes to the "profile_uuid" field.
+func (m *DepDeviceMutation) ResetProfileUUID() {
+	m.profile_uuid = nil
+	delete(m.clearedFields, depdevice.FieldProfileUUID)
+}
+
+// SetProfileStatus sets the "profile_status" field.
+func (m *DepDeviceMutation) SetProfileStatus(s string) {
+	m.profile_status = &s
+}
+
+// ProfileStatus returns the value of the "profile_status" field in the mutation.
+func (m *DepDeviceMutation) ProfileStatus() (r string, exists bool) {
+	v := m.profile_status
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldProfileStatus returns the old "profile_status" field's value of the DepDevice entity.
+// If the DepDevice object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *DepDeviceMutation) OldProfileStatus(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldProfileStatus is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldProfileStatus requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldProfileStatus: %w", err)
+	}
+	return oldValue.ProfileStatus, nil
+}
+
+// ClearProfileStatus clears the value of the "profile_status" field.
+func (m *DepDeviceMutation) ClearProfileStatus() {
+	m.profile_status = nil
+	m.clearedFields[depdevice.FieldProfileStatus] = struct{}{}
+}
+
+// ProfileStatusCleared returns if the "profile_status" field was cleared in this mutation.
+func (m *DepDeviceMutation) ProfileStatusCleared() bool {
+	_, ok := m.clearedFields[depdevice.FieldProfileStatus]
+	return ok
+}
+
+// ResetProfileStatus resets all changes to the "profile_status" field.
+func (m *DepDeviceMutation) ResetProfileStatus() {
+	m.profile_status = nil
+	delete(m.clearedFields, depdevice.FieldProfileStatus)
+}
+
+// SetProfileAssignTime sets the "profile_assign_time" field.
+func (m *DepDeviceMutation) SetProfileAssignTime(t time.Time) {
+	m.profile_assign_time = &t
+}
+
+// ProfileAssignTime returns the value of the "profile_assign_time" field in the mutation.
+func (m *DepDeviceMutation) ProfileAssignTime() (r time.Time, exists bool) {
+	v := m.profile_assign_time
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldProfileAssignTime returns the old "profile_assign_time" field's value of the DepDevice entity.
+// If the DepDevice object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *DepDeviceMutation) OldProfileAssignTime(ctx context.Context) (v *time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldProfileAssignTime is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldProfileAssignTime requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldProfileAssignTime: %w", err)
+	}
+	return oldValue.ProfileAssignTime, nil
+}
+
+// ClearProfileAssignTime clears the value of the "profile_assign_time" field.
+func (m *DepDeviceMutation) ClearProfileAssignTime() {
+	m.profile_assign_time = nil
+	m.clearedFields[depdevice.FieldProfileAssignTime] = struct{}{}
+}
+
+// ProfileAssignTimeCleared returns if the "profile_assign_time" field was cleared in this mutation.
+func (m *DepDeviceMutation) ProfileAssignTimeCleared() bool {
+	_, ok := m.clearedFields[depdevice.FieldProfileAssignTime]
+	return ok
+}
+
+// ResetProfileAssignTime resets all changes to the "profile_assign_time" field.
+func (m *DepDeviceMutation) ResetProfileAssignTime() {
+	m.profile_assign_time = nil
+	delete(m.clearedFields, depdevice.FieldProfileAssignTime)
+}
+
+// SetProfilePushTime sets the "profile_push_time" field.
+func (m *DepDeviceMutation) SetProfilePushTime(t time.Time) {
+	m.profile_push_time = &t
+}
+
+// ProfilePushTime returns the value of the "profile_push_time" field in the mutation.
+func (m *DepDeviceMutation) ProfilePushTime() (r time.Time, exists bool) {
+	v := m.profile_push_time
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldProfilePushTime returns the old "profile_push_time" field's value of the DepDevice entity.
+// If the DepDevice object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *DepDeviceMutation) OldProfilePushTime(ctx context.Context) (v *time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldProfilePushTime is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldProfilePushTime requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldProfilePushTime: %w", err)
+	}
+	return oldValue.ProfilePushTime, nil
+}
+
+// ClearProfilePushTime clears the value of the "profile_push_time" field.
+func (m *DepDeviceMutation) ClearProfilePushTime() {
+	m.profile_push_time = nil
+	m.clearedFields[depdevice.FieldProfilePushTime] = struct{}{}
+}
+
+// ProfilePushTimeCleared returns if the "profile_push_time" field was cleared in this mutation.
+func (m *DepDeviceMutation) ProfilePushTimeCleared() bool {
+	_, ok := m.clearedFields[depdevice.FieldProfilePushTime]
+	return ok
+}
+
+// ResetProfilePushTime resets all changes to the "profile_push_time" field.
+func (m *DepDeviceMutation) ResetProfilePushTime() {
+	m.profile_push_time = nil
+	delete(m.clearedFields, depdevice.FieldProfilePushTime)
+}
+
+// SetDeviceAssignedBy sets the "device_assigned_by" field.
+func (m *DepDeviceMutation) SetDeviceAssignedBy(s string) {
+	m.device_assigned_by = &s
+}
+
+// DeviceAssignedBy returns the value of the "device_assigned_by" field in the mutation.
+func (m *DepDeviceMutation) DeviceAssignedBy() (r string, exists bool) {
+	v := m.device_assigned_by
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDeviceAssignedBy returns the old "device_assigned_by" field's value of the DepDevice entity.
+// If the DepDevice object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *DepDeviceMutation) OldDeviceAssignedBy(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDeviceAssignedBy is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDeviceAssignedBy requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDeviceAssignedBy: %w", err)
+	}
+	return oldValue.DeviceAssignedBy, nil
+}
+
+// ClearDeviceAssignedBy clears the value of the "device_assigned_by" field.
+func (m *DepDeviceMutation) ClearDeviceAssignedBy() {
+	m.device_assigned_by = nil
+	m.clearedFields[depdevice.FieldDeviceAssignedBy] = struct{}{}
+}
+
+// DeviceAssignedByCleared returns if the "device_assigned_by" field was cleared in this mutation.
+func (m *DepDeviceMutation) DeviceAssignedByCleared() bool {
+	_, ok := m.clearedFields[depdevice.FieldDeviceAssignedBy]
+	return ok
+}
+
+// ResetDeviceAssignedBy resets all changes to the "device_assigned_by" field.
+func (m *DepDeviceMutation) ResetDeviceAssignedBy() {
+	m.device_assigned_by = nil
+	delete(m.clearedFields, depdevice.FieldDeviceAssignedBy)
+}
+
+// SetDeviceAssignedDate sets the "device_assigned_date" field.
+func (m *DepDeviceMutation) SetDeviceAssignedDate(t time.Time) {
+	m.device_assigned_date = &t
+}
+
+// DeviceAssignedDate returns the value of the "device_assigned_date" field in the mutation.
+func (m *DepDeviceMutation) DeviceAssignedDate() (r time.Time, exists bool) {
+	v := m.device_assigned_date
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDeviceAssignedDate returns the old "device_assigned_date" field's value of the DepDevice entity.
+// If the DepDevice object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *DepDeviceMutation) OldDeviceAssignedDate(ctx context.Context) (v *time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDeviceAssignedDate is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDeviceAssignedDate requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDeviceAssignedDate: %w", err)
+	}
+	return oldValue.DeviceAssignedDate, nil
+}
+
+// ClearDeviceAssignedDate clears the value of the "device_assigned_date" field.
+func (m *DepDeviceMutation) ClearDeviceAssignedDate() {
+	m.device_assigned_date = nil
+	m.clearedFields[depdevice.FieldDeviceAssignedDate] = struct{}{}
+}
+
+// DeviceAssignedDateCleared returns if the "device_assigned_date" field was cleared in this mutation.
+func (m *DepDeviceMutation) DeviceAssignedDateCleared() bool {
+	_, ok := m.clearedFields[depdevice.FieldDeviceAssignedDate]
+	return ok
+}
+
+// ResetDeviceAssignedDate resets all changes to the "device_assigned_date" field.
+func (m *DepDeviceMutation) ResetDeviceAssignedDate() {
+	m.device_assigned_date = nil
+	delete(m.clearedFields, depdevice.FieldDeviceAssignedDate)
+}
+
+// SetOpType sets the "op_type" field.
+func (m *DepDeviceMutation) SetOpType(s string) {
+	m.op_type = &s
+}
+
+// OpType returns the value of the "op_type" field in the mutation.
+func (m *DepDeviceMutation) OpType() (r string, exists bool) {
+	v := m.op_type
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldOpType returns the old "op_type" field's value of the DepDevice entity.
+// If the DepDevice object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *DepDeviceMutation) OldOpType(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldOpType is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldOpType requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldOpType: %w", err)
+	}
+	return oldValue.OpType, nil
+}
+
+// ClearOpType clears the value of the "op_type" field.
+func (m *DepDeviceMutation) ClearOpType() {
+	m.op_type = nil
+	m.clearedFields[depdevice.FieldOpType] = struct{}{}
+}
+
+// OpTypeCleared returns if the "op_type" field was cleared in this mutation.
+func (m *DepDeviceMutation) OpTypeCleared() bool {
+	_, ok := m.clearedFields[depdevice.FieldOpType]
+	return ok
+}
+
+// ResetOpType resets all changes to the "op_type" field.
+func (m *DepDeviceMutation) ResetOpType() {
+	m.op_type = nil
+	delete(m.clearedFields, depdevice.FieldOpType)
+}
+
+// SetOpDate sets the "op_date" field.
+func (m *DepDeviceMutation) SetOpDate(t time.Time) {
+	m.op_date = &t
+}
+
+// OpDate returns the value of the "op_date" field in the mutation.
+func (m *DepDeviceMutation) OpDate() (r time.Time, exists bool) {
+	v := m.op_date
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldOpDate returns the old "op_date" field's value of the DepDevice entity.
+// If the DepDevice object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *DepDeviceMutation) OldOpDate(ctx context.Context) (v *time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldOpDate is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldOpDate requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldOpDate: %w", err)
+	}
+	return oldValue.OpDate, nil
+}
+
+// ClearOpDate clears the value of the "op_date" field.
+func (m *DepDeviceMutation) ClearOpDate() {
+	m.op_date = nil
+	m.clearedFields[depdevice.FieldOpDate] = struct{}{}
+}
+
+// OpDateCleared returns if the "op_date" field was cleared in this mutation.
+func (m *DepDeviceMutation) OpDateCleared() bool {
+	_, ok := m.clearedFields[depdevice.FieldOpDate]
+	return ok
+}
+
+// ResetOpDate resets all changes to the "op_date" field.
+func (m *DepDeviceMutation) ResetOpDate() {
+	m.op_date = nil
+	delete(m.clearedFields, depdevice.FieldOpDate)
+}
+
+// SetNeedsManualReassign sets the "needs_manual_reassign" field.
+func (m *DepDeviceMutation) SetNeedsManualReassign(b bool) {
+	m.needs_manual_reassign = &b
+}
+
+// NeedsManualReassign returns the value of the "needs_manual_reassign" field in the mutation.
+func (m *DepDeviceMutation) NeedsManualReassign() (r bool, exists bool) {
+	v := m.needs_manual_reassign
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldNeedsManualReassign returns the old "needs_manual_reassign" field's value of the DepDevice entity.
+// If the DepDevice object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *DepDeviceMutation) OldNeedsManualReassign(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldNeedsManualReassign is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldNeedsManualReassign requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldNeedsManualReassign: %w", err)
+	}
+	return oldValue.NeedsManualReassign, nil
+}
+
+// ResetNeedsManualReassign resets all changes to the "needs_manual_reassign" field.
+func (m *DepDeviceMutation) ResetNeedsManualReassign() {
+	m.needs_manual_reassign = nil
+}
+
+// SetReassignError sets the "reassign_error" field.
+func (m *DepDeviceMutation) SetReassignError(s string) {
+	m.reassign_error = &s
+}
+
+// ReassignError returns the value of the "reassign_error" field in the mutation.
+func (m *DepDeviceMutation) ReassignError() (r string, exists bool) {
+	v := m.reassign_error
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldReassignError returns the old "reassign_error" field's value of the DepDevice entity.
+// If the DepDevice object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *DepDeviceMutation) OldReassignError(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldReassignError is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldReassignError requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldReassignError: %w", err)
+	}
+	return oldValue.ReassignError, nil
+}
+
+// ClearReassignError clears the value of the "reassign_error" field.
+func (m *DepDeviceMutation) ClearReassignError() {
+	m.reassign_error = nil
+	m.clearedFields[depdevice.FieldReassignError] = struct{}{}
+}
+
+// ReassignErrorCleared returns if the "reassign_error" field was cleared in this mutation.
+func (m *DepDeviceMutation) ReassignErrorCleared() bool {
+	_, ok := m.clearedFields[depdevice.FieldReassignError]
+	return ok
+}
+
+// ResetReassignError resets all changes to the "reassign_error" field.
+func (m *DepDeviceMutation) ResetReassignError() {
+	m.reassign_error = nil
+	delete(m.clearedFields, depdevice.FieldReassignError)
+}
+
+// SetIsActive sets the "is_active" field.
+func (m *DepDeviceMutation) SetIsActive(b bool) {
+	m.is_active = &b
+}
+
+// IsActive returns the value of the "is_active" field in the mutation.
+func (m *DepDeviceMutation) IsActive() (r bool, exists bool) {
+	v := m.is_active
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldIsActive returns the old "is_active" field's value of the DepDevice entity.
+// If the DepDevice object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *DepDeviceMutation) OldIsActive(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldIsActive is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldIsActive requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldIsActive: %w", err)
+	}
+	return oldValue.IsActive, nil
+}
+
+// ResetIsActive resets all changes to the "is_active" field.
+func (m *DepDeviceMutation) ResetIsActive() {
+	m.is_active = nil
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *DepDeviceMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *DepDeviceMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the DepDevice entity.
+// If the DepDevice object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *DepDeviceMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *DepDeviceMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *DepDeviceMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *DepDeviceMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the DepDevice entity.
+// If the DepDevice object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *DepDeviceMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *DepDeviceMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+}
+
+// Where appends a list predicates to the DepDeviceMutation builder.
+func (m *DepDeviceMutation) Where(ps ...predicate.DepDevice) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the DepDeviceMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *DepDeviceMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.DepDevice, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *DepDeviceMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *DepDeviceMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (DepDevice).
+func (m *DepDeviceMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *DepDeviceMutation) Fields() []string {
+	fields := make([]string, 0, 21)
+	if m.serial_number != nil {
+		fields = append(fields, depdevice.FieldSerialNumber)
+	}
+	if m.dep_name != nil {
+		fields = append(fields, depdevice.FieldDepName)
+	}
+	if m.model != nil {
+		fields = append(fields, depdevice.FieldModel)
+	}
+	if m.description != nil {
+		fields = append(fields, depdevice.FieldDescription)
+	}
+	if m.color != nil {
+		fields = append(fields, depdevice.FieldColor)
+	}
+	if m.asset_tag != nil {
+		fields = append(fields, depdevice.FieldAssetTag)
+	}
+	if m.os != nil {
+		fields = append(fields, depdevice.FieldOs)
+	}
+	if m.device_family != nil {
+		fields = append(fields, depdevice.FieldDeviceFamily)
+	}
+	if m.profile_uuid != nil {
+		fields = append(fields, depdevice.FieldProfileUUID)
+	}
+	if m.profile_status != nil {
+		fields = append(fields, depdevice.FieldProfileStatus)
+	}
+	if m.profile_assign_time != nil {
+		fields = append(fields, depdevice.FieldProfileAssignTime)
+	}
+	if m.profile_push_time != nil {
+		fields = append(fields, depdevice.FieldProfilePushTime)
+	}
+	if m.device_assigned_by != nil {
+		fields = append(fields, depdevice.FieldDeviceAssignedBy)
+	}
+	if m.device_assigned_date != nil {
+		fields = append(fields, depdevice.FieldDeviceAssignedDate)
+	}
+	if m.op_type != nil {
+		fields = append(fields, depdevice.FieldOpType)
+	}
+	if m.op_date != nil {
+		fields = append(fields, depdevice.FieldOpDate)
+	}
+	if m.needs_manual_reassign != nil {
+		fields = append(fields, depdevice.FieldNeedsManualReassign)
+	}
+	if m.reassign_error != nil {
+		fields = append(fields, depdevice.FieldReassignError)
+	}
+	if m.is_active != nil {
+		fields = append(fields, depdevice.FieldIsActive)
+	}
+	if m.created_at != nil {
+		fields = append(fields, depdevice.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, depdevice.FieldUpdatedAt)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *DepDeviceMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case depdevice.FieldSerialNumber:
+		return m.SerialNumber()
+	case depdevice.FieldDepName:
+		return m.DepName()
+	case depdevice.FieldModel:
+		return m.Model()
+	case depdevice.FieldDescription:
+		return m.Description()
+	case depdevice.FieldColor:
+		return m.Color()
+	case depdevice.FieldAssetTag:
+		return m.AssetTag()
+	case depdevice.FieldOs:
+		return m.Os()
+	case depdevice.FieldDeviceFamily:
+		return m.DeviceFamily()
+	case depdevice.FieldProfileUUID:
+		return m.ProfileUUID()
+	case depdevice.FieldProfileStatus:
+		return m.ProfileStatus()
+	case depdevice.FieldProfileAssignTime:
+		return m.ProfileAssignTime()
+	case depdevice.FieldProfilePushTime:
+		return m.ProfilePushTime()
+	case depdevice.FieldDeviceAssignedBy:
+		return m.DeviceAssignedBy()
+	case depdevice.FieldDeviceAssignedDate:
+		return m.DeviceAssignedDate()
+	case depdevice.FieldOpType:
+		return m.OpType()
+	case depdevice.FieldOpDate:
+		return m.OpDate()
+	case depdevice.FieldNeedsManualReassign:
+		return m.NeedsManualReassign()
+	case depdevice.FieldReassignError:
+		return m.ReassignError()
+	case depdevice.FieldIsActive:
+		return m.IsActive()
+	case depdevice.FieldCreatedAt:
+		return m.CreatedAt()
+	case depdevice.FieldUpdatedAt:
+		return m.UpdatedAt()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *DepDeviceMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case depdevice.FieldSerialNumber:
+		return m.OldSerialNumber(ctx)
+	case depdevice.FieldDepName:
+		return m.OldDepName(ctx)
+	case depdevice.FieldModel:
+		return m.OldModel(ctx)
+	case depdevice.FieldDescription:
+		return m.OldDescription(ctx)
+	case depdevice.FieldColor:
+		return m.OldColor(ctx)
+	case depdevice.FieldAssetTag:
+		return m.OldAssetTag(ctx)
+	case depdevice.FieldOs:
+		return m.OldOs(ctx)
+	case depdevice.FieldDeviceFamily:
+		return m.OldDeviceFamily(ctx)
+	case depdevice.FieldProfileUUID:
+		return m.OldProfileUUID(ctx)
+	case depdevice.FieldProfileStatus:
+		return m.OldProfileStatus(ctx)
+	case depdevice.FieldProfileAssignTime:
+		return m.OldProfileAssignTime(ctx)
+	case depdevice.FieldProfilePushTime:
+		return m.OldProfilePushTime(ctx)
+	case depdevice.FieldDeviceAssignedBy:
+		return m.OldDeviceAssignedBy(ctx)
+	case depdevice.FieldDeviceAssignedDate:
+		return m.OldDeviceAssignedDate(ctx)
+	case depdevice.FieldOpType:
+		return m.OldOpType(ctx)
+	case depdevice.FieldOpDate:
+		return m.OldOpDate(ctx)
+	case depdevice.FieldNeedsManualReassign:
+		return m.OldNeedsManualReassign(ctx)
+	case depdevice.FieldReassignError:
+		return m.OldReassignError(ctx)
+	case depdevice.FieldIsActive:
+		return m.OldIsActive(ctx)
+	case depdevice.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case depdevice.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	}
+	return nil, fmt.Errorf("unknown DepDevice field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *DepDeviceMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case depdevice.FieldSerialNumber:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSerialNumber(v)
+		return nil
+	case depdevice.FieldDepName:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDepName(v)
+		return nil
+	case depdevice.FieldModel:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetModel(v)
+		return nil
+	case depdevice.FieldDescription:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDescription(v)
+		return nil
+	case depdevice.FieldColor:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetColor(v)
+		return nil
+	case depdevice.FieldAssetTag:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetAssetTag(v)
+		return nil
+	case depdevice.FieldOs:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetOs(v)
+		return nil
+	case depdevice.FieldDeviceFamily:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDeviceFamily(v)
+		return nil
+	case depdevice.FieldProfileUUID:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetProfileUUID(v)
+		return nil
+	case depdevice.FieldProfileStatus:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetProfileStatus(v)
+		return nil
+	case depdevice.FieldProfileAssignTime:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetProfileAssignTime(v)
+		return nil
+	case depdevice.FieldProfilePushTime:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetProfilePushTime(v)
+		return nil
+	case depdevice.FieldDeviceAssignedBy:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDeviceAssignedBy(v)
+		return nil
+	case depdevice.FieldDeviceAssignedDate:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDeviceAssignedDate(v)
+		return nil
+	case depdevice.FieldOpType:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetOpType(v)
+		return nil
+	case depdevice.FieldOpDate:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetOpDate(v)
+		return nil
+	case depdevice.FieldNeedsManualReassign:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetNeedsManualReassign(v)
+		return nil
+	case depdevice.FieldReassignError:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetReassignError(v)
+		return nil
+	case depdevice.FieldIsActive:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetIsActive(v)
+		return nil
+	case depdevice.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case depdevice.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	}
+	return fmt.Errorf("unknown DepDevice field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *DepDeviceMutation) AddedFields() []string {
+	return nil
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *DepDeviceMutation) AddedField(name string) (ent.Value, bool) {
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *DepDeviceMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown DepDevice numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *DepDeviceMutation) ClearedFields() []string {
+	var fields []string
+	if m.FieldCleared(depdevice.FieldModel) {
+		fields = append(fields, depdevice.FieldModel)
+	}
+	if m.FieldCleared(depdevice.FieldDescription) {
+		fields = append(fields, depdevice.FieldDescription)
+	}
+	if m.FieldCleared(depdevice.FieldColor) {
+		fields = append(fields, depdevice.FieldColor)
+	}
+	if m.FieldCleared(depdevice.FieldAssetTag) {
+		fields = append(fields, depdevice.FieldAssetTag)
+	}
+	if m.FieldCleared(depdevice.FieldOs) {
+		fields = append(fields, depdevice.FieldOs)
+	}
+	if m.FieldCleared(depdevice.FieldDeviceFamily) {
+		fields = append(fields, depdevice.FieldDeviceFamily)
+	}
+	if m.FieldCleared(depdevice.FieldProfileUUID) {
+		fields = append(fields, depdevice.FieldProfileUUID)
+	}
+	if m.FieldCleared(depdevice.FieldProfileStatus) {
+		fields = append(fields, depdevice.FieldProfileStatus)
+	}
+	if m.FieldCleared(depdevice.FieldProfileAssignTime) {
+		fields = append(fields, depdevice.FieldProfileAssignTime)
+	}
+	if m.FieldCleared(depdevice.FieldProfilePushTime) {
+		fields = append(fields, depdevice.FieldProfilePushTime)
+	}
+	if m.FieldCleared(depdevice.FieldDeviceAssignedBy) {
+		fields = append(fields, depdevice.FieldDeviceAssignedBy)
+	}
+	if m.FieldCleared(depdevice.FieldDeviceAssignedDate) {
+		fields = append(fields, depdevice.FieldDeviceAssignedDate)
+	}
+	if m.FieldCleared(depdevice.FieldOpType) {
+		fields = append(fields, depdevice.FieldOpType)
+	}
+	if m.FieldCleared(depdevice.FieldOpDate) {
+		fields = append(fields, depdevice.FieldOpDate)
+	}
+	if m.FieldCleared(depdevice.FieldReassignError) {
+		fields = append(fields, depdevice.FieldReassignError)
+	}
+	return fields
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *DepDeviceMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *DepDeviceMutation) ClearField(name string) error {
+	switch name {
+	case depdevice.FieldModel:
+		m.ClearModel()
+		return nil
+	case depdevice.FieldDescription:
+		m.ClearDescription()
+		return nil
+	case depdevice.FieldColor:
+		m.ClearColor()
+		return nil
+	case depdevice.FieldAssetTag:
+		m.ClearAssetTag()
+		return nil
+	case depdevice.FieldOs:
+		m.ClearOs()
+		return nil
+	case depdevice.FieldDeviceFamily:
+		m.ClearDeviceFamily()
+		return nil
+	case depdevice.FieldProfileUUID:
+		m.ClearProfileUUID()
+		return nil
+	case depdevice.FieldProfileStatus:
+		m.ClearProfileStatus()
+		return nil
+	case depdevice.FieldProfileAssignTime:
+		m.ClearProfileAssignTime()
+		return nil
+	case depdevice.FieldProfilePushTime:
+		m.ClearProfilePushTime()
+		return nil
+	case depdevice.FieldDeviceAssignedBy:
+		m.ClearDeviceAssignedBy()
+		return nil
+	case depdevice.FieldDeviceAssignedDate:
+		m.ClearDeviceAssignedDate()
+		return nil
+	case depdevice.FieldOpType:
+		m.ClearOpType()
+		return nil
+	case depdevice.FieldOpDate:
+		m.ClearOpDate()
+		return nil
+	case depdevice.FieldReassignError:
+		m.ClearReassignError()
+		return nil
+	}
+	return fmt.Errorf("unknown DepDevice nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *DepDeviceMutation) ResetField(name string) error {
+	switch name {
+	case depdevice.FieldSerialNumber:
+		m.ResetSerialNumber()
+		return nil
+	case depdevice.FieldDepName:
+		m.ResetDepName()
+		return nil
+	case depdevice.FieldModel:
+		m.ResetModel()
+		return nil
+	case depdevice.FieldDescription:
+		m.ResetDescription()
+		return nil
+	case depdevice.FieldColor:
+		m.ResetColor()
+		return nil
+	case depdevice.FieldAssetTag:
+		m.ResetAssetTag()
+		return nil
+	case depdevice.FieldOs:
+		m.ResetOs()
+		return nil
+	case depdevice.FieldDeviceFamily:
+		m.ResetDeviceFamily()
+		return nil
+	case depdevice.FieldProfileUUID:
+		m.ResetProfileUUID()
+		return nil
+	case depdevice.FieldProfileStatus:
+		m.ResetProfileStatus()
+		return nil
+	case depdevice.FieldProfileAssignTime:
+		m.ResetProfileAssignTime()
+		return nil
+	case depdevice.FieldProfilePushTime:
+		m.ResetProfilePushTime()
+		return nil
+	case depdevice.FieldDeviceAssignedBy:
+		m.ResetDeviceAssignedBy()
+		return nil
+	case depdevice.FieldDeviceAssignedDate:
+		m.ResetDeviceAssignedDate()
+		return nil
+	case depdevice.FieldOpType:
+		m.ResetOpType()
+		return nil
+	case depdevice.FieldOpDate:
+		m.ResetOpDate()
+		return nil
+	case depdevice.FieldNeedsManualReassign:
+		m.ResetNeedsManualReassign()
+		return nil
+	case depdevice.FieldReassignError:
+		m.ResetReassignError()
+		return nil
+	case depdevice.FieldIsActive:
+		m.ResetIsActive()
+		return nil
+	case depdevice.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case depdevice.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	}
+	return fmt.Errorf("unknown DepDevice field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *DepDeviceMutation) AddedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *DepDeviceMutation) AddedIDs(name string) []ent.Value {
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *DepDeviceMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *DepDeviceMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *DepDeviceMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *DepDeviceMutation) EdgeCleared(name string) bool {
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *DepDeviceMutation) ClearEdge(name string) error {
+	return fmt.Errorf("unknown DepDevice unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *DepDeviceMutation) ResetEdge(name string) error {
+	return fmt.Errorf("unknown DepDevice edge %s", name)
 }
 
 // DepProfileMutation represents an operation that mutates the DepProfile nodes in the graph.
