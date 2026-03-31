@@ -21,9 +21,9 @@ export function LayoutWrapper({ children }: { children: React.ReactNode }) {
     const token = tokenManager.getAccessToken();
     
     if (!token && !isLoginPage) {
-      router.push('/login');
+      router.replace('/login');
     } else if (token && isLoginPage) {
-      router.push('/dashboard');
+      router.replace('/dashboard');
     } else {
       setIsAuthenticated(!!token);
     }
