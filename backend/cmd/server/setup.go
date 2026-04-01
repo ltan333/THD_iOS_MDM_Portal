@@ -48,6 +48,8 @@ func setupDependencies(cfg *config.Config) *gin.Engine {
 	appRepo := persistence.NewApplicationRepository(client)
 	deviceRepo := persistence.NewDeviceRepository(client)
 	profileRepo := persistence.NewProfileRepository(client)
+	depDeviceRepo := persistence.NewDepDeviceRepository(client)
+	depProfileRepo := persistence.NewDepProfileRepository(client)
 	// Casbin Enforcer
 	enforcer, err := authorization.NewEnforcer(cfg.Casbin.ModelPath, database.GetDB())
 	if err != nil {
@@ -77,6 +79,7 @@ func setupDependencies(cfg *config.Config) *gin.Engine {
 		cfg.NanoMDM.MDMPassword,
 		cfg.NanoMDM.DEPUsername,
 		cfg.NanoMDM.DEPPassword,
+		cfg.NanoMDM.DEPSyncerContainer,
 	)
 	mobileConfigService := serviceimpl.NewMobileConfigService(mobileConfigRepo)
 	dashboardService := serviceimpl.NewDashboardService(dashboardRepo, alertRepo, appRepo)
@@ -88,6 +91,8 @@ func setupDependencies(cfg *config.Config) *gin.Engine {
 	// Profile deployment and inventory sync are handled by background workers
 	// that subscribe to the bus, eliminating the circular dependency.
 	deviceService := serviceimpl.NewDeviceService(deviceRepo, eventBus)
+	depDeviceService := serviceimpl.NewDepDeviceService(depDeviceRepo)
+	depProfileService := serviceimpl.NewDepProfileService(depProfileRepo, nanomdmService)
 
 	applicationService := serviceimpl.NewApplicationService(appRepo, nanomdmService)
 	alertService := serviceimpl.NewAlertService(alertRepo, alertRuleRepo, nanomdmService)
@@ -119,18 +124,19 @@ func setupDependencies(cfg *config.Config) *gin.Engine {
 	authHandler := handler.NewAuthHandler(authService, userService, authzService)
 	userHandler := handler.NewUserHandler(userService, authzService)
 	policyHandler := handler.NewPolicyHandler(authzService)
-	nanocmdHandler := handler.NewNanoCMDHandler(nanocmdService, deviceService, cfg)
+	nanocmdHandler := handler.NewNanoCMDHandler(nanocmdService, deviceService, depDeviceService, nanomdmService, cfg)
 	mobileConfigHandler := handler.NewMobileConfigHandler(mobileConfigService)
 	dashboardHandler := handler.NewDashboardHandler(dashboardService)
 	deviceHandler := handler.NewDeviceHandler(deviceService, nanomdmService, profileService, cmdBuilder)
 	deviceGroupHandler := handler.NewDeviceGroupHandler(deviceGroupService)
 	profileHandler := handler.NewProfileHandler(profileService)
+	depProfileHandler := handler.NewDepProfileHandler(depProfileService, depDeviceService, nanomdmService, cfg.NanoMDM.DEPServerName)
 	applicationHandler := handler.NewApplicationHandler(applicationService)
 	alertHandler := handler.NewAlertHandler(alertService, alertRuleService)
 	reportHandler := handler.NewReportHandler(reportService)
-	settingHandler := handler.NewSettingHandler(settingService)
+	settingHandler := handler.NewSettingHandler(settingService, nanomdmService)
 	payloadPropertyDefinitionHandler := handler.NewPayloadPropertyDefinitionHandler(payloadPropertyDefinitionService)
 
 	// Build router
-	return router.SetupRouter(authHandler, userHandler, policyHandler, nanocmdHandler, mobileConfigHandler, dashboardHandler, deviceHandler, deviceGroupHandler, profileHandler, applicationHandler, alertHandler, reportHandler, settingHandler, payloadPropertyDefinitionHandler, mw)
+	return router.SetupRouter(authHandler, userHandler, policyHandler, nanocmdHandler, mobileConfigHandler, dashboardHandler, deviceHandler, deviceGroupHandler, profileHandler, depProfileHandler, applicationHandler, alertHandler, reportHandler, settingHandler, payloadPropertyDefinitionHandler, mw)
 }

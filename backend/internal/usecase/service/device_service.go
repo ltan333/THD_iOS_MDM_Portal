@@ -9,19 +9,19 @@ import (
 )
 
 type CreateDeviceCommand struct {
-	ID             string
-	SerialNumber   string
-	Model          string
-	Name           string
-	Platform       string
-	OwnerID        *uint
-	MacAddress     string
-	IpAddress      string
-	BatteryLevel   float64
+	ID              string
+	SerialNumber    string
+	Model           string
+	Name            string
+	Platform        string
+	OwnerID         *uint
+	MacAddress      string
+	IpAddress       string
+	BatteryLevel    float64
 	StorageCapacity uint64
-	StorageUsed    uint64
-	IsJailbroken   bool
-	EnrollmentType string
+	StorageUsed     uint64
+	IsJailbroken    bool
+	EnrollmentType  string
 }
 
 type UpdateDeviceCommand struct {

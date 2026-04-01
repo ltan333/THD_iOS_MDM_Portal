@@ -5,6 +5,8 @@ import (
 	"strings"
 
 	"github.com/gin-gonic/gin"
+	"github.com/thienel/tlog"
+	"go.uber.org/zap"
 
 	"github.com/thienel/go-backend-template/internal/domain/valueobject"
 	apperror "github.com/thienel/go-backend-template/pkg/error"
@@ -18,8 +20,14 @@ const UserContextKey ContextKey = "user"
 // Auth returns JWT authentication middleware
 func (m *Middleware) Auth() gin.HandlerFunc {
 	return func(c *gin.Context) {
+		requestID := GetRequestID(c)
 		token := getTokenFromHeader(c.GetHeader("Authorization"))
 		if token == "" {
+			tlog.Warn("Authentication failed: missing bearer token",
+				zap.String("request_id", requestID),
+				zap.String("method", c.Request.Method),
+				zap.String("path", c.Request.URL.Path),
+			)
 			response.WriteErrorResponse(c, apperror.ErrUnauthorized)
 			c.Abort()
 			return
@@ -27,6 +35,12 @@ func (m *Middleware) Auth() gin.HandlerFunc {
 
 		claims, err := m.jwtService.ValidateToken(token)
 		if err != nil {
+			tlog.Warn("Authentication failed: invalid token",
+				zap.String("request_id", requestID),
+				zap.String("method", c.Request.Method),
+				zap.String("path", c.Request.URL.Path),
+				zap.Error(err),
+			)
 			response.WriteErrorResponse(c, err)
 			c.Abort()
 			return
@@ -36,12 +50,23 @@ func (m *Middleware) Auth() gin.HandlerFunc {
 		key := fmt.Sprintf("blacklist:%s", token)
 		isBlacklisted, _ := m.redisService.Exists(c.Request.Context(), key)
 		if isBlacklisted {
+			tlog.Warn("Authentication failed: token revoked",
+				zap.String("request_id", requestID),
+				zap.Uint("user_id", claims.UserID),
+				zap.String("username", claims.Username),
+			)
 			response.WriteErrorResponse(c, apperror.ErrUnauthorized.WithMessage("Token đã bị thu hồi (logged out)"))
 			c.Abort()
 			return
 		}
 
 		c.Set(string(UserContextKey), claims)
+		tlog.Debug("Authentication succeeded",
+			zap.String("request_id", requestID),
+			zap.Uint("user_id", claims.UserID),
+			zap.String("username", claims.Username),
+			zap.String("role", claims.Role),
+		)
 		c.Next()
 	}
 }

@@ -45,6 +45,7 @@ type DEPProfileRequest struct {
 }
 
 type DEPProfileResponse struct {
+	ID                        uint           `json:"id"`
 	ProfileUUID               string         `json:"profile_uuid"`
 	Name                      string         `json:"name"`
 	AllowPairing              bool           `json:"allow_pairing"`
@@ -69,6 +70,8 @@ type DEPProfileResponse struct {
 	SupportPhoneNumber        string         `json:"support_phone_number"`
 	URL                       string         `json:"url"`
 	ProfileData               map[string]any `json:"profile_data"`
+	CreatedAt                 time.Time      `json:"created_at"`
+	UpdatedAt                 time.Time      `json:"updated_at"`
 }
 
 type DEPDeviceResponse struct {
@@ -89,6 +92,17 @@ type DEPAssignerRequest struct {
 
 type DEPAssignerResponse struct {
 	ProfileUUID string `json:"profile_uuid"`
+}
+
+type DEPAssignAllDevicesResult struct {
+	TotalActiveDevices int `json:"total_active_devices"`
+	EligibleDevices    int `json:"eligible_devices"`
+	Attempted          int `json:"attempted"`
+	Success            int `json:"success"`
+	NotAccessible      int `json:"not_accessible"`
+	NotFound           int `json:"not_found"`
+	Failed             int `json:"failed"`
+	Skipped            int `json:"skipped"`
 }
 
 type DEPDevicesRequest struct {

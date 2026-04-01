@@ -11,6 +11,7 @@ import (
 	"github.com/thienel/go-backend-template/internal/ent/appdeployment"
 	"github.com/thienel/go-backend-template/internal/ent/application"
 	"github.com/thienel/go-backend-template/internal/ent/appversion"
+	"github.com/thienel/go-backend-template/internal/ent/depdevice"
 	"github.com/thienel/go-backend-template/internal/ent/depprofile"
 	"github.com/thienel/go-backend-template/internal/ent/deptoken"
 	"github.com/thienel/go-backend-template/internal/ent/device"
@@ -222,6 +223,38 @@ func init() {
 	deptokenDescID := deptokenFields[0].Descriptor()
 	// deptoken.IDValidator is a validator for the "id" field. It is called by the builders before save.
 	deptoken.IDValidator = deptokenDescID.Validators[0].(func(string) error)
+	depdeviceFields := schema.DepDevice{}.Fields()
+	_ = depdeviceFields
+	// depdeviceDescSerialNumber is the schema descriptor for serial_number field.
+	depdeviceDescSerialNumber := depdeviceFields[1].Descriptor()
+	// depdevice.SerialNumberValidator is a validator for the "serial_number" field. It is called by the builders before save.
+	depdevice.SerialNumberValidator = depdeviceDescSerialNumber.Validators[0].(func(string) error)
+	// depdeviceDescDepName is the schema descriptor for dep_name field.
+	depdeviceDescDepName := depdeviceFields[2].Descriptor()
+	// depdevice.DepNameValidator is a validator for the "dep_name" field. It is called by the builders before save.
+	depdevice.DepNameValidator = depdeviceDescDepName.Validators[0].(func(string) error)
+	// depdeviceDescNeedsManualReassign is the schema descriptor for needs_manual_reassign field.
+	depdeviceDescNeedsManualReassign := depdeviceFields[17].Descriptor()
+	// depdevice.DefaultNeedsManualReassign holds the default value on creation for the needs_manual_reassign field.
+	depdevice.DefaultNeedsManualReassign = depdeviceDescNeedsManualReassign.Default.(bool)
+	// depdeviceDescIsActive is the schema descriptor for is_active field.
+	depdeviceDescIsActive := depdeviceFields[19].Descriptor()
+	// depdevice.DefaultIsActive holds the default value on creation for the is_active field.
+	depdevice.DefaultIsActive = depdeviceDescIsActive.Default.(bool)
+	// depdeviceDescCreatedAt is the schema descriptor for created_at field.
+	depdeviceDescCreatedAt := depdeviceFields[20].Descriptor()
+	// depdevice.DefaultCreatedAt holds the default value on creation for the created_at field.
+	depdevice.DefaultCreatedAt = depdeviceDescCreatedAt.Default.(func() time.Time)
+	// depdeviceDescUpdatedAt is the schema descriptor for updated_at field.
+	depdeviceDescUpdatedAt := depdeviceFields[21].Descriptor()
+	// depdevice.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	depdevice.DefaultUpdatedAt = depdeviceDescUpdatedAt.Default.(func() time.Time)
+	// depdevice.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	depdevice.UpdateDefaultUpdatedAt = depdeviceDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// depdeviceDescID is the schema descriptor for id field.
+	depdeviceDescID := depdeviceFields[0].Descriptor()
+	// depdevice.IDValidator is a validator for the "id" field. It is called by the builders before save.
+	depdevice.IDValidator = depdeviceDescID.Validators[0].(func(string) error)
 	depprofileFields := schema.DepProfile{}.Fields()
 	_ = depprofileFields
 	// depprofileDescProfileName is the schema descriptor for profile_name field.

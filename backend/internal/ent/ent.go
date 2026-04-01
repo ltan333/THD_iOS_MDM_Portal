@@ -18,6 +18,7 @@ import (
 	"github.com/thienel/go-backend-template/internal/ent/appdeployment"
 	"github.com/thienel/go-backend-template/internal/ent/application"
 	"github.com/thienel/go-backend-template/internal/ent/appversion"
+	"github.com/thienel/go-backend-template/internal/ent/depdevice"
 	"github.com/thienel/go-backend-template/internal/ent/depprofile"
 	"github.com/thienel/go-backend-template/internal/ent/deptoken"
 	"github.com/thienel/go-backend-template/internal/ent/device"
@@ -99,6 +100,7 @@ func checkColumn(t, c string) error {
 			appversion.Table:                appversion.ValidColumn,
 			application.Table:               application.ValidColumn,
 			deptoken.Table:                  deptoken.ValidColumn,
+			depdevice.Table:                 depdevice.ValidColumn,
 			depprofile.Table:                depprofile.ValidColumn,
 			device.Table:                    device.ValidColumn,
 			devicegroup.Table:               devicegroup.ValidColumn,

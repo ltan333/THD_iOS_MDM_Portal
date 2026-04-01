@@ -102,7 +102,7 @@ func (r *nanoRepositoryImpl) GetCommandResults(ctx context.Context, udid string,
 	if err != nil {
 		return nil, err
 	}
-	defer rows.Close()
+	defer rows.Close() //nolint:errcheck
 
 	var results []entity.NanoCommandResult
 	for rows.Next() {
@@ -129,7 +129,7 @@ func (r *nanoRepositoryImpl) GetDepNames(ctx context.Context) ([]entity.NanoDepN
 	if err != nil {
 		return nil, err
 	}
-	defer rows.Close()
+	defer rows.Close() //nolint:errcheck
 
 	var names []entity.NanoDepName
 	for rows.Next() {

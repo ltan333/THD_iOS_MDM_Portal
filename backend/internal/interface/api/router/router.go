@@ -26,6 +26,7 @@ type routeRegister struct {
 	device       handler.DeviceHandler
 	deviceGroup  handler.DeviceGroupHandler
 	profile      handler.ProfileHandler
+	depProfile   handler.DepProfileHandler
 	application  handler.ApplicationHandler
 	alert        handler.AlertHandler
 	report       handler.ReportHandler
@@ -44,6 +45,7 @@ func SetupRouter(
 	deviceHandler handler.DeviceHandler,
 	deviceGroupHandler handler.DeviceGroupHandler,
 	profileHandler handler.ProfileHandler,
+	depProfileHandler handler.DepProfileHandler,
 	applicationHandler handler.ApplicationHandler,
 	alertHandler handler.AlertHandler,
 	reportHandler handler.ReportHandler,
@@ -63,6 +65,7 @@ func SetupRouter(
 		device:       deviceHandler,
 		deviceGroup:  deviceGroupHandler,
 		profile:      profileHandler,
+		depProfile:   depProfileHandler,
 		application:  applicationHandler,
 		alert:        alertHandler,
 		report:       reportHandler,
@@ -71,7 +74,7 @@ func SetupRouter(
 	}
 
 	router := gin.New()
-	router.Use(gin.Recovery(), mw.CORS(), tlog.GinMiddleware(tlog.WithSkipPaths("/health")))
+	router.Use(mw.RequestContext(), mw.Recovery(), mw.CORS(), tlog.GinMiddleware(tlog.WithSkipPaths("/health")))
 
 	// Health check - system endpoint, keep at root level
 	router.GET("/health", func(c *gin.Context) {
@@ -99,6 +102,7 @@ func SetupRouter(
 			routes.registerDeviceRoutes(protected)
 			routes.registerDeviceGroupRoutes(protected)
 			routes.registerProfileRoutes(protected)
+			routes.registerDepProfileRoutes(protected)
 			routes.registerApplicationRoutes(protected)
 			routes.registerAlertRoutes(protected)
 			routes.registerReportRoutes(protected)
@@ -308,6 +312,23 @@ func (r *routeRegister) registerProfileRoutes(rg *gin.RouterGroup) {
 	}
 }
 
+func (r *routeRegister) registerDepProfileRoutes(rg *gin.RouterGroup) {
+	dep := rg.Group("/dep")
+	{
+		profiles := dep.Group("/profiles")
+		{
+			profiles.GET("", r.depProfile.List)
+			profiles.POST("", r.depProfile.Create)
+			profiles.GET("/assigner", r.depProfile.GetAssigner)
+			profiles.GET("/:id", r.depProfile.GetByID)
+			profiles.PUT("/:id", r.depProfile.Update)
+			profiles.DELETE("/:id", r.depProfile.Delete)
+			profiles.POST("/:id/set-assigner", r.depProfile.SetAsAssigner)
+			profiles.POST("/:id/assign-all-devices", r.depProfile.AssignToAllDevices)
+		}
+	}
+}
+
 func (r *routeRegister) registerApplicationRoutes(rg *gin.RouterGroup) {
 	apps := rg.Group("/applications")
 	{
@@ -378,6 +399,7 @@ func (r *routeRegister) registerSettingRoutes(rg *gin.RouterGroup) {
 		settings.GET("/:key", r.setting.GetByKey)
 		settings.PUT("/:key", r.setting.Update)
 		settings.DELETE("/:key", r.setting.Delete)
+		settings.POST("/dep-syncer/reload", r.setting.ReloadDEPSyncer)
 	}
 }
 

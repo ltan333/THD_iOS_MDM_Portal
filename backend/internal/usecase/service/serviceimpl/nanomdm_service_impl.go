@@ -6,9 +6,11 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"net"
 	"net/http"
 	"net/url"
 	"strings"
+	"time"
 
 	"github.com/thienel/go-backend-template/internal/interface/api/dto"
 	"github.com/thienel/go-backend-template/internal/usecase/service"
@@ -17,24 +19,26 @@ import (
 )
 
 type nanomdmServiceImpl struct {
-	client      *http.Client
-	mdmBaseURL  string
-	depBaseURL  string
-	mdmUsername string
-	mdmPassword string
-	depUsername string
-	depPassword string
+	client             *http.Client
+	mdmBaseURL         string
+	depBaseURL         string
+	mdmUsername        string
+	mdmPassword        string
+	depUsername        string
+	depPassword        string
+	depSyncerContainer string
 }
 
-func NewNanoMDMService(mdmBaseURL, depBaseURL, mdmUser, mdmPass, depUser, depPass string) service.NanoMDMService {
+func NewNanoMDMService(mdmBaseURL, depBaseURL, mdmUser, mdmPass, depUser, depPass, depSyncerContainer string) service.NanoMDMService {
 	return &nanomdmServiceImpl{
-		client:      httpclient.DefaultClient(),
-		mdmBaseURL:  strings.TrimSuffix(mdmBaseURL, "/"),
-		depBaseURL:  strings.TrimSuffix(depBaseURL, "/"),
-		mdmUsername: mdmUser,
-		mdmPassword: mdmPass,
-		depUsername: depUser,
-		depPassword: depPass,
+		client:             httpclient.DefaultClient(),
+		mdmBaseURL:         strings.TrimSuffix(mdmBaseURL, "/"),
+		depBaseURL:         strings.TrimSuffix(depBaseURL, "/"),
+		mdmUsername:        mdmUser,
+		mdmPassword:        mdmPass,
+		depUsername:        depUser,
+		depPassword:        depPass,
+		depSyncerContainer: depSyncerContainer,
 	}
 }
 
@@ -125,6 +129,36 @@ func (s *nanomdmServiceImpl) GetDEPProfile(ctx context.Context, depName, profile
 	return &result, nil
 }
 
+// CreateDEPProfile creates/defines a new DEP profile via Apple DEP API.
+// POST /proxy/{name}/profile
+func (s *nanomdmServiceImpl) CreateDEPProfile(ctx context.Context, depName string, profile *dto.DEPProfileRequest) (*dto.DEPProfileResponse, error) {
+	resp, err := s.doRequest(ctx, http.MethodPost, s.depBaseURL, fmt.Sprintf("/proxy/%s/profile", depName), profile, nil, s.depUsername, s.depPassword)
+	if err != nil {
+		return nil, err
+	}
+
+	var result dto.DEPProfileResponse
+	if err := s.handleResponse(resp, &result); err != nil {
+		return nil, err
+	}
+	return &result, nil
+}
+
+// RemoveDEPProfile removes/clears the profile from devices via Apple DEP API.
+// DELETE /proxy/{name}/profile/devices
+func (s *nanomdmServiceImpl) RemoveDEPProfile(ctx context.Context, depName string, profileUUID string) error {
+	body := map[string]string{"profile_uuid": profileUUID}
+	resp, err := s.doRequest(ctx, http.MethodDelete, s.depBaseURL, fmt.Sprintf("/proxy/%s/profile/devices", depName), body, nil, s.depUsername, s.depPassword)
+	if err != nil {
+		return err
+	}
+
+	if err := s.handleResponse(resp, nil); err != nil {
+		return err
+	}
+	return nil
+}
+
 func (s *nanomdmServiceImpl) SyncDEPDevices(ctx context.Context, depName string, cursor string) (any, error) {
 	var body any
 	if cursor != "" {
@@ -158,6 +192,26 @@ func (s *nanomdmServiceImpl) DisownDEPDevices(ctx context.Context, depName strin
 		return nil, err
 	}
 	return result, nil
+}
+
+// AssignDEPProfile assigns a DEP profile to the given device serials.
+// Returns a map of serial -> result (e.g., "SUCCESS", "NOT_ACCESSIBLE", "FAILED").
+func (s *nanomdmServiceImpl) AssignDEPProfile(ctx context.Context, depName, profileUUID string, serials []string) (map[string]string, error) {
+	body := dto.DEPProfileAssignRequest{
+		ProfileUUID: profileUUID,
+		Devices:     serials,
+	}
+	endpoint := fmt.Sprintf("/proxy/%s/profile/devices", depName)
+	resp, err := s.doRequest(ctx, http.MethodPost, s.depBaseURL, endpoint, body, nil, s.depUsername, s.depPassword)
+	if err != nil {
+		return nil, fmt.Errorf("AssignDEPProfile request failed (url=%s%s): %w", s.depBaseURL, endpoint, err)
+	}
+
+	var result dto.DEPProfileAssignResponse
+	if err := s.handleResponse(resp, &result); err != nil {
+		return nil, err
+	}
+	return result.Devices, nil
 }
 
 func (s *nanomdmServiceImpl) UploadDEPToken(ctx context.Context, depName string, tokenData []byte) (any, error) {
@@ -537,4 +591,50 @@ func (s *nanomdmServiceImpl) GetVersion(ctx context.Context) (*dto.NanoMDMVersio
 		return nil, err
 	}
 	return &result, nil
+}
+
+// ReloadDEPSyncer sends SIGHUP to the DEP syncer container to reload its configuration.
+// This is useful after updating DEP tokens or configurations.
+// Uses Docker Engine API via Unix socket (/var/run/docker.sock) instead of docker CLI.
+func (s *nanomdmServiceImpl) ReloadDEPSyncer(ctx context.Context) error {
+	containerName := s.depSyncerContainer
+	if containerName == "" {
+		containerName = "mdm-nanodep-syncer-1"
+	}
+
+	// Create HTTP client that uses Unix socket
+	httpClient := &http.Client{
+		Transport: &http.Transport{
+			DialContext: func(ctx context.Context, network, addr string) (net.Conn, error) {
+				return net.Dial("unix", "/var/run/docker.sock")
+			},
+		},
+		Timeout: 10 * time.Second,
+	}
+
+	// Docker Engine API: POST /containers/{id}/kill?signal=SIGHUP
+	url := fmt.Sprintf("http://localhost/containers/%s/kill?signal=SIGHUP", containerName)
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, url, nil)
+	if err != nil {
+		return apperror.ErrInternalServerError.WithMessage(
+			fmt.Sprintf("failed to create request: %v", err),
+		)
+	}
+
+	resp, err := httpClient.Do(req)
+	if err != nil {
+		return apperror.ErrInternalServerError.WithMessage(
+			fmt.Sprintf("failed to send SIGHUP to DEP syncer container: %v", err),
+		)
+	}
+	defer resp.Body.Close() //nolint:errcheck
+
+	if resp.StatusCode == http.StatusNoContent || resp.StatusCode == http.StatusOK {
+		return nil
+	}
+
+	body, _ := io.ReadAll(resp.Body)
+	return apperror.ErrInternalServerError.WithMessage(
+		fmt.Sprintf("failed to reload DEP syncer: status %d, body: %s", resp.StatusCode, string(body)),
+	)
 }

@@ -10,9 +10,12 @@ import (
 type NanoMDMService interface {
 	// DEP related (proxied or direct)
 	GetDEPProfile(ctx context.Context, depName, profileUUID string) (any, error)
+	CreateDEPProfile(ctx context.Context, depName string, profile *dto.DEPProfileRequest) (*dto.DEPProfileResponse, error)
+	RemoveDEPProfile(ctx context.Context, depName string, profileUUID string) error
 	SyncDEPDevices(ctx context.Context, depName string, cursor string) (any, error)
 	DisownDEPDevices(ctx context.Context, depName string, devices []string) (any, error)
 	UploadDEPToken(ctx context.Context, depName string, tokenData []byte) (any, error)
+	AssignDEPProfile(ctx context.Context, depName, profileUUID string, serials []string) (map[string]string, error)
 
 	// New methods from apidog / NanoDEP spec
 	ListDEPNames(ctx context.Context, depNames []string, limit, offset int, cursor string) (*dto.DEPNamesQueryResponse, error)
@@ -36,4 +39,7 @@ type NanoMDMService interface {
 	// Push Certificate related
 	UploadPushCert(ctx context.Context, certData []byte) (*dto.PushCertResponse, error)
 	GetPushCert(ctx context.Context, topic string) (*dto.PushCertResponse, error)
+
+	// DEP Syncer management
+	ReloadDEPSyncer(ctx context.Context) error
 }

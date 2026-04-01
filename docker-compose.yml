@@ -30,6 +30,7 @@ services:
       - mdm-network
     volumes:
       - ./logs:/app/logs
+      - /var/run/docker.sock:/var/run/docker.sock:ro
     healthcheck:
       test: ["CMD-SHELL", "wget -qO- http://localhost:8000/health || exit 1"]
       interval: 15s

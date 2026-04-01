@@ -21,6 +21,7 @@ import (
 	"github.com/thienel/go-backend-template/internal/ent/appdeployment"
 	"github.com/thienel/go-backend-template/internal/ent/application"
 	"github.com/thienel/go-backend-template/internal/ent/appversion"
+	"github.com/thienel/go-backend-template/internal/ent/depdevice"
 	"github.com/thienel/go-backend-template/internal/ent/depprofile"
 	"github.com/thienel/go-backend-template/internal/ent/deptoken"
 	"github.com/thienel/go-backend-template/internal/ent/device"
@@ -56,6 +57,8 @@ type Client struct {
 	Application *ApplicationClient
 	// DEPToken is the client for interacting with the DEPToken builders.
 	DEPToken *DEPTokenClient
+	// DepDevice is the client for interacting with the DepDevice builders.
+	DepDevice *DepDeviceClient
 	// DepProfile is the client for interacting with the DepProfile builders.
 	DepProfile *DepProfileClient
 	// Device is the client for interacting with the Device builders.
@@ -100,6 +103,7 @@ func (c *Client) init() {
 	c.AppVersion = NewAppVersionClient(c.config)
 	c.Application = NewApplicationClient(c.config)
 	c.DEPToken = NewDEPTokenClient(c.config)
+	c.DepDevice = NewDepDeviceClient(c.config)
 	c.DepProfile = NewDepProfileClient(c.config)
 	c.Device = NewDeviceClient(c.config)
 	c.DeviceGroup = NewDeviceGroupClient(c.config)
@@ -212,6 +216,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		AppVersion:                NewAppVersionClient(cfg),
 		Application:               NewApplicationClient(cfg),
 		DEPToken:                  NewDEPTokenClient(cfg),
+		DepDevice:                 NewDepDeviceClient(cfg),
 		DepProfile:                NewDepProfileClient(cfg),
 		Device:                    NewDeviceClient(cfg),
 		DeviceGroup:               NewDeviceGroupClient(cfg),
@@ -251,6 +256,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		AppVersion:                NewAppVersionClient(cfg),
 		Application:               NewApplicationClient(cfg),
 		DEPToken:                  NewDEPTokenClient(cfg),
+		DepDevice:                 NewDepDeviceClient(cfg),
 		DepProfile:                NewDepProfileClient(cfg),
 		Device:                    NewDeviceClient(cfg),
 		DeviceGroup:               NewDeviceGroupClient(cfg),
@@ -294,7 +300,7 @@ func (c *Client) Close() error {
 func (c *Client) Use(hooks ...Hook) {
 	for _, n := range []interface{ Use(...Hook) }{
 		c.APNSConfig, c.Alert, c.AlertRule, c.AppDeployment, c.AppVersion,
-		c.Application, c.DEPToken, c.DepProfile, c.Device, c.DeviceGroup,
+		c.Application, c.DEPToken, c.DepDevice, c.DepProfile, c.Device, c.DeviceGroup,
 		c.MobileConfig, c.Payload, c.PayloadProperty, c.PayloadPropertyDefinition,
 		c.Profile, c.ProfileAssignment, c.ProfileDeploymentStatus, c.ProfileVersion,
 		c.Setting, c.User,
@@ -308,7 +314,7 @@ func (c *Client) Use(hooks ...Hook) {
 func (c *Client) Intercept(interceptors ...Interceptor) {
 	for _, n := range []interface{ Intercept(...Interceptor) }{
 		c.APNSConfig, c.Alert, c.AlertRule, c.AppDeployment, c.AppVersion,
-		c.Application, c.DEPToken, c.DepProfile, c.Device, c.DeviceGroup,
+		c.Application, c.DEPToken, c.DepDevice, c.DepProfile, c.Device, c.DeviceGroup,
 		c.MobileConfig, c.Payload, c.PayloadProperty, c.PayloadPropertyDefinition,
 		c.Profile, c.ProfileAssignment, c.ProfileDeploymentStatus, c.ProfileVersion,
 		c.Setting, c.User,
@@ -334,6 +340,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.Application.mutate(ctx, m)
 	case *DEPTokenMutation:
 		return c.DEPToken.mutate(ctx, m)
+	case *DepDeviceMutation:
+		return c.DepDevice.mutate(ctx, m)
 	case *DepProfileMutation:
 		return c.DepProfile.mutate(ctx, m)
 	case *DeviceMutation:
@@ -1357,6 +1365,139 @@ func (c *DEPTokenClient) mutate(ctx context.Context, m *DEPTokenMutation) (Value
 		return (&DEPTokenDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("ent: unknown DEPToken mutation op: %q", m.Op())
+	}
+}
+
+// DepDeviceClient is a client for the DepDevice schema.
+type DepDeviceClient struct {
+	config
+}
+
+// NewDepDeviceClient returns a client for the DepDevice from the given config.
+func NewDepDeviceClient(c config) *DepDeviceClient {
+	return &DepDeviceClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `depdevice.Hooks(f(g(h())))`.
+func (c *DepDeviceClient) Use(hooks ...Hook) {
+	c.hooks.DepDevice = append(c.hooks.DepDevice, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `depdevice.Intercept(f(g(h())))`.
+func (c *DepDeviceClient) Intercept(interceptors ...Interceptor) {
+	c.inters.DepDevice = append(c.inters.DepDevice, interceptors...)
+}
+
+// Create returns a builder for creating a DepDevice entity.
+func (c *DepDeviceClient) Create() *DepDeviceCreate {
+	mutation := newDepDeviceMutation(c.config, OpCreate)
+	return &DepDeviceCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of DepDevice entities.
+func (c *DepDeviceClient) CreateBulk(builders ...*DepDeviceCreate) *DepDeviceCreateBulk {
+	return &DepDeviceCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *DepDeviceClient) MapCreateBulk(slice any, setFunc func(*DepDeviceCreate, int)) *DepDeviceCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &DepDeviceCreateBulk{err: fmt.Errorf("calling to DepDeviceClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*DepDeviceCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &DepDeviceCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for DepDevice.
+func (c *DepDeviceClient) Update() *DepDeviceUpdate {
+	mutation := newDepDeviceMutation(c.config, OpUpdate)
+	return &DepDeviceUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *DepDeviceClient) UpdateOne(_m *DepDevice) *DepDeviceUpdateOne {
+	mutation := newDepDeviceMutation(c.config, OpUpdateOne, withDepDevice(_m))
+	return &DepDeviceUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *DepDeviceClient) UpdateOneID(id string) *DepDeviceUpdateOne {
+	mutation := newDepDeviceMutation(c.config, OpUpdateOne, withDepDeviceID(id))
+	return &DepDeviceUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for DepDevice.
+func (c *DepDeviceClient) Delete() *DepDeviceDelete {
+	mutation := newDepDeviceMutation(c.config, OpDelete)
+	return &DepDeviceDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *DepDeviceClient) DeleteOne(_m *DepDevice) *DepDeviceDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *DepDeviceClient) DeleteOneID(id string) *DepDeviceDeleteOne {
+	builder := c.Delete().Where(depdevice.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &DepDeviceDeleteOne{builder}
+}
+
+// Query returns a query builder for DepDevice.
+func (c *DepDeviceClient) Query() *DepDeviceQuery {
+	return &DepDeviceQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeDepDevice},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a DepDevice entity by its id.
+func (c *DepDeviceClient) Get(ctx context.Context, id string) (*DepDevice, error) {
+	return c.Query().Where(depdevice.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *DepDeviceClient) GetX(ctx context.Context, id string) *DepDevice {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *DepDeviceClient) Hooks() []Hook {
+	return c.hooks.DepDevice
+}
+
+// Interceptors returns the client interceptors.
+func (c *DepDeviceClient) Interceptors() []Interceptor {
+	return c.inters.DepDevice
+}
+
+func (c *DepDeviceClient) mutate(ctx context.Context, m *DepDeviceMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&DepDeviceCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&DepDeviceUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&DepDeviceUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&DepDeviceDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown DepDevice mutation op: %q", m.Op())
 	}
 }
 
@@ -3429,14 +3570,14 @@ func (c *UserClient) mutate(ctx context.Context, m *UserMutation) (Value, error)
 type (
 	hooks struct {
 		APNSConfig, Alert, AlertRule, AppDeployment, AppVersion, Application, DEPToken,
-		DepProfile, Device, DeviceGroup, MobileConfig, Payload, PayloadProperty,
-		PayloadPropertyDefinition, Profile, ProfileAssignment, ProfileDeploymentStatus,
-		ProfileVersion, Setting, User []ent.Hook
+		DepDevice, DepProfile, Device, DeviceGroup, MobileConfig, Payload,
+		PayloadProperty, PayloadPropertyDefinition, Profile, ProfileAssignment,
+		ProfileDeploymentStatus, ProfileVersion, Setting, User []ent.Hook
 	}
 	inters struct {
 		APNSConfig, Alert, AlertRule, AppDeployment, AppVersion, Application, DEPToken,
-		DepProfile, Device, DeviceGroup, MobileConfig, Payload, PayloadProperty,
-		PayloadPropertyDefinition, Profile, ProfileAssignment, ProfileDeploymentStatus,
-		ProfileVersion, Setting, User []ent.Interceptor
+		DepDevice, DepProfile, Device, DeviceGroup, MobileConfig, Payload,
+		PayloadProperty, PayloadPropertyDefinition, Profile, ProfileAssignment,
+		ProfileDeploymentStatus, ProfileVersion, Setting, User []ent.Interceptor
 	}
 )
