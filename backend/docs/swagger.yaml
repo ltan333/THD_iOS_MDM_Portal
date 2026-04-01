@@ -543,6 +543,126 @@ definitions:
       serial_number:
         type: string
     type: object
+  github_com_thienel_go-backend-template_internal_interface_api_dto.DEPProfileRequest:
+    properties:
+      allow_pairing:
+        type: boolean
+      anchor_certs:
+        items:
+          type: string
+        type: array
+      auto_advance_setup:
+        type: boolean
+      await_device_configured:
+        type: boolean
+      configuration_web_url:
+        type: string
+      department:
+        type: string
+      devices:
+        items:
+          type: string
+        type: array
+      do_not_use_profile_from_backup:
+        type: boolean
+      is_mandatory:
+        type: boolean
+      is_mdm_removable:
+        type: boolean
+      is_multi_user:
+        type: boolean
+      is_return_to_service:
+        type: boolean
+      is_supervised:
+        type: boolean
+      language:
+        type: string
+      org_magic:
+        type: string
+      profile_data:
+        additionalProperties: {}
+        description: ProfileData remains for any additional fields not explicitly
+          mapped
+        type: object
+      profile_name:
+        type: string
+      region:
+        type: string
+      skip_setup_items:
+        items:
+          type: string
+        type: array
+      supervising_host_certs:
+        items:
+          type: string
+        type: array
+      support_email_address:
+        type: string
+      support_phone_number:
+        type: string
+      url:
+        type: string
+    type: object
+  github_com_thienel_go-backend-template_internal_interface_api_dto.DEPProfileResponse:
+    properties:
+      allow_pairing:
+        type: boolean
+      anchor_certs:
+        items:
+          type: string
+        type: array
+      auto_advance_setup:
+        type: boolean
+      await_device_configured:
+        type: boolean
+      configuration_web_url:
+        type: string
+      department:
+        type: string
+      devices:
+        items:
+          type: string
+        type: array
+      do_not_use_profile_from_backup:
+        type: boolean
+      is_mandatory:
+        type: boolean
+      is_mdm_removable:
+        type: boolean
+      is_multi_user:
+        type: boolean
+      is_return_to_service:
+        type: boolean
+      is_supervised:
+        type: boolean
+      language:
+        type: string
+      name:
+        type: string
+      org_magic:
+        type: string
+      profile_data:
+        additionalProperties: {}
+        type: object
+      profile_uuid:
+        type: string
+      region:
+        type: string
+      skip_setup_items:
+        items:
+          type: string
+        type: array
+      supervising_host_certs:
+        items:
+          type: string
+        type: array
+      support_email_address:
+        type: string
+      support_phone_number:
+        type: string
+      url:
+        type: string
+    type: object
   github_com_thienel_go-backend-template_internal_interface_api_dto.DEPSyncDeviceResponse:
     properties:
       cursor:
@@ -802,6 +922,21 @@ definitions:
       items:
         items:
           $ref: '#/definitions/github_com_thienel_go-backend-template_internal_interface_api_dto.ApplicationResponse'
+        type: array
+      limit:
+        type: integer
+      page:
+        type: integer
+      total:
+        type: integer
+      total_pages:
+        type: integer
+    type: object
+  ? github_com_thienel_go-backend-template_internal_interface_api_dto.ListResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_DEPProfileResponse
+  : properties:
+      items:
+        items:
+          $ref: '#/definitions/github_com_thienel_go-backend-template_internal_interface_api_dto.DEPProfileResponse'
         type: array
       limit:
         type: integer
@@ -1751,6 +1886,17 @@ definitions:
       message:
         type: string
     type: object
+  ? github_com_thienel_go-backend-template_pkg_response.APIResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_DEPProfileResponse
+  : properties:
+      data:
+        $ref: '#/definitions/github_com_thienel_go-backend-template_internal_interface_api_dto.DEPProfileResponse'
+      error:
+        $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.Error'
+      is_success:
+        type: boolean
+      message:
+        type: string
+    type: object
   ? github_com_thienel_go-backend-template_pkg_response.APIResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_DashboardStatsResponse
   : properties:
       data:
@@ -1843,6 +1989,17 @@ definitions:
   : properties:
       data:
         $ref: '#/definitions/github_com_thienel_go-backend-template_internal_interface_api_dto.ListResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_ApplicationResponse'
+      error:
+        $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.Error'
+      is_success:
+        type: boolean
+      message:
+        type: string
+    type: object
+  ? github_com_thienel_go-backend-template_pkg_response.APIResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_ListResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_DEPProfileResponse
+  : properties:
+      data:
+        $ref: '#/definitions/github_com_thienel_go-backend-template_internal_interface_api_dto.ListResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_DEPProfileResponse'
       error:
         $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.Error'
       is_success:
@@ -3352,6 +3509,255 @@ paths:
       summary: Get dashboard statistics
       tags:
       - Dashboard
+  /api/v1/dep/profiles:
+    get:
+      description: Get a paginated list of DEP profiles
+      parameters:
+      - default: 0
+        description: Offset for pagination
+        in: query
+        name: offset
+        type: integer
+      - default: 20
+        description: Limit for pagination
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Profiles retrieved successfully
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_ListResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_DEPProfileResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+      security:
+      - BearerAuth: []
+      summary: List DEP profiles
+      tags:
+      - DEP Profile
+    post:
+      consumes:
+      - application/json
+      description: Create a new DEP enrollment profile and register it with Apple
+        DEP
+      parameters:
+      - description: Profile configuration
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_thienel_go-backend-template_internal_interface_api_dto.DEPProfileRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Profile created successfully
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_DEPProfileResponse'
+        "400":
+          description: Invalid request body
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+        "409":
+          description: Profile name already exists
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+      security:
+      - BearerAuth: []
+      summary: Create DEP profile
+      tags:
+      - DEP Profile
+  /api/v1/dep/profiles/{id}:
+    delete:
+      description: Delete a DEP profile from local database and Apple DEP
+      parameters:
+      - description: Profile ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      responses:
+        "204":
+          description: Profile deleted successfully
+        "400":
+          description: Invalid profile ID
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+        "404":
+          description: Profile not found
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+      security:
+      - BearerAuth: []
+      summary: Delete DEP profile
+      tags:
+      - DEP Profile
+    get:
+      description: Retrieve a DEP profile by its ID
+      parameters:
+      - description: Profile ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Profile retrieved successfully
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_DEPProfileResponse'
+        "400":
+          description: Invalid profile ID
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+        "404":
+          description: Profile not found
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+      security:
+      - BearerAuth: []
+      summary: Get DEP profile by ID
+      tags:
+      - DEP Profile
+    put:
+      consumes:
+      - application/json
+      description: Update an existing DEP profile and sync with Apple DEP
+      parameters:
+      - description: Profile ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Updated profile configuration
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_thienel_go-backend-template_internal_interface_api_dto.DEPProfileRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Profile updated successfully
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_DEPProfileResponse'
+        "400":
+          description: Invalid request
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+        "404":
+          description: Profile not found
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+      security:
+      - BearerAuth: []
+      summary: Update DEP profile
+      tags:
+      - DEP Profile
+  /api/v1/dep/profiles/{id}/set-assigner:
+    post:
+      description: Set a DEP profile as the default profile for new device enrollments
+      parameters:
+      - description: Profile ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      responses:
+        "200":
+          description: Assigner profile set successfully
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+        "400":
+          description: Invalid profile ID or profile not registered
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+        "404":
+          description: Profile not found
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+      security:
+      - BearerAuth: []
+      summary: Set profile as default assigner
+      tags:
+      - DEP Profile
+  /api/v1/dep/profiles/assigner:
+    get:
+      description: Get the DEP profile currently set as the default for new enrollments
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Assigner profile retrieved successfully
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_DEPProfileResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+        "404":
+          description: No assigner profile configured
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+      security:
+      - BearerAuth: []
+      summary: Get current assigner profile
+      tags:
+      - DEP Profile
   /api/v1/device-groups:
     get:
       description: Retrieve a paginated list of device groups with support for name-based
