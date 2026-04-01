@@ -324,6 +324,7 @@ func (r *routeRegister) registerDepProfileRoutes(rg *gin.RouterGroup) {
 			profiles.PUT("/:id", r.depProfile.Update)
 			profiles.DELETE("/:id", r.depProfile.Delete)
 			profiles.POST("/:id/set-assigner", r.depProfile.SetAsAssigner)
+			profiles.POST("/:id/assign-all-devices", r.depProfile.AssignToAllDevices)
 		}
 	}
 }

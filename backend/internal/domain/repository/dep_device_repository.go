@@ -24,6 +24,10 @@ type DepDeviceRepository interface {
 	// UpdateReassignStatus updates the reassignment status for a device.
 	UpdateReassignStatus(ctx context.Context, serialNumber string, needsReassign bool, errMsg string) error
 
+	// UpdateAssignResult updates device fields after an assign attempt.
+	// If assignedProfileUUID is non-empty, profile_uuid/profile_status/profile_assign_time are updated.
+	UpdateAssignResult(ctx context.Context, serialNumber string, assignedProfileUUID string, needsReassign bool, errMsg string) error
+
 	// List returns a paginated list of DEP devices.
 	List(ctx context.Context, offset, limit int) ([]*ent.DepDevice, int64, error)
 }

@@ -3,6 +3,7 @@ package serviceimpl
 import (
 	"context"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/thienel/go-backend-template/internal/domain/repository"
@@ -122,6 +123,122 @@ func (s *depDeviceServiceImpl) List(ctx context.Context, offset, limit int) ([]*
 
 func (s *depDeviceServiceImpl) GetBySerialNumber(ctx context.Context, serialNumber string) (*ent.DepDevice, error) {
 	return s.repo.GetBySerialNumber(ctx, serialNumber)
+}
+
+func (s *depDeviceServiceImpl) AssignProfileToAllExistingDevices(
+	ctx context.Context,
+	depName string,
+	profileUUID string,
+	nanomdmSvc service.NanoMDMService,
+) (*dto.DEPAssignAllDevicesResult, error) {
+	result := &dto.DEPAssignAllDevicesResult{}
+
+	if profileUUID == "" {
+		return result, fmt.Errorf("profile UUID is required")
+	}
+
+	if nanomdmSvc == nil {
+		return result, fmt.Errorf("nanomdm service is required")
+	}
+
+	const pageSize = 500
+	const batchSize = 100
+
+	offset := 0
+	serials := make([]string, 0)
+
+	for {
+		devices, _, err := s.repo.List(ctx, offset, pageSize)
+		if err != nil {
+			return nil, err
+		}
+		if len(devices) == 0 {
+			break
+		}
+
+		for _, d := range devices {
+			if d == nil || !d.IsActive {
+				continue
+			}
+
+			result.TotalActiveDevices++
+
+			if strings.TrimSpace(d.SerialNumber) == "" || d.OpType == "deleted" {
+				result.Skipped++
+				continue
+			}
+
+			if d.ProfileUUID == profileUUID {
+				result.Skipped++
+				continue
+			}
+
+			serials = append(serials, d.SerialNumber)
+		}
+
+		offset += len(devices)
+	}
+
+	result.EligibleDevices = len(serials)
+	if len(serials) == 0 {
+		return result, nil
+	}
+
+	for start := 0; start < len(serials); start += batchSize {
+		end := start + batchSize
+		if end > len(serials) {
+			end = len(serials)
+		}
+
+		batch := serials[start:end]
+		result.Attempted += len(batch)
+
+		assignResults, err := nanomdmSvc.AssignDEPProfile(ctx, depName, profileUUID, batch)
+		if err != nil {
+			for _, serial := range batch {
+				result.Failed++
+				_ = s.repo.UpdateAssignResult(ctx, serial, "", false, fmt.Sprintf("FAILED: %v", err))
+			}
+			continue
+		}
+
+		for _, serial := range batch {
+			status, ok := assignResults[serial]
+			if !ok {
+				status = "FAILED: no status returned"
+			}
+
+			switch status {
+			case "SUCCESS":
+				result.Success++
+				_ = s.repo.UpdateAssignResult(ctx, serial, profileUUID, false, "")
+			case "NOT_ACCESSIBLE":
+				result.NotAccessible++
+				_ = s.repo.UpdateAssignResult(ctx, serial, "", true, "NOT_ACCESSIBLE: device belongs to another MDM server")
+			case "NOT_FOUND":
+				result.NotFound++
+				_ = s.repo.UpdateAssignResult(ctx, serial, "", false, "NOT_FOUND: serial not in ABM")
+			default:
+				result.Failed++
+				_ = s.repo.UpdateAssignResult(ctx, serial, "", false, fmt.Sprintf("FAILED: %s", status))
+			}
+		}
+	}
+
+	tlog.Info("Bulk DEP profile assignment completed",
+		zap.String("dep_name", depName),
+		zap.String("profile_uuid", profileUUID),
+		zap.Int("active_total", result.TotalActiveDevices),
+		zap.Int("eligible", result.EligibleDevices),
+		zap.Int("attempted", result.Attempted),
+		zap.Int("success", result.Success),
+		zap.Int("not_accessible", result.NotAccessible),
+		zap.Int("not_found", result.NotFound),
+		zap.Int("failed", result.Failed),
+		zap.Int("skipped", result.Skipped),
+	)
+
+	return result, nil
 }
 
 // mapWebhookDeviceToEnt converts a DEPDevice DTO to an ent.DepDevice entity.

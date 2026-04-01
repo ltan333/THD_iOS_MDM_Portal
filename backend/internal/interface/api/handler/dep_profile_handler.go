@@ -19,17 +19,22 @@ type DepProfileHandler interface {
 	Delete(c *gin.Context)
 	SetAsAssigner(c *gin.Context)
 	GetAssigner(c *gin.Context)
+	AssignToAllDevices(c *gin.Context)
 }
 
 type depProfileHandlerImpl struct {
-	service service.DepProfileService
-	depName string // default DEP server name from config
+	service          service.DepProfileService
+	depDeviceService service.DepDeviceService
+	nanomdmService   service.NanoMDMService
+	depName          string // default DEP server name from config
 }
 
-func NewDepProfileHandler(service service.DepProfileService, depName string) DepProfileHandler {
+func NewDepProfileHandler(service service.DepProfileService, depDeviceService service.DepDeviceService, nanomdmService service.NanoMDMService, depName string) DepProfileHandler {
 	return &depProfileHandlerImpl{
-		service: service,
-		depName: depName,
+		service:          service,
+		depDeviceService: depDeviceService,
+		nanomdmService:   nanomdmService,
+		depName:          depName,
 	}
 }
 
@@ -283,6 +288,52 @@ func (h *depProfileHandlerImpl) GetAssigner(c *gin.Context) {
 	}
 
 	response.OK(c, mapEntToDEPProfileResponse(profile), "Assigner profile retrieved successfully")
+}
+
+// AssignToAllDevices godoc
+// @Summary Assign DEP profile to all existing devices
+// @Description Assign this DEP profile to all active DEP devices currently stored in database
+// @Tags DEP Profile
+// @Produce json
+// @Param id path int true "Profile ID"
+// @Success 200 {object} response.APIResponse[dto.DEPAssignAllDevicesResult] "Profile assignment completed"
+// @Failure 400 {object} response.APIResponse[any] "Invalid profile ID or profile not registered"
+// @Failure 401 {object} response.APIResponse[any] "Unauthorized"
+// @Failure 404 {object} response.APIResponse[any] "Profile not found"
+// @Failure 500 {object} response.APIResponse[any] "Internal server error"
+// @Security BearerAuth
+// @Router /api/v1/dep/profiles/{id}/assign-all-devices [post]
+func (h *depProfileHandlerImpl) AssignToAllDevices(c *gin.Context) {
+	idStr := c.Param("id")
+	id, err := strconv.ParseUint(idStr, 10, 64)
+	if err != nil {
+		response.WriteErrorResponse(c, apperror.ErrValidation.WithMessage("Invalid profile ID"))
+		return
+	}
+
+	profile, err := h.service.GetByID(c.Request.Context(), uint(id))
+	if err != nil {
+		response.WriteErrorResponse(c, err)
+		return
+	}
+
+	if profile.ProfileUUID == "" {
+		response.WriteErrorResponse(c, apperror.ErrBadRequest.WithMessage("Profile has not been registered with Apple DEP yet"))
+		return
+	}
+
+	result, err := h.depDeviceService.AssignProfileToAllExistingDevices(
+		c.Request.Context(),
+		h.depName,
+		profile.ProfileUUID,
+		h.nanomdmService,
+	)
+	if err != nil {
+		response.WriteErrorResponse(c, apperror.ErrInternalServerError.WithMessage("Failed to assign profile to devices").WithError(err))
+		return
+	}
+
+	response.OK(c, result, "Profile assignment completed")
 }
 
 // mapEntToDEPProfileResponse converts an ent.DepProfile to dto.DEPProfileResponse

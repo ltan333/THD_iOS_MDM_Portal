@@ -94,6 +94,17 @@ type DEPAssignerResponse struct {
 	ProfileUUID string `json:"profile_uuid"`
 }
 
+type DEPAssignAllDevicesResult struct {
+	TotalActiveDevices int `json:"total_active_devices"`
+	EligibleDevices    int `json:"eligible_devices"`
+	Attempted          int `json:"attempted"`
+	Success            int `json:"success"`
+	NotAccessible      int `json:"not_accessible"`
+	NotFound           int `json:"not_found"`
+	Failed             int `json:"failed"`
+	Skipped            int `json:"skipped"`
+}
+
 type DEPDevicesRequest struct {
 	Devices []string `json:"devices" example:"G0NXR2GUKPFQ"`
 }

@@ -130,7 +130,7 @@ func setupDependencies(cfg *config.Config) *gin.Engine {
 	deviceHandler := handler.NewDeviceHandler(deviceService, nanomdmService, profileService, cmdBuilder)
 	deviceGroupHandler := handler.NewDeviceGroupHandler(deviceGroupService)
 	profileHandler := handler.NewProfileHandler(profileService)
-	depProfileHandler := handler.NewDepProfileHandler(depProfileService, cfg.NanoMDM.DEPServerName)
+	depProfileHandler := handler.NewDepProfileHandler(depProfileService, depDeviceService, nanomdmService, cfg.NanoMDM.DEPServerName)
 	applicationHandler := handler.NewApplicationHandler(applicationService)
 	alertHandler := handler.NewAlertHandler(alertService, alertRuleService)
 	reportHandler := handler.NewReportHandler(reportService)

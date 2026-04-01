@@ -22,4 +22,7 @@ type DepDeviceService interface {
 
 	// GetBySerialNumber retrieves a DEP device by its serial number.
 	GetBySerialNumber(ctx context.Context, serialNumber string) (*ent.DepDevice, error)
+
+	// AssignProfileToAllExistingDevices assigns a profile UUID to all active DEP devices in DB.
+	AssignProfileToAllExistingDevices(ctx context.Context, depName string, profileUUID string, nanomdmSvc NanoMDMService) (*dto.DEPAssignAllDevicesResult, error)
 }

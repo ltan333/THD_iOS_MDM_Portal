@@ -2,6 +2,7 @@ package persistence
 
 import (
 	"context"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/thienel/go-backend-template/internal/domain/repository"
@@ -183,6 +184,28 @@ func (r *depDeviceRepositoryImpl) UpdateReassignStatus(ctx context.Context, seri
 	if err != nil {
 		return apperror.ErrInternalServerError.WithMessage("Failed to update DEP device reassign status").WithError(err)
 	}
+	return nil
+}
+
+func (r *depDeviceRepositoryImpl) UpdateAssignResult(ctx context.Context, serialNumber string, assignedProfileUUID string, needsReassign bool, errMsg string) error {
+	update := r.client.DepDevice.
+		Update().
+		Where(depdevice.SerialNumberEQ(serialNumber)).
+		SetNeedsManualReassign(needsReassign).
+		SetReassignError(errMsg)
+
+	if assignedProfileUUID != "" {
+		now := time.Now()
+		update = update.
+			SetProfileUUID(assignedProfileUUID).
+			SetProfileStatus("assigned").
+			SetProfileAssignTime(now)
+	}
+
+	if _, err := update.Save(ctx); err != nil {
+		return apperror.ErrInternalServerError.WithMessage("Failed to update DEP device assignment result").WithError(err)
+	}
+
 	return nil
 }
 
