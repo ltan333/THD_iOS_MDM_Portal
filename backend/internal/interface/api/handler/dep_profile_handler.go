@@ -119,6 +119,14 @@ func (h *depProfileHandlerImpl) List(c *gin.Context) {
 	offset, _ := strconv.Atoi(c.DefaultQuery("offset", "0"))
 	limit, _ := strconv.Atoi(c.DefaultQuery("limit", "20"))
 
+	// Validate pagination parameters
+	if offset < 0 {
+		offset = 0
+	}
+	if limit <= 0 {
+		limit = 20
+	}
+
 	profiles, total, err := h.service.List(c.Request.Context(), offset, limit)
 	if err != nil {
 		response.WriteErrorResponse(c, err)
