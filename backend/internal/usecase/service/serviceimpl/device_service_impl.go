@@ -346,6 +346,11 @@ func (s *deviceServiceImpl) handleAcknowledge(ctx context.Context, payload *dto.
 	}
 
 	requestType := deepFindString(ack, "request_type", "RequestType")
+	if requestType == "" {
+		tlog.Warn("mdm.Connect payload missing request type",
+			zap.Any("ack_keys", mapKeys(ack)))
+		return
+	}
 	if requestType != "DeviceInformation" {
 		return
 	}
