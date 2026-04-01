@@ -86,6 +86,10 @@ func getRequestContext(c *gin.Context) []zap.Field {
 
 	if requestID := c.GetHeader("X-Request-ID"); requestID != "" {
 		fields = append(fields, zap.String("request_id", requestID))
+	} else if requestID, exists := c.Get("X-Request-ID"); exists {
+		if rid, ok := requestID.(string); ok && rid != "" {
+			fields = append(fields, zap.String("request_id", rid))
+		}
 	}
 
 	if userClaims, exists := c.Get("user"); exists {

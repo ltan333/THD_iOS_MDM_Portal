@@ -132,12 +132,21 @@ func (s *depDeviceServiceImpl) AssignProfileToAllExistingDevices(
 	nanomdmSvc service.NanoMDMService,
 ) (*dto.DEPAssignAllDevicesResult, error) {
 	result := &dto.DEPAssignAllDevicesResult{}
+	tlog.Info("Starting bulk DEP profile assignment service flow",
+		zap.String("dep_name", depName),
+		zap.String("profile_uuid", profileUUID),
+	)
 
 	if profileUUID == "" {
+		tlog.Warn("Bulk assignment aborted: missing profile UUID", zap.String("dep_name", depName))
 		return result, fmt.Errorf("profile UUID is required")
 	}
 
 	if nanomdmSvc == nil {
+		tlog.Error("Bulk assignment aborted: nanomdm service is nil",
+			zap.String("dep_name", depName),
+			zap.String("profile_uuid", profileUUID),
+		)
 		return result, fmt.Errorf("nanomdm service is required")
 	}
 
@@ -146,15 +155,29 @@ func (s *depDeviceServiceImpl) AssignProfileToAllExistingDevices(
 
 	offset := 0
 	serials := make([]string, 0)
+	pagesScanned := 0
 
 	for {
 		devices, _, err := s.repo.List(ctx, offset, pageSize)
 		if err != nil {
+			tlog.Error("Failed to list DEP devices for bulk assignment",
+				zap.String("dep_name", depName),
+				zap.Int("offset", offset),
+				zap.Int("page_size", pageSize),
+				zap.Error(err),
+			)
 			return nil, err
 		}
 		if len(devices) == 0 {
 			break
 		}
+		pagesScanned++
+		tlog.Debug("Scanned DEP device page",
+			zap.String("dep_name", depName),
+			zap.Int("offset", offset),
+			zap.Int("page_size", pageSize),
+			zap.Int("records", len(devices)),
+		)
 
 		for _, d := range devices {
 			if d == nil || !d.IsActive {
@@ -180,10 +203,24 @@ func (s *depDeviceServiceImpl) AssignProfileToAllExistingDevices(
 	}
 
 	result.EligibleDevices = len(serials)
+	tlog.Info("Prepared eligible devices for bulk assignment",
+		zap.String("dep_name", depName),
+		zap.String("profile_uuid", profileUUID),
+		zap.Int("pages_scanned", pagesScanned),
+		zap.Int("active_total", result.TotalActiveDevices),
+		zap.Int("eligible", result.EligibleDevices),
+		zap.Int("skipped", result.Skipped),
+	)
 	if len(serials) == 0 {
+		tlog.Info("No eligible devices for bulk assignment",
+			zap.String("dep_name", depName),
+			zap.String("profile_uuid", profileUUID),
+		)
 		return result, nil
 	}
 
+	totalBatches := (len(serials) + batchSize - 1) / batchSize
+	batchNumber := 0
 	for start := 0; start < len(serials); start += batchSize {
 		end := start + batchSize
 		if end > len(serials) {
@@ -191,17 +228,45 @@ func (s *depDeviceServiceImpl) AssignProfileToAllExistingDevices(
 		}
 
 		batch := serials[start:end]
+		batchNumber++
 		result.Attempted += len(batch)
+
+		tlog.Info("Assigning DEP profile batch",
+			zap.String("dep_name", depName),
+			zap.String("profile_uuid", profileUUID),
+			zap.Int("batch_number", batchNumber),
+			zap.Int("total_batches", totalBatches),
+			zap.Int("batch_size", len(batch)),
+		)
 
 		assignResults, err := nanomdmSvc.AssignDEPProfile(ctx, depName, profileUUID, batch)
 		if err != nil {
+			tlog.Error("Failed to assign DEP profile batch",
+				zap.String("dep_name", depName),
+				zap.String("profile_uuid", profileUUID),
+				zap.Int("batch_number", batchNumber),
+				zap.Int("batch_size", len(batch)),
+				zap.Error(err),
+			)
 			for _, serial := range batch {
 				result.Failed++
-				_ = s.repo.UpdateAssignResult(ctx, serial, "", false, fmt.Sprintf("FAILED: %v", err))
+				if updateErr := s.repo.UpdateAssignResult(ctx, serial, "", false, fmt.Sprintf("FAILED: %v", err)); updateErr != nil {
+					tlog.Error("Failed to persist DEP assignment result",
+						zap.String("serial", serial),
+						zap.String("dep_name", depName),
+						zap.Int("batch_number", batchNumber),
+						zap.String("status", "FAILED"),
+						zap.Error(updateErr),
+					)
+				}
 			}
 			continue
 		}
 
+		batchSuccess := 0
+		batchNotAccessible := 0
+		batchNotFound := 0
+		batchFailed := 0
 		for _, serial := range batch {
 			status, ok := assignResults[serial]
 			if !ok {
@@ -211,18 +276,66 @@ func (s *depDeviceServiceImpl) AssignProfileToAllExistingDevices(
 			switch status {
 			case "SUCCESS":
 				result.Success++
-				_ = s.repo.UpdateAssignResult(ctx, serial, profileUUID, false, "")
+				batchSuccess++
+				if updateErr := s.repo.UpdateAssignResult(ctx, serial, profileUUID, false, ""); updateErr != nil {
+					tlog.Error("Failed to persist DEP assignment result",
+						zap.String("serial", serial),
+						zap.String("dep_name", depName),
+						zap.Int("batch_number", batchNumber),
+						zap.String("status", "SUCCESS"),
+						zap.Error(updateErr),
+					)
+				}
 			case "NOT_ACCESSIBLE":
 				result.NotAccessible++
-				_ = s.repo.UpdateAssignResult(ctx, serial, "", true, "NOT_ACCESSIBLE: device belongs to another MDM server")
+				batchNotAccessible++
+				if updateErr := s.repo.UpdateAssignResult(ctx, serial, "", true, "NOT_ACCESSIBLE: device belongs to another MDM server"); updateErr != nil {
+					tlog.Error("Failed to persist DEP assignment result",
+						zap.String("serial", serial),
+						zap.String("dep_name", depName),
+						zap.Int("batch_number", batchNumber),
+						zap.String("status", "NOT_ACCESSIBLE"),
+						zap.Error(updateErr),
+					)
+				}
 			case "NOT_FOUND":
 				result.NotFound++
-				_ = s.repo.UpdateAssignResult(ctx, serial, "", false, "NOT_FOUND: serial not in ABM")
+				batchNotFound++
+				if updateErr := s.repo.UpdateAssignResult(ctx, serial, "", false, "NOT_FOUND: serial not in ABM"); updateErr != nil {
+					tlog.Error("Failed to persist DEP assignment result",
+						zap.String("serial", serial),
+						zap.String("dep_name", depName),
+						zap.Int("batch_number", batchNumber),
+						zap.String("status", "NOT_FOUND"),
+						zap.Error(updateErr),
+					)
+				}
 			default:
 				result.Failed++
-				_ = s.repo.UpdateAssignResult(ctx, serial, "", false, fmt.Sprintf("FAILED: %s", status))
+				batchFailed++
+				if updateErr := s.repo.UpdateAssignResult(ctx, serial, "", false, fmt.Sprintf("FAILED: %s", status)); updateErr != nil {
+					tlog.Error("Failed to persist DEP assignment result",
+						zap.String("serial", serial),
+						zap.String("dep_name", depName),
+						zap.Int("batch_number", batchNumber),
+						zap.String("status", status),
+						zap.Error(updateErr),
+					)
+				}
 			}
 		}
+
+		tlog.Info("Completed DEP profile assignment batch",
+			zap.String("dep_name", depName),
+			zap.String("profile_uuid", profileUUID),
+			zap.Int("batch_number", batchNumber),
+			zap.Int("total_batches", totalBatches),
+			zap.Int("batch_size", len(batch)),
+			zap.Int("success", batchSuccess),
+			zap.Int("not_accessible", batchNotAccessible),
+			zap.Int("not_found", batchNotFound),
+			zap.Int("failed", batchFailed),
+		)
 	}
 
 	tlog.Info("Bulk DEP profile assignment completed",

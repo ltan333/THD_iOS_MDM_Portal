@@ -74,7 +74,7 @@ func SetupRouter(
 	}
 
 	router := gin.New()
-	router.Use(gin.Recovery(), mw.CORS(), tlog.GinMiddleware(tlog.WithSkipPaths("/health")))
+	router.Use(mw.RequestContext(), mw.Recovery(), mw.CORS(), tlog.GinMiddleware(tlog.WithSkipPaths("/health")))
 
 	// Health check - system endpoint, keep at root level
 	router.GET("/health", func(c *gin.Context) {

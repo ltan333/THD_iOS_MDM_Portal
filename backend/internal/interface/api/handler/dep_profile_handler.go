@@ -9,6 +9,8 @@ import (
 	"github.com/thienel/go-backend-template/internal/usecase/service"
 	apperror "github.com/thienel/go-backend-template/pkg/error"
 	"github.com/thienel/go-backend-template/pkg/response"
+	"github.com/thienel/tlog"
+	"go.uber.org/zap"
 )
 
 type DepProfileHandler interface {
@@ -304,20 +306,41 @@ func (h *depProfileHandlerImpl) GetAssigner(c *gin.Context) {
 // @Security BearerAuth
 // @Router /api/v1/dep/profiles/{id}/assign-all-devices [post]
 func (h *depProfileHandlerImpl) AssignToAllDevices(c *gin.Context) {
+	requestID := c.GetHeader("X-Request-ID")
 	idStr := c.Param("id")
 	id, err := strconv.ParseUint(idStr, 10, 64)
 	if err != nil {
+		tlog.Warn("Invalid profile ID for bulk DEP assignment",
+			zap.String("request_id", requestID),
+			zap.String("profile_id", idStr),
+			zap.String("path", c.Request.URL.Path),
+		)
 		response.WriteErrorResponse(c, apperror.ErrValidation.WithMessage("Invalid profile ID"))
 		return
 	}
 
+	tlog.Info("Starting bulk DEP profile assignment",
+		zap.String("request_id", requestID),
+		zap.Uint64("profile_id", id),
+		zap.String("dep_name", h.depName),
+	)
+
 	profile, err := h.service.GetByID(c.Request.Context(), uint(id))
 	if err != nil {
+		tlog.Error("Failed to load DEP profile for bulk assignment",
+			zap.String("request_id", requestID),
+			zap.Uint64("profile_id", id),
+			zap.Error(err),
+		)
 		response.WriteErrorResponse(c, err)
 		return
 	}
 
 	if profile.ProfileUUID == "" {
+		tlog.Warn("DEP profile is not registered with Apple DEP",
+			zap.String("request_id", requestID),
+			zap.Uint64("profile_id", id),
+		)
 		response.WriteErrorResponse(c, apperror.ErrBadRequest.WithMessage("Profile has not been registered with Apple DEP yet"))
 		return
 	}
@@ -329,9 +352,31 @@ func (h *depProfileHandlerImpl) AssignToAllDevices(c *gin.Context) {
 		h.nanomdmService,
 	)
 	if err != nil {
+		tlog.Error("Bulk DEP profile assignment failed",
+			zap.String("request_id", requestID),
+			zap.Uint64("profile_id", id),
+			zap.String("dep_name", h.depName),
+			zap.String("profile_uuid", profile.ProfileUUID),
+			zap.Error(err),
+		)
 		response.WriteErrorResponse(c, apperror.ErrInternalServerError.WithMessage("Failed to assign profile to devices").WithError(err))
 		return
 	}
+
+	tlog.Info("Completed bulk DEP profile assignment",
+		zap.String("request_id", requestID),
+		zap.Uint64("profile_id", id),
+		zap.String("dep_name", h.depName),
+		zap.String("profile_uuid", profile.ProfileUUID),
+		zap.Int("active_total", result.TotalActiveDevices),
+		zap.Int("eligible", result.EligibleDevices),
+		zap.Int("attempted", result.Attempted),
+		zap.Int("success", result.Success),
+		zap.Int("not_accessible", result.NotAccessible),
+		zap.Int("not_found", result.NotFound),
+		zap.Int("failed", result.Failed),
+		zap.Int("skipped", result.Skipped),
+	)
 
 	response.OK(c, result, "Profile assignment completed")
 }
