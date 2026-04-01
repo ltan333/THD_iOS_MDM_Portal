@@ -43,3 +43,4 @@ schema.sql
 logs/app.log
 .gitnexus
 /.claude
+*/.claude
