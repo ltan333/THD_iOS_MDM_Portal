@@ -454,6 +454,15 @@ func (s *profileServiceImpl) InstallOnDevice(ctx context.Context, profileID uint
 // the pending map (e.g. after a server restart), it falls back to updating all
 // pending deployment statuses for the device identified by UDID.
 func (s *profileServiceImpl) HandleInstallAck(ctx context.Context, udid string, commandUUID string, ackStatus string, errMsg string) error {
+	// NotNow means the device is busy and will retry later — leave status as pending
+	// and keep commandUUID in the map so the eventual real ACK is matched correctly.
+	if ackStatus == "NotNow" {
+		tlog.Info("InstallProfile deferred by device (NotNow), waiting for retry",
+			zap.String("udid", udid),
+			zap.String("command_uuid", commandUUID))
+		return nil
+	}
+
 	repoStatus := "failed"
 	if ackStatus == "Acknowledged" {
 		repoStatus = "success"
