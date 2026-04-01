@@ -61,7 +61,7 @@ type ProfileService interface {
 	UpdateComplianceRules(ctx context.Context, id uint, rules map[string]any) error
 
 	// Assignment
-	Assign(ctx context.Context, cmd AssignProfileCommand) error
+	Assign(ctx context.Context, cmd AssignProfileCommand) (*ent.ProfileAssignment, error)
 	Unassign(ctx context.Context, profileID uint, assignmentID uint) error
 	ListAssignments(ctx context.Context, profileID uint) ([]*ent.ProfileAssignment, error)
 
@@ -74,5 +74,9 @@ type ProfileService interface {
 	Repush(ctx context.Context, profileID uint) error
 	DeployToDevice(ctx context.Context, deviceID string) error
 	InstallOnDevice(ctx context.Context, profileID uint, deviceID string) error
+	// HandleInstallAck processes an InstallProfile command acknowledgement from a device.
+	// commandUUID is used to look up the exact deployment status record (preferred).
+	// udid + ackStatus are used as fallback when commandUUID is not in the pending map.
+	HandleInstallAck(ctx context.Context, udid string, commandUUID string, ackStatus string, errMsg string) error
 	Duplicate(ctx context.Context, profileID uint) (*ent.Profile, error)
 }

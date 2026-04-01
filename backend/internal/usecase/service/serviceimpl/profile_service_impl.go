@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/thienel/go-backend-template/internal/domain/repository"
@@ -19,13 +20,19 @@ import (
 
 type profileServiceImpl struct {
 	repo       repository.ProfileRepository
+	deviceRepo repository.DeviceRepository
 	generator  service.ProfileGenerator
 	mdmService service.NanoMDMService
+	// pendingCmds maps commandUUID → deploymentStatusID for in-flight InstallProfile commands.
+	// Used to correlate mdm.Connect ACKs back to the correct deployment status record
+	// when NanoMDM omits request_type from the webhook.
+	pendingCmds sync.Map
 }
 
-func NewProfileService(repo repository.ProfileRepository, generator service.ProfileGenerator, mdmService service.NanoMDMService) service.ProfileService {
+func NewProfileService(repo repository.ProfileRepository, deviceRepo repository.DeviceRepository, generator service.ProfileGenerator, mdmService service.NanoMDMService) service.ProfileService {
 	return &profileServiceImpl{
 		repo:       repo,
+		deviceRepo: deviceRepo,
 		generator:  generator,
 		mdmService: mdmService,
 	}
@@ -203,9 +210,10 @@ func (s *profileServiceImpl) UpdateComplianceRules(ctx context.Context, id uint,
 	return err
 }
 
-func (s *profileServiceImpl) Assign(ctx context.Context, cmd service.AssignProfileCommand) error {
-	if err := s.repo.Assign(ctx, cmd); err != nil {
-		return err
+func (s *profileServiceImpl) Assign(ctx context.Context, cmd service.AssignProfileCommand) (*ent.ProfileAssignment, error) {
+	assignment, err := s.repo.Assign(ctx, cmd)
+	if err != nil {
+		return nil, err
 	}
 	// Immediately deploy if schedule_type is "immediate" and a direct device is targeted.
 	if cmd.ScheduleType == "immediate" {
@@ -219,7 +227,7 @@ func (s *profileServiceImpl) Assign(ctx context.Context, cmd service.AssignProfi
 			}
 		}
 	}
-	return nil
+	return assignment, nil
 }
 
 func (s *profileServiceImpl) Unassign(ctx context.Context, profileID uint, assignmentID uint) error {
@@ -248,15 +256,13 @@ func (s *profileServiceImpl) Repush(ctx context.Context, profileID uint) error {
 		return err
 	}
 
+	if p.Status != profile.StatusActive {
+		return apperror.ErrBadRequest.WithMessage("Chỉ có thể repush profile đang active")
+	}
+
 	xmlData, err := s.generator.GenerateXML(ctx, p)
 	if err != nil {
 		return apperror.ErrInternalServerError.WithMessage("Lỗi khi tạo XML profile").WithError(err)
-	}
-
-	cmdBuilder := mdmcmd.NewBuilder("")
-	cmdData, _, err := cmdBuilder.InstallProfile(xmlData)
-	if err != nil {
-		return apperror.ErrInternalServerError.WithMessage("Lỗi khi build InstallProfile command").WithError(err)
 	}
 
 	udids, err := s.repo.GetFlattenedDeviceUDIDsByProfile(ctx, profileID)
@@ -264,17 +270,44 @@ func (s *profileServiceImpl) Repush(ctx context.Context, profileID uint) error {
 		return apperror.ErrInternalServerError.WithMessage("Lỗi khi fetch device IDs").WithError(err)
 	}
 
+	cmdBuilder := mdmcmd.NewBuilder("")
 	var failed int
 	for _, udid := range udids {
-		if _, err := s.mdmService.EnqueueCommand(ctx, udid, cmdData); err != nil {
-			tlog.Error("Failed to enqueue InstallProfile", zap.String("udid", udid), zap.Error(err))
+		// Each device gets its own command with a unique CommandUUID
+		cmdData, commandUUID, err := cmdBuilder.InstallProfile(xmlData)
+		if err != nil {
+			tlog.Error("Failed to build InstallProfile command", zap.String("udid", udid), zap.Error(err))
 			failed++
 			continue
 		}
-		if _, err := s.mdmService.Push(ctx, []string{udid}); err != nil {
-			tlog.Error("Failed to push APNs notification", zap.String("udid", udid), zap.Error(err))
+
+		// Resolve UDID → portal device ID to create deployment status
+		device, err := s.deviceRepo.FindByUDID(ctx, udid)
+		if err != nil {
+			tlog.Warn("Repush: device not found for UDID", zap.String("udid", udid), zap.Error(err))
 			failed++
+			continue
 		}
+
+		ds, err := s.repo.CreateDeploymentStatus(ctx, profileID, device.ID, "pending")
+		if err != nil {
+			tlog.Error("Repush: failed to create deployment status", zap.String("udid", udid), zap.Error(err))
+		}
+
+		if _, err := s.mdmService.EnqueueCommand(ctx, udid, cmdData); err != nil {
+			tlog.Error("Failed to enqueue InstallProfile", zap.String("udid", udid), zap.Error(err))
+			if ds != nil {
+				_ = s.repo.UpdateDeploymentStatus(ctx, ds.ID, "failed", err.Error())
+			}
+			failed++
+			continue
+		}
+
+		if ds != nil && commandUUID != "" {
+			s.pendingCmds.Store(commandUUID, ds.ID)
+		}
+
+		_, _ = s.mdmService.Push(ctx, []string{udid})
 	}
 
 	if len(udids) > 0 && failed == len(udids) {
@@ -285,29 +318,56 @@ func (s *profileServiceImpl) Repush(ctx context.Context, profileID uint) error {
 }
 
 func (s *profileServiceImpl) DeployToDevice(ctx context.Context, deviceID string) error {
+	// deviceID is the MDM UDID (called from enrollment worker with ev.DeviceID)
 	profiles, err := s.repo.GetProfilesByDevice(ctx, deviceID)
 	if err != nil {
 		return err
 	}
 
+	// Resolve UDID → portal device ID once for all profiles
+	device, err := s.deviceRepo.FindByUDID(ctx, deviceID)
+	if err != nil {
+		tlog.Warn("DeployToDevice: device not found for UDID", zap.String("udid", deviceID), zap.Error(err))
+		return nil
+	}
+
 	cmdBuilder := mdmcmd.NewBuilder("")
 
 	for _, p := range profiles {
+		// Only deploy active profiles
+		if p.Status != profile.StatusActive {
+			continue
+		}
+
 		xmlData, err := s.generator.GenerateXML(ctx, p)
 		if err != nil {
 			tlog.Error("Failed to generate XML for auto-deploy", zap.Uint("profile_id", p.ID), zap.Error(err))
 			continue
 		}
 
-		cmdData, _, err := cmdBuilder.InstallProfile(xmlData)
+		// Each profile gets its own command with a unique CommandUUID
+		cmdData, commandUUID, err := cmdBuilder.InstallProfile(xmlData)
 		if err != nil {
 			tlog.Error("Failed to build InstallProfile command", zap.Uint("profile_id", p.ID), zap.Error(err))
 			continue
 		}
 
+		ds, err := s.repo.CreateDeploymentStatus(ctx, p.ID, device.ID, "pending")
+		if err != nil {
+			tlog.Error("DeployToDevice: failed to create deployment status",
+				zap.Uint("profile_id", p.ID), zap.String("udid", deviceID), zap.Error(err))
+		}
+
 		if _, err = s.mdmService.EnqueueCommand(ctx, deviceID, cmdData); err != nil {
 			tlog.Error("Failed to enqueue auto-InstallProfile", zap.String("udid", deviceID), zap.Error(err))
+			if ds != nil {
+				_ = s.repo.UpdateDeploymentStatus(ctx, ds.ID, "failed", err.Error())
+			}
 			continue
+		}
+
+		if ds != nil && commandUUID != "" {
+			s.pendingCmds.Store(commandUUID, ds.ID)
 		}
 
 		_, _ = s.mdmService.Push(ctx, []string{deviceID})
@@ -316,30 +376,140 @@ func (s *profileServiceImpl) DeployToDevice(ctx context.Context, deviceID string
 	return nil
 }
 
-func (s *profileServiceImpl) InstallOnDevice(ctx context.Context, profileID uint, deviceID string) error {
+// InstallOnDevice installs a profile on the device identified by its portal device ID.
+// It resolves the MDM UDID internally before enqueuing commands to NanoMDM.
+func (s *profileServiceImpl) InstallOnDevice(ctx context.Context, profileID uint, portalDeviceID string) error {
 	p, err := s.repo.GetByID(ctx, profileID)
 	if err != nil {
 		return err
 	}
 
+	// Resolve portal device ID → MDM UDID
+	device, err := s.deviceRepo.GetByID(ctx, portalDeviceID)
+	if err != nil {
+		return apperror.ErrNotFound.WithMessage("Không tìm thấy device").WithError(err)
+	}
+	if device.Udid == nil || *device.Udid == "" {
+		return apperror.ErrBadRequest.WithMessage("Device chưa enroll vào MDM, không có UDID")
+	}
+	udid := *device.Udid
+
+	// 1. Create deployment status record (FK references portal_devices.id)
+	ds, err := s.repo.CreateDeploymentStatus(ctx, profileID, portalDeviceID, "pending")
+	if err != nil {
+		tlog.Error("Failed to create deployment status", zap.Error(err))
+		// Continue anyway - don't block installation
+	}
+
+	// 2. Generate XML
 	xmlData, err := s.generator.GenerateXML(ctx, p)
 	if err != nil {
+		if ds != nil {
+			_ = s.repo.UpdateDeploymentStatus(ctx, ds.ID, "failed", "Failed to generate XML: "+err.Error())
+		}
 		return apperror.ErrInternalServerError.WithMessage("Lỗi khi tạo XML profile").WithError(err)
 	}
 
+	// 3. Build command — capture commandUUID to correlate the device ACK later
 	cmdBuilder := mdmcmd.NewBuilder("")
-	cmdData, _, err := cmdBuilder.InstallProfile(xmlData)
+	cmdData, commandUUID, err := cmdBuilder.InstallProfile(xmlData)
 	if err != nil {
+		if ds != nil {
+			_ = s.repo.UpdateDeploymentStatus(ctx, ds.ID, "failed", "Failed to build command: "+err.Error())
+		}
 		return apperror.ErrInternalServerError.WithMessage("Lỗi khi build InstallProfile command").WithError(err)
 	}
 
-	if _, err = s.mdmService.EnqueueCommand(ctx, deviceID, cmdData); err != nil {
+	// 4. Enqueue command via MDM UDID
+	if _, err = s.mdmService.EnqueueCommand(ctx, udid, cmdData); err != nil {
+		if ds != nil {
+			_ = s.repo.UpdateDeploymentStatus(ctx, ds.ID, "failed", "Failed to enqueue command: "+err.Error())
+		}
 		return apperror.ErrInternalServerError.WithMessage("Lỗi khi enqueue InstallProfile").WithError(err)
 	}
 
-	// 4. Trigger APNs push
-	_, _ = s.mdmService.Push(ctx, []string{deviceID})
+	// 5. Store commandUUID → deploymentStatusID so the ACK webhook can update the record
+	if ds != nil && commandUUID != "" {
+		s.pendingCmds.Store(commandUUID, ds.ID)
+	}
 
+	// 6. Trigger APNs push
+	_, _ = s.mdmService.Push(ctx, []string{udid})
+
+	if ds != nil {
+		tlog.Info("Profile installation queued",
+			zap.Uint("profile_id", profileID),
+			zap.String("portal_device_id", portalDeviceID),
+			zap.String("udid", udid),
+			zap.String("command_uuid", commandUUID),
+			zap.Uint("deployment_status_id", ds.ID))
+	}
+
+	return nil
+}
+
+// HandleInstallAck processes an InstallProfile ACK from a device. It resolves
+// HandleInstallAck processes an InstallProfile command ACK.
+// It first tries to match by commandUUID (precise). If commandUUID is not in
+// the pending map (e.g. after a server restart), it falls back to updating all
+// pending deployment statuses for the device identified by UDID.
+func (s *profileServiceImpl) HandleInstallAck(ctx context.Context, udid string, commandUUID string, ackStatus string, errMsg string) error {
+	// NotNow means the device is busy and will retry later — leave status as pending
+	// and keep commandUUID in the map so the eventual real ACK is matched correctly.
+	if ackStatus == "NotNow" {
+		tlog.Info("InstallProfile deferred by device (NotNow), waiting for retry",
+			zap.String("udid", udid),
+			zap.String("command_uuid", commandUUID))
+		return nil
+	}
+
+	repoStatus := "failed"
+	if ackStatus == "Acknowledged" {
+		repoStatus = "success"
+	}
+
+	// Primary path: look up exact deployment status by commandUUID
+	if commandUUID != "" {
+		if val, ok := s.pendingCmds.LoadAndDelete(commandUUID); ok {
+			dsID := val.(uint)
+			if err := s.repo.UpdateDeploymentStatus(ctx, dsID, repoStatus, errMsg); err != nil {
+				tlog.Error("HandleInstallAck: failed to update deployment status by commandUUID",
+					zap.String("command_uuid", commandUUID),
+					zap.Uint("deployment_status_id", dsID),
+					zap.Error(err))
+				return err
+			}
+			tlog.Info("Deployment status updated from ACK",
+				zap.String("command_uuid", commandUUID),
+				zap.Uint("deployment_status_id", dsID),
+				zap.String("status", repoStatus),
+				zap.String("error_msg", errMsg))
+			return nil
+		}
+	}
+
+	// Fallback: commandUUID not in pending map (server restarted between enqueue and ACK).
+	// Update all pending statuses for this device.
+	if udid == "" {
+		return nil
+	}
+	device, err := s.deviceRepo.FindByUDID(ctx, udid)
+	if err != nil {
+		tlog.Warn("HandleInstallAck: device not found for UDID",
+			zap.String("udid", udid), zap.Error(err))
+		return nil
+	}
+	if err := s.repo.UpdateDeploymentStatusByDevice(ctx, device.ID, repoStatus, errMsg); err != nil {
+		tlog.Error("HandleInstallAck: fallback update failed",
+			zap.String("udid", udid),
+			zap.String("portal_device_id", device.ID),
+			zap.Error(err))
+		return err
+	}
+	tlog.Info("Deployment status updated from ACK (fallback by device)",
+		zap.String("udid", udid),
+		zap.String("portal_device_id", device.ID),
+		zap.String("status", repoStatus))
 	return nil
 }
 

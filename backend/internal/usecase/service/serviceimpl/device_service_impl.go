@@ -2,8 +2,10 @@ package serviceimpl
 
 import (
 	"context"
+	"encoding/base64"
 	"encoding/csv"
 	"encoding/json"
+	"fmt"
 	"strings"
 
 	"go.uber.org/zap"
@@ -17,6 +19,7 @@ import (
 	"github.com/thienel/go-backend-template/pkg/event"
 	"github.com/thienel/go-backend-template/pkg/query"
 	"github.com/thienel/tlog"
+	"howett.net/plist"
 )
 
 type deviceServiceImpl struct {
@@ -331,43 +334,91 @@ func (s *deviceServiceImpl) handleTokenUpdate(ctx context.Context, udid, sn, mod
 	return s.repo.CreateEnrolledDevice(ctx, udid, sn, model, osVer)
 }
 
-// handleAcknowledge processes mdm.Acknowledge events and dispatches
-// DeviceInformation responses to update the device record.
+// handleAcknowledge processes mdm.Connect events and dispatches to the
+// appropriate handler based on request_type or command_uuid.
 func (s *deviceServiceImpl) handleAcknowledge(ctx context.Context, payload *dto.NanoCMDWebhook) {
-	if payload.AcknowledgeEvent == nil {
+	if payload.AcknowledgeEvent == nil && payload.Checkin_event == nil {
 		return
 	}
 
 	ack := payload.AcknowledgeEvent
-	requestType, _ := ack["request_type"].(string)
-	if requestType != "DeviceInformation" {
-		return
+	if ack == nil {
+		ack = payload.Checkin_event
 	}
 
-	udid, _ := ack["udid"].(string)
+	// Extract all available identifiers upfront
+	requestType := deepFindString(ack, "request_type", "RequestType")
+	commandUUID := deepFindString(ack, "command_uuid", "CommandUUID")
+	status := deepFindString(ack, "status", "Status")
+
+	rawRequestType, rawUDID, rawQueryResponses, rawErr := extractFromRawPayload(ack)
+	if rawErr != nil {
+		tlog.Warn("Failed to parse mdm.Connect raw payload",
+			zap.Error(rawErr),
+			zap.Any("ack_keys", mapKeys(ack)))
+	}
+	if requestType == "" {
+		requestType = rawRequestType
+	}
+
+	udid := deepFindString(ack, "udid", "UDID")
 	if udid == "" {
-		udid, _ = ack["UDID"].(string)
+		udid = rawUDID
 	}
 	if udid == "" {
 		udid = stringFromCheckin(payload, "udid")
 	}
-	if udid == "" {
-		return
-	}
 
-	queryResponses, _ := ack["query_responses"].(map[string]any)
+	queryResponses, _ := deepFindMap(ack, "query_responses", "QueryResponses")
 	if len(queryResponses) == 0 {
-		return
+		queryResponses = rawQueryResponses
 	}
 
-	tlog.Info("Received DeviceInformation response", zap.String("udid", udid))
-	s.applyDeviceInformation(ctx, udid, queryResponses)
+	tlog.Info("mdm.Connect ACK received",
+		zap.String("udid", udid),
+		zap.String("request_type", requestType),
+		zap.String("command_uuid", commandUUID),
+		zap.String("status", status))
 
-	if s.eventBus != nil {
-		s.eventBus.PublishDeviceInformation(event.DeviceInformationReceivedEvent{
-			DeviceID:       udid,
-			QueryResponses: queryResponses,
-		})
+	// InstallProfile ACK: matched by explicit request_type OR by commandUUID
+	// (NanoMDM may omit request_type; commandUUID is always present for command responses).
+	// HandleInstallAck will ignore the event if commandUUID is not in its pending map.
+	if requestType == "InstallProfile" || (requestType == "" && commandUUID != "") {
+		errMsg := extractErrorChain(ack)
+		if status == "Error" {
+			tlog.Warn("InstallProfile Error from device",
+				zap.String("udid", udid),
+				zap.String("command_uuid", commandUUID),
+				zap.String("error_msg", errMsg),
+				zap.Any("raw_ack", ack))
+		}
+		if s.eventBus != nil {
+			s.eventBus.PublishProfileInstallAck(event.ProfileInstallAckEvent{
+				UDID:         udid,
+				CommandUUID:  commandUUID,
+				Status:       status,
+				ErrorMessage: errMsg,
+			})
+		}
+		if requestType == "InstallProfile" {
+			return
+		}
+	}
+
+	// DeviceInformation ACK
+	if requestType == "DeviceInformation" || (requestType == "" && len(queryResponses) > 0) {
+		if udid == "" {
+			tlog.Warn("DeviceInformation ACK missing UDID", zap.Any("ack_keys", mapKeys(ack)))
+			return
+		}
+		tlog.Info("Received DeviceInformation response", zap.String("udid", udid))
+		s.applyDeviceInformation(ctx, udid, queryResponses)
+		if s.eventBus != nil {
+			s.eventBus.PublishDeviceInformation(event.DeviceInformationReceivedEvent{
+				DeviceID:       udid,
+				QueryResponses: queryResponses,
+			})
+		}
 	}
 }
 
@@ -375,6 +426,10 @@ func (s *deviceServiceImpl) handleAcknowledge(ctx context.Context, payload *dto.
 // record identified by UDID.
 func (s *deviceServiceImpl) applyDeviceInformation(ctx context.Context, udid string, qr map[string]any) {
 	_ = s.repo.ApplyDeviceInformation(ctx, udid, qr)
+	serial := stringFromMapAny(qr, "SerialNumber", "serial_number")
+	if serial != "" {
+		_ = s.repo.ReconcileBySerialAndUDID(ctx, serial, udid)
+	}
 }
 
 // UpsertFromDEP syncs devices discovered via the DEP API.
@@ -429,4 +484,207 @@ func boolToString(b bool) string {
 		return "true"
 	}
 	return "false"
+}
+
+func stringFromMapAny(m map[string]any, keys ...string) string {
+	for _, key := range keys {
+		if v, ok := m[key].(string); ok && v != "" {
+			return v
+		}
+	}
+	return ""
+}
+
+func mapFromMapAny(m map[string]any, keys ...string) (map[string]any, bool) {
+	for _, key := range keys {
+		if v, ok := m[key]; ok {
+			if mv, ok := v.(map[string]any); ok {
+				return mv, true
+			}
+		}
+	}
+	return nil, false
+}
+
+func deepFindString(m map[string]any, keys ...string) string {
+	for _, key := range keys {
+		if v, ok := m[key].(string); ok && v != "" {
+			return v
+		}
+	}
+
+	for _, value := range m {
+		switch vv := value.(type) {
+		case map[string]any:
+			if result := deepFindString(vv, keys...); result != "" {
+				return result
+			}
+		case []any:
+			for _, item := range vv {
+				if nested, ok := item.(map[string]any); ok {
+					if result := deepFindString(nested, keys...); result != "" {
+						return result
+					}
+				}
+			}
+		}
+	}
+
+	return ""
+}
+
+// extractErrorChain reads the Apple MDM ErrorChain array from an ACK payload.
+// ErrorChain is []dict{ErrorCode, ErrorDomain, LocalizedDescription, USEnglishDescription}.
+// It returns a semicolon-joined string of LocalizedDescription entries for logging/storage.
+func extractErrorChain(m map[string]any) string {
+	var chain []any
+	for _, key := range []string{"ErrorChain", "error_chain"} {
+		if v, ok := m[key]; ok {
+			if arr, ok := v.([]any); ok {
+				chain = arr
+				break
+			}
+		}
+	}
+	// Recurse into nested maps if not found at top level
+	if chain == nil {
+		for _, v := range m {
+			if nested, ok := v.(map[string]any); ok {
+				if s := extractErrorChain(nested); s != "" {
+					return s
+				}
+			}
+		}
+		return ""
+	}
+	var parts []string
+	for _, item := range chain {
+		if d, ok := item.(map[string]any); ok {
+			desc := ""
+			for _, key := range []string{"LocalizedDescription", "USEnglishDescription"} {
+				if v, ok := d[key].(string); ok && v != "" {
+					desc = v
+					break
+				}
+			}
+			if code, ok := d["ErrorCode"]; ok && desc != "" {
+				desc = fmt.Sprintf("%v: %s", code, desc)
+			}
+			if desc != "" {
+				parts = append(parts, desc)
+			}
+		}
+	}
+	return strings.Join(parts, "; ")
+}
+
+func deepFindMap(m map[string]any, keys ...string) (map[string]any, bool) {
+	for _, key := range keys {
+		if v, ok := m[key].(map[string]any); ok {
+			return v, true
+		}
+	}
+
+	for _, value := range m {
+		switch vv := value.(type) {
+		case map[string]any:
+			if result, ok := deepFindMap(vv, keys...); ok {
+				return result, true
+			}
+		case []any:
+			for _, item := range vv {
+				if nested, ok := item.(map[string]any); ok {
+					if result, found := deepFindMap(nested, keys...); found {
+						return result, true
+					}
+				}
+			}
+		}
+	}
+
+	return nil, false
+}
+
+func mapKeys(m map[string]any) []string {
+	if len(m) == 0 {
+		return nil
+	}
+
+	keys := make([]string, 0, len(m))
+	for k, v := range m {
+		keys = append(keys, fmt.Sprintf("%s(%T)", k, v))
+	}
+	return keys
+}
+
+func extractFromRawPayload(ack map[string]any) (string, string, map[string]any, error) {
+	rawPayload := deepFindString(ack, "raw_payload", "rawPayload", "RawPayload")
+	if rawPayload == "" {
+		return "", "", nil, nil
+	}
+
+	plistMap, err := parseRawPayloadPlist(rawPayload)
+	if err != nil {
+		return "", "", nil, err
+	}
+
+	requestType := deepFindString(plistMap, "request_type", "RequestType")
+	udid := deepFindString(plistMap, "udid", "UDID")
+	queryResponses, _ := deepFindMap(plistMap, "query_responses", "QueryResponses")
+
+	return requestType, udid, queryResponses, nil
+}
+
+func parseRawPayloadPlist(rawPayload string) (map[string]any, error) {
+	if m, err := unmarshalPlistToMap([]byte(rawPayload)); err == nil {
+		return m, nil
+	}
+
+	decoded, err := base64.StdEncoding.DecodeString(rawPayload)
+	if err == nil {
+		if m, decodeErr := unmarshalPlistToMap(decoded); decodeErr == nil {
+			return m, nil
+		}
+	}
+
+	return nil, fmt.Errorf("unsupported raw_payload plist format")
+}
+
+func unmarshalPlistToMap(data []byte) (map[string]any, error) {
+	var out any
+	if _, err := plist.Unmarshal(data, &out); err != nil {
+		return nil, err
+	}
+
+	result, ok := normalizeAnyToStringMap(out).(map[string]any)
+	if !ok {
+		return nil, fmt.Errorf("plist root is not a dictionary")
+	}
+
+	return result, nil
+}
+
+func normalizeAnyToStringMap(v any) any {
+	switch vv := v.(type) {
+	case map[string]any:
+		m := make(map[string]any, len(vv))
+		for k, val := range vv {
+			m[k] = normalizeAnyToStringMap(val)
+		}
+		return m
+	case map[any]any:
+		m := make(map[string]any, len(vv))
+		for k, val := range vv {
+			m[fmt.Sprint(k)] = normalizeAnyToStringMap(val)
+		}
+		return m
+	case []any:
+		arr := make([]any, 0, len(vv))
+		for _, item := range vv {
+			arr = append(arr, normalizeAnyToStringMap(item))
+		}
+		return arr
+	default:
+		return vv
+	}
 }

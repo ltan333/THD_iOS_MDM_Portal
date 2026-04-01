@@ -394,20 +394,14 @@ func (h *deviceHandlerImpl) InstallProfile(c *gin.Context) {
 		return
 	}
 
-	udid, err := h.deviceService.GetUDID(c.Request.Context(), id)
-	if err != nil {
-		response.WriteErrorResponse(c, err)
-		return
-	}
-
 	var req dto.DeviceInstallProfileRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		response.WriteErrorResponse(c, apperror.ErrBadRequest.WithError(err))
 		return
 	}
 
-	// Use the MDM UDID for nanoMDM interactions.
-	err = h.profileService.InstallOnDevice(c.Request.Context(), req.ProfileID, udid)
+	// Pass portal device ID; profileService resolves UDID internally.
+	err := h.profileService.InstallOnDevice(c.Request.Context(), req.ProfileID, id)
 	if err != nil {
 		response.WriteErrorResponse(c, err)
 		return

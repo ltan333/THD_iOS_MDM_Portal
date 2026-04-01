@@ -4563,136 +4563,6 @@
                 }
             }
         },
-        "/api/v1/payload-property-definitions/import": {
-            "post": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Upload one or more Apple documentation JSON files. The system auto-detects top-level payload files vs nested dictionary files and resolves nested properties recursively.",
-                "consumes": [
-                    "multipart/form-data"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Payload Property Definitions"
-                ],
-                "summary": "Import payload property definitions from Apple JSON files",
-                "parameters": [
-                    {
-                        "type": "array",
-                        "items": {
-                            "type": "file"
-                        },
-                        "collectionFormat": "csv",
-                        "description": "Apple payload JSON files (upload nhiều files; bao gồm cả nested dictionary files để resolve đệ quy)",
-                        "name": "files",
-                        "in": "formData",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-github_com_thienel_go-backend-template_internal_usecase_service_ImportPayloadPropertyDefinitionsResult"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any"
-                        }
-                    }
-                }
-            }
-        },
-        "/api/v1/payload-property-definitions/payload-types": {
-            "get": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Get all distinct payload types from payload property definitions",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Payload Property Definitions"
-                ],
-                "summary": "List payload types",
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-array_string"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any"
-                        }
-                    }
-                }
-            }
-        },
-        "/api/v1/payload-property-definitions/schema": {
-            "get": {
-                "description": "Returns payload properties as nested JSON tree. If payload_type query param is provided, only that type is returned. Otherwise all payload types are returned.",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Payload Property Definitions"
-                ],
-                "summary": "Get nested schema for one or all payload types",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Filter by payload type (e.g. com.apple.carddav.account). Omit to get all.",
-                        "name": "payload_type",
-                        "in": "query"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-array_github_com_thienel_go-backend-template_internal_usecase_service_NestedPayloadSchema"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any"
-                        }
-                    }
-                }
-            }
-        },
         "/api/v1/policies": {
             "get": {
                 "security": [
@@ -7082,6 +6952,283 @@
                     }
                 }
             }
+        },
+        "/v1/mobile-configs/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Get the full detail of a mobile config by its ID",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Mobile Config"
+                ],
+                "summary": "Get mobile config by ID",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Mobile config ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/internal_interface_api_handler.MobileConfigSuccessResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/internal_interface_api_handler.APIErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/internal_interface_api_handler.APIErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/internal_interface_api_handler.APIErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/internal_interface_api_handler.APIErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/payload-property-definitions": {
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Delete all payload property definitions from database",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Payload Property Definitions"
+                ],
+                "summary": "Delete all payload property definitions",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-map_string_int"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/payload-property-definitions/import-yaml-folder": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Upload a folder or zip file containing Apple Device Management YAML files. Supports multipart fields: folder, folder[], files, files[], file.",
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Payload Property Definitions"
+                ],
+                "summary": "Import payload property definitions from YAML folder",
+                "parameters": [
+                    {
+                        "type": "file",
+                        "description": "Folder zip file or files uploaded from folder picker",
+                        "name": "folder",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "array",
+                        "items": {
+                            "type": "file"
+                        },
+                        "collectionFormat": "csv",
+                        "description": "Alternative field for folder files",
+                        "name": "files",
+                        "in": "formData"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-github_com_thienel_go-backend-template_internal_usecase_service_ImportPayloadPropertyDefinitionsResult"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/payload-property-definitions/payload-types": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Get all distinct payload types from payload property definitions",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Payload Property Definitions"
+                ],
+                "summary": "List payload types",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-array_string"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/payload-property-definitions/schema": {
+            "get": {
+                "description": "Returns payload properties as nested JSON tree. If payload_type query param is provided, only that type is returned. Otherwise all payload types are returned.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Payload Property Definitions"
+                ],
+                "summary": "Get nested schema for one or all payload types",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Filter by payload type (e.g. com.apple.carddav.account). Omit to get all.",
+                        "name": "payload_type",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-array_github_com_thienel_go-backend-template_internal_usecase_service_NestedPayloadSchema"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/payload-property-definitions/{payload_type}/variants": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Get all variants of a payload type with property count",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Payload Property Definitions"
+                ],
+                "summary": "List payload variants by payload type",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Payload type",
+                        "name": "payload_type",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-array_github_com_thienel_go-backend-template_internal_usecase_service_PayloadVariantInfo"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any"
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
@@ -7669,38 +7816,14 @@
         "github_com_thienel_go-backend-template_internal_interface_api_dto.CreateMobileConfigPropertyRequest": {
             "type": "object",
             "required": [
-                "key",
-                "value_json"
+                "key"
             ],
             "properties": {
                 "key": {
                     "type": "string"
                 },
                 "value_json": {
-                    "oneOf": [
-                        {
-                            "type": "boolean"
-                        },
-                        {
-                            "type": "string"
-                        },
-                        {
-                            "type": "number"
-                        },
-                        {
-                            "type": "integer"
-                        },
-                        {
-                            "type": "object"
-                        },
-                        {
-                            "type": "array",
-                            "items": {}
-                        },
-                        {
-                            "type": "null"
-                        }
-                    ]
+                    "$ref": "#/definitions/github_com_thienel_go-backend-template_internal_interface_api_dto.JSONValue"
                 }
             }
         },
@@ -8437,6 +8560,9 @@
                 }
             }
         },
+        "github_com_thienel_go-backend-template_internal_interface_api_dto.JSONValue": {
+            "type": "object"
+        },
         "github_com_thienel_go-backend-template_internal_interface_api_dto.ListResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_AlertResponse": {
             "type": "object",
             "properties": {
@@ -8733,30 +8859,7 @@
                     "type": "string"
                 },
                 "value_json": {
-                    "oneOf": [
-                        {
-                            "type": "boolean"
-                        },
-                        {
-                            "type": "string"
-                        },
-                        {
-                            "type": "number"
-                        },
-                        {
-                            "type": "integer"
-                        },
-                        {
-                            "type": "object"
-                        },
-                        {
-                            "type": "array",
-                            "items": {}
-                        },
-                        {
-                            "type": "null"
-                        }
-                    ]
+                    "$ref": "#/definitions/github_com_thienel_go-backend-template_internal_interface_api_dto.JSONValue"
                 }
             }
         },
@@ -9504,6 +9607,12 @@
                 },
                 "updated": {
                     "type": "integer"
+                },
+                "updated_properties": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
                 }
             }
         },
@@ -9511,6 +9620,9 @@
             "type": "object",
             "properties": {
                 "payload_type": {
+                    "type": "string"
+                },
+                "payload_variant": {
                     "type": "string"
                 },
                 "properties": {
@@ -9524,6 +9636,10 @@
         "github_com_thienel_go-backend-template_internal_usecase_service.NestedProperty": {
             "type": "object",
             "properties": {
+                "conditions": {
+                    "type": "object",
+                    "additionalProperties": true
+                },
                 "default_value": {
                     "type": "object",
                     "additionalProperties": true
@@ -9553,13 +9669,40 @@
                 "nested_reference": {
                     "type": "string"
                 },
+                "presence": {
+                    "type": "string"
+                },
                 "properties": {
                     "type": "object",
                     "additionalProperties": {
                         "$ref": "#/definitions/github_com_thienel_go-backend-template_internal_usecase_service.NestedProperty"
                     }
                 },
+                "supported_os": {
+                    "type": "object",
+                    "additionalProperties": true
+                },
+                "title": {
+                    "type": "string"
+                },
                 "value_type": {
+                    "type": "string"
+                }
+            }
+        },
+        "github_com_thienel_go-backend-template_internal_usecase_service.PayloadVariantInfo": {
+            "type": "object",
+            "properties": {
+                "description": {
+                    "type": "string"
+                },
+                "display_name": {
+                    "type": "string"
+                },
+                "property_count": {
+                    "type": "integer"
+                },
+                "variant": {
                     "type": "string"
                 }
             }
@@ -9731,6 +9874,26 @@
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/github_com_thienel_go-backend-template_internal_usecase_service.NestedPayloadSchema"
+                    }
+                },
+                "error": {
+                    "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.Error"
+                },
+                "is_success": {
+                    "type": "boolean"
+                },
+                "message": {
+                    "type": "string"
+                }
+            }
+        },
+        "github_com_thienel_go-backend-template_pkg_response.APIResponse-array_github_com_thienel_go-backend-template_internal_usecase_service_PayloadVariantInfo": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_thienel_go-backend-template_internal_usecase_service.PayloadVariantInfo"
                     }
                 },
                 "error": {
@@ -10433,6 +10596,23 @@
                 }
             }
         },
+        "github_com_thienel_go-backend-template_pkg_response.APIResponse-map_string_int": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/map_string_int"
+                },
+                "error": {
+                    "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.Error"
+                },
+                "is_success": {
+                    "type": "boolean"
+                },
+                "message": {
+                    "type": "string"
+                }
+            }
+        },
         "github_com_thienel_go-backend-template_pkg_response.Error": {
             "type": "object",
             "properties": {
@@ -10509,6 +10689,12 @@
             "type": "object",
             "additionalProperties": {
                 "$ref": "#/definitions/github_com_thienel_go-backend-template_internal_interface_api_dto.NanoCMDProfile"
+            }
+        },
+        "map_string_int": {
+            "type": "object",
+            "additionalProperties": {
+                "type": "integer"
             }
         }
     },

@@ -3,6 +3,7 @@ package persistence
 import (
 	"context"
 	"strings"
+	"time"
 
 	"github.com/thienel/go-backend-template/internal/domain/repository"
 	"github.com/thienel/go-backend-template/internal/ent"
@@ -10,6 +11,7 @@ import (
 	"github.com/thienel/go-backend-template/internal/ent/devicegroup"
 	"github.com/thienel/go-backend-template/internal/ent/profile"
 	"github.com/thienel/go-backend-template/internal/ent/profileassignment"
+	"github.com/thienel/go-backend-template/internal/ent/profiledeploymentstatus"
 	"github.com/thienel/go-backend-template/internal/infra/database"
 	"github.com/thienel/go-backend-template/internal/usecase/service"
 	apperror "github.com/thienel/go-backend-template/pkg/error"
@@ -247,7 +249,7 @@ func (r *profileRepositoryImpl) SaveVersion(ctx context.Context, profileID uint,
 }
 
 // Assignments
-func (r *profileRepositoryImpl) Assign(ctx context.Context, cmd service.AssignProfileCommand) error {
+func (r *profileRepositoryImpl) Assign(ctx context.Context, cmd service.AssignProfileCommand) (*ent.ProfileAssignment, error) {
 	create := r.client.ProfileAssignment.Create().
 		SetProfileID(cmd.ProfileID).
 		SetTargetType(profileassignment.TargetType(cmd.TargetType)).
@@ -261,11 +263,11 @@ func (r *profileRepositoryImpl) Assign(ctx context.Context, cmd service.AssignPr
 		create = create.SetGroupID(*cmd.GroupID)
 	}
 
-	_, err := create.Save(ctx)
+	assignment, err := create.Save(ctx)
 	if err != nil {
-		return apperror.ErrInternalServerError.WithMessage("Lỗi khi gán profile").WithError(err)
+		return nil, apperror.ErrInternalServerError.WithMessage("Lỗi khi gán profile").WithError(err)
 	}
-	return nil
+	return assignment, nil
 }
 
 func (r *profileRepositoryImpl) Unassign(ctx context.Context, profileID uint, assignmentID uint) error {
@@ -369,6 +371,62 @@ func (r *profileRepositoryImpl) Rollback(ctx context.Context, profileID uint, ve
 }
 
 // Deployment Status
+func (r *profileRepositoryImpl) CreateDeploymentStatus(ctx context.Context, profileID uint, deviceID string, status string) (*ent.ProfileDeploymentStatus, error) {
+	ds, err := r.client.ProfileDeploymentStatus.Create().
+		SetProfileID(profileID).
+		SetDeviceID(deviceID).
+		SetStatus(profiledeploymentstatus.Status(status)).
+		Save(ctx)
+	if err != nil {
+		return nil, apperror.ErrInternalServerError.WithMessage("Lỗi khi tạo deployment status").WithError(err)
+	}
+	return ds, nil
+}
+
+func (r *profileRepositoryImpl) UpdateDeploymentStatus(ctx context.Context, id uint, status string, errorMessage string) error {
+	update := r.client.ProfileDeploymentStatus.UpdateOneID(id).
+		SetStatus(profiledeploymentstatus.Status(status))
+
+	if errorMessage != "" {
+		update = update.SetErrorMessage(errorMessage)
+	}
+
+	if status == "success" {
+		now := time.Now()
+		update = update.SetAppliedAt(now)
+	}
+
+	_, err := update.Save(ctx)
+	if err != nil {
+		return apperror.ErrInternalServerError.WithMessage("Lỗi khi cập nhật deployment status").WithError(err)
+	}
+	return nil
+}
+
+func (r *profileRepositoryImpl) UpdateDeploymentStatusByDevice(ctx context.Context, portalDeviceID string, status string, errorMessage string) error {
+	update := r.client.ProfileDeploymentStatus.Update().
+		Where(
+			profiledeploymentstatus.DeviceIDEQ(portalDeviceID),
+			profiledeploymentstatus.StatusEQ(profiledeploymentstatus.StatusPending),
+		).
+		SetStatus(profiledeploymentstatus.Status(status))
+
+	if errorMessage != "" {
+		update = update.SetErrorMessage(errorMessage)
+	}
+
+	if status == "success" {
+		now := time.Now()
+		update = update.SetAppliedAt(now)
+	}
+
+	_, err := update.Save(ctx)
+	if err != nil {
+		return apperror.ErrInternalServerError.WithMessage("Lỗi khi cập nhật deployment status theo device").WithError(err)
+	}
+	return nil
+}
+
 func (r *profileRepositoryImpl) GetDeploymentStatus(ctx context.Context, profileID uint) ([]*ent.ProfileDeploymentStatus, error) {
 	p, err := r.client.Profile.Query().
 		Where(profile.IDEQ(profileID)).
@@ -383,12 +441,14 @@ func (r *profileRepositoryImpl) GetDeploymentStatus(ctx context.Context, profile
 	return p.Edges.DeploymentStatuses, nil
 }
 
-func (r *profileRepositoryImpl) GetProfilesByDevice(ctx context.Context, deviceID string) ([]*ent.Profile, error) {
+func (r *profileRepositoryImpl) GetProfilesByDevice(ctx context.Context, udid string) ([]*ent.Profile, error) {
 	profiles, err := r.client.Profile.Query().
 		Where(
 			profile.Or(
-				profile.HasAssignmentsWith(profileassignment.DeviceIDEQ(deviceID)),
-				profile.HasDeviceGroupsWith(devicegroup.HasDevicesWith(device.UdidEQ(deviceID))),
+				// Direct assignment: traverse edge to find device by UDID
+				profile.HasAssignmentsWith(profileassignment.HasDeviceWith(device.UdidEQ(udid))),
+				// Group assignment: device belongs to the assigned group, matched by UDID
+				profile.HasDeviceGroupsWith(devicegroup.HasDevicesWith(device.UdidEQ(udid))),
 			),
 		).All(ctx)
 	if err != nil {
@@ -398,7 +458,7 @@ func (r *profileRepositoryImpl) GetProfilesByDevice(ctx context.Context, deviceI
 }
 
 func (r *profileRepositoryImpl) GetFlattenedDeviceUDIDsByProfile(ctx context.Context, profileID uint) ([]string, error) {
-	// Directly assigned devices:
+	// Directly assigned devices: collect portal device IDs, then resolve to UDIDs
 	directAssignments, err := r.client.ProfileAssignment.Query().
 		Where(
 			profileassignment.ProfileIDEQ(profileID),
@@ -408,14 +468,30 @@ func (r *profileRepositoryImpl) GetFlattenedDeviceUDIDsByProfile(ctx context.Con
 		return nil, err
 	}
 
-	var udids []string
+	var portalDeviceIDs []string
 	for _, a := range directAssignments {
 		if a.DeviceID != nil {
-			udids = append(udids, *a.DeviceID)
+			portalDeviceIDs = append(portalDeviceIDs, *a.DeviceID)
 		}
 	}
 
-    // Group assigned devices
+	var udids []string
+	if len(portalDeviceIDs) > 0 {
+		// Resolve portal IDs → UDIDs (only enrolled devices have a non-empty UDID)
+		directDevices, err := r.client.Device.Query().
+			Where(device.IDIn(portalDeviceIDs...)).
+			All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, d := range directDevices {
+			if d.Udid != nil && *d.Udid != "" {
+				udids = append(udids, *d.Udid)
+			}
+		}
+	}
+
+	// Group assigned devices
 	groupAssignments, err := r.client.ProfileAssignment.Query().
 		Where(
 			profileassignment.ProfileIDEQ(profileID),
@@ -425,7 +501,7 @@ func (r *profileRepositoryImpl) GetFlattenedDeviceUDIDsByProfile(ctx context.Con
 		return nil, err
 	}
 
-    if len(groupAssignments) > 0 {
+	if len(groupAssignments) > 0 {
 		var groupIDs []uint
 		for _, a := range groupAssignments {
 			if a.GroupID != nil {
@@ -433,18 +509,18 @@ func (r *profileRepositoryImpl) GetFlattenedDeviceUDIDsByProfile(ctx context.Con
 			}
 		}
 
-		groupDeviceUDIDs, err := r.client.Device.Query().
-			Where(
-				device.HasGroupsWith(devicegroup.IDIn(groupIDs...)),
-			).
-			Select(device.FieldUdid).
-			Strings(ctx)
+		groupDevices, err := r.client.Device.Query().
+			Where(device.HasGroupsWith(devicegroup.IDIn(groupIDs...))).
+			All(ctx)
 		if err != nil {
 			return nil, err
 		}
-
-		udids = append(udids, groupDeviceUDIDs...)
-    }
+		for _, d := range groupDevices {
+			if d.Udid != nil && *d.Udid != "" {
+				udids = append(udids, *d.Udid)
+			}
+		}
+	}
 
 	// deduplicate
 	unique := make(map[string]bool)

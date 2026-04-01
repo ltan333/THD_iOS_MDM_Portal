@@ -41,3 +41,5 @@ MDM.apidog.json
 /cert
 schema.sql
 logs/app.log
+.gitnexus
+/.claude

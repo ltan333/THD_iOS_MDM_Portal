@@ -100,10 +100,12 @@ func NewProfileDeployWorker(profileService service.ProfileService, eventBus *eve
 	}
 }
 
-// Start subscribes to DeviceEnrolledEvent and runs the deploy loop in a
-// goroutine. It returns immediately; the goroutine exits when ctx is cancelled.
+// Start subscribes to DeviceEnrolledEvent and ProfileInstallAckEvent, and runs
+// the processing loops in goroutines. It returns immediately; goroutines exit
+// when ctx is cancelled.
 func (w *ProfileDeployWorker) Start(ctx context.Context) {
 	enrolled := w.eventBus.SubscribeEnrolled(64)
+	installAck := w.eventBus.SubscribeProfileInstallAck(64)
 
 	go func() {
 		tlog.Info("ProfileDeployWorker started")
@@ -114,6 +116,12 @@ func (w *ProfileDeployWorker) Start(ctx context.Context) {
 					return
 				}
 				w.deploy(ctx, ev.DeviceID)
+
+			case ev, ok := <-installAck:
+				if !ok {
+					return
+				}
+				w.handleInstallAck(ctx, ev)
 
 			case <-ctx.Done():
 				tlog.Info("ProfileDeployWorker stopping")
@@ -127,5 +135,15 @@ func (w *ProfileDeployWorker) deploy(ctx context.Context, deviceID string) {
 	tlog.Info("Auto-deploying profiles after enrollment", zap.String("udid", deviceID))
 	if err := w.profileService.DeployToDevice(ctx, deviceID); err != nil {
 		tlog.Error("Auto-deploy failed", zap.String("udid", deviceID), zap.Error(err))
+	}
+}
+
+func (w *ProfileDeployWorker) handleInstallAck(ctx context.Context, ev event.ProfileInstallAckEvent) {
+	if err := w.profileService.HandleInstallAck(ctx, ev.UDID, ev.CommandUUID, ev.Status, ev.ErrorMessage); err != nil {
+		tlog.Error("Failed to handle InstallProfile ACK",
+			zap.String("udid", ev.UDID),
+			zap.String("command_uuid", ev.CommandUUID),
+			zap.String("status", ev.Status),
+			zap.Error(err))
 	}
 }

@@ -25,13 +25,13 @@ type DeviceRepository interface {
 	Create(ctx context.Context, entity *ent.Device) (*ent.Device, error)
 	Update(ctx context.Context, id string, entity *ent.Device) (*ent.Device, error)
 	Delete(ctx context.Context, id string) error
-	
+
 	// Specific queries
 	FindByUDID(ctx context.Context, udid string) (*ent.Device, error)
 	FindBySerialNumber(ctx context.Context, sn string) (*ent.Device, error)
 	GetStats(ctx context.Context) (*DeviceStats, error)
 	GetAll(ctx context.Context) ([]*ent.Device, error)
-	
+
 	// Deprecated / Kept for backwards compatibility if needed specifically
 	// GetUDID(ctx context.Context, id string) (string, error)
 	// UpdateUDID(ctx context.Context, id string, udid string) error
@@ -46,4 +46,5 @@ type DeviceRepository interface {
 	CreateEnrolledDevice(ctx context.Context, udid string, sn string, model string, osVer string) error
 	UpdateCheckOut(ctx context.Context, udid string) error
 	ApplyDeviceInformation(ctx context.Context, udid string, qr map[string]any) error
+	ReconcileBySerialAndUDID(ctx context.Context, serial string, udid string) error
 }

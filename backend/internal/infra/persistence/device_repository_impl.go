@@ -180,7 +180,7 @@ func (r *deviceRepositoryImpl) Update(ctx context.Context, id string, entity *en
 	if string(entity.ComplianceStatus) != "" {
 		update = update.SetComplianceStatus(entity.ComplianceStatus)
 	}
-	
+
 	update = update.SetIsEnrolled(entity.IsEnrolled)
 
 	if entity.OwnerID != 0 {
@@ -320,7 +320,7 @@ func (r *deviceRepositoryImpl) EnsureMinimalByUDID(ctx context.Context, udid str
 	}
 
 	err := create.Exec(ctx)
-	// If a concurrent thread created the device just 1ms before us, 
+	// If a concurrent thread created the device just 1ms before us,
 	// ignore the constraint error. The device is safely there.
 	if err != nil && ent.IsConstraintError(err) {
 		return nil
@@ -498,5 +498,100 @@ func (r *deviceRepositoryImpl) UpsertFromDEP(ctx context.Context, devices []map[
 			tlog.Error("Failed to create DEP device", zap.String("sn", sn), zap.Error(err))
 		}
 	}
+	return nil
+}
+
+func (r *deviceRepositoryImpl) ReconcileBySerialAndUDID(ctx context.Context, serial string, udid string) error {
+	if strings.TrimSpace(serial) == "" || strings.TrimSpace(udid) == "" {
+		return nil
+	}
+
+	bySN, err := r.client.Device.Query().Where(device.SerialNumberEQ(serial)).Only(ctx)
+	if err != nil {
+		if ent.IsNotFound(err) {
+			return nil
+		}
+		return err
+	}
+
+	byUDID, err := r.client.Device.Query().Where(device.UdidEQ(udid)).Only(ctx)
+	if err != nil {
+		if ent.IsNotFound(err) {
+			return nil
+		}
+		return err
+	}
+
+	if bySN.ID == byUDID.ID {
+		return nil
+	}
+
+	keep := bySN
+	drop := byUDID
+
+	now := time.Now()
+	updater := r.client.Device.UpdateOneID(keep.ID).
+		SetUdid(udid).
+		SetIsEnrolled(keep.IsEnrolled || drop.IsEnrolled).
+		SetLastSeen(now)
+
+	if keep.Status != device.StatusActive && (drop.Status == device.StatusActive || drop.IsEnrolled) {
+		updater = updater.SetStatus(device.StatusActive)
+	}
+
+	if keep.Model == "" && drop.Model != "" {
+		updater = updater.SetModel(drop.Model)
+	}
+	if keep.Name == "" && drop.Name != "" {
+		updater = updater.SetName(drop.Name)
+	}
+	if keep.OsVersion == "" && drop.OsVersion != "" {
+		updater = updater.SetOsVersion(drop.OsVersion)
+	}
+	if keep.MACAddress == "" && drop.MACAddress != "" {
+		updater = updater.SetMACAddress(drop.MACAddress)
+	}
+	if keep.IPAddress == "" && drop.IPAddress != "" {
+		updater = updater.SetIPAddress(drop.IPAddress)
+	}
+	if keep.DeviceType == "" && drop.DeviceType != "" {
+		updater = updater.SetDeviceType(drop.DeviceType)
+	}
+	if keep.Platform == device.PlatformOther && drop.Platform != "" {
+		updater = updater.SetPlatform(drop.Platform)
+	}
+	if keep.ComplianceStatus == device.ComplianceStatusUnknown && drop.ComplianceStatus != "" {
+		updater = updater.SetComplianceStatus(drop.ComplianceStatus)
+	}
+	if keep.BatteryLevel == 0 && drop.BatteryLevel > 0 {
+		updater = updater.SetBatteryLevel(drop.BatteryLevel)
+	}
+	if keep.StorageCapacity == 0 && drop.StorageCapacity > 0 {
+		updater = updater.SetStorageCapacity(drop.StorageCapacity)
+	}
+	if keep.StorageUsed == 0 && drop.StorageUsed > 0 {
+		updater = updater.SetStorageUsed(drop.StorageUsed)
+	}
+	if keep.EnrollmentType != device.EnrollmentTypeDep && drop.EnrollmentType != "" {
+		updater = updater.SetEnrollmentType(drop.EnrollmentType)
+	}
+	if keep.EnrolledAt.IsZero() && !drop.EnrolledAt.IsZero() {
+		updater = updater.SetEnrolledAt(drop.EnrolledAt)
+	}
+
+	if _, err := updater.Save(ctx); err != nil {
+		return err
+	}
+
+	if err := r.client.Device.DeleteOneID(drop.ID).Exec(ctx); err != nil {
+		return err
+	}
+
+	tlog.Info("Reconciled duplicate device records",
+		zap.String("serial", serial),
+		zap.String("udid", udid),
+		zap.String("kept_id", keep.ID),
+		zap.String("deleted_id", drop.ID))
+
 	return nil
 }

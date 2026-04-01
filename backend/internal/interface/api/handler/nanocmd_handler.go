@@ -3,6 +3,7 @@ package handler
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
@@ -370,6 +371,13 @@ func (h *nanocmdHandler) Webhook(c *gin.Context) {
 		return
 	}
 
+	// Normalize payload for variant webhook formats (snake_case/camelCase/PascalCase)
+	// so downstream service logic can parse mdm.Connect consistently.
+	var raw map[string]any
+	if err := json.Unmarshal(body, &raw); err == nil {
+		normalizeWebhookPayload(&webhook, raw)
+	}
+
 	// 2. Log and route based on topic
 	tlog.Info("Received NanoCMD webhook", zap.String("topic", webhook.Topic))
 
@@ -489,4 +497,63 @@ func (h *nanocmdHandler) forwardToNanoCMD(payload []byte, originalHeaders http.H
 	} else {
 		tlog.Info("Successfully forwarded webhook to NanoCMD", zap.String("url", url))
 	}
+}
+
+func normalizeWebhookPayload(webhook *dto.NanoCMDWebhook, raw map[string]any) {
+	if webhook.Topic == "" {
+		webhook.Topic = firstString(raw, "topic", "Topic")
+	}
+
+	if webhook.EventID == "" {
+		webhook.EventID = firstString(raw, "event_id", "eventId", "EventID")
+	}
+
+	if webhook.AcknowledgeEvent == nil {
+		if ack, ok := firstMap(raw,
+			"acknowledge_event",
+			"acknowledgeEvent",
+			"AcknowledgeEvent",
+			"acknowledge",
+			"Acknowledge",
+			"event",
+			"Event",
+		); ok {
+			webhook.AcknowledgeEvent = ack
+		}
+	}
+
+	if webhook.Checkin_event == nil {
+		if checkin, ok := firstMap(raw,
+			"checkin_event",
+			"checkinEvent",
+			"CheckinEvent",
+			"checkin",
+			"Checkin",
+		); ok {
+			webhook.Checkin_event = checkin
+		}
+	}
+
+	// Fallback: some Connect payloads place command response fields at top level.
+	if webhook.Topic == "mdm.Connect" && webhook.AcknowledgeEvent == nil {
+		webhook.AcknowledgeEvent = raw
+	}
+}
+
+func firstString(m map[string]any, keys ...string) string {
+	for _, key := range keys {
+		if v, ok := m[key].(string); ok && v != "" {
+			return v
+		}
+	}
+	return ""
+}
+
+func firstMap(m map[string]any, keys ...string) (map[string]any, bool) {
+	for _, key := range keys {
+		if v, ok := m[key].(map[string]any); ok {
+			return v, true
+		}
+	}
+	return nil, false
 }
