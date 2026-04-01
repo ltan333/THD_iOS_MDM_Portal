@@ -372,10 +372,6 @@ func (s *deviceServiceImpl) handleAcknowledge(ctx context.Context, payload *dto.
 		}
 		requestType = "DeviceInformation"
 	}
-	if requestType != "DeviceInformation" {
-		return
-	}
-
 	udid := deepFindString(ack, "udid", "UDID")
 	if udid == "" {
 		udid = rawUDID
@@ -384,26 +380,42 @@ func (s *deviceServiceImpl) handleAcknowledge(ctx context.Context, payload *dto.
 		udid = stringFromCheckin(payload, "udid")
 	}
 	if udid == "" {
-		tlog.Warn("DeviceInformation acknowledge missing UDID",
+		tlog.Warn("mdm.Connect acknowledge missing UDID",
+			zap.String("request_type", requestType),
 			zap.Any("ack_keys", mapKeys(ack)))
 		return
 	}
 
-	if len(queryResponses) == 0 {
-		tlog.Warn("DeviceInformation acknowledge missing query responses",
+	switch requestType {
+	case "InstallProfile":
+		status := deepFindString(ack, "status", "Status")
+		errMsg := deepFindString(ack, "error_chain", "ErrorChain", "error", "Error")
+		tlog.Info("Received InstallProfile ACK",
 			zap.String("udid", udid),
-			zap.Any("ack_keys", mapKeys(ack)))
-		return
-	}
+			zap.String("status", status))
+		if s.eventBus != nil {
+			s.eventBus.PublishProfileInstallAck(event.ProfileInstallAckEvent{
+				UDID:         udid,
+				Status:       status,
+				ErrorMessage: errMsg,
+			})
+		}
 
-	tlog.Info("Received DeviceInformation response", zap.String("udid", udid))
-	s.applyDeviceInformation(ctx, udid, queryResponses)
-
-	if s.eventBus != nil {
-		s.eventBus.PublishDeviceInformation(event.DeviceInformationReceivedEvent{
-			DeviceID:       udid,
-			QueryResponses: queryResponses,
-		})
+	case "DeviceInformation":
+		if len(queryResponses) == 0 {
+			tlog.Warn("DeviceInformation acknowledge missing query responses",
+				zap.String("udid", udid),
+				zap.Any("ack_keys", mapKeys(ack)))
+			return
+		}
+		tlog.Info("Received DeviceInformation response", zap.String("udid", udid))
+		s.applyDeviceInformation(ctx, udid, queryResponses)
+		if s.eventBus != nil {
+			s.eventBus.PublishDeviceInformation(event.DeviceInformationReceivedEvent{
+				DeviceID:       udid,
+				QueryResponses: queryResponses,
+			})
+		}
 	}
 }
 

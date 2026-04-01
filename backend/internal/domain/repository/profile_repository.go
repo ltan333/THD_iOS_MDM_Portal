@@ -29,6 +29,9 @@ type ProfileRepository interface {
 	// Deployment Status
 	CreateDeploymentStatus(ctx context.Context, profileID uint, deviceID string, status string) (*ent.ProfileDeploymentStatus, error)
 	UpdateDeploymentStatus(ctx context.Context, id uint, status string, errorMessage string) error
+	// UpdateDeploymentStatusByDevice updates all pending deployment status records for a
+	// given portal device ID (used when processing InstallProfile ACK from the device).
+	UpdateDeploymentStatusByDevice(ctx context.Context, portalDeviceID string, status string, errorMessage string) error
 	GetDeploymentStatus(ctx context.Context, profileID uint) ([]*ent.ProfileDeploymentStatus, error)
 	GetProfilesByDevice(ctx context.Context, deviceID string) ([]*ent.Profile, error)
 	GetFlattenedDeviceUDIDsByProfile(ctx context.Context, profileID uint) ([]string, error)

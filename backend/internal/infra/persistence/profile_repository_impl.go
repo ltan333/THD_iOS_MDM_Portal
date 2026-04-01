@@ -403,6 +403,30 @@ func (r *profileRepositoryImpl) UpdateDeploymentStatus(ctx context.Context, id u
 	return nil
 }
 
+func (r *profileRepositoryImpl) UpdateDeploymentStatusByDevice(ctx context.Context, portalDeviceID string, status string, errorMessage string) error {
+	update := r.client.ProfileDeploymentStatus.Update().
+		Where(
+			profiledeploymentstatus.DeviceIDEQ(portalDeviceID),
+			profiledeploymentstatus.StatusEQ(profiledeploymentstatus.StatusPending),
+		).
+		SetStatus(profiledeploymentstatus.Status(status))
+
+	if errorMessage != "" {
+		update = update.SetErrorMessage(errorMessage)
+	}
+
+	if status == "success" {
+		now := time.Now()
+		update = update.SetAppliedAt(now)
+	}
+
+	_, err := update.Save(ctx)
+	if err != nil {
+		return apperror.ErrInternalServerError.WithMessage("Lỗi khi cập nhật deployment status theo device").WithError(err)
+	}
+	return nil
+}
+
 func (r *profileRepositoryImpl) GetDeploymentStatus(ctx context.Context, profileID uint) ([]*ent.ProfileDeploymentStatus, error) {
 	p, err := r.client.Profile.Query().
 		Where(profile.IDEQ(profileID)).

@@ -28,14 +28,26 @@ type DeviceInformationReceivedEvent struct {
 	QueryResponses map[string]any
 }
 
+// ProfileInstallAckEvent is published when the device acknowledges an
+// InstallProfile MDM command (success or failure).
+type ProfileInstallAckEvent struct {
+	// UDID is the MDM enrollment identifier of the device.
+	UDID string
+	// Status is "Acknowledged" for success, "Error" or "CommandFormatError" for failure.
+	Status string
+	// ErrorMessage contains the device-reported error, if any.
+	ErrorMessage string
+}
+
 // Bus is a simple goroutine-safe publish/subscribe event bus backed by
 // buffered channels. It is intentionally minimal: one channel per event type,
 // multiple subscribers share the same channel (fan-out via goroutines).
 type Bus struct {
-	mu         sync.RWMutex
-	enrolled   []chan DeviceEnrolledEvent
-	checkedOut []chan DeviceCheckedOutEvent
-	devInfo    []chan DeviceInformationReceivedEvent
+	mu             sync.RWMutex
+	enrolled       []chan DeviceEnrolledEvent
+	checkedOut     []chan DeviceCheckedOutEvent
+	devInfo        []chan DeviceInformationReceivedEvent
+	profileInstall []chan ProfileInstallAckEvent
 }
 
 // NewBus creates a new event bus.
@@ -112,6 +124,28 @@ func (b *Bus) PublishDeviceInformation(ev DeviceInformationReceivedEvent) {
 	}
 }
 
+// SubscribeProfileInstallAck registers a buffered channel for ProfileInstallAckEvent.
+func (b *Bus) SubscribeProfileInstallAck(bufSize int) <-chan ProfileInstallAckEvent {
+	ch := make(chan ProfileInstallAckEvent, bufSize)
+	b.mu.Lock()
+	b.profileInstall = append(b.profileInstall, ch)
+	b.mu.Unlock()
+	return ch
+}
+
+// PublishProfileInstallAck broadcasts a ProfileInstallAckEvent to all subscribers.
+func (b *Bus) PublishProfileInstallAck(ev ProfileInstallAckEvent) {
+	b.mu.RLock()
+	subs := b.profileInstall
+	b.mu.RUnlock()
+	for _, ch := range subs {
+		select {
+		case ch <- ev:
+		default:
+		}
+	}
+}
+
 // Close drains and closes all subscriber channels. Call this on application shutdown.
 func (b *Bus) Close() {
 	b.mu.Lock()
@@ -125,7 +159,11 @@ func (b *Bus) Close() {
 	for _, ch := range b.devInfo {
 		close(ch)
 	}
+	for _, ch := range b.profileInstall {
+		close(ch)
+	}
 	b.enrolled = nil
 	b.checkedOut = nil
 	b.devInfo = nil
+	b.profileInstall = nil
 }

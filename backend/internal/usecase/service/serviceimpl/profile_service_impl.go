@@ -386,6 +386,37 @@ func (s *profileServiceImpl) InstallOnDevice(ctx context.Context, profileID uint
 	return nil
 }
 
+// HandleInstallAck processes an InstallProfile ACK from a device. It resolves
+// the portal device ID from the UDID, then updates all pending deployment status
+// records for that device to "success" or "failed".
+func (s *profileServiceImpl) HandleInstallAck(ctx context.Context, udid string, ackStatus string, errMsg string) error {
+	device, err := s.deviceRepo.FindByUDID(ctx, udid)
+	if err != nil {
+		tlog.Warn("HandleInstallAck: device not found for UDID",
+			zap.String("udid", udid), zap.Error(err))
+		return nil // non-fatal: device may have been deleted
+	}
+
+	repoStatus := "failed"
+	if ackStatus == "Acknowledged" {
+		repoStatus = "success"
+	}
+
+	if err := s.repo.UpdateDeploymentStatusByDevice(ctx, device.ID, repoStatus, errMsg); err != nil {
+		tlog.Error("HandleInstallAck: failed to update deployment status",
+			zap.String("udid", udid),
+			zap.String("portal_device_id", device.ID),
+			zap.Error(err))
+		return err
+	}
+
+	tlog.Info("Deployment status updated from ACK",
+		zap.String("udid", udid),
+		zap.String("portal_device_id", device.ID),
+		zap.String("status", repoStatus))
+	return nil
+}
+
 func (s *profileServiceImpl) Duplicate(ctx context.Context, id uint) (*ent.Profile, error) {
 	if id == 0 {
 		return nil, apperror.ErrValidation.WithMessage("ID profile là bắt buộc")
