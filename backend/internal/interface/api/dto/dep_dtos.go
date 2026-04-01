@@ -45,6 +45,7 @@ type DEPProfileRequest struct {
 }
 
 type DEPProfileResponse struct {
+	ID                        uint           `json:"id"`
 	ProfileUUID               string         `json:"profile_uuid"`
 	Name                      string         `json:"name"`
 	AllowPairing              bool           `json:"allow_pairing"`
@@ -69,6 +70,8 @@ type DEPProfileResponse struct {
 	SupportPhoneNumber        string         `json:"support_phone_number"`
 	URL                       string         `json:"url"`
 	ProfileData               map[string]any `json:"profile_data"`
+	CreatedAt                 time.Time      `json:"created_at"`
+	UpdatedAt                 time.Time      `json:"updated_at"`
 }
 
 type DEPDeviceResponse struct {

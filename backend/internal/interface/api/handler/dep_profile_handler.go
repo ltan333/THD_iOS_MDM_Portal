@@ -288,6 +288,7 @@ func (h *depProfileHandlerImpl) GetAssigner(c *gin.Context) {
 // mapEntToDEPProfileResponse converts an ent.DepProfile to dto.DEPProfileResponse
 func mapEntToDEPProfileResponse(p *ent.DepProfile) *dto.DEPProfileResponse {
 	return &dto.DEPProfileResponse{
+		ID:                        p.ID,
 		ProfileUUID:               p.ProfileUUID,
 		Name:                      p.ProfileName,
 		AllowPairing:              p.AllowPairing,
@@ -312,5 +313,7 @@ func mapEntToDEPProfileResponse(p *ent.DepProfile) *dto.DEPProfileResponse {
 		SupportPhoneNumber:        p.SupportPhoneNumber,
 		URL:                       p.URL,
 		ProfileData:               p.ProfileData,
+		CreatedAt:                 p.CreatedAt,
+		UpdatedAt:                 p.UpdatedAt,
 	}
 }
