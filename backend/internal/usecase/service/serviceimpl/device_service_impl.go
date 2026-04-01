@@ -366,7 +366,7 @@ func (s *deviceServiceImpl) handleAcknowledge(ctx context.Context, payload *dto.
 	if requestType == "" {
 		// Some MDM command responses omit RequestType and only include QueryResponses.
 		if len(queryResponses) == 0 {
-			tlog.Warn("mdm.Connect payload missing request type",
+			tlog.Debug("mdm.Connect payload missing request type",
 				zap.Any("ack_keys", mapKeys(ack)))
 			return
 		}
@@ -411,6 +411,10 @@ func (s *deviceServiceImpl) handleAcknowledge(ctx context.Context, payload *dto.
 // record identified by UDID.
 func (s *deviceServiceImpl) applyDeviceInformation(ctx context.Context, udid string, qr map[string]any) {
 	_ = s.repo.ApplyDeviceInformation(ctx, udid, qr)
+	serial := stringFromMapAny(qr, "SerialNumber", "serial_number")
+	if serial != "" {
+		_ = s.repo.ReconcileBySerialAndUDID(ctx, serial, udid)
+	}
 }
 
 // UpsertFromDEP syncs devices discovered via the DEP API.
