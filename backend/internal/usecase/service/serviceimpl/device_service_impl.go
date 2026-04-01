@@ -2,6 +2,7 @@ package serviceimpl
 
 import (
 	"context"
+	"encoding/base64"
 	"encoding/csv"
 	"encoding/json"
 	"fmt"
@@ -18,6 +19,7 @@ import (
 	"github.com/thienel/go-backend-template/pkg/event"
 	"github.com/thienel/go-backend-template/pkg/query"
 	"github.com/thienel/tlog"
+	"howett.net/plist"
 )
 
 type deviceServiceImpl struct {
@@ -346,6 +348,15 @@ func (s *deviceServiceImpl) handleAcknowledge(ctx context.Context, payload *dto.
 	}
 
 	requestType := deepFindString(ack, "request_type", "RequestType")
+	rawRequestType, rawUDID, rawQueryResponses, rawErr := extractFromRawPayload(ack)
+	if rawErr != nil {
+		tlog.Warn("Failed to parse mdm.Connect raw payload",
+			zap.Error(rawErr),
+			zap.Any("ack_keys", mapKeys(ack)))
+	}
+	if requestType == "" {
+		requestType = rawRequestType
+	}
 	if requestType == "" {
 		tlog.Warn("mdm.Connect payload missing request type",
 			zap.Any("ack_keys", mapKeys(ack)))
@@ -357,6 +368,9 @@ func (s *deviceServiceImpl) handleAcknowledge(ctx context.Context, payload *dto.
 
 	udid := deepFindString(ack, "udid", "UDID")
 	if udid == "" {
+		udid = rawUDID
+	}
+	if udid == "" {
 		udid = stringFromCheckin(payload, "udid")
 	}
 	if udid == "" {
@@ -366,6 +380,9 @@ func (s *deviceServiceImpl) handleAcknowledge(ctx context.Context, payload *dto.
 	}
 
 	queryResponses, _ := deepFindMap(ack, "query_responses", "QueryResponses")
+	if len(queryResponses) == 0 {
+		queryResponses = rawQueryResponses
+	}
 	if len(queryResponses) == 0 {
 		tlog.Warn("DeviceInformation acknowledge missing query responses",
 			zap.String("udid", udid),
@@ -528,4 +545,76 @@ func mapKeys(m map[string]any) []string {
 		keys = append(keys, fmt.Sprintf("%s(%T)", k, v))
 	}
 	return keys
+}
+
+func extractFromRawPayload(ack map[string]any) (string, string, map[string]any, error) {
+	rawPayload := deepFindString(ack, "raw_payload", "rawPayload", "RawPayload")
+	if rawPayload == "" {
+		return "", "", nil, nil
+	}
+
+	plistMap, err := parseRawPayloadPlist(rawPayload)
+	if err != nil {
+		return "", "", nil, err
+	}
+
+	requestType := deepFindString(plistMap, "request_type", "RequestType")
+	udid := deepFindString(plistMap, "udid", "UDID")
+	queryResponses, _ := deepFindMap(plistMap, "query_responses", "QueryResponses")
+
+	return requestType, udid, queryResponses, nil
+}
+
+func parseRawPayloadPlist(rawPayload string) (map[string]any, error) {
+	if m, err := unmarshalPlistToMap([]byte(rawPayload)); err == nil {
+		return m, nil
+	}
+
+	decoded, err := base64.StdEncoding.DecodeString(rawPayload)
+	if err == nil {
+		if m, decodeErr := unmarshalPlistToMap(decoded); decodeErr == nil {
+			return m, nil
+		}
+	}
+
+	return nil, fmt.Errorf("unsupported raw_payload plist format")
+}
+
+func unmarshalPlistToMap(data []byte) (map[string]any, error) {
+	var out any
+	if _, err := plist.Unmarshal(data, &out); err != nil {
+		return nil, err
+	}
+
+	result, ok := normalizeAnyToStringMap(out).(map[string]any)
+	if !ok {
+		return nil, fmt.Errorf("plist root is not a dictionary")
+	}
+
+	return result, nil
+}
+
+func normalizeAnyToStringMap(v any) any {
+	switch vv := v.(type) {
+	case map[string]any:
+		m := make(map[string]any, len(vv))
+		for k, val := range vv {
+			m[k] = normalizeAnyToStringMap(val)
+		}
+		return m
+	case map[any]any:
+		m := make(map[string]any, len(vv))
+		for k, val := range vv {
+			m[fmt.Sprint(k)] = normalizeAnyToStringMap(val)
+		}
+		return m
+	case []any:
+		arr := make([]any, 0, len(vv))
+		for _, item := range vv {
+			arr = append(arr, normalizeAnyToStringMap(item))
+		}
+		return arr
+	default:
+		return vv
+	}
 }
