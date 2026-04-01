@@ -384,7 +384,7 @@ func (s *deviceServiceImpl) handleAcknowledge(ctx context.Context, payload *dto.
 	// (NanoMDM may omit request_type; commandUUID is always present for command responses).
 	// HandleInstallAck will ignore the event if commandUUID is not in its pending map.
 	if requestType == "InstallProfile" || (requestType == "" && commandUUID != "") {
-		errMsg := deepFindString(ack, "error_chain", "ErrorChain", "error", "Error")
+		errMsg := extractErrorChain(ack)
 		if s.eventBus != nil {
 			s.eventBus.PublishProfileInstallAck(event.ProfileInstallAckEvent{
 				UDID:         udid,
@@ -524,6 +524,51 @@ func deepFindString(m map[string]any, keys ...string) string {
 	}
 
 	return ""
+}
+
+// extractErrorChain reads the Apple MDM ErrorChain array from an ACK payload.
+// ErrorChain is []dict{ErrorCode, ErrorDomain, LocalizedDescription, USEnglishDescription}.
+// It returns a semicolon-joined string of LocalizedDescription entries for logging/storage.
+func extractErrorChain(m map[string]any) string {
+	var chain []any
+	for _, key := range []string{"ErrorChain", "error_chain"} {
+		if v, ok := m[key]; ok {
+			if arr, ok := v.([]any); ok {
+				chain = arr
+				break
+			}
+		}
+	}
+	// Recurse into nested maps if not found at top level
+	if chain == nil {
+		for _, v := range m {
+			if nested, ok := v.(map[string]any); ok {
+				if s := extractErrorChain(nested); s != "" {
+					return s
+				}
+			}
+		}
+		return ""
+	}
+	var parts []string
+	for _, item := range chain {
+		if d, ok := item.(map[string]any); ok {
+			desc := ""
+			for _, key := range []string{"LocalizedDescription", "USEnglishDescription"} {
+				if v, ok := d[key].(string); ok && v != "" {
+					desc = v
+					break
+				}
+			}
+			if code, ok := d["ErrorCode"]; ok && desc != "" {
+				desc = fmt.Sprintf("%v: %s", code, desc)
+			}
+			if desc != "" {
+				parts = append(parts, desc)
+			}
+		}
+	}
+	return strings.Join(parts, "; ")
 }
 
 func deepFindMap(m map[string]any, keys ...string) (map[string]any, bool) {
