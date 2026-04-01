@@ -191,13 +191,14 @@ func (g *profileGeneratorImpl) mapContentFilter(cf map[string]any) map[string]an
 		out["AutoFilterEnabled"] = true
 	}
 	if len(blockedRaw) > 0 {
-		var blocked []map[string]any
+		var blocked []string
 		for _, item := range blockedRaw {
 			if url, ok := item.(string); ok && url != "" {
-				blocked = append(blocked, map[string]any{"URL": url})
+				blocked = append(blocked, url)
 			}
 		}
 		if len(blocked) > 0 {
+			// Apple MDM expects plain []string, not []dict
 			out["BlacklistedURLs"] = blocked
 		}
 	}
