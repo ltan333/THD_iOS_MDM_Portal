@@ -33,6 +33,9 @@ type DeviceInformationReceivedEvent struct {
 type ProfileInstallAckEvent struct {
 	// UDID is the MDM enrollment identifier of the device.
 	UDID string
+	// CommandUUID is the UUID of the MDM command that was acknowledged.
+	// Used to look up the corresponding deployment status record.
+	CommandUUID string
 	// Status is "Acknowledged" for success, "Error" or "CommandFormatError" for failure.
 	Status string
 	// ErrorMessage contains the device-reported error, if any.

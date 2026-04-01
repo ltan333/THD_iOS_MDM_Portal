@@ -334,8 +334,8 @@ func (s *deviceServiceImpl) handleTokenUpdate(ctx context.Context, udid, sn, mod
 	return s.repo.CreateEnrolledDevice(ctx, udid, sn, model, osVer)
 }
 
-// handleAcknowledge processes mdm.Acknowledge events and dispatches
-// DeviceInformation responses to update the device record.
+// handleAcknowledge processes mdm.Connect events and dispatches to the
+// appropriate handler based on request_type or command_uuid.
 func (s *deviceServiceImpl) handleAcknowledge(ctx context.Context, payload *dto.NanoCMDWebhook) {
 	if payload.AcknowledgeEvent == nil && payload.Checkin_event == nil {
 		return
@@ -343,11 +343,14 @@ func (s *deviceServiceImpl) handleAcknowledge(ctx context.Context, payload *dto.
 
 	ack := payload.AcknowledgeEvent
 	if ack == nil {
-		// Some deployments emit mdm.Connect payload fields under checkin_event.
 		ack = payload.Checkin_event
 	}
 
+	// Extract all available identifiers upfront
 	requestType := deepFindString(ack, "request_type", "RequestType")
+	commandUUID := deepFindString(ack, "command_uuid", "CommandUUID")
+	status := deepFindString(ack, "status", "Status")
+
 	rawRequestType, rawUDID, rawQueryResponses, rawErr := extractFromRawPayload(ack)
 	if rawErr != nil {
 		tlog.Warn("Failed to parse mdm.Connect raw payload",
@@ -358,20 +361,6 @@ func (s *deviceServiceImpl) handleAcknowledge(ctx context.Context, payload *dto.
 		requestType = rawRequestType
 	}
 
-	queryResponses, _ := deepFindMap(ack, "query_responses", "QueryResponses")
-	if len(queryResponses) == 0 {
-		queryResponses = rawQueryResponses
-	}
-
-	if requestType == "" {
-		// Some MDM command responses omit RequestType and only include QueryResponses.
-		if len(queryResponses) == 0 {
-			tlog.Debug("mdm.Connect payload missing request type",
-				zap.Any("ack_keys", mapKeys(ack)))
-			return
-		}
-		requestType = "DeviceInformation"
-	}
 	udid := deepFindString(ack, "udid", "UDID")
 	if udid == "" {
 		udid = rawUDID
@@ -379,33 +368,40 @@ func (s *deviceServiceImpl) handleAcknowledge(ctx context.Context, payload *dto.
 	if udid == "" {
 		udid = stringFromCheckin(payload, "udid")
 	}
-	if udid == "" {
-		tlog.Warn("mdm.Connect acknowledge missing UDID",
-			zap.String("request_type", requestType),
-			zap.Any("ack_keys", mapKeys(ack)))
-		return
+
+	queryResponses, _ := deepFindMap(ack, "query_responses", "QueryResponses")
+	if len(queryResponses) == 0 {
+		queryResponses = rawQueryResponses
 	}
 
-	switch requestType {
-	case "InstallProfile":
-		status := deepFindString(ack, "status", "Status")
+	tlog.Info("mdm.Connect ACK received",
+		zap.String("udid", udid),
+		zap.String("request_type", requestType),
+		zap.String("command_uuid", commandUUID),
+		zap.String("status", status))
+
+	// InstallProfile ACK: matched by explicit request_type OR by commandUUID
+	// (NanoMDM may omit request_type; commandUUID is always present for command responses).
+	// HandleInstallAck will ignore the event if commandUUID is not in its pending map.
+	if requestType == "InstallProfile" || (requestType == "" && commandUUID != "") {
 		errMsg := deepFindString(ack, "error_chain", "ErrorChain", "error", "Error")
-		tlog.Info("Received InstallProfile ACK",
-			zap.String("udid", udid),
-			zap.String("status", status))
 		if s.eventBus != nil {
 			s.eventBus.PublishProfileInstallAck(event.ProfileInstallAckEvent{
 				UDID:         udid,
+				CommandUUID:  commandUUID,
 				Status:       status,
 				ErrorMessage: errMsg,
 			})
 		}
+		if requestType == "InstallProfile" {
+			return
+		}
+	}
 
-	case "DeviceInformation":
-		if len(queryResponses) == 0 {
-			tlog.Warn("DeviceInformation acknowledge missing query responses",
-				zap.String("udid", udid),
-				zap.Any("ack_keys", mapKeys(ack)))
+	// DeviceInformation ACK
+	if requestType == "DeviceInformation" || (requestType == "" && len(queryResponses) > 0) {
+		if udid == "" {
+			tlog.Warn("DeviceInformation ACK missing UDID", zap.Any("ack_keys", mapKeys(ack)))
 			return
 		}
 		tlog.Info("Received DeviceInformation response", zap.String("udid", udid))

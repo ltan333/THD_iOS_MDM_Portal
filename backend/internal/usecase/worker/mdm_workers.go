@@ -139,9 +139,10 @@ func (w *ProfileDeployWorker) deploy(ctx context.Context, deviceID string) {
 }
 
 func (w *ProfileDeployWorker) handleInstallAck(ctx context.Context, ev event.ProfileInstallAckEvent) {
-	if err := w.profileService.HandleInstallAck(ctx, ev.UDID, ev.Status, ev.ErrorMessage); err != nil {
+	if err := w.profileService.HandleInstallAck(ctx, ev.UDID, ev.CommandUUID, ev.Status, ev.ErrorMessage); err != nil {
 		tlog.Error("Failed to handle InstallProfile ACK",
 			zap.String("udid", ev.UDID),
+			zap.String("command_uuid", ev.CommandUUID),
 			zap.String("status", ev.Status),
 			zap.Error(err))
 	}
