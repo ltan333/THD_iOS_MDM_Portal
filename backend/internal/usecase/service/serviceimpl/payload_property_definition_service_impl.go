@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"path/filepath"
 	"strconv"
 	"strings"
 
@@ -1381,6 +1382,14 @@ func normalizeYAMLValueType(raw string) string {
 		}
 		return raw
 	}
+}
+
+func normalizeFileName(name string) string {
+	trimmed := strings.TrimSpace(name)
+	if trimmed == "" {
+		return ""
+	}
+	return strings.ToLower(filepath.Base(trimmed))
 }
 
 // extractSupportedOSAndConditions splits the supportedOS YAML block into:

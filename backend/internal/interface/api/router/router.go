@@ -94,8 +94,6 @@ func SetupRouter(
 		{
 			routes.registerUserRoutes(protected)
 			routes.registerPolicyRoutes(protected)
-			routes.registerMDMRoutes(protected)
-			routes.registerDEPRoutes(protected)
 			routes.registerNanoCMDRoutes(protected)
 			routes.registerMobileConfigRoutes(protected)
 			routes.registerDashboardRoutes(protected)
@@ -218,6 +216,29 @@ func (r *routeRegister) registerPolicyRoutes(rg *gin.RouterGroup) {
 		roles.GET("", r.policy.ListRoles)
 		roles.POST("", r.policy.AddRole)
 		roles.DELETE("", r.policy.RemoveRole)
+	}
+}
+
+func (r *routeRegister) registerNanoCMDRoutes(rg *gin.RouterGroup) {
+	nanocmd := rg.Group("/nanocmd")
+	{
+		nanocmd.GET("/version", r.nanocmd.GetVersion)
+		nanocmd.POST("/workflow/:name/start", r.nanocmd.StartWorkflow)
+
+		nanocmd.GET("/event/:name", r.nanocmd.GetEvent)
+		nanocmd.PUT("/event/:name", r.nanocmd.PutEvent)
+
+		nanocmd.GET("/fvenable/profiletemplate", r.nanocmd.GetFVEnableProfileTemplate)
+
+		nanocmd.GET("/profile/:name", r.nanocmd.GetProfile)
+		nanocmd.PUT("/profile/:name", r.nanocmd.PutProfile)
+		nanocmd.DELETE("/profile/:name", r.nanocmd.DeleteProfile)
+		nanocmd.GET("/profiles", r.nanocmd.GetProfiles)
+
+		nanocmd.GET("/cmdplan/:name", r.nanocmd.GetCMDPlan)
+		nanocmd.PUT("/cmdplan/:name", r.nanocmd.PutCMDPlan)
+
+		nanocmd.GET("/inventory", r.nanocmd.GetInventory)
 	}
 }
 
