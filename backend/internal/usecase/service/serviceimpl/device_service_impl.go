@@ -339,15 +339,17 @@ func (s *deviceServiceImpl) handleAcknowledge(ctx context.Context, payload *dto.
 	}
 
 	ack := payload.AcknowledgeEvent
-	requestType, _ := ack["request_type"].(string)
+	requestType := stringFromMapAny(ack, "request_type", "RequestType")
+	if requestType == "" {
+		if cmd, ok := mapFromMapAny(ack, "command", "Command"); ok {
+			requestType = stringFromMapAny(cmd, "request_type", "RequestType")
+		}
+	}
 	if requestType != "DeviceInformation" {
 		return
 	}
 
-	udid, _ := ack["udid"].(string)
-	if udid == "" {
-		udid, _ = ack["UDID"].(string)
-	}
+	udid := stringFromMapAny(ack, "udid", "UDID")
 	if udid == "" {
 		udid = stringFromCheckin(payload, "udid")
 	}
@@ -355,7 +357,12 @@ func (s *deviceServiceImpl) handleAcknowledge(ctx context.Context, payload *dto.
 		return
 	}
 
-	queryResponses, _ := ack["query_responses"].(map[string]any)
+	queryResponses, _ := mapFromMapAny(ack, "query_responses", "QueryResponses")
+	if len(queryResponses) == 0 {
+		if respMap, ok := mapFromMapAny(ack, "response", "Response"); ok {
+			queryResponses, _ = mapFromMapAny(respMap, "query_responses", "QueryResponses")
+		}
+	}
 	if len(queryResponses) == 0 {
 		return
 	}
@@ -429,4 +436,24 @@ func boolToString(b bool) string {
 		return "true"
 	}
 	return "false"
+}
+
+func stringFromMapAny(m map[string]any, keys ...string) string {
+	for _, key := range keys {
+		if v, ok := m[key].(string); ok && v != "" {
+			return v
+		}
+	}
+	return ""
+}
+
+func mapFromMapAny(m map[string]any, keys ...string) (map[string]any, bool) {
+	for _, key := range keys {
+		if v, ok := m[key]; ok {
+			if mv, ok := v.(map[string]any); ok {
+				return mv, true
+			}
+		}
+	}
+	return nil, false
 }
