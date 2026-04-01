@@ -385,6 +385,13 @@ func (s *deviceServiceImpl) handleAcknowledge(ctx context.Context, payload *dto.
 	// HandleInstallAck will ignore the event if commandUUID is not in its pending map.
 	if requestType == "InstallProfile" || (requestType == "" && commandUUID != "") {
 		errMsg := extractErrorChain(ack)
+		if status == "Error" {
+			tlog.Warn("InstallProfile Error from device",
+				zap.String("udid", udid),
+				zap.String("command_uuid", commandUUID),
+				zap.String("error_msg", errMsg),
+				zap.Any("raw_ack", ack))
+		}
 		if s.eventBus != nil {
 			s.eventBus.PublishProfileInstallAck(event.ProfileInstallAckEvent{
 				UDID:         udid,

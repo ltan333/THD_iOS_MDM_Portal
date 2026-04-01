@@ -482,7 +482,8 @@ func (s *profileServiceImpl) HandleInstallAck(ctx context.Context, udid string, 
 			tlog.Info("Deployment status updated from ACK",
 				zap.String("command_uuid", commandUUID),
 				zap.Uint("deployment_status_id", dsID),
-				zap.String("status", repoStatus))
+				zap.String("status", repoStatus),
+				zap.String("error_msg", errMsg))
 			return nil
 		}
 	}
