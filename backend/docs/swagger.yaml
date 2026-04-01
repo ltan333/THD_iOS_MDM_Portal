@@ -403,18 +403,9 @@ definitions:
       key:
         type: string
       value_json:
-        oneOf:
-        - type: boolean
-        - type: string
-        - type: number
-        - type: integer
-        - type: object
-        - type: array
-          items: {}
-        - type: 'null'
+        $ref: '#/definitions/github_com_thienel_go-backend-template_internal_interface_api_dto.JSONValue'
     required:
     - key
-    - value_json
     type: object
   github_com_thienel_go-backend-template_internal_interface_api_dto.CreateMobileConfigRequest:
     properties:
@@ -912,6 +903,8 @@ definitions:
       workflow:
         type: string
     type: object
+  github_com_thienel_go-backend-template_internal_interface_api_dto.JSONValue:
+    type: object
   ? github_com_thienel_go-backend-template_internal_interface_api_dto.ListResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_AlertResponse
   : properties:
       items:
@@ -1106,15 +1099,7 @@ definitions:
       key:
         type: string
       value_json:
-        oneOf:
-        - type: boolean
-        - type: string
-        - type: number
-        - type: integer
-        - type: object
-        - type: array
-          items: {}
-        - type: 'null'
+        $ref: '#/definitions/github_com_thienel_go-backend-template_internal_interface_api_dto.JSONValue'
     type: object
   github_com_thienel_go-backend-template_internal_interface_api_dto.MobileConfigResponse:
     properties:
@@ -1617,10 +1602,16 @@ definitions:
         type: integer
       updated:
         type: integer
+      updated_properties:
+        items:
+          type: string
+        type: array
     type: object
   github_com_thienel_go-backend-template_internal_usecase_service.NestedPayloadSchema:
     properties:
       payload_type:
+        type: string
+      payload_variant:
         type: string
       properties:
         additionalProperties:
@@ -1629,6 +1620,9 @@ definitions:
     type: object
   github_com_thienel_go-backend-template_internal_usecase_service.NestedProperty:
     properties:
+      conditions:
+        additionalProperties: true
+        type: object
       default_value:
         additionalProperties: true
         type: object
@@ -1649,11 +1643,29 @@ definitions:
         type: string
       nested_reference:
         type: string
+      presence:
+        type: string
       properties:
         additionalProperties:
           $ref: '#/definitions/github_com_thienel_go-backend-template_internal_usecase_service.NestedProperty'
         type: object
+      supported_os:
+        additionalProperties: true
+        type: object
+      title:
+        type: string
       value_type:
+        type: string
+    type: object
+  github_com_thienel_go-backend-template_internal_usecase_service.PayloadVariantInfo:
+    properties:
+      description:
+        type: string
+      display_name:
+        type: string
+      property_count:
+        type: integer
+      variant:
         type: string
     type: object
   github_com_thienel_go-backend-template_internal_usecase_service.PolicyRule:
@@ -1765,6 +1777,19 @@ definitions:
       data:
         items:
           $ref: '#/definitions/github_com_thienel_go-backend-template_internal_usecase_service.NestedPayloadSchema'
+        type: array
+      error:
+        $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.Error'
+      is_success:
+        type: boolean
+      message:
+        type: string
+    type: object
+  ? github_com_thienel_go-backend-template_pkg_response.APIResponse-array_github_com_thienel_go-backend-template_internal_usecase_service_PayloadVariantInfo
+  : properties:
+      data:
+        items:
+          $ref: '#/definitions/github_com_thienel_go-backend-template_internal_usecase_service.PayloadVariantInfo'
         type: array
       error:
         $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.Error'
@@ -2219,6 +2244,17 @@ definitions:
       message:
         type: string
     type: object
+  github_com_thienel_go-backend-template_pkg_response.APIResponse-map_string_int:
+    properties:
+      data:
+        $ref: '#/definitions/map_string_int'
+      error:
+        $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.Error'
+      is_success:
+        type: boolean
+      message:
+        type: string
+    type: object
   github_com_thienel_go-backend-template_pkg_response.Error:
     properties:
       code:
@@ -2268,6 +2304,10 @@ definitions:
   map_string_github_com_thienel_go-backend-template_internal_interface_api_dto.NanoCMDProfile:
     additionalProperties:
       $ref: '#/definitions/github_com_thienel_go-backend-template_internal_interface_api_dto.NanoCMDProfile'
+    type: object
+  map_string_int:
+    additionalProperties:
+      type: integer
     type: object
 host: localhost:8000
 info:
@@ -5223,95 +5263,6 @@ paths:
       summary: Start NanoCMD workflow
       tags:
       - NanoCMD
-  /api/v1/payload-property-definitions/import:
-    post:
-      consumes:
-      - multipart/form-data
-      description: Upload one or more Apple documentation JSON files. The system auto-detects
-        top-level payload files vs nested dictionary files and resolves nested properties
-        recursively.
-      parameters:
-      - collectionFormat: csv
-        description: Apple payload JSON files (upload nhiều files; bao gồm cả nested
-          dictionary files để resolve đệ quy)
-        in: formData
-        items:
-          type: file
-        name: files
-        required: true
-        type: array
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-github_com_thienel_go-backend-template_internal_usecase_service_ImportPayloadPropertyDefinitionsResult'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
-      security:
-      - BearerAuth: []
-      summary: Import payload property definitions from Apple JSON files
-      tags:
-      - Payload Property Definitions
-  /api/v1/payload-property-definitions/payload-types:
-    get:
-      description: Get all distinct payload types from payload property definitions
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-array_string'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
-      security:
-      - BearerAuth: []
-      summary: List payload types
-      tags:
-      - Payload Property Definitions
-  /api/v1/payload-property-definitions/schema:
-    get:
-      description: Returns payload properties as nested JSON tree. If payload_type
-        query param is provided, only that type is returned. Otherwise all payload
-        types are returned.
-      parameters:
-      - description: Filter by payload type (e.g. com.apple.carddav.account). Omit
-          to get all.
-        in: query
-        name: payload_type
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-array_github_com_thienel_go-backend-template_internal_usecase_service_NestedPayloadSchema'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
-      summary: Get nested schema for one or all payload types
-      tags:
-      - Payload Property Definitions
   /api/v1/policies:
     delete:
       consumes:
@@ -6862,6 +6813,186 @@ paths:
       summary: Update user
       tags:
       - Users
+  /v1/mobile-configs/{id}:
+    get:
+      description: Get the full detail of a mobile config by its ID
+      parameters:
+      - description: Mobile config ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_interface_api_handler.MobileConfigSuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/internal_interface_api_handler.APIErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/internal_interface_api_handler.APIErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/internal_interface_api_handler.APIErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/internal_interface_api_handler.APIErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get mobile config by ID
+      tags:
+      - Mobile Config
+  /v1/payload-property-definitions:
+    delete:
+      description: Delete all payload property definitions from database
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-map_string_int'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+      security:
+      - BearerAuth: []
+      summary: Delete all payload property definitions
+      tags:
+      - Payload Property Definitions
+  /v1/payload-property-definitions/{payload_type}/variants:
+    get:
+      description: Get all variants of a payload type with property count
+      parameters:
+      - description: Payload type
+        in: path
+        name: payload_type
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-array_github_com_thienel_go-backend-template_internal_usecase_service_PayloadVariantInfo'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+      security:
+      - BearerAuth: []
+      summary: List payload variants by payload type
+      tags:
+      - Payload Property Definitions
+  /v1/payload-property-definitions/import-yaml-folder:
+    post:
+      consumes:
+      - multipart/form-data
+      description: 'Upload a folder or zip file containing Apple Device Management
+        YAML files. Supports multipart fields: folder, folder[], files, files[], file.'
+      parameters:
+      - description: Folder zip file or files uploaded from folder picker
+        in: formData
+        name: folder
+        required: true
+        type: file
+      - collectionFormat: csv
+        description: Alternative field for folder files
+        in: formData
+        items:
+          type: file
+        name: files
+        type: array
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-github_com_thienel_go-backend-template_internal_usecase_service_ImportPayloadPropertyDefinitionsResult'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+      security:
+      - BearerAuth: []
+      summary: Import payload property definitions from YAML folder
+      tags:
+      - Payload Property Definitions
+  /v1/payload-property-definitions/payload-types:
+    get:
+      description: Get all distinct payload types from payload property definitions
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-array_string'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+      security:
+      - BearerAuth: []
+      summary: List payload types
+      tags:
+      - Payload Property Definitions
+  /v1/payload-property-definitions/schema:
+    get:
+      description: Returns payload properties as nested JSON tree. If payload_type
+        query param is provided, only that type is returned. Otherwise all payload
+        types are returned.
+      parameters:
+      - description: Filter by payload type (e.g. com.apple.carddav.account). Omit
+          to get all.
+        in: query
+        name: payload_type
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-array_github_com_thienel_go-backend-template_internal_usecase_service_NestedPayloadSchema'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any'
+      summary: Get nested schema for one or all payload types
+      tags:
+      - Payload Property Definitions
 securityDefinitions:
   BasicAuth:
     type: basic
