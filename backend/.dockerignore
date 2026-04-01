@@ -1,22 +1,36 @@
 # Build artifacts
 bin/
+dist/
+tmp/
+tmp/**
 main
 coverage.out
 coverage.html
+*.coverprofile
 
 # Local environment
 .env
+.env.*
 
 # Logs
 logs/
+*.log
 
 # IDE files
 .vscode/
 .idea/
+.DS_Store
 
 # Git
 .git
 .gitignore
 
+# CI and editor metadata
+.github/
+
 # Storage
 storage/
+
+# Dependency caches
+node_modules/
+vendor/
