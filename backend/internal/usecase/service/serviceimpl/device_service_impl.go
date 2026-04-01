@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/csv"
 	"encoding/json"
+	"fmt"
 	"strings"
 
 	"go.uber.org/zap"
@@ -334,36 +335,36 @@ func (s *deviceServiceImpl) handleTokenUpdate(ctx context.Context, udid, sn, mod
 // handleAcknowledge processes mdm.Acknowledge events and dispatches
 // DeviceInformation responses to update the device record.
 func (s *deviceServiceImpl) handleAcknowledge(ctx context.Context, payload *dto.NanoCMDWebhook) {
-	if payload.AcknowledgeEvent == nil {
+	if payload.AcknowledgeEvent == nil && payload.Checkin_event == nil {
 		return
 	}
 
 	ack := payload.AcknowledgeEvent
-	requestType := stringFromMapAny(ack, "request_type", "RequestType")
-	if requestType == "" {
-		if cmd, ok := mapFromMapAny(ack, "command", "Command"); ok {
-			requestType = stringFromMapAny(cmd, "request_type", "RequestType")
-		}
+	if ack == nil {
+		// Some deployments emit mdm.Connect payload fields under checkin_event.
+		ack = payload.Checkin_event
 	}
+
+	requestType := deepFindString(ack, "request_type", "RequestType")
 	if requestType != "DeviceInformation" {
 		return
 	}
 
-	udid := stringFromMapAny(ack, "udid", "UDID")
+	udid := deepFindString(ack, "udid", "UDID")
 	if udid == "" {
 		udid = stringFromCheckin(payload, "udid")
 	}
 	if udid == "" {
+		tlog.Warn("DeviceInformation acknowledge missing UDID",
+			zap.Any("ack_keys", mapKeys(ack)))
 		return
 	}
 
-	queryResponses, _ := mapFromMapAny(ack, "query_responses", "QueryResponses")
+	queryResponses, _ := deepFindMap(ack, "query_responses", "QueryResponses")
 	if len(queryResponses) == 0 {
-		if respMap, ok := mapFromMapAny(ack, "response", "Response"); ok {
-			queryResponses, _ = mapFromMapAny(respMap, "query_responses", "QueryResponses")
-		}
-	}
-	if len(queryResponses) == 0 {
+		tlog.Warn("DeviceInformation acknowledge missing query responses",
+			zap.String("udid", udid),
+			zap.Any("ack_keys", mapKeys(ack)))
 		return
 	}
 
@@ -456,4 +457,70 @@ func mapFromMapAny(m map[string]any, keys ...string) (map[string]any, bool) {
 		}
 	}
 	return nil, false
+}
+
+func deepFindString(m map[string]any, keys ...string) string {
+	for _, key := range keys {
+		if v, ok := m[key].(string); ok && v != "" {
+			return v
+		}
+	}
+
+	for _, value := range m {
+		switch vv := value.(type) {
+		case map[string]any:
+			if result := deepFindString(vv, keys...); result != "" {
+				return result
+			}
+		case []any:
+			for _, item := range vv {
+				if nested, ok := item.(map[string]any); ok {
+					if result := deepFindString(nested, keys...); result != "" {
+						return result
+					}
+				}
+			}
+		}
+	}
+
+	return ""
+}
+
+func deepFindMap(m map[string]any, keys ...string) (map[string]any, bool) {
+	for _, key := range keys {
+		if v, ok := m[key].(map[string]any); ok {
+			return v, true
+		}
+	}
+
+	for _, value := range m {
+		switch vv := value.(type) {
+		case map[string]any:
+			if result, ok := deepFindMap(vv, keys...); ok {
+				return result, true
+			}
+		case []any:
+			for _, item := range vv {
+				if nested, ok := item.(map[string]any); ok {
+					if result, found := deepFindMap(nested, keys...); found {
+						return result, true
+					}
+				}
+			}
+		}
+	}
+
+	return nil, false
+}
+
+func mapKeys(m map[string]any) []string {
+	if len(m) == 0 {
+		return nil
+	}
+
+	keys := make([]string, 0, len(m))
+	for k, v := range m {
+		keys = append(keys, fmt.Sprintf("%s(%T)", k, v))
+	}
+	return keys
 }
