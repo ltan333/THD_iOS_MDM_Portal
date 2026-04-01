@@ -3,6 +3,7 @@ package persistence
 import (
 	"context"
 	"strings"
+	"time"
 
 	"github.com/thienel/go-backend-template/internal/domain/repository"
 	"github.com/thienel/go-backend-template/internal/ent"
@@ -10,6 +11,7 @@ import (
 	"github.com/thienel/go-backend-template/internal/ent/devicegroup"
 	"github.com/thienel/go-backend-template/internal/ent/profile"
 	"github.com/thienel/go-backend-template/internal/ent/profileassignment"
+	"github.com/thienel/go-backend-template/internal/ent/profiledeploymentstatus"
 	"github.com/thienel/go-backend-template/internal/infra/database"
 	"github.com/thienel/go-backend-template/internal/usecase/service"
 	apperror "github.com/thienel/go-backend-template/pkg/error"
@@ -247,7 +249,7 @@ func (r *profileRepositoryImpl) SaveVersion(ctx context.Context, profileID uint,
 }
 
 // Assignments
-func (r *profileRepositoryImpl) Assign(ctx context.Context, cmd service.AssignProfileCommand) error {
+func (r *profileRepositoryImpl) Assign(ctx context.Context, cmd service.AssignProfileCommand) (*ent.ProfileAssignment, error) {
 	create := r.client.ProfileAssignment.Create().
 		SetProfileID(cmd.ProfileID).
 		SetTargetType(profileassignment.TargetType(cmd.TargetType)).
@@ -261,11 +263,11 @@ func (r *profileRepositoryImpl) Assign(ctx context.Context, cmd service.AssignPr
 		create = create.SetGroupID(*cmd.GroupID)
 	}
 
-	_, err := create.Save(ctx)
+	assignment, err := create.Save(ctx)
 	if err != nil {
-		return apperror.ErrInternalServerError.WithMessage("Lỗi khi gán profile").WithError(err)
+		return nil, apperror.ErrInternalServerError.WithMessage("Lỗi khi gán profile").WithError(err)
 	}
-	return nil
+	return assignment, nil
 }
 
 func (r *profileRepositoryImpl) Unassign(ctx context.Context, profileID uint, assignmentID uint) error {
@@ -369,6 +371,38 @@ func (r *profileRepositoryImpl) Rollback(ctx context.Context, profileID uint, ve
 }
 
 // Deployment Status
+func (r *profileRepositoryImpl) CreateDeploymentStatus(ctx context.Context, profileID uint, deviceID string, status string) (*ent.ProfileDeploymentStatus, error) {
+	ds, err := r.client.ProfileDeploymentStatus.Create().
+		SetProfileID(profileID).
+		SetDeviceID(deviceID).
+		SetStatus(profiledeploymentstatus.Status(status)).
+		Save(ctx)
+	if err != nil {
+		return nil, apperror.ErrInternalServerError.WithMessage("Lỗi khi tạo deployment status").WithError(err)
+	}
+	return ds, nil
+}
+
+func (r *profileRepositoryImpl) UpdateDeploymentStatus(ctx context.Context, id uint, status string, errorMessage string) error {
+	update := r.client.ProfileDeploymentStatus.UpdateOneID(id).
+		SetStatus(profiledeploymentstatus.Status(status))
+
+	if errorMessage != "" {
+		update = update.SetErrorMessage(errorMessage)
+	}
+
+	if status == "success" {
+		now := time.Now()
+		update = update.SetAppliedAt(now)
+	}
+
+	_, err := update.Save(ctx)
+	if err != nil {
+		return apperror.ErrInternalServerError.WithMessage("Lỗi khi cập nhật deployment status").WithError(err)
+	}
+	return nil
+}
+
 func (r *profileRepositoryImpl) GetDeploymentStatus(ctx context.Context, profileID uint) ([]*ent.ProfileDeploymentStatus, error) {
 	p, err := r.client.Profile.Query().
 		Where(profile.IDEQ(profileID)).

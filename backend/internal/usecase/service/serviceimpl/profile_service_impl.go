@@ -203,9 +203,10 @@ func (s *profileServiceImpl) UpdateComplianceRules(ctx context.Context, id uint,
 	return err
 }
 
-func (s *profileServiceImpl) Assign(ctx context.Context, cmd service.AssignProfileCommand) error {
-	if err := s.repo.Assign(ctx, cmd); err != nil {
-		return err
+func (s *profileServiceImpl) Assign(ctx context.Context, cmd service.AssignProfileCommand) (*ent.ProfileAssignment, error) {
+	assignment, err := s.repo.Assign(ctx, cmd)
+	if err != nil {
+		return nil, err
 	}
 	// Immediately deploy if schedule_type is "immediate" and a direct device is targeted.
 	if cmd.ScheduleType == "immediate" {
@@ -219,7 +220,7 @@ func (s *profileServiceImpl) Assign(ctx context.Context, cmd service.AssignProfi
 			}
 		}
 	}
-	return nil
+	return assignment, nil
 }
 
 func (s *profileServiceImpl) Unassign(ctx context.Context, profileID uint, assignmentID uint) error {
@@ -322,23 +323,48 @@ func (s *profileServiceImpl) InstallOnDevice(ctx context.Context, profileID uint
 		return err
 	}
 
+	// 1. Create deployment status record with status="pending"
+	ds, err := s.repo.CreateDeploymentStatus(ctx, profileID, deviceID, "pending")
+	if err != nil {
+		tlog.Error("Failed to create deployment status", zap.Error(err))
+		// Continue anyway - don't block installation
+	}
+
+	// 2. Generate XML
 	xmlData, err := s.generator.GenerateXML(ctx, p)
 	if err != nil {
+		if ds != nil {
+			_ = s.repo.UpdateDeploymentStatus(ctx, ds.ID, "failed", "Failed to generate XML: "+err.Error())
+		}
 		return apperror.ErrInternalServerError.WithMessage("Lỗi khi tạo XML profile").WithError(err)
 	}
 
+	// 3. Build command
 	cmdBuilder := mdmcmd.NewBuilder("")
 	cmdData, _, err := cmdBuilder.InstallProfile(xmlData)
 	if err != nil {
+		if ds != nil {
+			_ = s.repo.UpdateDeploymentStatus(ctx, ds.ID, "failed", "Failed to build command: "+err.Error())
+		}
 		return apperror.ErrInternalServerError.WithMessage("Lỗi khi build InstallProfile command").WithError(err)
 	}
 
+	// 4. Enqueue command
 	if _, err = s.mdmService.EnqueueCommand(ctx, deviceID, cmdData); err != nil {
+		if ds != nil {
+			_ = s.repo.UpdateDeploymentStatus(ctx, ds.ID, "failed", "Failed to enqueue command: "+err.Error())
+		}
 		return apperror.ErrInternalServerError.WithMessage("Lỗi khi enqueue InstallProfile").WithError(err)
 	}
 
-	// 4. Trigger APNs push
+	// 5. Trigger APNs push
 	_, _ = s.mdmService.Push(ctx, []string{deviceID})
+
+	// Status remains "pending" - waiting for device ACK via webhook
+	tlog.Info("Profile installation queued",
+		zap.Uint("profile_id", profileID),
+		zap.String("device_id", deviceID),
+		zap.Uint("deployment_status_id", ds.ID))
 
 	return nil
 }

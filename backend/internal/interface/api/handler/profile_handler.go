@@ -483,7 +483,7 @@ func (h *profileHandlerImpl) Assign(c *gin.Context) {
 		return
 	}
 
-	err = h.profileService.Assign(c.Request.Context(), service.AssignProfileCommand{
+	assignment, err := h.profileService.Assign(c.Request.Context(), service.AssignProfileCommand{
 		ProfileID:    uint(id),
 		TargetType:   req.TargetType,
 		DeviceID:     req.DeviceID,
@@ -495,7 +495,27 @@ func (h *profileHandlerImpl) Assign(c *gin.Context) {
 		response.WriteErrorResponse(c, err)
 		return
 	}
-	response.OK[any](c, nil, "Profile assigned successfully")
+
+	res := dto.ProfileAssignmentResponse{
+		ID:           assignment.ID,
+		ProfileID:    assignment.ProfileID,
+		TargetType:   string(assignment.TargetType),
+		DeviceID:     nil,
+		GroupID:      nil,
+		ScheduleType: string(assignment.ScheduleType),
+		ScheduledAt:  assignment.ScheduledAt,
+		CreatedAt:    assignment.CreatedAt,
+	}
+
+	// Set device_id or group_id if present
+	if assignment.DeviceID != nil && *assignment.DeviceID != "" {
+		res.DeviceID = assignment.DeviceID
+	}
+	if assignment.GroupID != nil && *assignment.GroupID != 0 {
+		res.GroupID = assignment.GroupID
+	}
+
+	response.OK(c, res, "Profile assigned successfully")
 }
 
 // Unassign godoc

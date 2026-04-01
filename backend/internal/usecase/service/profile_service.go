@@ -61,7 +61,7 @@ type ProfileService interface {
 	UpdateComplianceRules(ctx context.Context, id uint, rules map[string]any) error
 
 	// Assignment
-	Assign(ctx context.Context, cmd AssignProfileCommand) error
+	Assign(ctx context.Context, cmd AssignProfileCommand) (*ent.ProfileAssignment, error)
 	Unassign(ctx context.Context, profileID uint, assignmentID uint) error
 	ListAssignments(ctx context.Context, profileID uint) ([]*ent.ProfileAssignment, error)
 

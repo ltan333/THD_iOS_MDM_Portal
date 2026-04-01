@@ -18,7 +18,7 @@ type ProfileRepository interface {
 	SaveVersion(ctx context.Context, profileID uint, version int, data map[string]any, changeNotes string) error
 
 	// Assignments
-	Assign(ctx context.Context, cmd service.AssignProfileCommand) error
+	Assign(ctx context.Context, cmd service.AssignProfileCommand) (*ent.ProfileAssignment, error)
 	Unassign(ctx context.Context, profileID uint, assignmentID uint) error
 	ListAssignments(ctx context.Context, profileID uint) ([]*ent.ProfileAssignment, error)
 
@@ -27,6 +27,8 @@ type ProfileRepository interface {
 	Rollback(ctx context.Context, profileID uint, versionID uint) error
 
 	// Deployment Status
+	CreateDeploymentStatus(ctx context.Context, profileID uint, deviceID string, status string) (*ent.ProfileDeploymentStatus, error)
+	UpdateDeploymentStatus(ctx context.Context, id uint, status string, errorMessage string) error
 	GetDeploymentStatus(ctx context.Context, profileID uint) ([]*ent.ProfileDeploymentStatus, error)
 	GetProfilesByDevice(ctx context.Context, deviceID string) ([]*ent.Profile, error)
 	GetFlattenedDeviceUDIDsByProfile(ctx context.Context, profileID uint) ([]string, error)
