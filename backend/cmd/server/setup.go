@@ -85,7 +85,7 @@ func setupDependencies(cfg *config.Config) *gin.Engine {
 	dashboardService := serviceimpl.NewDashboardService(dashboardRepo, alertRepo, appRepo)
 	deviceGroupService := serviceimpl.NewDeviceGroupService(deviceGroupRepo)
 	profileGenerator := serviceimpl.NewProfileGenerator("THD MDM", "com.thd.mdm")
-	profileService := serviceimpl.NewProfileService(profileRepo, profileGenerator, nanomdmService)
+	profileService := serviceimpl.NewProfileService(profileRepo, deviceRepo, profileGenerator, nanomdmService)
 
 	// DeviceService now receives the event bus instead of profileService.
 	// Profile deployment and inventory sync are handled by background workers

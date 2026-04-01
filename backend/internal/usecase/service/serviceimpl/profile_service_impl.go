@@ -19,13 +19,15 @@ import (
 
 type profileServiceImpl struct {
 	repo       repository.ProfileRepository
+	deviceRepo repository.DeviceRepository
 	generator  service.ProfileGenerator
 	mdmService service.NanoMDMService
 }
 
-func NewProfileService(repo repository.ProfileRepository, generator service.ProfileGenerator, mdmService service.NanoMDMService) service.ProfileService {
+func NewProfileService(repo repository.ProfileRepository, deviceRepo repository.DeviceRepository, generator service.ProfileGenerator, mdmService service.NanoMDMService) service.ProfileService {
 	return &profileServiceImpl{
 		repo:       repo,
+		deviceRepo: deviceRepo,
 		generator:  generator,
 		mdmService: mdmService,
 	}
@@ -317,14 +319,26 @@ func (s *profileServiceImpl) DeployToDevice(ctx context.Context, deviceID string
 	return nil
 }
 
-func (s *profileServiceImpl) InstallOnDevice(ctx context.Context, profileID uint, deviceID string) error {
+// InstallOnDevice installs a profile on the device identified by its portal device ID.
+// It resolves the MDM UDID internally before enqueuing commands to NanoMDM.
+func (s *profileServiceImpl) InstallOnDevice(ctx context.Context, profileID uint, portalDeviceID string) error {
 	p, err := s.repo.GetByID(ctx, profileID)
 	if err != nil {
 		return err
 	}
 
-	// 1. Create deployment status record with status="pending"
-	ds, err := s.repo.CreateDeploymentStatus(ctx, profileID, deviceID, "pending")
+	// Resolve portal device ID → MDM UDID
+	device, err := s.deviceRepo.GetByID(ctx, portalDeviceID)
+	if err != nil {
+		return apperror.ErrNotFound.WithMessage("Không tìm thấy device").WithError(err)
+	}
+	if device.Udid == nil || *device.Udid == "" {
+		return apperror.ErrBadRequest.WithMessage("Device chưa enroll vào MDM, không có UDID")
+	}
+	udid := *device.Udid
+
+	// 1. Create deployment status record (FK references portal_devices.id)
+	ds, err := s.repo.CreateDeploymentStatus(ctx, profileID, portalDeviceID, "pending")
 	if err != nil {
 		tlog.Error("Failed to create deployment status", zap.Error(err))
 		// Continue anyway - don't block installation
@@ -349,8 +363,8 @@ func (s *profileServiceImpl) InstallOnDevice(ctx context.Context, profileID uint
 		return apperror.ErrInternalServerError.WithMessage("Lỗi khi build InstallProfile command").WithError(err)
 	}
 
-	// 4. Enqueue command
-	if _, err = s.mdmService.EnqueueCommand(ctx, deviceID, cmdData); err != nil {
+	// 4. Enqueue command via MDM UDID
+	if _, err = s.mdmService.EnqueueCommand(ctx, udid, cmdData); err != nil {
 		if ds != nil {
 			_ = s.repo.UpdateDeploymentStatus(ctx, ds.ID, "failed", "Failed to enqueue command: "+err.Error())
 		}
@@ -358,13 +372,16 @@ func (s *profileServiceImpl) InstallOnDevice(ctx context.Context, profileID uint
 	}
 
 	// 5. Trigger APNs push
-	_, _ = s.mdmService.Push(ctx, []string{deviceID})
+	_, _ = s.mdmService.Push(ctx, []string{udid})
 
 	// Status remains "pending" - waiting for device ACK via webhook
-	tlog.Info("Profile installation queued",
-		zap.Uint("profile_id", profileID),
-		zap.String("device_id", deviceID),
-		zap.Uint("deployment_status_id", ds.ID))
+	if ds != nil {
+		tlog.Info("Profile installation queued",
+			zap.Uint("profile_id", profileID),
+			zap.String("portal_device_id", portalDeviceID),
+			zap.String("udid", udid),
+			zap.Uint("deployment_status_id", ds.ID))
+	}
 
 	return nil
 }

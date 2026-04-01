@@ -417,12 +417,14 @@ func (r *profileRepositoryImpl) GetDeploymentStatus(ctx context.Context, profile
 	return p.Edges.DeploymentStatuses, nil
 }
 
-func (r *profileRepositoryImpl) GetProfilesByDevice(ctx context.Context, deviceID string) ([]*ent.Profile, error) {
+func (r *profileRepositoryImpl) GetProfilesByDevice(ctx context.Context, udid string) ([]*ent.Profile, error) {
 	profiles, err := r.client.Profile.Query().
 		Where(
 			profile.Or(
-				profile.HasAssignmentsWith(profileassignment.DeviceIDEQ(deviceID)),
-				profile.HasDeviceGroupsWith(devicegroup.HasDevicesWith(device.UdidEQ(deviceID))),
+				// Direct assignment: traverse edge to find device by UDID
+				profile.HasAssignmentsWith(profileassignment.HasDeviceWith(device.UdidEQ(udid))),
+				// Group assignment: device belongs to the assigned group, matched by UDID
+				profile.HasDeviceGroupsWith(devicegroup.HasDevicesWith(device.UdidEQ(udid))),
 			),
 		).All(ctx)
 	if err != nil {
@@ -432,7 +434,7 @@ func (r *profileRepositoryImpl) GetProfilesByDevice(ctx context.Context, deviceI
 }
 
 func (r *profileRepositoryImpl) GetFlattenedDeviceUDIDsByProfile(ctx context.Context, profileID uint) ([]string, error) {
-	// Directly assigned devices:
+	// Directly assigned devices: collect portal device IDs, then resolve to UDIDs
 	directAssignments, err := r.client.ProfileAssignment.Query().
 		Where(
 			profileassignment.ProfileIDEQ(profileID),
@@ -442,14 +444,30 @@ func (r *profileRepositoryImpl) GetFlattenedDeviceUDIDsByProfile(ctx context.Con
 		return nil, err
 	}
 
-	var udids []string
+	var portalDeviceIDs []string
 	for _, a := range directAssignments {
 		if a.DeviceID != nil {
-			udids = append(udids, *a.DeviceID)
+			portalDeviceIDs = append(portalDeviceIDs, *a.DeviceID)
 		}
 	}
 
-    // Group assigned devices
+	var udids []string
+	if len(portalDeviceIDs) > 0 {
+		// Resolve portal IDs → UDIDs (only enrolled devices have a non-empty UDID)
+		directDevices, err := r.client.Device.Query().
+			Where(device.IDIn(portalDeviceIDs...)).
+			All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, d := range directDevices {
+			if d.Udid != nil && *d.Udid != "" {
+				udids = append(udids, *d.Udid)
+			}
+		}
+	}
+
+	// Group assigned devices
 	groupAssignments, err := r.client.ProfileAssignment.Query().
 		Where(
 			profileassignment.ProfileIDEQ(profileID),
@@ -459,7 +477,7 @@ func (r *profileRepositoryImpl) GetFlattenedDeviceUDIDsByProfile(ctx context.Con
 		return nil, err
 	}
 
-    if len(groupAssignments) > 0 {
+	if len(groupAssignments) > 0 {
 		var groupIDs []uint
 		for _, a := range groupAssignments {
 			if a.GroupID != nil {
@@ -467,18 +485,18 @@ func (r *profileRepositoryImpl) GetFlattenedDeviceUDIDsByProfile(ctx context.Con
 			}
 		}
 
-		groupDeviceUDIDs, err := r.client.Device.Query().
-			Where(
-				device.HasGroupsWith(devicegroup.IDIn(groupIDs...)),
-			).
-			Select(device.FieldUdid).
-			Strings(ctx)
+		groupDevices, err := r.client.Device.Query().
+			Where(device.HasGroupsWith(devicegroup.IDIn(groupIDs...))).
+			All(ctx)
 		if err != nil {
 			return nil, err
 		}
-
-		udids = append(udids, groupDeviceUDIDs...)
-    }
+		for _, d := range groupDevices {
+			if d.Udid != nil && *d.Udid != "" {
+				udids = append(udids, *d.Udid)
+			}
+		}
+	}
 
 	// deduplicate
 	unique := make(map[string]bool)
