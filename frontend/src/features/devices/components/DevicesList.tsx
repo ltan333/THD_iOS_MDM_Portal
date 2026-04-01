@@ -72,7 +72,7 @@ export function DevicesList() {
             const res = await deviceService.getDevices(params);
             if (res.is_success && res.data) {
                 setDevices(res.data.items || []);
-                setPagination(prev => ({ ...prev, total: res.data?.total || 0 }));
+                setPagination(prev => ({ ...prev, total: res.data?.pagination?.total || 0 }));
             }
         } catch (error) {
             console.error("Failed to fetch devices", error);

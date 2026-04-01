@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useState } from "react";
-import { Table, Select, Input, Button, Dropdown, MenuProps, Tag, Modal, Tabs, Form, Checkbox, InputNumber } from "antd";
+import React, { useState, useEffect, useCallback } from "react";
+import { Table, Select, Input, Button, Dropdown, MenuProps, Tag, Modal, Tabs, Form, Checkbox, InputNumber, App } from "antd";
 import { 
  Search, 
  Plus, 
@@ -37,159 +37,38 @@ import {
  X
 } from "lucide-react";
 import type { ColumnsType } from "antd/es/table";
+import { profileService } from "@/services/profile.service";
+import { ProfileResponse } from "@/types/profile.type";
+import dayjs from "dayjs";
 
 interface ProfileType {
  key: string;
+ id: number;
  name: string;
- status: "active" | "draft";
- family: "Apple" | "Android Plus" | "Windows Modern";
+ status: "active" | "draft" | "archived" | string;
+ family: "Apple" | "Android Plus" | "Windows Modern" | string;
  installMethod: string;
  version: string;
  hasDraft?: boolean;
  configurations: number;
+ activeConfigs: {key: string, name: string, icon: React.ReactNode}[];
  packages: number;
  assignedDate: string;
  assignedBy: string;
 }
 
-const mockData: ProfileType[] = [
- {
- key: "1",
- name: "Allow SOTI MobiC...",
- status: "active",
- family: "Apple",
- installMethod: "Automatic",
- version: "1.0",
- configurations: 1,
- packages: 0,
- assignedDate: "2025-09-23 10:23:12 PM",
- assignedBy: "MobiControl Administ...",
- },
- {
- key: "2",
- name: "AnLee Test",
- status: "active",
- family: "Android Plus",
- installMethod: "Automatic",
- version: "10.0",
- configurations: 2,
- packages: 0,
- assignedDate: "2026-02-26 11:37:48 AM",
- assignedBy: "Huy",
- },
- {
- key: "3",
- name: "App Catalog",
- status: "active",
- family: "Apple",
- installMethod: "Automatic",
- version: "1.0",
- configurations: 1,
- packages: 0,
- assignedDate: "2025-09-23 10:23:15 PM",
- assignedBy: "MobiControl Administ...",
- },
- {
- key: "4",
- name: "App Catalog for m...",
- status: "active",
- family: "Apple",
- installMethod: "Automatic",
- version: "1.0",
- configurations: 1,
- packages: 0,
- assignedDate: "2025-09-23 10:23:15 PM",
- assignedBy: "MobiControl Administ...",
- },
- {
- key: "5",
- name: "AppCatalog",
- status: "draft",
- family: "Android Plus",
- installMethod: "Unknown",
- version: "1.0",
- hasDraft: true,
- configurations: 2,
- packages: 0,
- assignedDate: "N/A",
- assignedBy: "N/A",
- },
- {
- key: "6",
- name: "baoqg-profile-test",
- status: "draft",
- family: "Apple",
- installMethod: "Unknown",
- version: "1.0",
- hasDraft: true,
- configurations: 1,
- packages: 0,
- assignedDate: "N/A",
- assignedBy: "N/A",
- },
- {
- key: "7",
- name: "Disable CamAndMic",
- status: "active",
- family: "Android Plus",
- installMethod: "Automatic",
- version: "4.0",
- configurations: 1,
- packages: 0,
- assignedDate: "2026-02-24 4:29:36 PM",
- assignedBy: "Le An",
- },
- {
- key: "8",
- name: "ios test",
- status: "active",
- family: "Apple",
- installMethod: "Automatic",
- version: "1.0",
- configurations: 2,
- packages: 0,
- assignedDate: "2026-01-12 1:43:02 PM",
- assignedBy: "Huy",
- },
- {
- key: "9",
- name: "NormalProfile",
- status: "active",
- family: "Android Plus",
- installMethod: "Automatic",
- version: "2.0",
- configurations: 1,
- packages: 0,
- assignedDate: "2026-02-25 11:46:01 AM",
- assignedBy: "Le An",
- },
- {
- key: "10",
- name: "Profile Catalog",
- status: "active",
- family: "Apple",
- installMethod: "Automatic",
- version: "1.0",
- configurations: 1,
- packages: 0,
- assignedDate: "2025-09-23 10:23:15 PM",
- assignedBy: "MobiControl Administ...",
- },
- {
- key: "11",
- name: "Remote Control f...",
- status: "active",
- family: "Apple",
- installMethod: "Automatic",
- version: "1.0",
- configurations: 1,
- packages: 0,
- assignedDate: "2025-10-14 2:31:17 PM",
- assignedBy: "Huy",
- },
-];
-
 export function ProfilesList() {
+ const { message } = App.useApp();
+ const [profiles, setProfiles] = useState<ProfileType[]>([]);
+ const [loading, setLoading] = useState(false);
+ const [pagination, setPagination] = useState({
+    current: 1,
+    pageSize: 50,
+    total: 0
+ });
+ const [searchQuery, setSearchQuery] = useState("");
+ const [familyFilter, setFamilyFilter] = useState("all");
+ const [statusFilter, setStatusFilter] = useState("none");
  const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
  const [isCreateModalVisible, setIsCreateModalVisible] = useState(false);
  const [isProfileFormModalVisible, setIsProfileFormModalVisible] = useState(false);
@@ -307,9 +186,144 @@ export function ProfilesList() {
  const [selectedSafariDomainIdx, setSelectedSafariDomainIdx] = useState<number | null>(null);
  const [selectedPasswordDomainIdx, setSelectedPasswordDomainIdx] = useState<number | null>(null);
 
- const onSelectChange = (newSelectedRowKeys: React.Key[]) => {
- setSelectedRowKeys(newSelectedRowKeys);
+ const [isProfileDetailModalVisible, setIsProfileDetailModalVisible] = useState(false);
+ const [selectedProfile, setSelectedProfile] = useState<ProfileType | null>(null);
+
+ const handleProfileClick = (profile: ProfileType) => {
+  setSelectedProfile(profile);
+  setIsProfileDetailModalVisible(true);
  };
+
+ const handleDeleteProfile = async () => {
+  if (!selectedProfile) return;
+  
+  Modal.confirm({
+   title: 'Delete Profile',
+   content: `Are you sure you want to delete profile "${selectedProfile.name}"?`,
+   okText: 'Delete',
+   okButtonProps: { danger: true },
+   cancelText: 'Cancel',
+   onOk: () => new Promise(async (resolve, reject) => {
+    try {
+     const response = await profileService.deleteProfile(selectedProfile.id);
+     // Coi 204 (No Content) hoặc 200 là thành công
+     if (response.is_success || (response as any).status === 204) {
+      message.success('Profile deleted successfully');
+      setIsProfileDetailModalVisible(false);
+      fetchProfiles();
+      resolve(true);
+     } else {
+      message.error(response.message || 'Failed to delete profile');
+      reject(new Error(response.message || 'Failed to delete profile'));
+     }
+    } catch (error: any) {
+     // Xử lý case axios throw lỗi nhưng HTTP status là 204 hoặc 200
+     if (error?.response?.status === 204 || error?.response?.status === 200) {
+      message.success('Profile deleted successfully');
+      setIsProfileDetailModalVisible(false);
+      fetchProfiles();
+      resolve(true);
+     } else {
+      message.error('An error occurred while deleting profile');
+      reject(error);
+     }
+    }
+   }),
+  });
+ };
+
+ const [newProfileName, setNewProfileName] = useState("");
+ const [newProfileDesc, setNewProfileDesc] = useState("");
+
+ const handleCreateProfile = async () => {
+  if (!newProfileName.trim()) {
+   message.error("Tên cấu hình là bắt buộc.");
+   return;
+  }
+  
+  try {
+   const response = await profileService.createProfile({
+    name: newProfileName,
+    platform: "ios", // default to iOS based on current form
+    scope: "device",
+   });
+   
+   if (response.is_success) {
+    message.success("Profile created successfully");
+    setIsProfileFormModalVisible(false);
+    setNewProfileName("");
+    setNewProfileDesc("");
+    fetchProfiles();
+   } else {
+    message.error(response.message || "Failed to create profile");
+   }
+  } catch (error) {
+   message.error("An error occurred while creating profile");
+  }
+ };
+
+ const onSelectChange = (newSelectedRowKeys: React.Key[]) => {
+  setSelectedRowKeys(newSelectedRowKeys);
+ };
+
+ const fetchProfiles = useCallback(async () => {
+  setLoading(true);
+  try {
+   const params = {
+    page: pagination.current,
+    limit: pagination.pageSize,
+    search: searchQuery || undefined,
+    platform: familyFilter !== "all" ? familyFilter : undefined,
+    status: statusFilter !== "none" ? statusFilter : undefined,
+   };
+
+   const response = await profileService.getProfiles(params);
+    if (response.is_success && response.data && response.data.items) {
+     const data = response.data.items.map((item: ProfileResponse) => {
+      const activeConfigs = [];
+      if (item.network_config && Object.keys(item.network_config).length > 0) activeConfigs.push({key: 'network_config', name: 'Wi-Fi / Network', icon: <Wifi className="w-4 h-4" />});
+      if (item.restrictions && Object.keys(item.restrictions).length > 0) activeConfigs.push({key: 'restrictions', name: 'Restrictions', icon: <Shield className="w-4 h-4" />});
+      if (item.security_settings && Object.keys(item.security_settings).length > 0) activeConfigs.push({key: 'security_settings', name: 'Passcode / Security', icon: <Lock className="w-4 h-4" />});
+      if (item.content_filter && Object.keys(item.content_filter).length > 0) activeConfigs.push({key: 'content_filter', name: 'Content Filter', icon: <Globe className="w-4 h-4" />});
+      if (item.payloads && Object.keys(item.payloads).length > 0) activeConfigs.push({key: 'payloads', name: 'Custom Payloads', icon: <Settings2 className="w-4 h-4" />});
+      if (item.compliance_rules && Object.keys(item.compliance_rules).length > 0) activeConfigs.push({key: 'compliance_rules', name: 'Compliance Rules', icon: <CheckCircle2 className="w-4 h-4" />});
+
+      return {
+       key: item.id.toString(),
+       id: item.id,
+       name: item.name,
+       status: item.status,
+       family: item.platform === 'ios' || item.platform === 'macos' ? 'Apple' : item.platform === 'android' ? 'Android Plus' : item.platform === 'windows' ? 'Windows Modern' : item.platform,
+       installMethod: "Automatic",
+       version: `${item.version}.0`,
+       hasDraft: item.status === 'draft',
+       configurations: activeConfigs.length || 1,
+       activeConfigs: activeConfigs.length > 0 ? activeConfigs : [{key: 'general', name: 'General Information', icon: <AlertCircle className="w-4 h-4" />}],
+       packages: 0,
+       assignedDate: item.updated_at ? dayjs(item.updated_at).format('YYYY-MM-DD hh:mm:ss A') : "N/A",
+       assignedBy: "System"
+      };
+     });
+    
+    setProfiles(data);
+    setPagination(prev => ({
+     ...prev,
+     total: response.data?.pagination?.total || 0
+    }));
+   } else {
+    message.error(response.message || "Failed to fetch profiles");
+   }
+  } catch (error) {
+   console.error("Failed to fetch profiles:", error);
+   message.error("An error occurred while fetching profiles");
+  } finally {
+   setLoading(false);
+  }
+ }, [pagination.current, pagination.pageSize, searchQuery, familyFilter, statusFilter, message]);
+
+ useEffect(() => {
+  fetchProfiles();
+ }, [fetchProfiles]);
 
  const handleAddProfileClick = () => {
  setIsAppleExpanded(false); // Reset expansion state when opening modal
@@ -340,7 +354,17 @@ export function ProfilesList() {
  <PenSquare className="w-3 h-3 text-slate-500" strokeWidth={2} />
  </div>
  )}
- <a href="#" className="text-slate-700 hover:text-[#de2a15] font-medium">{text}</a>
+ <a 
+      href="#" 
+      className="text-slate-700 hover:text-[#de2a15] font-medium"
+      onClick={(e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        handleProfileClick(record);
+      }}
+    >
+      {text}
+    </a>
  </div>
  ),
  },
@@ -412,106 +436,281 @@ export function ProfilesList() {
  return (
  <div className="flex flex-col h-[calc(100vh-64px)] bg-slate-50 relative border-none overflow-hidden rounded-none shadow-none z-0">
  {/* Top Toolbar */}
- <div className="flex flex-wrap items-center justify-between p-4 gap-4 bg-white border-b border-slate-200 z-10 shadow-sm">
- <div className="flex items-center gap-6">
- <div className="flex items-center gap-2">
- <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Family:</span>
- <Select className="cursor-pointer" defaultValue="all"
- style={{ width: 120 }}
- options={[
- { value: "all", label: "All" },
- { value: "apple", label: "Apple" },
- { value: "android", label: "Android Plus" },
- ]}
- />
- </div>
- <div className="flex items-center gap-2">
- <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Filters:</span>
- <Select className="cursor-pointer" defaultValue="none"
- style={{ width: 120 }}
- options={[
- { value: "none", label: "None" },
- { value: "active", label: "Active" },
- { value: "draft", label: "Draft" },
- ]}
- />
- </div>
- </div>
+        <div className="flex flex-wrap items-center justify-between p-4 gap-4 bg-white border-b border-slate-200 z-10 shadow-sm">
+        <div className="flex items-center gap-6">
+        <div className="flex items-center gap-2">
+        <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Family:</span>
+        <Select className="cursor-pointer" value={familyFilter}
+        onChange={(val) => { setFamilyFilter(val); setPagination(prev => ({ ...prev, current: 1 })); }}
+        style={{ width: 120 }}
+        options={[
+        { value: "all", label: "All" },
+        { value: "apple", label: "Apple" },
+        { value: "android", label: "Android Plus" },
+        ]}
+        />
+        </div>
+        <div className="flex items-center gap-2">
+        <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Filters:</span>
+        <Select className="cursor-pointer" value={statusFilter}
+        onChange={(val) => { setStatusFilter(val); setPagination(prev => ({ ...prev, current: 1 })); }}
+        style={{ width: 120 }}
+        options={[
+        { value: "none", label: "None" },
+        { value: "active", label: "Active" },
+        { value: "draft", label: "Draft" },
+        ]}
+        />
+        </div>
+        </div>
 
- <div className="flex items-center gap-3">
- <div className="flex group">
- <Input
- placeholder="Search profile name"
- prefix={<Search className="w-4 h-4 text-slate-400 group-hover:text-current transition-colors" />}
- className="w-64 h-8 rounded-r-none border-r-0 hover:border-[#de2a15] focus:border-[#de2a15] focus:shadow-none transition-colors"
- />
- <Button 
- type="primary" 
- className="bg-[#de2a15] hover:bg-[#c22412] rounded-l-none h-8 w-10 px-0 flex items-center justify-center border-none shadow-sm transition-colors"
- icon={<Search className="w-4 h-4 text-white" strokeWidth={2.5} />}
- />
- </div>
- <Button 
- type="primary" 
- icon={<Plus className="w-4 h-4" />}
- className="bg-[#de2a15] hover:bg-[#c22412] text-white font-medium px-5 h-8 border-none shadow-sm transition-colors rounded-md"
- onClick={handleAddProfileClick}
- >
- ADD PROFILE
- </Button>
- </div>
- </div>
+        <div className="flex items-center gap-3">
+        <div className="flex group">
+        <Input
+        placeholder="Search profile name"
+        value={searchQuery}
+        onChange={(e) => setSearchQuery(e.target.value)}
+        onPressEnter={() => setPagination(prev => ({ ...prev, current: 1 }))}
+        prefix={<Search className="w-4 h-4 text-slate-400 group-hover:text-current transition-colors" />}
+        className="w-64 h-8 rounded-r-none border-r-0 hover:border-[#de2a15] focus:border-[#de2a15] focus:shadow-none transition-colors"
+        />
+        <Button 
+        type="primary" 
+        onClick={() => setPagination(prev => ({ ...prev, current: 1 }))}
+        className="bg-[#de2a15] hover:bg-[#c22412] rounded-l-none h-8 w-10 px-0 flex items-center justify-center border-none shadow-sm transition-colors"
+        icon={<Search className="w-4 h-4 text-white" strokeWidth={2.5} />}
+        />
+        </div>
+        <Button 
+        type="primary" 
+        icon={<Plus className="w-4 h-4" />}
+        className="bg-[#de2a15] hover:bg-[#c22412] text-white font-medium px-5 h-8 border-none shadow-sm transition-colors rounded-md"
+        onClick={handleAddProfileClick}
+        >
+        ADD PROFILE
+        </Button>
+        </div>
+        </div>
 
- {/* Sub Toolbar / Table Controls */}
- <div className="flex items-center justify-between px-4 py-3 bg-slate-50 dark:bg-slate-800 border-b border-slate-200 dark:border-slate-800 z-10">
- <div className="flex items-center gap-4 text-sm text-slate-600 dark:text-slate-400">
- <span className="font-bold text-slate-800 dark:text-slate-200 tracking-wide uppercase">
- PROFILES <span className="font-normal text-slate-500">(1 - 13 of 13)</span>
- </span>
- 
- <div className="flex items-center gap-2 border-l border-slate-300 dark:border-slate-600 pl-4">
- <Select className="cursor-pointer" defaultValue="50"
- size="small"
- style={{ width: 70 }}
- options={[
- { value: "25", label: "25" },
- { value: "50", label: "50" },
- { value: "100", label: "100" },
- ]}
- />
- <span>Per Page</span>
- </div>
+        {/* Sub Toolbar / Table Controls */}
+        <div className="flex items-center justify-between px-4 py-3 bg-slate-50 dark:bg-slate-800 border-b border-slate-200 dark:border-slate-800 z-10">
+        <div className="flex items-center gap-4 text-sm text-slate-600 dark:text-slate-400">
+        <span className="font-bold text-slate-800 dark:text-slate-200 tracking-wide uppercase">
+        PROFILES <span className="font-normal text-slate-500">({profiles.length > 0 ? (pagination.current - 1) * pagination.pageSize + 1 : 0} - {Math.min(pagination.current * pagination.pageSize, pagination.total)} of {pagination.total})</span>
+        </span>
+        
+        <div className="flex items-center gap-2 border-l border-slate-300 dark:border-slate-600 pl-4">
+        <Select className="cursor-pointer" value={pagination.pageSize.toString()}
+        onChange={(val) => setPagination(prev => ({ ...prev, pageSize: Number(val), current: 1 }))}
+        size="small"
+        style={{ width: 70 }}
+        options={[
+        { value: "25", label: "25" },
+        { value: "50", label: "50" },
+        { value: "100", label: "100" },
+        ]}
+        />
+        <span>Per Page</span>
+        </div>
 
- <div className="flex items-center gap-2 border-l border-slate-300 dark:border-slate-600 pl-4">
- <Button type="text" size="small" disabled className="text-slate-400">&larr;</Button>
- <span className="text-[#de2a15] font-bold">1 of 1</span>
- <Button type="text" size="small" disabled className="text-slate-400">&rarr;</Button>
- </div>
+        <div className="flex items-center gap-2 border-l border-slate-300 dark:border-slate-600 pl-4">
+        <Button type="text" size="small" 
+         disabled={pagination.current === 1} 
+         onClick={() => setPagination(prev => ({ ...prev, current: prev.current - 1 }))}
+         className={pagination.current === 1 ? "text-slate-400" : "text-slate-700 hover:text-slate-900"}>&larr;</Button>
+        <span className="text-[#de2a15] font-bold">{pagination.current} of {Math.max(1, Math.ceil(pagination.total / pagination.pageSize))}</span>
+        <Button type="text" size="small" 
+         disabled={pagination.current >= Math.ceil(pagination.total / pagination.pageSize) || pagination.total === 0}
+         onClick={() => setPagination(prev => ({ ...prev, current: prev.current + 1 }))}
+         className={pagination.current >= Math.ceil(pagination.total / pagination.pageSize) || pagination.total === 0 ? "text-slate-400" : "text-slate-700 hover:text-slate-900"}>&rarr;</Button>
+        </div>
 
- <div className="border-l border-slate-300 dark:border-slate-600 pl-4">
- <Button type="text" size="small" icon={<RefreshCcw className="w-4 h-4 text-slate-500 hover:text-slate-800" />} />
- </div>
- </div>
+        <div className="border-l border-slate-300 dark:border-slate-600 pl-4">
+        <Button type="text" size="small" onClick={fetchProfiles} icon={<RefreshCcw className={`w-4 h-4 text-slate-500 hover:text-slate-800 ${loading ? 'animate-spin' : ''}`} />} />
+        </div>
+        </div>
 
- <div className="flex items-center gap-4 text-sm">
- <span className="flex items-center gap-1 cursor-pointer text-slate-700 hover:text-slate-900 font-medium">
- Columns (9) <ChevronDown className="w-4 h-4" />
- </span>
- <Button type="text" icon={<Filter className="w-4 h-4 text-[#de2a15]" />} className="text-[#de2a15] bg-red-50 hover:bg-red-100 rounded-full w-8 h-8 flex items-center justify-center p-0 border border-red-200 transition-colors" />
- </div>
- </div>
+        <div className="flex items-center gap-4 text-sm">
+        <span className="flex items-center gap-1 cursor-pointer text-slate-700 hover:text-slate-900 font-medium">
+        Columns (9) <ChevronDown className="w-4 h-4" />
+        </span>
+        <Button type="text" icon={<Filter className="w-4 h-4 text-[#de2a15]" />} className="text-[#de2a15] bg-red-50 hover:bg-red-100 rounded-full w-8 h-8 flex items-center justify-center p-0 border border-red-200 transition-colors" />
+        </div>
+        </div>
 
- {/* Table */}
- <div className="flex-1 overflow-auto border-t border-slate-200 dark:border-slate-800 z-10 relative scrollbar-hide">
- <Table
- rowSelection={rowSelection}
- columns={columns}
- dataSource={mockData}
- pagination={false}
- className="custom-data-table"
- rowClassName="hover:bg-red-50 dark:hover:bg-slate-800 transition-colors"
- />
- </div>
+        {/* Table */}
+        <div className="flex-1 overflow-auto border-t border-slate-200 dark:border-slate-800 z-10 relative scrollbar-hide">
+        <Table
+        rowSelection={rowSelection}
+        columns={columns}
+        dataSource={profiles}
+        loading={loading}
+        pagination={false}
+        className="custom-data-table"
+        rowClassName="hover:bg-red-50 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+        onRow={(record) => ({
+          onClick: () => handleProfileClick(record),
+        })}
+        />
+        </div>
+
+  {/* Profile Detail Modal */}
+  <Modal
+    title={
+      <div className="flex items-center gap-2">
+        <div className="w-8 h-8 rounded-lg bg-red-50 flex items-center justify-center">
+          {selectedProfile?.family === "Apple" ? <Apple className="w-4 h-4 text-[#de2a15]" /> : <Smartphone className="w-4 h-4 text-[#de2a15]" />}
+        </div>
+        <div>
+          <h3 className="text-lg font-bold text-slate-800 m-0">{selectedProfile?.name}</h3>
+          <p className="text-xs text-slate-500 font-normal m-0">{selectedProfile?.family} Profile</p>
+        </div>
+      </div>
+    }
+    open={isProfileDetailModalVisible}
+    onCancel={() => setIsProfileDetailModalVisible(false)}
+    footer={
+      <div className="flex justify-end items-center w-full pt-4 border-t border-slate-100 mt-4 gap-3 px-1 pb-1">
+        <Button 
+          danger 
+          type="text" 
+          icon={<Trash2 className="w-4 h-4" />}
+          onClick={handleDeleteProfile}
+          className="text-red-500 hover:bg-red-50 hover:text-red-600 transition-colors h-10 px-4 rounded-lg font-medium mr-auto"
+        >
+          Delete
+        </Button>
+        <Button 
+          onClick={() => setIsProfileDetailModalVisible(false)}
+          className="h-10 px-6 rounded-lg font-medium text-slate-600 hover:text-slate-800 hover:bg-slate-50 border-slate-200 transition-colors"
+        >
+          Close
+        </Button>
+        <Button 
+          type="primary" 
+          className="bg-[#de2a15] hover:bg-[#c22412] h-10 px-6 rounded-lg font-medium shadow-sm border-none transition-colors"
+          onClick={async () => {
+            setIsProfileDetailModalVisible(false);
+            setNewProfileName(selectedProfile?.name || "");
+            
+            // Tạm thời hiển thị message loading
+            message.loading({ content: 'Loading profile data...', key: 'loadingProfile' });
+            
+            try {
+              // Lấy chi tiết profile để điền vào form
+              const response = await profileService.getProfileById(selectedProfile!.id);
+              if (response.is_success && response.data) {
+                const detail = response.data;
+                // Map dữ liệu mô tả (nếu có trong một trường nào đó, hiện tại API chưa có trường description rõ ràng)
+                // setNewProfileDesc(detail.description || "");
+                
+                // Set state cho các config đang active để UI form biết mà hiển thị
+                setHasWifiConfig(!!(detail.network_config && Object.keys(detail.network_config).length > 0));
+                setHasRestrictionsConfig(!!(detail.restrictions && Object.keys(detail.restrictions).length > 0));
+                setHasPasscodeConfig(!!(detail.security_settings && Object.keys(detail.security_settings).length > 0));
+                setHasContentFilterConfig(!!(detail.content_filter && Object.keys(detail.content_filter).length > 0));
+                
+                // Todo: Bạn sẽ cần mapping chi tiết từng trường của network_config, restrictions... vào form state tương ứng ở đây
+                
+                setIsProfileFormModalVisible(true);
+                message.success({ content: 'Profile data loaded', key: 'loadingProfile', duration: 2 });
+              } else {
+                message.error({ content: 'Failed to load profile details', key: 'loadingProfile', duration: 2 });
+              }
+            } catch (error) {
+              message.error({ content: 'Error loading profile details', key: 'loadingProfile', duration: 2 });
+            }
+          }}
+        >
+          Edit Profile
+        </Button>
+      </div>
+    }
+    width={600}
+    className="custom-modal"
+  >
+    {selectedProfile && (
+      <div className="py-2 space-y-5">
+        {/* Main Stats Grid */}
+        <div className="grid grid-cols-2 gap-3">
+          <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
+            <div className="flex items-center gap-1.5 text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">
+              Status
+            </div>
+            <div className="flex items-center gap-2 font-bold text-slate-800 text-[15px]">
+              {selectedProfile.status === 'active' ? (
+                <><span className="relative flex h-2.5 w-2.5"><span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span><span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span></span> <span className="text-emerald-700">Active</span></>
+              ) : (
+                <><span className="w-2.5 h-2.5 rounded-full bg-amber-500"></span> <span className="text-amber-700">Draft</span></>
+              )}
+            </div>
+          </div>
+          
+          <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
+            <div className="flex items-center gap-1.5 text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">
+              Version
+            </div>
+            <div className="font-bold text-slate-800 text-[15px]">{selectedProfile.version}</div>
+          </div>
+
+          <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
+            <div className="flex items-center gap-1.5 text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">
+              Install Method
+            </div>
+            <div className="font-bold text-slate-800 text-[15px]">{selectedProfile.installMethod}</div>
+          </div>
+
+          <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
+            <div className="flex items-center gap-1.5 text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">
+              Configurations
+            </div>
+            <div className="font-bold text-slate-800 text-[15px]">{selectedProfile.configurations} <span className="font-medium text-slate-500 text-sm">Settings</span></div>
+          </div>
+        </div>
+
+        {/* Active Configurations List */}
+        {selectedProfile.activeConfigs && selectedProfile.activeConfigs.length > 0 && (
+          <div className="bg-slate-50/80 p-5 rounded-2xl border border-slate-100">
+            <div className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-4 flex items-center gap-2">
+              <Settings2 className="w-3.5 h-3.5" /> Active Configurations
+            </div>
+            <div className="grid grid-cols-1 gap-2.5">
+              {selectedProfile.activeConfigs.map((config) => (
+                <div key={config.key} className="flex items-center gap-3 bg-white px-4 py-3 rounded-xl border border-slate-200 shadow-sm hover:border-[#de2a15]/30 transition-colors group cursor-default">
+                  <div className="p-2 bg-red-50 text-[#de2a15] rounded-lg group-hover:bg-[#de2a15] group-hover:text-white transition-colors">
+                    {config.icon}
+                  </div>
+                  <span className="font-semibold text-[14px] text-slate-700 group-hover:text-slate-900 transition-colors">{config.name}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+        
+        {/* Assignment Info */}
+        <div className="bg-slate-50/80 p-5 rounded-2xl border border-slate-100">
+          <div className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-4 flex items-center gap-2">
+            <Calendar className="w-3.5 h-3.5" /> Assignment Info
+          </div>
+          <div className="space-y-3">
+            <div className="flex items-center justify-between py-1 border-b border-slate-200/60 border-dashed pb-3">
+              <span className="text-sm font-medium text-slate-500">Last Modified</span>
+              <span className="text-sm font-bold text-slate-700 bg-white px-2.5 py-1 rounded-md border border-slate-200 shadow-sm">{selectedProfile.assignedDate}</span>
+            </div>
+            <div className="flex items-center justify-between py-1 pt-1">
+              <span className="text-sm font-medium text-slate-500">Modified By</span>
+              <span className="text-sm font-bold text-slate-700 flex items-center gap-1.5">
+                <div className="w-5 h-5 rounded-full bg-slate-200 flex items-center justify-center text-[10px] text-slate-600">
+                  {selectedProfile.assignedBy.charAt(0)}
+                </div>
+                {selectedProfile.assignedBy}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    )}
+  </Modal>
 
  {/* Create Profile Modals */}
  <Modal
@@ -654,10 +853,12 @@ export function ProfilesList() {
  <div className="w-full md:w-2/3">
  <Input 
  placeholder="Nhập tên cấu hình..." 
- status="error" 
+ value={newProfileName}
+ onChange={(e) => setNewProfileName(e.target.value)}
+ status={!newProfileName ? "error" : ""} 
  className="w-full h-10 rounded-md"
  />
- <div className="text-red-500 text-xs mt-1.5 font-medium">Tên cấu hình là bắt buộc và không được để trống.</div>
+ {!newProfileName && <div className="text-red-500 text-xs mt-1.5 font-medium">Tên cấu hình là bắt buộc và không được để trống.</div>}
  </div>
  </div>
 
@@ -669,6 +870,8 @@ export function ProfilesList() {
  <div className="w-full md:w-2/3">
  <Input.TextArea 
  placeholder="Nhập mô tả cấu hình..." 
+ value={newProfileDesc}
+ onChange={(e) => setNewProfileDesc(e.target.value)}
  rows={4}
  className="w-full rounded-md resize-none"
  />
@@ -1576,7 +1779,7 @@ export function ProfilesList() {
  </Button>
  <Button 
  className="font-semibold bg-[#de2a15] hover:bg-[#c22412] text-white border-none px-8 transition-colors"
- onClick={() => setIsProfileFormModalVisible(false)}
+ onClick={handleCreateProfile}
  >
  SAVE
  </Button>

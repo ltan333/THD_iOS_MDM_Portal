@@ -45,6 +45,26 @@ export const responseInterceptor = (
         AUTH_CONFIG.REFRESH_TOKEN_ENDPOINT
       );
 
+      // Handle Timeout errors
+      if (error.code === 'ECONNABORTED' || error.message.includes('timeout')) {
+        console.log("❌ [Auth] Request timeout detected, redirecting to login");
+        if (typeof window !== "undefined") {
+          const currentPath = window.location.pathname;
+          const publicPaths = ["/login", "/forgot-password", "/reset-password", "/setup-2fa", "/verify-otp", "/login/otp"];
+          const isPublicPage = publicPaths.some(p => currentPath.startsWith(p));
+
+          if (!isPublicPage && !isRedirecting) {
+            isRedirecting = true;
+            toast.error("Phiên kết nối hết hạn. Vui lòng đăng nhập lại!");
+            localStorage.removeItem('access_token');
+            localStorage.removeItem('refresh_token');
+            localStorage.removeItem('auth_token');
+            window.location.replace("/login");
+          }
+        }
+        return Promise.reject(createErrorResponse(error));
+      }
+
       // Handle 401 - Unauthorized
       if (error.response?.status === 401) {
         // Don't handle 401 for login/refresh requests

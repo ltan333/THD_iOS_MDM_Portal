@@ -15,7 +15,7 @@ interface LanguageState {
   toggleLanguage: () => void;
 }
 
-export const useLanguageStore = create<LanguageState>((set) => ({
+const useLanguageStore = create<LanguageState>((set) => ({
   language: 'en',
   toggleLanguage: () =>
     set((state) => ({ language: state.language === 'en' ? 'vi' : 'en' })),
