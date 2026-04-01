@@ -2311,6 +2311,64 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/v1/dep/profiles/{id}/assign-all-devices": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Assign this DEP profile to all active DEP devices currently stored in database",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "DEP Profile"
+                ],
+                "summary": "Assign DEP profile to all existing devices",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Profile ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Profile assignment completed",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_DEPAssignAllDevicesResult"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid profile ID or profile not registered",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any"
+                        }
+                    },
+                    "404": {
+                        "description": "Profile not found",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any"
+                        }
+                    }
+                }
+            }
+        },
         "/api/v1/dep/profiles/{id}/set-assigner": {
             "post": {
                 "security": [
@@ -7784,6 +7842,35 @@ const docTemplate = `{
                 }
             }
         },
+        "github_com_thienel_go-backend-template_internal_interface_api_dto.DEPAssignAllDevicesResult": {
+            "type": "object",
+            "properties": {
+                "attempted": {
+                    "type": "integer"
+                },
+                "eligible_devices": {
+                    "type": "integer"
+                },
+                "failed": {
+                    "type": "integer"
+                },
+                "not_accessible": {
+                    "type": "integer"
+                },
+                "not_found": {
+                    "type": "integer"
+                },
+                "skipped": {
+                    "type": "integer"
+                },
+                "success": {
+                    "type": "integer"
+                },
+                "total_active_devices": {
+                    "type": "integer"
+                }
+            }
+        },
         "github_com_thienel_go-backend-template_internal_interface_api_dto.DEPDevice": {
             "type": "object",
             "properties": {
@@ -7943,6 +8030,9 @@ const docTemplate = `{
                 "configuration_web_url": {
                     "type": "string"
                 },
+                "created_at": {
+                    "type": "string"
+                },
                 "department": {
                     "type": "string"
                 },
@@ -7954,6 +8044,9 @@ const docTemplate = `{
                 },
                 "do_not_use_profile_from_backup": {
                     "type": "boolean"
+                },
+                "id": {
+                    "type": "integer"
                 },
                 "is_mandatory": {
                     "type": "boolean"
@@ -8005,6 +8098,9 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "support_phone_number": {
+                    "type": "string"
+                },
+                "updated_at": {
                     "type": "string"
                 },
                 "url": {
@@ -9855,6 +9951,23 @@ const docTemplate = `{
             "properties": {
                 "data": {
                     "$ref": "#/definitions/github_com_thienel_go-backend-template_internal_interface_api_dto.ChartDataResponse"
+                },
+                "error": {
+                    "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.Error"
+                },
+                "is_success": {
+                    "type": "boolean"
+                },
+                "message": {
+                    "type": "string"
+                }
+            }
+        },
+        "github_com_thienel_go-backend-template_pkg_response.APIResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_DEPAssignAllDevicesResult": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/github_com_thienel_go-backend-template_internal_interface_api_dto.DEPAssignAllDevicesResult"
                 },
                 "error": {
                     "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.Error"
