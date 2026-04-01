@@ -357,10 +357,20 @@ func (s *deviceServiceImpl) handleAcknowledge(ctx context.Context, payload *dto.
 	if requestType == "" {
 		requestType = rawRequestType
 	}
+
+	queryResponses, _ := deepFindMap(ack, "query_responses", "QueryResponses")
+	if len(queryResponses) == 0 {
+		queryResponses = rawQueryResponses
+	}
+
 	if requestType == "" {
-		tlog.Warn("mdm.Connect payload missing request type",
-			zap.Any("ack_keys", mapKeys(ack)))
-		return
+		// Some MDM command responses omit RequestType and only include QueryResponses.
+		if len(queryResponses) == 0 {
+			tlog.Warn("mdm.Connect payload missing request type",
+				zap.Any("ack_keys", mapKeys(ack)))
+			return
+		}
+		requestType = "DeviceInformation"
 	}
 	if requestType != "DeviceInformation" {
 		return
@@ -379,10 +389,6 @@ func (s *deviceServiceImpl) handleAcknowledge(ctx context.Context, payload *dto.
 		return
 	}
 
-	queryResponses, _ := deepFindMap(ack, "query_responses", "QueryResponses")
-	if len(queryResponses) == 0 {
-		queryResponses = rawQueryResponses
-	}
 	if len(queryResponses) == 0 {
 		tlog.Warn("DeviceInformation acknowledge missing query responses",
 			zap.String("udid", udid),
