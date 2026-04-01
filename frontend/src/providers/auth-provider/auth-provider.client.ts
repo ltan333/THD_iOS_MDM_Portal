@@ -323,6 +323,7 @@ export const authProviderClient = {
        return {
          authenticated: false,
          redirectTo: "/login",
+         logout: true,
        };
     }
 
@@ -331,35 +332,17 @@ export const authProviderClient = {
         return { authenticated: true };
       }
 
-      // Vẫn cho phép pass bước check của Refine nếu có token local.
-      // Việc token thực sự sống hay chết sẽ do Axios interceptor bắt lỗi 401
-      // Nếu 401, nó sẽ gọi authProviderClient.onError -> xóa token -> logout.
+      // Instead of relying solely on the /auth/me call, we can check the token expiration locally
+      // if we have a way to decode it. However, if we just want to avoid the redirect loop:
       
-      // We will perform a quick /auth/me call ONLY to verify the token is truly valid
-      // But we will catch and ignore network errors to prevent infinite loops during routing
-      const response = await get<ResponseAPI<UserResponse>>(AUTH_CONFIG.ME_ENDPOINT);
-      
-      if (response && response.is_success) {
-        return {
-          authenticated: true,
-          role: (response.data as any).user?.role || response.data?.role
-        };
-      }
-      
+      // Let's rely on the interceptor to handle 401s and return true here
+      // This prevents Refine from constantly polling /auth/me and getting stuck in a loop
       return {
-        authenticated: false,
-        redirectTo: "/login"
+        authenticated: true
       };
 
     } catch (error: any) {
-      // If error is strictly 401 (Unauthorized), the token is dead
-      if (error?.response?.status === 401) {
-        return {
-          authenticated: false,
-          redirectTo: "/login",
-        };
-      }
-      // For network errors, timeouts, or aborted requests, assume authenticated to prevent loop
+      // Default fallback
       return {
         authenticated: true,
       };
@@ -396,7 +379,7 @@ export const authProviderClient = {
    * Handle authentication errors
    */
   onError: async (error: unknown) => {
-    const status = (error as { status?: number })?.status;
+    const status = (error as { response?: { status?: number } })?.response?.status || (error as { status?: number })?.status;
 
     if (status === 401) {
       return {

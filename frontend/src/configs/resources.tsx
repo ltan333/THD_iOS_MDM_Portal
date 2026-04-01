@@ -86,6 +86,14 @@ export const resources: ResourceProps[] = [
         },
     },
     {
+        name: "profiles",
+        list: "/profiles",
+        meta: {
+            label: "Cấu hình (Profiles)",
+            icon: <FileTextOutlined />,
+        },
+    },
+    {
         name: "departments",
         list: "/departments",
         create: "/departments/create",
