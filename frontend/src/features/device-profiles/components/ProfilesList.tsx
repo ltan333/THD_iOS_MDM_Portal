@@ -38,7 +38,7 @@ import {
 } from "lucide-react";
 import type { ColumnsType } from "antd/es/table";
 import { profileService } from "@/services/profile.service";
-import { ProfileResponse } from "@/types/profile.type";
+import { CreateProfileRequest, ProfileResponse, UpdateProfileRequest } from "@/types/profile.type";
 import dayjs from "dayjs";
 
 interface ProfileType {
@@ -234,31 +234,45 @@ export function ProfilesList() {
 
  const [newProfileName, setNewProfileName] = useState("");
  const [newProfileDesc, setNewProfileDesc] = useState("");
+const [editingProfileId, setEditingProfileId] = useState<number | null>(null);
+const [editingProfileSnapshot, setEditingProfileSnapshot] = useState<ProfileResponse | null>(null);
 
- const handleCreateProfile = async () => {
+const handleSaveProfile = async () => {
   if (!newProfileName.trim()) {
    message.error("Tên cấu hình là bắt buộc.");
    return;
   }
   
   try {
-   const response = await profileService.createProfile({
-    name: newProfileName,
-    platform: "ios", // default to iOS based on current form
-    scope: "device",
-   });
+   const payload: UpdateProfileRequest | CreateProfileRequest = {
+    name: newProfileName.trim(),
+    platform: editingProfileSnapshot?.platform || "ios",
+    scope: editingProfileSnapshot?.scope || "device",
+    compliance_rules: editingProfileSnapshot?.compliance_rules || {},
+    content_filter: editingProfileSnapshot?.content_filter || {},
+    network_config: editingProfileSnapshot?.network_config || {},
+    payloads: editingProfileSnapshot?.payloads || {},
+    restrictions: editingProfileSnapshot?.restrictions || {},
+    security_settings: editingProfileSnapshot?.security_settings || {},
+   };
+
+   const response = editingProfileId
+    ? await profileService.updateProfile(editingProfileId, payload as UpdateProfileRequest)
+    : await profileService.createProfile(payload as CreateProfileRequest);
    
    if (response.is_success) {
-    message.success("Profile created successfully");
+    message.success(editingProfileId ? "Profile saved successfully" : "Profile created successfully");
     setIsProfileFormModalVisible(false);
     setNewProfileName("");
     setNewProfileDesc("");
+    setEditingProfileId(null);
+    setEditingProfileSnapshot(null);
     fetchProfiles();
    } else {
-    message.error(response.message || "Failed to create profile");
+    message.error(response.message || "Failed to save profile");
    }
   } catch (error) {
-   message.error("An error occurred while creating profile");
+   message.error("An error occurred while saving profile");
   }
  };
 
@@ -331,6 +345,10 @@ export function ProfilesList() {
  };
 
  const handleAppleClick = () => {
+ setEditingProfileId(null);
+ setEditingProfileSnapshot(null);
+ setNewProfileName("");
+ setNewProfileDesc("");
  setIsCreateModalVisible(false);
  setIsProfileFormModalVisible(true);
  };
@@ -592,26 +610,22 @@ export function ProfilesList() {
           onClick={async () => {
             setIsProfileDetailModalVisible(false);
             setNewProfileName(selectedProfile?.name || "");
+            setEditingProfileId(selectedProfile?.id || null);
             
-            // Tạm thời hiển thị message loading
             message.loading({ content: 'Loading profile data...', key: 'loadingProfile' });
             
             try {
-              // Lấy chi tiết profile để điền vào form
               const response = await profileService.getProfileById(selectedProfile!.id);
               if (response.is_success && response.data) {
                 const detail = response.data;
-                // Map dữ liệu mô tả (nếu có trong một trường nào đó, hiện tại API chưa có trường description rõ ràng)
-                // setNewProfileDesc(detail.description || "");
+                setEditingProfileSnapshot(detail);
+                setNewProfileDesc("");
                 
-                // Set state cho các config đang active để UI form biết mà hiển thị
                 setHasWifiConfig(!!(detail.network_config && Object.keys(detail.network_config).length > 0));
                 setHasRestrictionsConfig(!!(detail.restrictions && Object.keys(detail.restrictions).length > 0));
                 setHasPasscodeConfig(!!(detail.security_settings && Object.keys(detail.security_settings).length > 0));
                 setHasContentFilterConfig(!!(detail.content_filter && Object.keys(detail.content_filter).length > 0));
-                
-                // Todo: Bạn sẽ cần mapping chi tiết từng trường của network_config, restrictions... vào form state tương ứng ở đây
-                
+
                 setIsProfileFormModalVisible(true);
                 message.success({ content: 'Profile data loaded', key: 'loadingProfile', duration: 2 });
               } else {
@@ -1767,19 +1781,17 @@ export function ProfilesList() {
  <Button 
  type="text" 
  className="font-semibold text-slate-600 hover:text-slate-800 hover:bg-slate-100 px-6"
- onClick={() => setIsProfileFormModalVisible(false)}
+onClick={() => {
+ setIsProfileFormModalVisible(false);
+ setEditingProfileId(null);
+ setEditingProfileSnapshot(null);
+}}
  >
  CANCEL
  </Button>
  <Button 
- disabled 
- className="font-semibold bg-slate-200 text-slate-400 border-none px-6"
- >
- SAVE AND ASSIGN
- </Button>
- <Button 
  className="font-semibold bg-[#de2a15] hover:bg-[#c22412] text-white border-none px-8 transition-colors"
- onClick={handleCreateProfile}
+onClick={handleSaveProfile}
  >
  SAVE
  </Button>

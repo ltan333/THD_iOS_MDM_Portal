@@ -333,19 +333,16 @@ export const authProviderClient = {
         return { authenticated: true };
       }
 
-      // Instead of relying solely on the /auth/me call, we can check the token expiration locally
-      // if we have a way to decode it. However, if we just want to avoid the redirect loop:
-      
-      // Let's rely on the interceptor to handle 401s and return true here
-      // This prevents Refine from constantly polling /auth/me and getting stuck in a loop
-      return {
-        authenticated: true
-      };
-
-    } catch (error: any) {
-      // Default fallback
+      await get<ResponseAPI<UserResponse>>(AUTH_CONFIG.ME_ENDPOINT);
       return {
         authenticated: true,
+      };
+    } catch {
+      tokenManager.clearTokens();
+      return {
+        authenticated: false,
+        redirectTo: "/login",
+        logout: true,
       };
     }
   },

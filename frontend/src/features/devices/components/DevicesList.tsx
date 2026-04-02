@@ -32,9 +32,17 @@ import {
 import type { ColumnsType } from "antd/es/table";
 import { deviceService } from "@/services/device.service";
 import { deviceGroupService } from "@/services/device-group.service";
+import { profileService } from "@/services/profile.service";
 import { DeviceResponse } from "@/types/device.type";
 import { DeviceGroupResponse } from "@/types/device-group.type";
+import { ProfileResponse } from "@/types/profile.type";
 
+interface DeviceProfileView {
+    id: number;
+    name: string;
+    status: string;
+    configurations: string[];
+}
 
 
 export function DevicesList() {
@@ -48,6 +56,8 @@ export function DevicesList() {
     // Data states
     const [devices, setDevices] = useState<DeviceResponse[]>([]);
     const [groups, setGroups] = useState<DeviceGroupResponse[]>([]);
+    const [profiles, setProfiles] = useState<ProfileResponse[]>([]);
+    const [deviceProfiles, setDeviceProfiles] = useState<DeviceProfileView[]>([]);
     const [loading, setLoading] = useState(false);
     const [pagination, setPagination] = useState({ current: 1, pageSize: 50, total: 0 });
     const [selectedGroupToAdd, setSelectedGroupToAdd] = useState<number | null>(null);
@@ -93,9 +103,24 @@ export function DevicesList() {
         }
     };
 
+    const fetchProfiles = async () => {
+        try {
+            const res = await profileService.getProfiles({ limit: 100, status: "active" });
+            if (res.is_success && res.data) {
+                setProfiles(res.data.items || []);
+            }
+        } catch (error) {
+            console.error("Failed to fetch profiles", error);
+        }
+    };
+
     useEffect(() => {
         fetchDevices();
     }, [fetchDevices]);
+
+    useEffect(() => {
+        fetchProfiles();
+    }, []);
 
     const onSelectChange = (newSelectedRowKeys: React.Key[]) => {
         setSelectedRowKeys(newSelectedRowKeys);
@@ -103,10 +128,74 @@ export function DevicesList() {
 
     const handleDeviceClick = async (record: DeviceResponse) => {
         setSelectedDevice(record);
+        setDeviceProfiles([]);
         setIsModalVisible(true);
-        // Optionally fetch more detailed info here
-        // const res = await deviceService.getDeviceById(record.id);
-        // if(res.is_success) setSelectedDevice(res.data);
+        try {
+            const res = await deviceService.getDeviceById(record.id);
+            if (res.is_success && res.data) {
+                setSelectedDevice(res.data);
+            }
+            await fetchDeviceProfiles(record.id);
+        } catch (error) {
+            console.error("Failed to fetch device detail", error);
+            antdMessage.error("Failed to fetch device detail");
+        }
+    };
+
+    const getProfileConfigurations = (profile: ProfileResponse): string[] => {
+        const configurations: string[] = [];
+        if (profile.network_config && Object.keys(profile.network_config).length > 0) configurations.push("Wi-Fi / Network");
+        if (profile.restrictions && Object.keys(profile.restrictions).length > 0) configurations.push("Restrictions");
+        if (profile.security_settings && Object.keys(profile.security_settings).length > 0) configurations.push("Passcode / Security");
+        if (profile.content_filter && Object.keys(profile.content_filter).length > 0) configurations.push("Content Filter");
+        if (profile.payloads && Object.keys(profile.payloads).length > 0) configurations.push("Custom Payloads");
+        if (profile.compliance_rules && Object.keys(profile.compliance_rules).length > 0) configurations.push("Compliance Rules");
+        if (configurations.length === 0) configurations.push("General");
+        return configurations;
+    };
+
+    const fetchDeviceProfiles = async (deviceId: string) => {
+        try {
+            const profilesRes = await profileService.getProfiles({ limit: 100 });
+            if (!profilesRes.is_success || !profilesRes.data) {
+                setDeviceProfiles([]);
+                return;
+            }
+
+            const candidates = profilesRes.data.items || [];
+            const assignedResults = await Promise.all(
+                candidates.map(async (profile) => {
+                    try {
+                        const assignmentRes = await profileService.getProfileAssignments(profile.id);
+                        if (!assignmentRes.is_success || !assignmentRes.data) {
+                            return null;
+                        }
+
+                        const assignedToDevice = assignmentRes.data.some(
+                            (assignment) => assignment.target_type === "device" && assignment.device_id === deviceId
+                        );
+
+                        if (!assignedToDevice) {
+                            return null;
+                        }
+
+                        return {
+                            id: profile.id,
+                            name: profile.name,
+                            status: profile.status || "active",
+                            configurations: getProfileConfigurations(profile),
+                        } as DeviceProfileView;
+                    } catch {
+                        return null;
+                    }
+                })
+            );
+
+            setDeviceProfiles(assignedResults.filter((item): item is DeviceProfileView => item !== null));
+        } catch (error) {
+            console.error("Failed to fetch assigned profiles", error);
+            setDeviceProfiles([]);
+        }
     };
 
     const rowSelection = {
@@ -128,7 +217,11 @@ export function DevicesList() {
             key: 'assign-profile',
             icon: <FilePlus2 className="w-4 h-4" />,
             label: 'Assign Profile',
-            onClick: () => setIsProfileModalVisible(true)
+            onClick: () => {
+                setSelectedProfileToAdd(null);
+                fetchProfiles();
+                setIsProfileModalVisible(true);
+            }
         }
     ];
 
@@ -569,10 +662,10 @@ export function DevicesList() {
                                         <div className="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm">
                                             <div className="px-5 py-4 border-b border-slate-200 bg-slate-50 flex items-center justify-between">
                                                 <h3 className="text-sm font-bold text-slate-800 uppercase tracking-wide m-0">Installed Profiles</h3>
-                                                <Tag className="m-0 bg-blue-50 text-blue-700 border-blue-200 font-medium">{(selectedDevice as any).profiles?.length || 0} Profiles</Tag>
+                                                <Tag className="m-0 bg-blue-50 text-blue-700 border-blue-200 font-medium">{deviceProfiles.length} Profiles</Tag>
                                             </div>
                                             <div className="divide-y divide-slate-100">
-                                                {(selectedDevice as any).profiles && (selectedDevice as any).profiles.length > 0 ? (selectedDevice as any).profiles.map((profile: any) => (
+                                                {deviceProfiles.length > 0 ? deviceProfiles.map((profile) => (
                                                     <div key={profile.id} className="p-4 flex items-center justify-between hover:bg-slate-50 transition-colors">
                                                         <div className="flex items-center gap-3">
                                                             <div className="w-8 h-8 rounded bg-slate-100 flex items-center justify-center border border-slate-200">
@@ -580,7 +673,7 @@ export function DevicesList() {
                                                             </div>
                                                             <div>
                                                                 <div className="text-sm font-medium text-slate-800">{profile.name}</div>
-                                                                <div className="text-xs text-slate-500 mt-0.5">Profile Identifier: com.company.{profile.id}</div>
+                                                                <div className="text-xs text-slate-500 mt-0.5">{profile.configurations.join(" • ")}</div>
                                                             </div>
                                                         </div>
                                                         <Tag color={profile.status === 'active' ? 'success' : profile.status === 'failed' ? 'error' : 'warning'} className="rounded-full px-3">
@@ -703,18 +796,29 @@ export function DevicesList() {
                         return;
                     }
                     try {
-                        // Iterate through selected devices and assign profile
+                        const profileId = Number(selectedProfileToAdd);
                         for (const deviceId of selectedRowKeys) {
-                            await deviceService.installProfile(deviceId as string, selectedProfileToAdd);
+                            await profileService.assignProfile(profileId, {
+                                target_type: "device",
+                                device_id: deviceId as string,
+                                schedule_type: "immediate",
+                            });
                         }
                         antdMessage.success("Profiles assigned successfully");
                         setIsProfileModalVisible(false);
                         setSelectedRowKeys([]);
+                        setSelectedProfileToAdd(null);
+                        if (selectedDevice?.id && selectedRowKeys.includes(selectedDevice.id)) {
+                            await fetchDeviceProfiles(selectedDevice.id);
+                        }
                     } catch (error) {
                         antdMessage.error("Failed to assign profile");
                     }
                 }}
-                onCancel={() => setIsProfileModalVisible(false)}
+                onCancel={() => {
+                    setIsProfileModalVisible(false);
+                    setSelectedProfileToAdd(null);
+                }}
                 okText="Assign Profile"
                 okButtonProps={{ className: "bg-[#de2a15] hover:bg-[#c22412]", disabled: !selectedProfileToAdd }}
             >
@@ -726,13 +830,7 @@ export function DevicesList() {
                         className="w-full"
                         placeholder="Select a profile"
                         onChange={(val) => setSelectedProfileToAdd(val)}
-                        options={[
-                            { value: 1, label: 'Allow SOTI MobiControl' },
-                            { value: 2, label: 'Corporate Wi-Fi' },
-                            { value: 3, label: 'Disable Camera' },
-                            { value: 4, label: 'Developer Tools Config' },
-                            { value: 5, label: 'Executive VPN' }
-                        ]}
+                        options={profiles.map((profile) => ({ value: profile.id, label: profile.name }))}
                     />
                 </div>
             </Modal>

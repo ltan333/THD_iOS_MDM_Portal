@@ -11,6 +11,7 @@ import { AUTH_CONFIG } from "../constants";
 import { createErrorResponse } from "../utils/api-error-response";
 import { handleRetryLogic, shouldRetry } from "../utils/retry-handler";
 import { handleTokenRefresh } from "../utils/refresh-token-handler";
+import { tokenManager } from "../utils/token-manager";
 
 interface RetryableRequestConfig extends InternalAxiosRequestConfig {
   _retry?: boolean;
@@ -19,6 +20,35 @@ interface RetryableRequestConfig extends InternalAxiosRequestConfig {
 
 // Flag to prevent multiple 401 redirects causing infinite loop
 let isRedirecting = false;
+const publicPaths = [
+  "/login",
+  "/forgot-password",
+  "/reset-password",
+  "/setup-2fa",
+  "/verify-otp",
+  "/login/otp",
+];
+
+const isPublicPage = (path: string): boolean =>
+  publicPaths.some((publicPath) => path.startsWith(publicPath));
+
+const redirectToLogin = (message: string) => {
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  const currentPath = window.location.pathname;
+  if (isPublicPage(currentPath) || isRedirecting) {
+    return;
+  }
+
+  isRedirecting = true;
+  tokenManager.clearTokens();
+  localStorage.removeItem("access_token");
+  localStorage.removeItem("refresh_token");
+  toast.error(message);
+  window.location.replace("/login");
+};
 
 export const responseInterceptor = (
   response: AxiosInterceptorManager<AxiosResponse>,
@@ -48,20 +78,7 @@ export const responseInterceptor = (
       // Handle Timeout errors
       if (error.code === 'ECONNABORTED' || error.message.includes('timeout')) {
         console.log("❌ [Auth] Request timeout detected, redirecting to login");
-        if (typeof window !== "undefined") {
-          const currentPath = window.location.pathname;
-          const publicPaths = ["/login", "/forgot-password", "/reset-password", "/setup-2fa", "/verify-otp", "/login/otp"];
-          const isPublicPage = publicPaths.some(p => currentPath.startsWith(p));
-
-          if (!isPublicPage && !isRedirecting) {
-            isRedirecting = true;
-            toast.error("Phiên kết nối hết hạn. Vui lòng đăng nhập lại!");
-            localStorage.removeItem('access_token');
-            localStorage.removeItem('refresh_token');
-            localStorage.removeItem('auth_token');
-            window.location.replace("/login");
-          }
-        }
+        redirectToLogin("Phiên kết nối hết hạn. Vui lòng đăng nhập lại!");
         return Promise.reject(createErrorResponse(error));
       }
 
@@ -85,27 +102,8 @@ export const responseInterceptor = (
           } catch (refreshError) {
             // Refresh token thất bại - redirect về login
             console.log("❌ [Auth] Silent token refresh failed, redirecting to login");
-
-            if (typeof window !== "undefined") {
-              const currentPath = window.location.pathname;
-              const publicPaths = ["/login", "/forgot-password", "/reset-password", "/setup-2fa", "/verify-otp", "/login/otp"];
-              const isPublicPage = publicPaths.some(p => currentPath.startsWith(p));
-
-              if (!isPublicPage) {
-                // Set flag to prevent multiple redirects
-                isRedirecting = true;
-                toast.error("Phiên đăng nhập hết hạn. Vui lòng đăng nhập lại!");
-                // Clear tokens completely before redirecting
-                if (typeof window !== 'undefined') {
-                    localStorage.removeItem('access_token');
-                    localStorage.removeItem('refresh_token');
-                    localStorage.removeItem('auth_token');
-                }
-                // Use replace instead of href to prevent history pollution
-                window.location.replace("/login");
-                return Promise.reject(createErrorResponse(error));
-              }
-            }
+            redirectToLogin("Phiên đăng nhập hết hạn. Vui lòng đăng nhập lại!");
+            return Promise.reject(createErrorResponse(error));
           }
         }
 
