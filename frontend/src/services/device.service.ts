@@ -1,12 +1,12 @@
 import { get, post, del } from "@/axios-config/request";
 import { DeviceResponse, DeviceActionResponse, DeviceStatsResponse } from "@/types/device.type";
-import { ResponseAPI, ListResponse } from "@/types/api.type";
+import { ResponseAPI, ListResponseAPI } from "@/types";
 
 const BASE_URL = "/devices";
 
 export const deviceService = {
   // Fetch devices with pagination and filters
-  getDevices: (params?: {
+  getDevices: (queryParams?: {
     page?: number;
     limit?: number;
     search?: string;
@@ -15,7 +15,7 @@ export const deviceService = {
     model?: string;
     serial_number?: string;
   }) => {
-    return get<ResponseAPI<ListResponse<DeviceResponse>>>(BASE_URL, { params });
+    return get<ListResponseAPI<DeviceResponse>>(BASE_URL, { queryParams });
   },
 
   // Get single device by ID

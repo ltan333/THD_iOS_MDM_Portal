@@ -131,7 +131,33 @@ func (s *profileServiceImpl) Delete(ctx context.Context, id uint) error {
 	if id == 0 {
 		return apperror.ErrValidation.WithMessage("ID profile là bắt buộc")
 	}
-	return s.repo.Delete(ctx, id)
+
+	udidsBefore, err := s.repo.GetFlattenedDeviceUDIDsByProfile(ctx, id)
+	if err != nil {
+		tlog.Error("Failed to fetch UDIDs before delete", zap.Error(err))
+	}
+
+	err = s.repo.Delete(ctx, id)
+	if err != nil {
+		return err
+	}
+
+	if len(udidsBefore) > 0 {
+		identifier := s.generator.GetProfileIdentifier(id)
+		cmdBuilder := mdmcmd.NewBuilder("")
+		if cmdData, _, err := cmdBuilder.RemoveProfile(identifier); err == nil {
+			for _, udid := range udidsBefore {
+				if _, err := s.mdmService.EnqueueCommand(ctx, udid, cmdData); err != nil {
+					tlog.Error("Failed to enqueue RemoveProfile on delete", zap.String("udid", udid), zap.Error(err))
+				}
+			}
+			_, _ = s.mdmService.Push(ctx, udidsBefore)
+		} else {
+			tlog.Error("Failed to build RemoveProfile MDM command on delete", zap.Error(err))
+		}
+	}
+
+	return nil
 }
 
 func (s *profileServiceImpl) UpdateStatus(ctx context.Context, id uint, status string) error {
@@ -231,7 +257,50 @@ func (s *profileServiceImpl) Assign(ctx context.Context, cmd service.AssignProfi
 }
 
 func (s *profileServiceImpl) Unassign(ctx context.Context, profileID uint, assignmentID uint) error {
-	return s.repo.Unassign(ctx, profileID, assignmentID)
+	udidsBefore, err := s.repo.GetFlattenedDeviceUDIDsByProfile(ctx, profileID)
+	if err != nil {
+		tlog.Error("Failed to fetch UDIDs before unassign", zap.Error(err))
+		return apperror.ErrInternalServerError.WithMessage("Lỗi khi load danh sách device").WithError(err)
+	}
+
+	if err := s.repo.Unassign(ctx, profileID, assignmentID); err != nil {
+		return err
+	}
+
+	udidsAfter, err := s.repo.GetFlattenedDeviceUDIDsByProfile(ctx, profileID)
+	if err != nil {
+		tlog.Error("Failed to fetch UDIDs after unassign", zap.Error(err))
+		return nil
+	}
+
+	afterMap := make(map[string]struct{}, len(udidsAfter))
+	for _, u := range udidsAfter {
+		afterMap[u] = struct{}{}
+	}
+
+	var udidsToRemove []string
+	for _, u := range udidsBefore {
+		if _, exists := afterMap[u]; !exists {
+			udidsToRemove = append(udidsToRemove, u)
+		}
+	}
+
+	if len(udidsToRemove) > 0 {
+		identifier := s.generator.GetProfileIdentifier(profileID)
+		cmdBuilder := mdmcmd.NewBuilder("")
+		if cmdData, _, err := cmdBuilder.RemoveProfile(identifier); err == nil {
+			for _, udid := range udidsToRemove {
+				if _, err := s.mdmService.EnqueueCommand(ctx, udid, cmdData); err != nil {
+					tlog.Error("Failed to enqueue RemoveProfile on unassign", zap.String("udid", udid), zap.Error(err))
+				}
+			}
+			_, _ = s.mdmService.Push(ctx, udidsToRemove)
+		} else {
+			tlog.Error("Failed to build RemoveProfile MDM command on unassign", zap.Error(err))
+		}
+	}
+
+	return nil
 }
 
 func (s *profileServiceImpl) ListAssignments(ctx context.Context, profileID uint) ([]*ent.ProfileAssignment, error) {

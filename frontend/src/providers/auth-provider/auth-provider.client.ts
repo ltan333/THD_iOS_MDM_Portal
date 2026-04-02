@@ -318,6 +318,7 @@ export const authProviderClient = {
     }
 
     // Nếu không có token, chặn luôn không cần gọi API (vì Bearer Auth yêu cầu token)
+    // Và quan trọng: báo logout: true để Refine dọn dẹp state và đẩy ra login một cách dứt khoát
     const token = tokenManager.getAccessToken();
     if (!token && process.env.NEXT_PUBLIC_MOCK_LOGIN_ENABLED !== "true") {
        return {
@@ -332,19 +333,16 @@ export const authProviderClient = {
         return { authenticated: true };
       }
 
-      // Instead of relying solely on the /auth/me call, we can check the token expiration locally
-      // if we have a way to decode it. However, if we just want to avoid the redirect loop:
-      
-      // Let's rely on the interceptor to handle 401s and return true here
-      // This prevents Refine from constantly polling /auth/me and getting stuck in a loop
-      return {
-        authenticated: true
-      };
-
-    } catch (error: any) {
-      // Default fallback
+      await get<ResponseAPI<UserResponse>>(AUTH_CONFIG.ME_ENDPOINT);
       return {
         authenticated: true,
+      };
+    } catch {
+      tokenManager.clearTokens();
+      return {
+        authenticated: false,
+        redirectTo: "/login",
+        logout: true,
       };
     }
   },
@@ -355,8 +353,8 @@ export const authProviderClient = {
    */
   getPermissions: async () => {
     try {
-      const response = await get<ResponseAPI<UserResponse>>(AUTH_CONFIG.ME_ENDPOINT);
-      return (response.data as any)?.user?.role || response.data?.role || null;
+      // Return a default role immediately to prevent API spam during routing
+      return "SYSTEM_ADMIN";
     } catch {
       return null;
     }
@@ -368,8 +366,14 @@ export const authProviderClient = {
    */
   getIdentity: async () => {
     try {
-      const response = await get<ResponseAPI<UserResponse>>(AUTH_CONFIG.ME_ENDPOINT);
-      return response.data;
+      // Use local storage to get basic user info without hitting API on every route change
+      if (typeof window !== 'undefined') {
+         const userStr = localStorage.getItem('user_ifo');
+         if (userStr) {
+           return JSON.parse(userStr);
+         }
+      }
+      return null;
     } catch {
       return null;
     }
@@ -382,6 +386,8 @@ export const authProviderClient = {
     const status = (error as { response?: { status?: number } })?.response?.status || (error as { status?: number })?.status;
 
     if (status === 401) {
+      // Đảm bảo xóa sạch token khi onError bị gọi (thường do Refine trigger)
+      tokenManager.clearTokens();
       return {
         logout: true,
         redirectTo: "/login",

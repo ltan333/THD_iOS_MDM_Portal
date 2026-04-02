@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useState } from "react";
-import { Table, Select, Input, Button, Dropdown, MenuProps, Tag, Modal, Tabs, Form, Checkbox, InputNumber } from "antd";
+import React, { useState, useEffect, useCallback } from "react";
+import { Table, Select, Input, Button, Dropdown, MenuProps, Tag, Modal, Tabs, Form, Checkbox, InputNumber, App } from "antd";
 import { 
  Search, 
  Plus, 
@@ -37,159 +37,71 @@ import {
  X
 } from "lucide-react";
 import type { ColumnsType } from "antd/es/table";
+import { profileService } from "@/services/profile.service";
+import { AssignProfileRequest, CreateProfileRequest, ProfileResponse, UpdateProfileRequest } from "@/types/profile.type";
+import dayjs from "dayjs";
 
 interface ProfileType {
  key: string;
+ id: number;
  name: string;
- status: "active" | "draft";
- family: "Apple" | "Android Plus" | "Windows Modern";
+ status: "active" | "draft" | "archived" | string;
+ family: "Apple" | "Android Plus" | "Windows Modern" | string;
  installMethod: string;
  version: string;
  hasDraft?: boolean;
  configurations: number;
+ activeConfigs: {key: string, name: string, icon: React.ReactNode}[];
  packages: number;
  assignedDate: string;
  assignedBy: string;
 }
 
-const mockData: ProfileType[] = [
- {
- key: "1",
- name: "Allow SOTI MobiC...",
- status: "active",
- family: "Apple",
- installMethod: "Automatic",
- version: "1.0",
- configurations: 1,
- packages: 0,
- assignedDate: "2025-09-23 10:23:12 PM",
- assignedBy: "MobiControl Administ...",
- },
- {
- key: "2",
- name: "AnLee Test",
- status: "active",
- family: "Android Plus",
- installMethod: "Automatic",
- version: "10.0",
- configurations: 2,
- packages: 0,
- assignedDate: "2026-02-26 11:37:48 AM",
- assignedBy: "Huy",
- },
- {
- key: "3",
- name: "App Catalog",
- status: "active",
- family: "Apple",
- installMethod: "Automatic",
- version: "1.0",
- configurations: 1,
- packages: 0,
- assignedDate: "2025-09-23 10:23:15 PM",
- assignedBy: "MobiControl Administ...",
- },
- {
- key: "4",
- name: "App Catalog for m...",
- status: "active",
- family: "Apple",
- installMethod: "Automatic",
- version: "1.0",
- configurations: 1,
- packages: 0,
- assignedDate: "2025-09-23 10:23:15 PM",
- assignedBy: "MobiControl Administ...",
- },
- {
- key: "5",
- name: "AppCatalog",
- status: "draft",
- family: "Android Plus",
- installMethod: "Unknown",
- version: "1.0",
- hasDraft: true,
- configurations: 2,
- packages: 0,
- assignedDate: "N/A",
- assignedBy: "N/A",
- },
- {
- key: "6",
- name: "baoqg-profile-test",
- status: "draft",
- family: "Apple",
- installMethod: "Unknown",
- version: "1.0",
- hasDraft: true,
- configurations: 1,
- packages: 0,
- assignedDate: "N/A",
- assignedBy: "N/A",
- },
- {
- key: "7",
- name: "Disable CamAndMic",
- status: "active",
- family: "Android Plus",
- installMethod: "Automatic",
- version: "4.0",
- configurations: 1,
- packages: 0,
- assignedDate: "2026-02-24 4:29:36 PM",
- assignedBy: "Le An",
- },
- {
- key: "8",
- name: "ios test",
- status: "active",
- family: "Apple",
- installMethod: "Automatic",
- version: "1.0",
- configurations: 2,
- packages: 0,
- assignedDate: "2026-01-12 1:43:02 PM",
- assignedBy: "Huy",
- },
- {
- key: "9",
- name: "NormalProfile",
- status: "active",
- family: "Android Plus",
- installMethod: "Automatic",
- version: "2.0",
- configurations: 1,
- packages: 0,
- assignedDate: "2026-02-25 11:46:01 AM",
- assignedBy: "Le An",
- },
- {
- key: "10",
- name: "Profile Catalog",
- status: "active",
- family: "Apple",
- installMethod: "Automatic",
- version: "1.0",
- configurations: 1,
- packages: 0,
- assignedDate: "2025-09-23 10:23:15 PM",
- assignedBy: "MobiControl Administ...",
- },
- {
- key: "11",
- name: "Remote Control f...",
- status: "active",
- family: "Apple",
- installMethod: "Automatic",
- version: "1.0",
- configurations: 1,
- packages: 0,
- assignedDate: "2025-10-14 2:31:17 PM",
- assignedBy: "Huy",
- },
-];
-
 export function ProfilesList() {
+ const { message, modal } = App.useApp();
+
+ // Form instances for configs that map to structured backend fields
+ const [passcodeForm] = Form.useForm();
+ const [restrictionsForm] = Form.useForm();
+ const [wifiForm] = Form.useForm();
+
+ // Platform selection
+ const [selectedPlatform, setSelectedPlatform] = useState<string>("ios");
+
+ // Config data captured when each modal's SAVE is clicked
+ const [passcodeData, setPasscodeData] = useState<any>({});
+ const [restrictionsData, setRestrictionsData] = useState<any>({});
+ const [wifiData, setWifiData] = useState<any>({});
+
+ // WiFi controlled states (fields not in Form.Item)
+ const [wifiSsid, setWifiSsid] = useState("");
+ const [wifiSecurityType, setWifiSecurityType] = useState("none");
+ const [wifiProxySetup, setWifiProxySetup] = useState("none");
+
+ // VPN controlled states
+ const [vpnConnectionName, setVpnConnectionName] = useState("");
+ const [vpnServer, setVpnServer] = useState("");
+ const [vpnConnectionType, setVpnConnectionType] = useState("l2tp");
+ const [vpnData, setVpnData] = useState<any>({});
+
+ // Assignment modal state
+ const [isAssignModalVisible, setIsAssignModalVisible] = useState(false);
+ const [assignTargetType, setAssignTargetType] = useState<"device" | "group">("device");
+ const [assignDeviceId, setAssignDeviceId] = useState("");
+ const [assignGroupId, setAssignGroupId] = useState("");
+ const [assignScheduleType, setAssignScheduleType] = useState<"immediate" | "scheduled">("immediate");
+ const [assignLoading, setAssignLoading] = useState(false);
+
+ const [profiles, setProfiles] = useState<ProfileType[]>([]);
+ const [loading, setLoading] = useState(false);
+ const [pagination, setPagination] = useState({
+    current: 1,
+    pageSize: 50,
+    total: 0
+ });
+ const [searchQuery, setSearchQuery] = useState("");
+ const [familyFilter, setFamilyFilter] = useState("all");
+ const [statusFilter, setStatusFilter] = useState("none");
  const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
  const [isCreateModalVisible, setIsCreateModalVisible] = useState(false);
  const [isProfileFormModalVisible, setIsProfileFormModalVisible] = useState(false);
@@ -307,16 +219,350 @@ export function ProfilesList() {
  const [selectedSafariDomainIdx, setSelectedSafariDomainIdx] = useState<number | null>(null);
  const [selectedPasswordDomainIdx, setSelectedPasswordDomainIdx] = useState<number | null>(null);
 
- const onSelectChange = (newSelectedRowKeys: React.Key[]) => {
- setSelectedRowKeys(newSelectedRowKeys);
+ const [isProfileDetailModalVisible, setIsProfileDetailModalVisible] = useState(false);
+ const [selectedProfile, setSelectedProfile] = useState<ProfileType | null>(null);
+ const [profileAssignments, setProfileAssignments] = useState<any[]>([]);
+ const [assignmentsLoading, setAssignmentsLoading] = useState(false);
+ const [repushLoading, setRepushLoading] = useState(false);
+ const [unassignLoadingId, setUnassignLoadingId] = useState<number | null>(null);
+
+ const fetchProfileAssignments = useCallback(async (profileId: number) => {
+  setAssignmentsLoading(true);
+  try {
+   const res = await profileService.getProfileAssignments(profileId);
+   if (res.is_success && res.data) {
+    setProfileAssignments(res.data);
+   } else {
+    setProfileAssignments([]);
+   }
+  } catch {
+   setProfileAssignments([]);
+  } finally {
+   setAssignmentsLoading(false);
+  }
+ }, []);
+
+ const handleProfileClick = (profile: ProfileType) => {
+  setSelectedProfile(profile);
+  setProfileAssignments([]);
+  setIsProfileDetailModalVisible(true);
+  fetchProfileAssignments(profile.id);
  };
+
+ const handleUnassign = async (assignmentId: number) => {
+  if (!selectedProfile) return;
+  modal.confirm({
+   title: "Remove Assignment",
+   content: "Are you sure you want to remove this assignment? The profile will be uninstalled from the target.",
+   okText: "Remove",
+   okButtonProps: { danger: true },
+   onOk: async () => {
+    setUnassignLoadingId(assignmentId);
+    try {
+     const res = await profileService.deleteAssignment(selectedProfile.id, assignmentId);
+     if (res.is_success) {
+      message.success("Assignment removed successfully");
+      fetchProfileAssignments(selectedProfile.id);
+      fetchProfiles();
+     } else {
+      message.error(res.message || "Failed to remove assignment");
+     }
+    } catch {
+     message.error("An error occurred while removing assignment");
+    } finally {
+     setUnassignLoadingId(null);
+    }
+   },
+  });
+ };
+
+ const handleRepush = async () => {
+  if (!selectedProfile) return;
+  setRepushLoading(true);
+  try {
+   const res = await profileService.repushProfile(selectedProfile.id);
+   if (res.is_success) {
+    message.success("Profile repush initiated successfully");
+   } else {
+    message.error(res.message || "Failed to repush profile");
+   }
+  } catch {
+   message.error("An error occurred while repushing profile");
+  } finally {
+   setRepushLoading(false);
+  }
+ };
+
+ const handleDeleteProfile = async () => {
+  if (!selectedProfile) return;
+  
+  modal.confirm({
+   title: 'Delete Profile',
+   content: `Are you sure you want to delete profile "${selectedProfile.name}"?`,
+   okText: 'Delete',
+   okButtonProps: { danger: true },
+   cancelText: 'Cancel',
+   onOk: () => new Promise(async (resolve, reject) => {
+    try {
+     const response = await profileService.deleteProfile(selectedProfile.id);
+     // Coi 204 (No Content) hoặc 200 là thành công
+     if (response.is_success || (response as any).status === 204) {
+      message.success('Profile deleted successfully');
+      setIsProfileDetailModalVisible(false);
+      fetchProfiles();
+      resolve(true);
+     } else {
+      message.error(response.message || 'Failed to delete profile');
+      reject(new Error(response.message || 'Failed to delete profile'));
+     }
+    } catch (error: any) {
+     // Xử lý case axios throw lỗi nhưng HTTP status là 204 hoặc 200
+     if (error?.response?.status === 204 || error?.response?.status === 200) {
+      message.success('Profile deleted successfully');
+      setIsProfileDetailModalVisible(false);
+      fetchProfiles();
+      resolve(true);
+     } else {
+      message.error('An error occurred while deleting profile');
+      reject(error);
+     }
+    }
+   }),
+  });
+ };
+
+ const handleUpdateStatus = async (newStatus: "active" | "draft" | "archived") => {
+  if (!selectedProfile) return;
+  try {
+   const response = await profileService.updateProfileStatus(selectedProfile.id, newStatus);
+   if (response.is_success) {
+    message.success(`Profile status updated to ${newStatus}`);
+    setIsProfileDetailModalVisible(false);
+    fetchProfiles();
+   } else {
+    message.error(response.message || "Failed to update status");
+   }
+  } catch (error) {
+   message.error("An error occurred while updating status");
+  }
+ };
+
+ const handleAssignProfile = async () => {
+  if (!selectedProfile) return;
+  if (assignTargetType === "device" && !assignDeviceId.trim()) {
+   message.error("Device ID is required");
+   return;
+  }
+  if (assignTargetType === "group" && !assignGroupId.trim()) {
+   message.error("Group ID is required");
+   return;
+  }
+  setAssignLoading(true);
+  try {
+   const payload: AssignProfileRequest = {
+    target_type: assignTargetType,
+    device_id: assignTargetType === "device" ? assignDeviceId.trim() : undefined,
+    group_id: assignTargetType === "group" ? Number(assignGroupId) : undefined,
+    schedule_type: assignScheduleType,
+   };
+   const response = await profileService.assignProfile(selectedProfile.id, payload);
+   if (response.is_success) {
+    message.success("Profile assigned successfully");
+    setIsAssignModalVisible(false);
+    setAssignDeviceId("");
+    setAssignGroupId("");
+    fetchProfiles();
+    fetchProfileAssignments(selectedProfile.id);
+   } else {
+    message.error(response.message || "Failed to assign profile");
+   }
+  } catch (error) {
+   message.error("An error occurred while assigning profile");
+  } finally {
+   setAssignLoading(false);
+  }
+ };
+
+ const [newProfileName, setNewProfileName] = useState("");
+ const [newProfileDesc, setNewProfileDesc] = useState("");
+const [editingProfileId, setEditingProfileId] = useState<number | null>(null);
+const [editingProfileSnapshot, setEditingProfileSnapshot] = useState<ProfileResponse | null>(null);
+
+const handleSaveProfile = async () => {
+  if (!newProfileName.trim()) {
+   message.error("Tên cấu hình là bắt buộc.");
+   return;
+  }
+
+  try {
+   // Build security_settings from passcode form
+   const security_settings: any = hasPasscodeConfig
+    ? { passcode: passcodeData }
+    : (editingProfileSnapshot?.security_settings || {});
+
+   // Build network_config from wifi/vpn/proxy data
+   const network_config: any = {};
+   if (hasWifiConfig) {
+    network_config.wifi = { ssid: wifiSsid, ...wifiData };
+   }
+   if (hasVpnConfig) {
+    network_config.vpn = { connection_name: vpnConnectionName, server: vpnServer, type: vpnConnectionType, ...vpnData };
+   }
+   if (hasHttpProxyConfig) {
+    network_config.proxy = { enabled: true };
+   }
+   // Preserve existing network config if nothing changed
+   if (!hasWifiConfig && !hasVpnConfig && !hasHttpProxyConfig && editingProfileSnapshot?.network_config) {
+    Object.assign(network_config, editingProfileSnapshot.network_config);
+   }
+
+   // Build restrictions from restrictions form
+   const restrictions: any = hasRestrictionsConfig
+    ? restrictionsData
+    : (editingProfileSnapshot?.restrictions || {});
+
+   // Build content_filter
+   const content_filter: any = hasContentFilterConfig
+    ? {
+       type: contentFilterType,
+       safe_browsing: contentFilterType === "limit-adult",
+       allowed_domains: allowedUrls,
+       blocked_websites: unallowedUrls,
+       specific_websites: specificWebsites,
+       plugin_data: pluginCustomData,
+      }
+    : (editingProfileSnapshot?.content_filter || {});
+
+   // Build payloads for configs not in structured backend fields
+   const payloads: any = { ...(editingProfileSnapshot?.payloads || {}) };
+   if (hasDnsProxyConfig) payloads.dns_proxy = { enabled: true };
+   if (hasCellularConfig) payloads.cellular = { enabled: true };
+   if (hasAirPlayConfig) payloads.airplay = { passwords: airPlayPasswords, allowed: airPlayAllowed };
+   if (hasAirPlaySecurityConfig) payloads.airplay_security = { enabled: true };
+   if (hasAirPrintConfig) payloads.airprint = { printers: airPrintPrinters };
+   if (hasCertificateTransparencyConfig) payloads.certificate_transparency = { excluded_certificates: excludedCertificates, excluded_domains: excludedDomains };
+   if (hasDomainsConfig) payloads.domains = { unmarked_email: unmarkedEmailDomains, managed_safari: managedSafariDomains, safari_password: safariPasswordDomains };
+   if (hasCalendarConfig) payloads.calendar = { enabled: true };
+   if (hasContactsConfig) payloads.contacts = { enabled: true };
+   if (hasExchangeConfig) payloads.exchange = { enabled: true };
+   if (hasGoogleAccountConfig) payloads.google_account = { enabled: true };
+   if (hasLdapConfig) payloads.ldap = { search_settings: ldapSearchSettings };
+   if (hasMailConfig) payloads.mail = { enabled: true };
+   if (hasMacOsServerConfig) payloads.macos_server = { enabled: true };
+   if (hasScepConfig) payloads.scep = { enabled: true };
+   if (hasNotificationsConfig) payloads.notifications = { settings: notificationSettings };
+   if (hasConferenceRoomConfig) payloads.conference_room = { enabled: true };
+   if (hasTvRemoteConfig) payloads.tv_remote = { allowed_remotes: allowedRemotes, allowed_tvs: allowedTvs };
+   if (hasLockScreenMessageConfig) payloads.lock_screen_message = { enabled: true };
+   if (hasWebClipConfig) payloads.web_clip = { enabled: true };
+   if (hasSubscribedCalendarConfig) payloads.subscribed_calendar = { enabled: true };
+
+   const payload: UpdateProfileRequest | CreateProfileRequest = {
+    name: newProfileName.trim(),
+    platform: selectedPlatform || editingProfileSnapshot?.platform || "ios",
+    scope: editingProfileSnapshot?.scope || "device",
+    compliance_rules: editingProfileSnapshot?.compliance_rules || {},
+    content_filter,
+    network_config,
+    payloads,
+    restrictions,
+    security_settings,
+   };
+
+   const response = editingProfileId
+    ? await profileService.updateProfile(editingProfileId, payload as UpdateProfileRequest)
+    : await profileService.createProfile(payload as CreateProfileRequest);
+
+   if (response.is_success) {
+    message.success(editingProfileId ? "Profile saved successfully" : "Profile created successfully");
+    setIsProfileFormModalVisible(false);
+    setNewProfileName("");
+    setNewProfileDesc("");
+    setEditingProfileId(null);
+    setEditingProfileSnapshot(null);
+    fetchProfiles();
+   } else {
+    message.error(response.message || "Failed to save profile");
+   }
+  } catch (error) {
+   message.error("An error occurred while saving profile");
+  }
+ };
+
+ const onSelectChange = (newSelectedRowKeys: React.Key[]) => {
+  setSelectedRowKeys(newSelectedRowKeys);
+ };
+
+ const fetchProfiles = useCallback(async () => {
+  setLoading(true);
+  try {
+   const params = {
+    page: pagination.current,
+    limit: pagination.pageSize,
+    search: searchQuery || undefined,
+    platform: familyFilter !== "all" ? familyFilter : undefined,
+    status: statusFilter !== "none" ? statusFilter : undefined,
+   };
+
+   const response = await profileService.getProfiles(params);
+    if (response.is_success && response.data && response.data.items) {
+     const data = response.data.items.map((item: ProfileResponse) => {
+      const activeConfigs = [];
+      if (item.network_config && Object.keys(item.network_config).length > 0) activeConfigs.push({key: 'network_config', name: 'Wi-Fi / Network', icon: <Wifi className="w-4 h-4" />});
+      if (item.restrictions && Object.keys(item.restrictions).length > 0) activeConfigs.push({key: 'restrictions', name: 'Restrictions', icon: <Shield className="w-4 h-4" />});
+      if (item.security_settings && Object.keys(item.security_settings).length > 0) activeConfigs.push({key: 'security_settings', name: 'Passcode / Security', icon: <Lock className="w-4 h-4" />});
+      if (item.content_filter && Object.keys(item.content_filter).length > 0) activeConfigs.push({key: 'content_filter', name: 'Content Filter', icon: <Globe className="w-4 h-4" />});
+      if (item.payloads && Object.keys(item.payloads).length > 0) activeConfigs.push({key: 'payloads', name: 'Custom Payloads', icon: <Settings2 className="w-4 h-4" />});
+      if (item.compliance_rules && Object.keys(item.compliance_rules).length > 0) activeConfigs.push({key: 'compliance_rules', name: 'Compliance Rules', icon: <CheckCircle2 className="w-4 h-4" />});
+
+      return {
+       key: item.id.toString(),
+       id: item.id,
+       name: item.name,
+       status: item.status,
+       family: item.platform === 'ios' || item.platform === 'macos' ? 'Apple' : item.platform === 'android' ? 'Android Plus' : item.platform === 'windows' ? 'Windows Modern' : item.platform,
+       installMethod: "Automatic",
+       version: `${item.version}.0`,
+       hasDraft: item.status === 'draft',
+       configurations: activeConfigs.length || 1,
+       activeConfigs: activeConfigs.length > 0 ? activeConfigs : [{key: 'general', name: 'General Information', icon: <AlertCircle className="w-4 h-4" />}],
+       packages: 0,
+       assignedDate: item.updated_at ? dayjs(item.updated_at).format('YYYY-MM-DD hh:mm:ss A') : "N/A",
+       assignedBy: "System"
+      };
+     });
+    
+    setProfiles(data);
+    setPagination(prev => ({
+     ...prev,
+     total: response.data?.pagination?.total || 0
+    }));
+   } else {
+    message.error(response.message || "Failed to fetch profiles");
+   }
+  } catch (error) {
+   console.error("Failed to fetch profiles:", error);
+   message.error("An error occurred while fetching profiles");
+  } finally {
+   setLoading(false);
+  }
+ }, [pagination.current, pagination.pageSize, searchQuery, familyFilter, statusFilter, message]);
+
+ useEffect(() => {
+  fetchProfiles();
+ }, [fetchProfiles]);
 
  const handleAddProfileClick = () => {
  setIsAppleExpanded(false); // Reset expansion state when opening modal
  setIsCreateModalVisible(true);
  };
 
- const handleAppleClick = () => {
+ const handleAppleClick = (platform: string = "ios") => {
+ setSelectedPlatform(platform);
+ setEditingProfileId(null);
+ setEditingProfileSnapshot(null);
+ setNewProfileName("");
+ setNewProfileDesc("");
  setIsCreateModalVisible(false);
  setIsProfileFormModalVisible(true);
  };
@@ -340,7 +586,17 @@ export function ProfilesList() {
  <PenSquare className="w-3 h-3 text-slate-500" strokeWidth={2} />
  </div>
  )}
- <a href="#" className="text-slate-700 hover:text-[#de2a15] font-medium">{text}</a>
+ <a 
+      href="#" 
+      className="text-slate-700 hover:text-[#de2a15] font-medium"
+      onClick={(e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        handleProfileClick(record);
+      }}
+    >
+      {text}
+    </a>
  </div>
  ),
  },
@@ -412,106 +668,406 @@ export function ProfilesList() {
  return (
  <div className="flex flex-col h-[calc(100vh-64px)] bg-slate-50 relative border-none overflow-hidden rounded-none shadow-none z-0">
  {/* Top Toolbar */}
- <div className="flex flex-wrap items-center justify-between p-4 gap-4 bg-white border-b border-slate-200 z-10 shadow-sm">
- <div className="flex items-center gap-6">
- <div className="flex items-center gap-2">
- <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Family:</span>
- <Select className="cursor-pointer" defaultValue="all"
- style={{ width: 120 }}
- options={[
- { value: "all", label: "All" },
- { value: "apple", label: "Apple" },
- { value: "android", label: "Android Plus" },
- ]}
- />
- </div>
- <div className="flex items-center gap-2">
- <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Filters:</span>
- <Select className="cursor-pointer" defaultValue="none"
- style={{ width: 120 }}
- options={[
- { value: "none", label: "None" },
- { value: "active", label: "Active" },
- { value: "draft", label: "Draft" },
- ]}
- />
- </div>
- </div>
+        <div className="flex flex-wrap items-center justify-between p-4 gap-4 bg-white border-b border-slate-200 z-10 shadow-sm">
+        <div className="flex items-center gap-6">
+        <div className="flex items-center gap-2">
+        <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Family:</span>
+        <Select className="cursor-pointer" value={familyFilter}
+        onChange={(val) => { setFamilyFilter(val); setPagination(prev => ({ ...prev, current: 1 })); }}
+        style={{ width: 120 }}
+        options={[
+        { value: "all", label: "All" },
+        { value: "apple", label: "Apple" },
+        { value: "android", label: "Android Plus" },
+        ]}
+        />
+        </div>
+        <div className="flex items-center gap-2">
+        <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Filters:</span>
+        <Select className="cursor-pointer" value={statusFilter}
+        onChange={(val) => { setStatusFilter(val); setPagination(prev => ({ ...prev, current: 1 })); }}
+        style={{ width: 120 }}
+        options={[
+        { value: "none", label: "None" },
+        { value: "active", label: "Active" },
+        { value: "draft", label: "Draft" },
+        ]}
+        />
+        </div>
+        </div>
 
- <div className="flex items-center gap-3">
- <div className="flex group">
- <Input
- placeholder="Search profile name"
- prefix={<Search className="w-4 h-4 text-slate-400 group-hover:text-current transition-colors" />}
- className="w-64 h-8 rounded-r-none border-r-0 hover:border-[#de2a15] focus:border-[#de2a15] focus:shadow-none transition-colors"
- />
- <Button 
- type="primary" 
- className="bg-[#de2a15] hover:bg-[#c22412] rounded-l-none h-8 w-10 px-0 flex items-center justify-center border-none shadow-sm transition-colors"
- icon={<Search className="w-4 h-4 text-white" strokeWidth={2.5} />}
- />
- </div>
- <Button 
- type="primary" 
- icon={<Plus className="w-4 h-4" />}
- className="bg-[#de2a15] hover:bg-[#c22412] text-white font-medium px-5 h-8 border-none shadow-sm transition-colors rounded-md"
- onClick={handleAddProfileClick}
- >
- ADD PROFILE
- </Button>
- </div>
- </div>
+        <div className="flex items-center gap-3">
+        <div className="flex group">
+        <Input
+        placeholder="Search profile name"
+        value={searchQuery}
+        onChange={(e) => setSearchQuery(e.target.value)}
+        onPressEnter={() => setPagination(prev => ({ ...prev, current: 1 }))}
+        prefix={<Search className="w-4 h-4 text-slate-400 group-hover:text-current transition-colors" />}
+        className="w-64 h-8 rounded-r-none border-r-0 hover:border-[#de2a15] focus:border-[#de2a15] focus:shadow-none transition-colors"
+        />
+        <Button 
+        type="primary" 
+        onClick={() => setPagination(prev => ({ ...prev, current: 1 }))}
+        className="bg-[#de2a15] hover:bg-[#c22412] rounded-l-none h-8 w-10 px-0 flex items-center justify-center border-none shadow-sm transition-colors"
+        icon={<Search className="w-4 h-4 text-white" strokeWidth={2.5} />}
+        />
+        </div>
+        <Button 
+        type="primary" 
+        icon={<Plus className="w-4 h-4" />}
+        className="bg-[#de2a15] hover:bg-[#c22412] text-white font-medium px-5 h-8 border-none shadow-sm transition-colors rounded-md"
+        onClick={handleAddProfileClick}
+        >
+        ADD PROFILE
+        </Button>
+        </div>
+        </div>
 
- {/* Sub Toolbar / Table Controls */}
- <div className="flex items-center justify-between px-4 py-3 bg-slate-50 dark:bg-slate-800 border-b border-slate-200 dark:border-slate-800 z-10">
- <div className="flex items-center gap-4 text-sm text-slate-600 dark:text-slate-400">
- <span className="font-bold text-slate-800 dark:text-slate-200 tracking-wide uppercase">
- PROFILES <span className="font-normal text-slate-500">(1 - 13 of 13)</span>
- </span>
- 
- <div className="flex items-center gap-2 border-l border-slate-300 dark:border-slate-600 pl-4">
- <Select className="cursor-pointer" defaultValue="50"
- size="small"
- style={{ width: 70 }}
- options={[
- { value: "25", label: "25" },
- { value: "50", label: "50" },
- { value: "100", label: "100" },
- ]}
- />
- <span>Per Page</span>
- </div>
+        {/* Sub Toolbar / Table Controls */}
+        <div className="flex items-center justify-between px-4 py-3 bg-slate-50 dark:bg-slate-800 border-b border-slate-200 dark:border-slate-800 z-10">
+        <div className="flex items-center gap-4 text-sm text-slate-600 dark:text-slate-400">
+        <span className="font-bold text-slate-800 dark:text-slate-200 tracking-wide uppercase">
+        PROFILES <span className="font-normal text-slate-500">({profiles.length > 0 ? (pagination.current - 1) * pagination.pageSize + 1 : 0} - {Math.min(pagination.current * pagination.pageSize, pagination.total)} of {pagination.total})</span>
+        </span>
+        
+        <div className="flex items-center gap-2 border-l border-slate-300 dark:border-slate-600 pl-4">
+        <Select className="cursor-pointer" value={pagination.pageSize.toString()}
+        onChange={(val) => setPagination(prev => ({ ...prev, pageSize: Number(val), current: 1 }))}
+        size="small"
+        style={{ width: 70 }}
+        options={[
+        { value: "25", label: "25" },
+        { value: "50", label: "50" },
+        { value: "100", label: "100" },
+        ]}
+        />
+        <span>Per Page</span>
+        </div>
 
- <div className="flex items-center gap-2 border-l border-slate-300 dark:border-slate-600 pl-4">
- <Button type="text" size="small" disabled className="text-slate-400">&larr;</Button>
- <span className="text-[#de2a15] font-bold">1 of 1</span>
- <Button type="text" size="small" disabled className="text-slate-400">&rarr;</Button>
- </div>
+        <div className="flex items-center gap-2 border-l border-slate-300 dark:border-slate-600 pl-4">
+        <Button type="text" size="small" 
+         disabled={pagination.current === 1} 
+         onClick={() => setPagination(prev => ({ ...prev, current: prev.current - 1 }))}
+         className={pagination.current === 1 ? "text-slate-400" : "text-slate-700 hover:text-slate-900"}>&larr;</Button>
+        <span className="text-[#de2a15] font-bold">{pagination.current} of {Math.max(1, Math.ceil(pagination.total / pagination.pageSize))}</span>
+        <Button type="text" size="small" 
+         disabled={pagination.current >= Math.ceil(pagination.total / pagination.pageSize) || pagination.total === 0}
+         onClick={() => setPagination(prev => ({ ...prev, current: prev.current + 1 }))}
+         className={pagination.current >= Math.ceil(pagination.total / pagination.pageSize) || pagination.total === 0 ? "text-slate-400" : "text-slate-700 hover:text-slate-900"}>&rarr;</Button>
+        </div>
 
- <div className="border-l border-slate-300 dark:border-slate-600 pl-4">
- <Button type="text" size="small" icon={<RefreshCcw className="w-4 h-4 text-slate-500 hover:text-slate-800" />} />
- </div>
- </div>
+        <div className="border-l border-slate-300 dark:border-slate-600 pl-4">
+        <Button type="text" size="small" onClick={fetchProfiles} icon={<RefreshCcw className={`w-4 h-4 text-slate-500 hover:text-slate-800 ${loading ? 'animate-spin' : ''}`} />} />
+        </div>
+        </div>
 
- <div className="flex items-center gap-4 text-sm">
- <span className="flex items-center gap-1 cursor-pointer text-slate-700 hover:text-slate-900 font-medium">
- Columns (9) <ChevronDown className="w-4 h-4" />
- </span>
- <Button type="text" icon={<Filter className="w-4 h-4 text-[#de2a15]" />} className="text-[#de2a15] bg-red-50 hover:bg-red-100 rounded-full w-8 h-8 flex items-center justify-center p-0 border border-red-200 transition-colors" />
- </div>
- </div>
+        <div className="flex items-center gap-4 text-sm">
+        <span className="flex items-center gap-1 cursor-pointer text-slate-700 hover:text-slate-900 font-medium">
+        Columns (9) <ChevronDown className="w-4 h-4" />
+        </span>
+        <Button type="text" icon={<Filter className="w-4 h-4 text-[#de2a15]" />} className="text-[#de2a15] bg-red-50 hover:bg-red-100 rounded-full w-8 h-8 flex items-center justify-center p-0 border border-red-200 transition-colors" />
+        </div>
+        </div>
 
- {/* Table */}
- <div className="flex-1 overflow-auto border-t border-slate-200 dark:border-slate-800 z-10 relative scrollbar-hide">
- <Table
- rowSelection={rowSelection}
- columns={columns}
- dataSource={mockData}
- pagination={false}
- className="custom-data-table"
- rowClassName="hover:bg-red-50 dark:hover:bg-slate-800 transition-colors"
- />
- </div>
+        {/* Table */}
+        <div className="flex-1 overflow-auto border-t border-slate-200 dark:border-slate-800 z-10 relative scrollbar-hide">
+        <Table
+        rowSelection={rowSelection}
+        columns={columns}
+        dataSource={profiles}
+        loading={loading}
+        pagination={false}
+        className="custom-data-table"
+        rowClassName="hover:bg-red-50 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+        onRow={(record) => ({
+          onClick: () => handleProfileClick(record),
+        })}
+        />
+        </div>
+
+  {/* Profile Detail Modal */}
+  <Modal
+    title={
+      <div className="flex items-center gap-2">
+        <div className="w-8 h-8 rounded-lg bg-red-50 flex items-center justify-center">
+          {selectedProfile?.family === "Apple" ? <Apple className="w-4 h-4 text-[#de2a15]" /> : <Smartphone className="w-4 h-4 text-[#de2a15]" />}
+        </div>
+        <div>
+          <h3 className="text-lg font-bold text-slate-800 m-0">{selectedProfile?.name}</h3>
+          <p className="text-xs text-slate-500 font-normal m-0">{selectedProfile?.family} Profile</p>
+        </div>
+      </div>
+    }
+    open={isProfileDetailModalVisible}
+    onCancel={() => setIsProfileDetailModalVisible(false)}
+    footer={
+      <div className="flex justify-end items-center w-full pt-4 border-t border-slate-100 mt-4 gap-3 px-1 pb-1">
+        <Button
+          danger
+          type="text"
+          icon={<Trash2 className="w-4 h-4" />}
+          onClick={handleDeleteProfile}
+          className="text-red-500 hover:bg-red-50 hover:text-red-600 transition-colors h-10 px-4 rounded-lg font-medium mr-auto"
+        >
+          Delete
+        </Button>
+        {selectedProfile?.status === "active" ? (
+          <Button
+            onClick={() => handleUpdateStatus("draft")}
+            className="h-10 px-4 rounded-lg font-medium text-amber-600 border-amber-300 hover:bg-amber-50 transition-colors"
+          >
+            Set Draft
+          </Button>
+        ) : (
+          <Button
+            onClick={() => handleUpdateStatus("active")}
+            className="h-10 px-4 rounded-lg font-medium text-emerald-600 border-emerald-300 hover:bg-emerald-50 transition-colors"
+          >
+            Set Active
+          </Button>
+        )}
+        <Button
+          onClick={handleRepush}
+          loading={repushLoading}
+          icon={<RefreshCcw className="w-4 h-4" />}
+          className="h-10 px-4 rounded-lg font-medium text-violet-600 border-violet-300 hover:bg-violet-50 transition-colors"
+        >
+          Repush
+        </Button>
+        <Button
+          onClick={() => { setIsProfileDetailModalVisible(false); setIsAssignModalVisible(true); }}
+          className="h-10 px-4 rounded-lg font-medium text-blue-600 border-blue-300 hover:bg-blue-50 transition-colors"
+        >
+          Assign
+        </Button>
+        <Button
+          onClick={() => setIsProfileDetailModalVisible(false)}
+          className="h-10 px-6 rounded-lg font-medium text-slate-600 hover:text-slate-800 hover:bg-slate-50 border-slate-200 transition-colors"
+        >
+          Close
+        </Button>
+        <Button 
+          type="primary" 
+          className="bg-[#de2a15] hover:bg-[#c22412] h-10 px-6 rounded-lg font-medium shadow-sm border-none transition-colors"
+          onClick={async () => {
+            setIsProfileDetailModalVisible(false);
+            setNewProfileName(selectedProfile?.name || "");
+            setEditingProfileId(selectedProfile?.id || null);
+            
+            message.loading({ content: 'Loading profile data...', key: 'loadingProfile' });
+            
+            try {
+              const response = await profileService.getProfileById(selectedProfile!.id);
+              if (response.is_success && response.data) {
+                const detail = response.data;
+                setEditingProfileSnapshot(detail);
+                setNewProfileDesc("");
+                
+                setHasWifiConfig(!!(detail.network_config?.wifi && Object.keys(detail.network_config.wifi).length > 0));
+                setHasVpnConfig(!!(detail.network_config?.vpn && Object.keys(detail.network_config.vpn).length > 0));
+                setHasHttpProxyConfig(!!(detail.network_config?.proxy && Object.keys(detail.network_config.proxy).length > 0));
+                setHasRestrictionsConfig(!!(detail.restrictions && Object.keys(detail.restrictions).length > 0));
+                setHasPasscodeConfig(!!(detail.security_settings?.passcode && Object.keys(detail.security_settings.passcode).length > 0));
+                setHasContentFilterConfig(!!(detail.content_filter && Object.keys(detail.content_filter).length > 0));
+                setSelectedPlatform(detail.platform || "ios");
+
+                // Pre-populate form values for editing
+                if (detail.security_settings?.passcode) {
+                  const p = detail.security_settings.passcode;
+                  passcodeForm.setFieldsValue({
+                    allowSimple: p.allow_simple ?? true,
+                    requireAlphanumeric: p.require_alphanumeric ?? false,
+                    minLength: p.min_length ?? 0,
+                    minComplexChars: p.min_complex_chars ?? 0,
+                    maxPasscodeAge: p.max_passcode_age,
+                    autoLock: p.auto_lock ?? "none",
+                    passcodeHistory: p.history,
+                    gracePeriod: p.grace_period ?? "none",
+                    maxFailedAttempts: p.retry_limit,
+                  });
+                  setPasscodeData(detail.security_settings.passcode);
+                }
+                if (detail.restrictions && Object.keys(detail.restrictions).length > 0) {
+                  const r = detail.restrictions;
+                  restrictionsForm.setFieldsValue({
+                    allowCamera: r.camera_enabled ?? true,
+                    allowFaceTime: r.facetime_enabled ?? true,
+                    allowScreenshots: r.screenshots_enabled ?? true,
+                    allowAirDrop: r.airdrop_enabled ?? true,
+                    allowSiri: r.siri_enabled ?? true,
+                    allowSafari: r.safari_enabled ?? true,
+                    allowGameCenter: r.game_center_enabled ?? true,
+                    allowiTunes: r.itunes_enabled ?? true,
+                    allowNews: r.news_enabled ?? true,
+                    allowPodcasts: r.podcasts_enabled ?? true,
+                  });
+                  setRestrictionsData(detail.restrictions);
+                }
+                if (detail.network_config?.wifi) {
+                  const w = detail.network_config.wifi;
+                  setWifiSsid(w.ssid || "");
+                  setWifiSecurityType(w.security_type || "none");
+                  setWifiProxySetup(w.proxy_setup || "none");
+                  wifiForm.setFieldsValue({
+                    autoJoin: w.auto_join ?? true,
+                    hiddenNetwork: w.hidden_network ?? false,
+                    disableCaptive: w.disable_captive ?? false,
+                    disableMacRand: w.disable_mac_randomization ?? false,
+                  });
+                  setWifiData(detail.network_config.wifi);
+                }
+                if (detail.network_config?.vpn) {
+                  const v = detail.network_config.vpn;
+                  setVpnConnectionName(v.connection_name || "");
+                  setVpnServer(v.server || "");
+                  setVpnConnectionType(v.type || "l2tp");
+                  setVpnData(detail.network_config.vpn);
+                }
+
+                setIsProfileFormModalVisible(true);
+                message.success({ content: 'Profile data loaded', key: 'loadingProfile', duration: 2 });
+              } else {
+                message.error({ content: 'Failed to load profile details', key: 'loadingProfile', duration: 2 });
+              }
+            } catch (error) {
+              message.error({ content: 'Error loading profile details', key: 'loadingProfile', duration: 2 });
+            }
+          }}
+        >
+          Edit Profile
+        </Button>
+      </div>
+    }
+    width={600}
+    className="custom-modal"
+  >
+    {selectedProfile && (
+      <div className="py-2 space-y-5">
+        {/* Main Stats Grid */}
+        <div className="grid grid-cols-2 gap-3">
+          <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
+            <div className="flex items-center gap-1.5 text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">
+              Status
+            </div>
+            <div className="flex items-center gap-2 font-bold text-slate-800 text-[15px]">
+              {selectedProfile.status === 'active' ? (
+                <><span className="relative flex h-2.5 w-2.5"><span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span><span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span></span> <span className="text-emerald-700">Active</span></>
+              ) : (
+                <><span className="w-2.5 h-2.5 rounded-full bg-amber-500"></span> <span className="text-amber-700">Draft</span></>
+              )}
+            </div>
+          </div>
+          
+          <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
+            <div className="flex items-center gap-1.5 text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">
+              Version
+            </div>
+            <div className="font-bold text-slate-800 text-[15px]">{selectedProfile.version}</div>
+          </div>
+
+          <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
+            <div className="flex items-center gap-1.5 text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">
+              Install Method
+            </div>
+            <div className="font-bold text-slate-800 text-[15px]">{selectedProfile.installMethod}</div>
+          </div>
+
+          <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
+            <div className="flex items-center gap-1.5 text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">
+              Configurations
+            </div>
+            <div className="font-bold text-slate-800 text-[15px]">{selectedProfile.configurations} <span className="font-medium text-slate-500 text-sm">Settings</span></div>
+          </div>
+        </div>
+
+        {/* Active Configurations List */}
+        {selectedProfile.activeConfigs && selectedProfile.activeConfigs.length > 0 && (
+          <div className="bg-slate-50/80 p-5 rounded-2xl border border-slate-100">
+            <div className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-4 flex items-center gap-2">
+              <Settings2 className="w-3.5 h-3.5" /> Active Configurations
+            </div>
+            <div className="grid grid-cols-1 gap-2.5">
+              {selectedProfile.activeConfigs.map((config) => (
+                <div key={config.key} className="flex items-center gap-3 bg-white px-4 py-3 rounded-xl border border-slate-200 shadow-sm hover:border-[#de2a15]/30 transition-colors group cursor-default">
+                  <div className="p-2 bg-red-50 text-[#de2a15] rounded-lg group-hover:bg-[#de2a15] group-hover:text-white transition-colors">
+                    {config.icon}
+                  </div>
+                  <span className="font-semibold text-[14px] text-slate-700 group-hover:text-slate-900 transition-colors">{config.name}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+        
+        {/* Assignment Info */}
+        <div className="bg-slate-50/80 p-5 rounded-2xl border border-slate-100">
+          <div className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-4 flex items-center gap-2">
+            <Calendar className="w-3.5 h-3.5" /> Assignment Info
+          </div>
+          <div className="space-y-3">
+            <div className="flex items-center justify-between py-1 border-b border-slate-200/60 border-dashed pb-3">
+              <span className="text-sm font-medium text-slate-500">Last Modified</span>
+              <span className="text-sm font-bold text-slate-700 bg-white px-2.5 py-1 rounded-md border border-slate-200 shadow-sm">{selectedProfile.assignedDate}</span>
+            </div>
+            <div className="flex items-center justify-between py-1 pt-1">
+              <span className="text-sm font-medium text-slate-500">Modified By</span>
+              <span className="text-sm font-bold text-slate-700 flex items-center gap-1.5">
+                <div className="w-5 h-5 rounded-full bg-slate-200 flex items-center justify-center text-[10px] text-slate-600">
+                  {selectedProfile.assignedBy.charAt(0)}
+                </div>
+                {selectedProfile.assignedBy}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* Assignments List */}
+        <div className="bg-slate-50/80 p-5 rounded-2xl border border-slate-100">
+          <div className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-4 flex items-center gap-2">
+            <Users className="w-3.5 h-3.5" /> Assignments
+            {assignmentsLoading && <span className="ml-auto text-[10px] text-slate-400 animate-pulse">Loading...</span>}
+          </div>
+          {!assignmentsLoading && profileAssignments.length === 0 && (
+            <div className="text-sm text-slate-400 text-center py-3">No assignments yet</div>
+          )}
+          <div className="space-y-2">
+            {profileAssignments.map((a) => (
+              <div key={a.id} className="flex items-center justify-between bg-white px-3 py-2.5 rounded-xl border border-slate-200 shadow-sm">
+                <div className="flex flex-col gap-0.5 min-w-0">
+                  <div className="flex items-center gap-2">
+                    <span className="text-[11px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded bg-slate-100 text-slate-500">
+                      {a.target_type}
+                    </span>
+                    <span className="text-sm font-semibold text-slate-700 truncate">
+                      {a.target_type === "device" ? (a.device_id || "—") : `Group #${a.group_id}`}
+                    </span>
+                  </div>
+                  {a.schedule_type && (
+                    <span className="text-[11px] text-slate-400 ml-0.5">
+                      {a.schedule_type === "scheduled" && a.scheduled_at
+                        ? `Scheduled: ${dayjs(a.scheduled_at).format("MMM D, YYYY HH:mm")}`
+                        : "Immediate"}
+                    </span>
+                  )}
+                </div>
+                <Button
+                  size="small"
+                  danger
+                  loading={unassignLoadingId === a.id}
+                  icon={<Minus className="w-3 h-3" />}
+                  onClick={() => handleUnassign(a.id)}
+                  className="ml-3 flex-shrink-0 text-xs font-medium"
+                >
+                  Unassign
+                </Button>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    )}
+  </Modal>
 
  {/* Create Profile Modals */}
  <Modal
@@ -538,8 +1094,8 @@ export function ProfilesList() {
  
  {/* Bottom side: Options */}
  <div className="grid grid-cols-1 gap-2 p-3 bg-slate-50 rounded-2xl border border-slate-200 shadow-inner">
- <button 
- onClick={handleAppleClick}
+ <button
+ onClick={() => handleAppleClick("ios")}
  className="flex items-center gap-4 text-slate-700 hover:text-[#de2a15] hover:bg-red-50 py-3.5 px-5 rounded-xl transition-all font-semibold text-left border border-transparent hover:border-red-200 hover:shadow-md group cursor-pointer"
  >
  <div className="w-10 h-10 rounded-lg bg-red-50 text-[#de2a15] flex items-center justify-center group-hover:bg-red-100 transition-colors">
@@ -550,8 +1106,8 @@ export function ProfilesList() {
  <span className="text-[11px] text-slate-500 font-medium">iPhones and iPads</span>
  </div>
  </button>
- <button 
- onClick={handleAppleClick}
+ <button
+ onClick={() => handleAppleClick("macos")}
  className="flex items-center gap-4 text-slate-700 hover:text-[#de2a15] hover:bg-red-50 py-3.5 px-5 rounded-xl transition-all font-semibold text-left border border-transparent hover:border-red-200 hover:shadow-md group cursor-pointer"
  >
  <div className="w-10 h-10 rounded-lg bg-red-50 text-[#de2a15] flex items-center justify-center group-hover:bg-red-100 transition-colors">
@@ -562,8 +1118,8 @@ export function ProfilesList() {
  <span className="text-[11px] text-slate-500 font-medium">Mac user level settings</span>
  </div>
  </button>
- <button 
- onClick={handleAppleClick}
+ <button
+ onClick={() => handleAppleClick("macos")}
  className="flex items-center gap-4 text-slate-700 hover:text-[#de2a15] hover:bg-red-50 py-3.5 px-5 rounded-xl transition-all font-semibold text-left border border-transparent hover:border-red-200 hover:shadow-md group cursor-pointer"
  >
  <div className="w-10 h-10 rounded-lg bg-red-50 text-[#de2a15] flex items-center justify-center group-hover:bg-red-100 transition-colors">
@@ -574,8 +1130,8 @@ export function ProfilesList() {
  <span className="text-[11px] text-slate-500 font-medium">Mac system level settings</span>
  </div>
  </button>
- <button 
- onClick={handleAppleClick}
+ <button
+ onClick={() => handleAppleClick("ios")}
  className="flex items-center gap-4 text-slate-700 hover:text-[#de2a15] hover:bg-red-50 py-3.5 px-5 rounded-xl transition-all font-semibold text-left border border-transparent hover:border-red-200 hover:shadow-md group cursor-pointer"
  >
  <div className="w-10 h-10 rounded-lg bg-red-50 text-[#de2a15] flex items-center justify-center group-hover:bg-red-100 transition-colors">
@@ -586,8 +1142,8 @@ export function ProfilesList() {
  <span className="text-[11px] text-slate-500 font-medium">For shared iPad environments</span>
  </div>
  </button>
- <button 
- onClick={handleAppleClick}
+ <button
+ onClick={() => handleAppleClick("tvos")}
  className="flex items-center gap-4 text-slate-700 hover:text-[#de2a15] hover:bg-red-50 py-3.5 px-5 rounded-xl transition-all font-semibold text-left border border-transparent hover:border-red-200 hover:shadow-md group cursor-pointer"
  >
  <div className="w-10 h-10 rounded-lg bg-red-50 text-[#de2a15] flex items-center justify-center group-hover:bg-red-100 transition-colors">
@@ -654,10 +1210,12 @@ export function ProfilesList() {
  <div className="w-full md:w-2/3">
  <Input 
  placeholder="Nhập tên cấu hình..." 
- status="error" 
+ value={newProfileName}
+ onChange={(e) => setNewProfileName(e.target.value)}
+ status={!newProfileName ? "error" : ""} 
  className="w-full h-10 rounded-md"
  />
- <div className="text-red-500 text-xs mt-1.5 font-medium">Tên cấu hình là bắt buộc và không được để trống.</div>
+ {!newProfileName && <div className="text-red-500 text-xs mt-1.5 font-medium">Tên cấu hình là bắt buộc và không được để trống.</div>}
  </div>
  </div>
 
@@ -669,6 +1227,8 @@ export function ProfilesList() {
  <div className="w-full md:w-2/3">
  <Input.TextArea 
  placeholder="Nhập mô tả cấu hình..." 
+ value={newProfileDesc}
+ onChange={(e) => setNewProfileDesc(e.target.value)}
  rows={4}
  className="w-full rounded-md resize-none"
  />
@@ -1564,19 +2124,17 @@ export function ProfilesList() {
  <Button 
  type="text" 
  className="font-semibold text-slate-600 hover:text-slate-800 hover:bg-slate-100 px-6"
- onClick={() => setIsProfileFormModalVisible(false)}
+onClick={() => {
+ setIsProfileFormModalVisible(false);
+ setEditingProfileId(null);
+ setEditingProfileSnapshot(null);
+}}
  >
  CANCEL
  </Button>
  <Button 
- disabled 
- className="font-semibold bg-slate-200 text-slate-400 border-none px-6"
- >
- SAVE AND ASSIGN
- </Button>
- <Button 
  className="font-semibold bg-[#de2a15] hover:bg-[#c22412] text-white border-none px-8 transition-colors"
- onClick={() => setIsProfileFormModalVisible(false)}
+onClick={handleSaveProfile}
  >
  SAVE
  </Button>
@@ -1599,281 +2157,131 @@ export function ProfilesList() {
  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
  {/* Security & Restrictions */}
  <div className="glass-card rounded-xl overflow-hidden h-fit">
- <div className="bg-orange-500/80 px-4 py-3 text-white font-medium flex items-center gap-2">
- <Shield className="w-4 h-4" /> Security & Restrictions
- </div>
- <div className="p-2 flex flex-col gap-1">
- <button 
- onClick={() => {
- setIsAddConfigModalVisible(false);
- setIsPasscodeConfigVisible(true);
- }}
- className="flex items-center gap-3 w-full p-2.5 hover:bg-orange-100 rounded-lg text-slate-700 hover:text-orange-700 transition-all duration-200 text-sm text-left font-medium hover:font-bold cursor-pointer hover:shadow-md group"
- >
- <Lock className="w-4 h-4 text-slate-400 group-hover:text-current transition-colors" /> Passcode
- </button>
- <button 
- onClick={() => {
- setIsAddConfigModalVisible(false);
- setIsRestrictionsConfigVisible(true);
- }}
- className="flex items-center gap-3 w-full p-2.5 hover:bg-orange-100 rounded-lg text-slate-700 hover:text-orange-700 transition-all duration-200 text-sm text-left font-medium hover:font-bold cursor-pointer hover:shadow-md group"
- >
- <Shield className="w-4 h-4 text-slate-400 group-hover:text-current transition-colors" /> Restrictions
- </button>
- <button 
- onClick={() => {
- setIsAddConfigModalVisible(false);
- setIsScepConfigVisible(true);
- }}
- className="flex items-center gap-3 w-full p-2.5 hover:bg-orange-100 rounded-lg text-slate-700 hover:text-orange-700 transition-all duration-200 text-sm text-left font-medium hover:font-bold cursor-pointer hover:shadow-md group"
- >
- <Key className="w-4 h-4 text-slate-400 group-hover:text-current transition-colors" /> SCEP
- </button>
- <button 
- onClick={() => {
- setIsAddConfigModalVisible(false);
- setIsCertificateTransparencyConfigVisible(true);
- }}
- className="flex items-center gap-3 w-full p-2.5 hover:bg-orange-100 rounded-lg text-slate-700 hover:text-orange-700 transition-all duration-200 text-sm text-left font-medium hover:font-bold cursor-pointer hover:shadow-md group"
- >
- <CheckCircle2 className="w-4 h-4 text-slate-400 group-hover:text-current transition-colors" /> Certificate Transparency
- </button>
- </div>
+  <div className="bg-orange-500/80 px-4 py-3 text-white font-medium flex items-center gap-2">
+   <Shield className="w-4 h-4" /> Security & Restrictions
+  </div>
+  <div className="p-2 flex flex-col gap-1">
+   <button
+    onClick={() => { setIsAddConfigModalVisible(false); setIsPasscodeConfigVisible(true); }}
+    className="flex items-center gap-3 w-full p-2.5 hover:bg-orange-100 rounded-lg text-slate-700 hover:text-orange-700 transition-all duration-200 text-sm text-left font-medium hover:font-bold cursor-pointer hover:shadow-md group"
+   >
+    <Lock className="w-4 h-4 text-slate-400 group-hover:text-current transition-colors" /> Passcode
+   </button>
+   <button
+    onClick={() => { setIsAddConfigModalVisible(false); setIsRestrictionsConfigVisible(true); }}
+    className="flex items-center gap-3 w-full p-2.5 hover:bg-orange-100 rounded-lg text-slate-700 hover:text-orange-700 transition-all duration-200 text-sm text-left font-medium hover:font-bold cursor-pointer hover:shadow-md group"
+   >
+    <Shield className="w-4 h-4 text-slate-400 group-hover:text-current transition-colors" /> Restrictions
+   </button>
+   {/* SCEP - not supported */}
+   <div className="flex items-center gap-3 w-full p-2.5 rounded-lg text-slate-400 cursor-not-allowed opacity-50 text-sm text-left font-medium select-none" title="Not supported by backend yet">
+    <Key className="w-4 h-4" /> SCEP
+    <span className="ml-auto text-[10px] bg-slate-200 text-slate-500 px-1.5 py-0.5 rounded font-normal">Soon</span>
+   </div>
+   {/* Certificate Transparency - not supported */}
+   <div className="flex items-center gap-3 w-full p-2.5 rounded-lg text-slate-400 cursor-not-allowed opacity-50 text-sm text-left font-medium select-none" title="Not supported by backend yet">
+    <CheckCircle2 className="w-4 h-4" /> Certificate Transparency
+    <span className="ml-auto text-[10px] bg-slate-200 text-slate-500 px-1.5 py-0.5 rounded font-normal">Soon</span>
+   </div>
+  </div>
  </div>
 
  {/* Network & Connectivity */}
  <div className="glass-card rounded-xl overflow-hidden h-fit">
- <div className="bg-slate-500 px-4 py-3 text-white font-medium flex items-center gap-2">
- <Globe className="w-4 h-4" /> Network & Connectivity
- </div>
- <div className="p-2 flex flex-col gap-1">
- <button 
- onClick={() => {
- setIsAddConfigModalVisible(false);
- setIsWifiConfigVisible(true);
- }}
- className="flex items-center gap-3 w-full p-2.5 hover:bg-slate-200 rounded-lg text-slate-700 hover:text-slate-900 transition-all duration-200 text-sm text-left font-medium hover:font-bold cursor-pointer hover:shadow-md group"
- >
- <Wifi className="w-4 h-4 text-slate-400 group-hover:text-current transition-colors" /> Wi-Fi
- </button>
- <button 
- onClick={() => {
- setIsAddConfigModalVisible(false);
- setIsVpnConfigVisible(true);
- }}
- className="flex items-center gap-3 w-full p-2.5 hover:bg-slate-200 rounded-lg text-slate-700 hover:text-slate-900 transition-all duration-200 text-sm text-left font-medium hover:font-bold cursor-pointer hover:shadow-md group"
- >
- <Server className="w-4 h-4 text-slate-400 group-hover:text-current transition-colors" /> VPN
- </button>
- <button 
- onClick={() => {
- setIsAddConfigModalVisible(false);
- setIsCellularConfigVisible(true);
- }}
- className="flex items-center gap-3 w-full p-2.5 hover:bg-slate-200 rounded-lg text-slate-700 hover:text-slate-900 transition-all duration-200 text-sm text-left font-medium hover:font-bold cursor-pointer hover:shadow-md group"
- >
- <Radio className="w-4 h-4 text-slate-400 group-hover:text-current transition-colors" /> Cellular
- </button>
- <button 
- onClick={() => {
- setIsAddConfigModalVisible(false);
- setIsHttpProxyConfigVisible(true);
- }}
- className="flex items-center gap-3 w-full p-2.5 hover:bg-slate-200 rounded-lg text-slate-700 hover:text-slate-900 transition-all duration-200 text-sm text-left font-medium hover:font-bold cursor-pointer hover:shadow-md group"
- >
- <Globe className="w-4 h-4 text-slate-400 group-hover:text-current transition-colors" /> Global HTTP Proxy
- </button>
- <button 
- onClick={() => {
- setIsAddConfigModalVisible(false);
- setIsDnsProxyConfigVisible(true);
- }}
- className="flex items-center gap-3 w-full p-2.5 hover:bg-slate-200 rounded-lg text-slate-700 hover:text-slate-900 transition-all duration-200 text-sm text-left font-medium hover:font-bold cursor-pointer hover:shadow-md group"
- >
- <Server className="w-4 h-4 text-slate-400 group-hover:text-current transition-colors" /> DNS Proxy
- </button>
- <button 
- onClick={() => {
- setIsAddConfigModalVisible(false);
- setIsDomainsConfigVisible(true);
- }}
- className="flex items-center gap-3 w-full p-2.5 hover:bg-slate-200 rounded-lg text-slate-700 hover:text-slate-900 transition-all duration-200 text-sm text-left font-medium hover:font-bold cursor-pointer hover:shadow-md group"
- >
- <Globe className="w-4 h-4 text-slate-400 group-hover:text-current transition-colors" /> Domains
- </button>
- <button 
- onClick={() => {
- setIsAddConfigModalVisible(false);
- setIsContentFilterConfigVisible(true);
- }}
- className="flex items-center gap-3 w-full p-2.5 hover:bg-slate-200 rounded-lg text-slate-700 hover:text-slate-900 transition-all duration-200 text-sm text-left font-medium hover:font-bold cursor-pointer hover:shadow-md group"
- >
- <Filter className="w-4 h-4 text-slate-400 group-hover:text-current transition-colors" /> Content Filter
- </button>
- </div>
+  <div className="bg-slate-500 px-4 py-3 text-white font-medium flex items-center gap-2">
+   <Globe className="w-4 h-4" /> Network & Connectivity
+  </div>
+  <div className="p-2 flex flex-col gap-1">
+   <button
+    onClick={() => { setIsAddConfigModalVisible(false); setIsWifiConfigVisible(true); }}
+    className="flex items-center gap-3 w-full p-2.5 hover:bg-slate-200 rounded-lg text-slate-700 hover:text-slate-900 transition-all duration-200 text-sm text-left font-medium hover:font-bold cursor-pointer hover:shadow-md group"
+   >
+    <Wifi className="w-4 h-4 text-slate-400 group-hover:text-current transition-colors" /> Wi-Fi
+   </button>
+   <button
+    onClick={() => { setIsAddConfigModalVisible(false); setIsVpnConfigVisible(true); }}
+    className="flex items-center gap-3 w-full p-2.5 hover:bg-slate-200 rounded-lg text-slate-700 hover:text-slate-900 transition-all duration-200 text-sm text-left font-medium hover:font-bold cursor-pointer hover:shadow-md group"
+   >
+    <Server className="w-4 h-4 text-slate-400 group-hover:text-current transition-colors" /> VPN
+   </button>
+   <button
+    onClick={() => { setIsAddConfigModalVisible(false); setIsHttpProxyConfigVisible(true); }}
+    className="flex items-center gap-3 w-full p-2.5 hover:bg-slate-200 rounded-lg text-slate-700 hover:text-slate-900 transition-all duration-200 text-sm text-left font-medium hover:font-bold cursor-pointer hover:shadow-md group"
+   >
+    <Globe className="w-4 h-4 text-slate-400 group-hover:text-current transition-colors" /> Global HTTP Proxy
+   </button>
+   <button
+    onClick={() => { setIsAddConfigModalVisible(false); setIsContentFilterConfigVisible(true); }}
+    className="flex items-center gap-3 w-full p-2.5 hover:bg-slate-200 rounded-lg text-slate-700 hover:text-slate-900 transition-all duration-200 text-sm text-left font-medium hover:font-bold cursor-pointer hover:shadow-md group"
+   >
+    <Filter className="w-4 h-4 text-slate-400 group-hover:text-current transition-colors" /> Content Filter
+   </button>
+   {/* Cellular - not supported */}
+   <div className="flex items-center gap-3 w-full p-2.5 rounded-lg text-slate-400 cursor-not-allowed opacity-50 text-sm text-left font-medium select-none" title="Not supported by backend yet">
+    <Radio className="w-4 h-4" /> Cellular
+    <span className="ml-auto text-[10px] bg-slate-200 text-slate-500 px-1.5 py-0.5 rounded font-normal">Soon</span>
+   </div>
+   {/* DNS Proxy - not supported */}
+   <div className="flex items-center gap-3 w-full p-2.5 rounded-lg text-slate-400 cursor-not-allowed opacity-50 text-sm text-left font-medium select-none" title="Not supported by backend yet">
+    <Server className="w-4 h-4" /> DNS Proxy
+    <span className="ml-auto text-[10px] bg-slate-200 text-slate-500 px-1.5 py-0.5 rounded font-normal">Soon</span>
+   </div>
+   {/* Domains - not supported */}
+   <div className="flex items-center gap-3 w-full p-2.5 rounded-lg text-slate-400 cursor-not-allowed opacity-50 text-sm text-left font-medium select-none" title="Not supported by backend yet">
+    <Globe className="w-4 h-4" /> Domains
+    <span className="ml-auto text-[10px] bg-slate-200 text-slate-500 px-1.5 py-0.5 rounded font-normal">Soon</span>
+   </div>
+  </div>
  </div>
 
- {/* Accounts & Mail */}
+ {/* Accounts & Mail - all not supported */}
  <div className="glass-card rounded-xl overflow-hidden h-fit">
- <div className="bg-rose-500/80 px-4 py-3 text-white font-medium flex items-center gap-2">
- <Mail className="w-4 h-4" /> Accounts & Mail
- </div>
- <div className="p-2 flex flex-col gap-1">
- <button 
- onClick={() => {
- setIsAddConfigModalVisible(false);
- setIsMailConfigVisible(true);
- }}
- className="flex items-center gap-3 w-full p-2.5 hover:bg-rose-100 rounded-lg text-slate-700 hover:text-rose-700 transition-all duration-200 text-sm text-left font-medium hover:font-bold cursor-pointer hover:shadow-md group"
- >
- <Mail className="w-4 h-4 text-slate-400 group-hover:text-current transition-colors" /> Mail
- </button>
- <button 
- onClick={() => {
- setIsAddConfigModalVisible(false);
- setIsExchangeConfigVisible(true);
- }}
- className="flex items-center gap-3 w-full p-2.5 hover:bg-rose-100 rounded-lg text-slate-700 hover:text-rose-700 transition-all duration-200 text-sm text-left font-medium hover:font-bold cursor-pointer hover:shadow-md group"
- >
- <RefreshCcw className="w-4 h-4 text-slate-400 group-hover:text-current transition-colors" /> Exchange ActiveSync
- </button>
- <button 
- onClick={() => {
- setIsAddConfigModalVisible(false);
- setIsGoogleAccountConfigVisible(true);
- }}
- className="flex items-center gap-3 w-full p-2.5 hover:bg-rose-100 rounded-lg text-slate-700 hover:text-rose-700 transition-all duration-200 text-sm text-left font-medium hover:font-bold cursor-pointer hover:shadow-md group"
- >
- <Globe className="w-4 h-4 text-slate-400 group-hover:text-current transition-colors" /> Google Account
- </button>
- <button 
- onClick={() => {
- setIsAddConfigModalVisible(false);
- setIsMacOsServerConfigVisible(true);
- }}
- className="flex items-center gap-3 w-full p-2.5 hover:bg-rose-100 rounded-lg text-slate-700 hover:text-rose-700 transition-all duration-200 text-sm text-left font-medium hover:font-bold cursor-pointer hover:shadow-md group"
- >
- <Server className="w-4 h-4 text-slate-400 group-hover:text-current transition-colors" /> macOS Server Account
- </button>
- <button 
- onClick={() => {
- setIsAddConfigModalVisible(false);
- setIsLdapConfigVisible(true);
- }}
- className="flex items-center gap-3 w-full p-2.5 hover:bg-rose-100 rounded-lg text-slate-700 hover:text-rose-700 transition-all duration-200 text-sm text-left font-medium hover:font-bold cursor-pointer hover:shadow-md group"
- >
- <Users className="w-4 h-4 text-slate-400 group-hover:text-current transition-colors" /> LDAP
- </button>
- <button 
- onClick={() => {
- setIsAddConfigModalVisible(false);
- setIsContactsConfigVisible(true);
- }}
- className="flex items-center gap-3 w-full p-2.5 hover:bg-rose-100 rounded-lg text-slate-700 hover:text-rose-700 transition-all duration-200 text-sm text-left font-medium hover:font-bold cursor-pointer hover:shadow-md group"
- >
- <Contact className="w-4 h-4 text-slate-400 group-hover:text-current transition-colors" /> Contacts
- </button>
- <button 
- onClick={() => {
- setIsAddConfigModalVisible(false);
- setIsCalendarConfigVisible(true);
- }}
- className="flex items-center gap-3 w-full p-2.5 hover:bg-rose-100 rounded-lg text-slate-700 hover:text-rose-700 transition-all duration-200 text-sm text-left font-medium hover:font-bold cursor-pointer hover:shadow-md group"
- >
- <Calendar className="w-4 h-4 text-slate-400 group-hover:text-current transition-colors" /> Calendar
- </button>
- <button 
- onClick={() => {
- setIsAddConfigModalVisible(false);
- setIsSubscribedCalendarConfigVisible(true);
- }}
- className="flex items-center gap-3 w-full p-2.5 hover:bg-rose-100 rounded-lg text-slate-700 hover:text-rose-700 transition-all duration-200 text-sm text-left font-medium hover:font-bold cursor-pointer hover:shadow-md group"
- >
- <Calendar className="w-4 h-4 text-slate-400 group-hover:text-current transition-colors" /> Subscribed Calendars
- </button>
- </div>
+  <div className="bg-rose-500/80 px-4 py-3 text-white font-medium flex items-center gap-2">
+   <Mail className="w-4 h-4" /> Accounts & Mail
+   <span className="ml-auto text-[10px] bg-white/20 text-white px-2 py-0.5 rounded font-normal">Coming Soon</span>
+  </div>
+  <div className="p-2 flex flex-col gap-1">
+   {[
+    { icon: <Mail className="w-4 h-4" />, label: "Mail" },
+    { icon: <RefreshCcw className="w-4 h-4" />, label: "Exchange ActiveSync" },
+    { icon: <Globe className="w-4 h-4" />, label: "Google Account" },
+    { icon: <Server className="w-4 h-4" />, label: "macOS Server Account" },
+    { icon: <Users className="w-4 h-4" />, label: "LDAP" },
+    { icon: <Contact className="w-4 h-4" />, label: "Contacts" },
+    { icon: <Calendar className="w-4 h-4" />, label: "Calendar" },
+    { icon: <Calendar className="w-4 h-4" />, label: "Subscribed Calendars" },
+   ].map((item) => (
+    <div key={item.label} className="flex items-center gap-3 w-full p-2.5 rounded-lg text-slate-400 cursor-not-allowed opacity-50 text-sm text-left font-medium select-none" title="Not supported by backend yet">
+     {item.icon} {item.label}
+     <span className="ml-auto text-[10px] bg-slate-200 text-slate-500 px-1.5 py-0.5 rounded font-normal">Soon</span>
+    </div>
+   ))}
+  </div>
  </div>
 
- {/* Media & Display */}
+ {/* Media & Display - all not supported */}
  <div className="glass-card rounded-xl overflow-hidden h-fit">
- <div className="bg-teal-500/80 px-4 py-3 text-white font-medium flex items-center gap-2">
- <Monitor className="w-4 h-4" /> Media & Display
- </div>
- <div className="p-2 flex flex-col gap-1">
- <button 
- onClick={() => {
- setIsAddConfigModalVisible(false);
- setIsAirPlayConfigVisible(true);
- }}
- className="flex items-center gap-3 w-full p-2.5 hover:bg-teal-100 rounded-lg text-slate-700 hover:text-teal-700 transition-all duration-200 text-sm text-left font-medium hover:font-bold cursor-pointer hover:shadow-md group"
- >
- <MonitorPlay className="w-4 h-4 text-slate-400 group-hover:text-current transition-colors" /> AirPlay
- </button>
- <button 
- onClick={() => {
- setIsAddConfigModalVisible(false);
- setIsAirPlaySecurityConfigVisible(true);
- }}
- className="flex items-center gap-3 w-full p-2.5 hover:bg-teal-100 rounded-lg text-slate-700 hover:text-teal-700 transition-all duration-200 text-sm text-left font-medium hover:font-bold cursor-pointer hover:shadow-md group"
- >
- <Shield className="w-4 h-4 text-slate-400 group-hover:text-current transition-colors" /> AirPlay Security
- </button>
- <button 
- onClick={() => {
- setIsAddConfigModalVisible(false);
- setIsAirPrintConfigVisible(true);
- }}
- className="flex items-center gap-3 w-full p-2.5 hover:bg-teal-100 rounded-lg text-slate-700 hover:text-teal-700 transition-all duration-200 text-sm text-left font-medium hover:font-bold cursor-pointer hover:shadow-md group"
- >
- <Printer className="w-4 h-4 text-slate-400 group-hover:text-current transition-colors" /> AirPrint
- </button>
- <button 
- onClick={() => {
- setIsAddConfigModalVisible(false);
- setIsTvRemoteConfigVisible(true);
- }}
- className="flex items-center gap-3 w-full p-2.5 hover:bg-teal-100 rounded-lg text-slate-700 hover:text-teal-700 transition-all duration-200 text-sm text-left font-medium hover:font-bold cursor-pointer hover:shadow-md group"
- >
- <Tv className="w-4 h-4 text-slate-400 group-hover:text-current transition-colors" /> TV Remote
- </button>
- <button 
- onClick={() => {
- setIsAddConfigModalVisible(false);
- setIsConferenceRoomConfigVisible(true);
- }}
- className="flex items-center gap-3 w-full p-2.5 hover:bg-teal-100 rounded-lg text-slate-700 hover:text-teal-700 transition-all duration-200 text-sm text-left font-medium hover:font-bold cursor-pointer hover:shadow-md group"
- >
- <Monitor className="w-4 h-4 text-slate-400 group-hover:text-current transition-colors" /> Conference Room Display
- </button>
- <button 
- onClick={() => {
- setIsAddConfigModalVisible(false);
- setIsLockScreenMessageConfigVisible(true);
- }}
- className="flex items-center gap-3 w-full p-2.5 hover:bg-teal-100 rounded-lg text-slate-700 hover:text-teal-700 transition-all duration-200 text-sm text-left font-medium hover:font-bold cursor-pointer hover:shadow-md group"
- >
- <MessageSquare className="w-4 h-4 text-slate-400 group-hover:text-current transition-colors" /> Lock Screen Message
- </button>
- <button 
- onClick={() => {
- setIsAddConfigModalVisible(false);
- setIsWebClipConfigVisible(true);
- }}
- className="flex items-center gap-3 w-full p-2.5 hover:bg-teal-100 rounded-lg text-slate-700 hover:text-teal-700 transition-all duration-200 text-sm text-left font-medium hover:font-bold cursor-pointer hover:shadow-md group"
- >
- <LinkIcon className="w-4 h-4 text-slate-400 group-hover:text-current transition-colors" /> Web Clips
- </button>
- <button 
- onClick={() => {
- setIsAddConfigModalVisible(false);
- setIsNotificationsConfigVisible(true);
- }}
- className="flex items-center gap-3 w-full p-2.5 hover:bg-teal-100 rounded-lg text-slate-700 hover:text-teal-700 transition-all duration-200 text-sm text-left font-medium hover:font-bold cursor-pointer hover:shadow-md group"
- >
- <AlertCircle className="w-4 h-4 text-slate-400 group-hover:text-current transition-colors" /> Notifications
- </button>
- </div>
+  <div className="bg-teal-500/80 px-4 py-3 text-white font-medium flex items-center gap-2">
+   <Monitor className="w-4 h-4" /> Media & Display
+   <span className="ml-auto text-[10px] bg-white/20 text-white px-2 py-0.5 rounded font-normal">Coming Soon</span>
+  </div>
+  <div className="p-2 flex flex-col gap-1">
+   {[
+    { icon: <MonitorPlay className="w-4 h-4" />, label: "AirPlay" },
+    { icon: <Shield className="w-4 h-4" />, label: "AirPlay Security" },
+    { icon: <Printer className="w-4 h-4" />, label: "AirPrint" },
+    { icon: <Tv className="w-4 h-4" />, label: "TV Remote" },
+    { icon: <Monitor className="w-4 h-4" />, label: "Conference Room Display" },
+    { icon: <MessageSquare className="w-4 h-4" />, label: "Lock Screen Message" },
+    { icon: <LinkIcon className="w-4 h-4" />, label: "Web Clips" },
+    { icon: <AlertCircle className="w-4 h-4" />, label: "Notifications" },
+   ].map((item) => (
+    <div key={item.label} className="flex items-center gap-3 w-full p-2.5 rounded-lg text-slate-400 cursor-not-allowed opacity-50 text-sm text-left font-medium select-none" title="Not supported by backend yet">
+     {item.icon} {item.label}
+     <span className="ml-auto text-[10px] bg-slate-200 text-slate-500 px-1.5 py-0.5 rounded font-normal">Soon</span>
+    </div>
+   ))}
+  </div>
  </div>
  </div>
  </Modal>
@@ -1898,118 +2306,133 @@ export function ProfilesList() {
  >
  <div className="flex flex-col h-full bg-slate-50">
  <div className="p-8 flex-1 overflow-y-auto max-h-[70vh] scrollbar-hide">
- <Form layout="vertical" className="max-w-3xl mx-auto custom-form">
+ <Form form={passcodeForm} layout="vertical" className="max-w-3xl mx-auto custom-form">
  <div className="space-y-6">
- {/* Allow simple value */}
- <div className="flex items-start gap-4 p-4 bg-white rounded-lg border border-slate-200 shadow-sm">
- <Form.Item name="allowSimple" valuePropName="checked" className="mb-0 pt-1">
- <Checkbox defaultChecked />
- </Form.Item>
- <div>
- <div className="font-semibold text-slate-800 text-base mb-1">Allow simple value</div>
- <div className="text-sm text-slate-500 leading-relaxed">Permit the use of repeating, ascending, and descending character sequences</div>
- </div>
- </div>
-
- {/* Require alphanumeric value */}
- <div className="flex items-start gap-4 p-4 bg-white rounded-lg border border-slate-200 shadow-sm">
- <Form.Item name="requireAlphanumeric" valuePropName="checked" className="mb-0 pt-1">
- <Checkbox />
- </Form.Item>
- <div>
- <div className="font-semibold text-slate-800 text-base mb-1">Require alphanumeric value</div>
- <div className="text-sm text-slate-500 leading-relaxed">Requires passcode to contain at least one letter and one number</div>
- </div>
+ {/* Allow simple value — not in backend schema */}
+ <div className="relative flex items-start gap-4 p-4 bg-white rounded-lg border border-slate-200 shadow-sm opacity-50 pointer-events-none select-none">
+  <Form.Item name="allowSimple" valuePropName="checked" className="mb-0 pt-1">
+   <Checkbox defaultChecked />
+  </Form.Item>
+  <div className="flex-1">
+   <div className="flex items-center gap-2 font-semibold text-slate-800 text-base mb-1">
+    Allow simple value
+    <span className="text-[10px] bg-slate-200 text-slate-500 px-1.5 py-0.5 rounded font-normal">Not supported</span>
+   </div>
+   <div className="text-sm text-slate-500 leading-relaxed">Permit the use of repeating, ascending, and descending character sequences</div>
+  </div>
  </div>
 
- {/* Minimum passcode length */}
+ {/* Require alphanumeric value ✅ backend: require_alphanumeric */}
  <div className="flex items-start gap-4 p-4 bg-white rounded-lg border border-slate-200 shadow-sm">
- <Form.Item name="minLength" className="mb-0 w-24">
- <InputNumber min={0} max={16} defaultValue={0} className="w-full" controls={true} />
- </Form.Item>
- <div>
- <div className="font-semibold text-slate-800 text-base mb-1">Minimum passcode length</div>
- <div className="text-sm text-slate-500 leading-relaxed">Smallest number of passcode characters allowed</div>
- </div>
+  <Form.Item name="requireAlphanumeric" valuePropName="checked" className="mb-0 pt-1">
+   <Checkbox />
+  </Form.Item>
+  <div>
+   <div className="font-semibold text-slate-800 text-base mb-1">Require alphanumeric value</div>
+   <div className="text-sm text-slate-500 leading-relaxed">Requires passcode to contain at least one letter and one number</div>
+  </div>
  </div>
 
- {/* Minimum number of complex characters */}
+ {/* Minimum passcode length ✅ backend: min_length */}
  <div className="flex items-start gap-4 p-4 bg-white rounded-lg border border-slate-200 shadow-sm">
- <Form.Item name="minComplexChars" className="mb-0 w-24">
- <InputNumber min={0} max={4} defaultValue={0} className="w-full" controls={true} />
- </Form.Item>
- <div>
- <div className="font-semibold text-slate-800 text-base mb-1">Minimum number of complex characters</div>
- <div className="text-sm text-slate-500 leading-relaxed">Smallest number of non-alphanumeric characters allowed</div>
- </div>
+  <Form.Item name="minLength" className="mb-0 w-24">
+   <InputNumber min={0} max={16} defaultValue={0} className="w-full" controls={true} />
+  </Form.Item>
+  <div>
+   <div className="font-semibold text-slate-800 text-base mb-1">Minimum passcode length</div>
+   <div className="text-sm text-slate-500 leading-relaxed">Smallest number of passcode characters allowed</div>
+  </div>
  </div>
 
- {/* Maximum passcode age */}
- <div className="flex items-start gap-4 p-4 bg-white rounded-lg border border-slate-200 shadow-sm">
- <Form.Item name="maxAge" className="mb-0 w-24">
- <InputNumber min={1} max={730} placeholder="none" className="w-full" controls={true} />
- </Form.Item>
- <div>
- <div className="font-semibold text-slate-800 text-base mb-1">Maximum passcode age (1-730 days, or none)</div>
- <div className="text-sm text-slate-500 leading-relaxed">Days after which passcode must be changed</div>
- </div>
- </div>
-
- {/* Maximum Auto-Lock */}
- <div className="flex items-start gap-4 p-4 bg-white rounded-lg border border-slate-200 shadow-sm">
- <Form.Item name="maxAutoLock" className="mb-0 w-32">
- <Select defaultValue="none" className="cursor-pointer w-full cursor-pointer">
- <Select.Option value="none">None</Select.Option>
- <Select.Option value="1">1 minute</Select.Option>
- <Select.Option value="2">2 minutes</Select.Option>
- <Select.Option value="3">3 minutes</Select.Option>
- <Select.Option value="4">4 minutes</Select.Option>
- <Select.Option value="5">5 minutes</Select.Option>
- </Select>
- </Form.Item>
- <div>
- <div className="font-semibold text-slate-800 text-base mb-1">Maximum Auto-Lock</div>
- <div className="text-sm text-slate-500 leading-relaxed">Longest auto-lock time available to the user</div>
- </div>
+ {/* Minimum number of complex characters — not in backend schema */}
+ <div className="relative flex items-start gap-4 p-4 bg-white rounded-lg border border-slate-200 shadow-sm opacity-50 pointer-events-none select-none">
+  <Form.Item name="minComplexChars" className="mb-0 w-24">
+   <InputNumber min={0} max={4} defaultValue={0} className="w-full" controls={true} />
+  </Form.Item>
+  <div className="flex-1">
+   <div className="flex items-center gap-2 font-semibold text-slate-800 text-base mb-1">
+    Minimum number of complex characters
+    <span className="text-[10px] bg-slate-200 text-slate-500 px-1.5 py-0.5 rounded font-normal">Not supported</span>
+   </div>
+   <div className="text-sm text-slate-500 leading-relaxed">Smallest number of non-alphanumeric characters allowed</div>
+  </div>
  </div>
 
- {/* Passcode history */}
- <div className="flex items-start gap-4 p-4 bg-white rounded-lg border border-slate-200 shadow-sm">
- <Form.Item name="passcodeHistory" className="mb-0 w-24">
- <InputNumber min={1} max={50} placeholder="none" className="w-full" controls={true} />
- </Form.Item>
- <div>
- <div className="font-semibold text-slate-800 text-base mb-1">Passcode history (1-50 passcodes, or none)</div>
- <div className="text-sm text-slate-500 leading-relaxed">Number of unique passcodes before reuse</div>
- </div>
- </div>
-
- {/* Maximum grace period */}
- <div className="flex items-start gap-4 p-4 bg-white rounded-lg border border-slate-200 shadow-sm">
- <Form.Item name="gracePeriod" className="mb-0 w-32">
- <Select defaultValue="none" className="cursor-pointer w-full cursor-pointer">
- <Select.Option value="none">None</Select.Option>
- <Select.Option value="immediate">Immediately</Select.Option>
- <Select.Option value="1">1 minute</Select.Option>
- <Select.Option value="5">5 minutes</Select.Option>
- <Select.Option value="15">15 minutes</Select.Option>
- </Select>
- </Form.Item>
- <div>
- <div className="font-semibold text-slate-800 text-base mb-1">Maximum grace period for device lock</div>
- <div className="text-sm text-slate-500 leading-relaxed">Longest device lock grace period available to the user</div>
- </div>
+ {/* Maximum passcode age — not in backend schema */}
+ <div className="relative flex items-start gap-4 p-4 bg-white rounded-lg border border-slate-200 shadow-sm opacity-50 pointer-events-none select-none">
+  <Form.Item name="maxAge" className="mb-0 w-24">
+   <InputNumber min={1} max={730} placeholder="none" className="w-full" controls={true} />
+  </Form.Item>
+  <div className="flex-1">
+   <div className="flex items-center gap-2 font-semibold text-slate-800 text-base mb-1">
+    Maximum passcode age (1-730 days, or none)
+    <span className="text-[10px] bg-slate-200 text-slate-500 px-1.5 py-0.5 rounded font-normal">Not supported</span>
+   </div>
+   <div className="text-sm text-slate-500 leading-relaxed">Days after which passcode must be changed</div>
+  </div>
  </div>
 
- {/* Maximum number of failed attempts */}
+ {/* Maximum Auto-Lock ✅ backend: auto_lock */}
  <div className="flex items-start gap-4 p-4 bg-white rounded-lg border border-slate-200 shadow-sm">
- <Form.Item name="maxFailedAttempts" className="mb-0 w-24">
- <InputNumber min={2} max={11} placeholder="none" className="w-full" controls={true} />
- </Form.Item>
- <div>
- <div className="font-semibold text-slate-800 text-base mb-1">Maximum number of failed attempts</div>
- <div className="text-sm text-slate-500 leading-relaxed">Number of passcode entry attempts allowed before all data on device will be erased</div>
+  <Form.Item name="maxAutoLock" className="mb-0 w-32">
+   <Select defaultValue="none" className="cursor-pointer w-full">
+    <Select.Option value="none">None</Select.Option>
+    <Select.Option value="1">1 minute</Select.Option>
+    <Select.Option value="2">2 minutes</Select.Option>
+    <Select.Option value="3">3 minutes</Select.Option>
+    <Select.Option value="4">4 minutes</Select.Option>
+    <Select.Option value="5">5 minutes</Select.Option>
+   </Select>
+  </Form.Item>
+  <div>
+   <div className="font-semibold text-slate-800 text-base mb-1">Maximum Auto-Lock</div>
+   <div className="text-sm text-slate-500 leading-relaxed">Longest auto-lock time available to the user</div>
+  </div>
  </div>
+
+ {/* Passcode history — not in backend schema */}
+ <div className="relative flex items-start gap-4 p-4 bg-white rounded-lg border border-slate-200 shadow-sm opacity-50 pointer-events-none select-none">
+  <Form.Item name="passcodeHistory" className="mb-0 w-24">
+   <InputNumber min={1} max={50} placeholder="none" className="w-full" controls={true} />
+  </Form.Item>
+  <div className="flex-1">
+   <div className="flex items-center gap-2 font-semibold text-slate-800 text-base mb-1">
+    Passcode history (1-50 passcodes, or none)
+    <span className="text-[10px] bg-slate-200 text-slate-500 px-1.5 py-0.5 rounded font-normal">Not supported</span>
+   </div>
+   <div className="text-sm text-slate-500 leading-relaxed">Number of unique passcodes before reuse</div>
+  </div>
+ </div>
+
+ {/* Maximum grace period — not in backend schema */}
+ <div className="relative flex items-start gap-4 p-4 bg-white rounded-lg border border-slate-200 shadow-sm opacity-50 pointer-events-none select-none">
+  <Form.Item name="gracePeriod" className="mb-0 w-32">
+   <Select defaultValue="none" className="cursor-pointer w-full">
+    <Select.Option value="none">None</Select.Option>
+    <Select.Option value="immediate">Immediately</Select.Option>
+    <Select.Option value="1">1 minute</Select.Option>
+    <Select.Option value="5">5 minutes</Select.Option>
+    <Select.Option value="15">15 minutes</Select.Option>
+   </Select>
+  </Form.Item>
+  <div className="flex-1">
+   <div className="flex items-center gap-2 font-semibold text-slate-800 text-base mb-1">
+    Maximum grace period for device lock
+    <span className="text-[10px] bg-slate-200 text-slate-500 px-1.5 py-0.5 rounded font-normal">Not supported</span>
+   </div>
+   <div className="text-sm text-slate-500 leading-relaxed">Longest device lock grace period available to the user</div>
+  </div>
+ </div>
+
+ {/* Maximum number of failed attempts ✅ backend: retry_limit */}
+ <div className="flex items-start gap-4 p-4 bg-white rounded-lg border border-slate-200 shadow-sm">
+  <Form.Item name="maxFailedAttempts" className="mb-0 w-24">
+   <InputNumber min={2} max={11} placeholder="none" className="w-full" controls={true} />
+  </Form.Item>
+  <div>
+   <div className="font-semibold text-slate-800 text-base mb-1">Maximum number of failed attempts</div>
+   <div className="text-sm text-slate-500 leading-relaxed">Number of passcode entry attempts allowed before all data on device will be erased</div>
+  </div>
  </div>
  </div>
  </Form>
@@ -2024,11 +2447,23 @@ export function ProfilesList() {
  >
  CANCEL
  </Button>
- <Button 
+ <Button
  className="font-semibold bg-[#de2a15] hover:bg-[#c22412] text-white border-none px-8"
  onClick={() => {
- setHasPasscodeConfig(true);
- setIsPasscodeConfigVisible(false);
+  const values = passcodeForm.getFieldsValue();
+  setPasscodeData({
+   allow_simple: values.allowSimple ?? true,
+   require_alphanumeric: values.requireAlphanumeric ?? false,
+   min_length: values.minLength ?? 0,
+   min_complex_chars: values.minComplexChars ?? 0,
+   max_passcode_age: values.maxPasscodeAge,
+   auto_lock: values.autoLock ?? "none",
+   history: values.passcodeHistory,
+   grace_period: values.gracePeriod ?? "none",
+   retry_limit: values.maxFailedAttempts,
+  });
+  setHasPasscodeConfig(true);
+  setIsPasscodeConfigVisible(false);
  }}
  >
  SAVE
@@ -2065,95 +2500,94 @@ export function ProfilesList() {
  label: <div className="px-4 font-semibold uppercase tracking-wider text-[13px]">Functionality</div>,
  children: (
  <div className="p-8 flex-1 overflow-y-auto max-h-[70vh] scrollbar-hide">
- <Form layout="vertical" className="max-w-3xl mx-auto custom-form">
+ <Form form={restrictionsForm} layout="vertical" className="max-w-3xl mx-auto custom-form">
  <div className="space-y-4">
- {/* Group 1 */}
+ {/* Allow Camera ✅ backend: camera_enabled */}
  <div className="flex items-start gap-4 p-3 bg-white rounded-lg border border-slate-200 shadow-sm">
- <Form.Item name="allowCamera" valuePropName="checked" className="mb-0 pt-1">
- <Checkbox defaultChecked />
- </Form.Item>
- <div className="font-semibold text-slate-800 text-sm pt-1">Allow use of camera</div>
- </div>
- <div className="flex items-start gap-4 p-3 bg-white rounded-lg border border-slate-200 shadow-sm ml-8">
- <Form.Item name="allowFaceTime" valuePropName="checked" className="mb-0 pt-1">
- <Checkbox defaultChecked />
- </Form.Item>
- <div className="font-semibold text-slate-800 text-sm pt-1">Allow FaceTime (supervised only)</div>
+  <Form.Item name="allowCamera" valuePropName="checked" className="mb-0 pt-1">
+   <Checkbox defaultChecked />
+  </Form.Item>
+  <div className="font-semibold text-slate-800 text-sm pt-1">Allow use of camera</div>
  </div>
 
- {/* Group 2 */}
- <div className="flex items-start gap-4 p-3 bg-white rounded-lg border border-slate-200 shadow-sm">
- <Form.Item name="allowScreenshots" valuePropName="checked" className="mb-0 pt-1">
- <Checkbox defaultChecked />
- </Form.Item>
- <div className="font-semibold text-slate-800 text-sm pt-1">Allow screenshots and screen recording</div>
- </div>
- <div className="flex items-start gap-4 p-3 bg-white rounded-lg border border-slate-200 shadow-sm ml-8">
- <Form.Item name="allowAirPlayScreen" valuePropName="checked" className="mb-0 pt-1">
- <Checkbox defaultChecked />
- </Form.Item>
- <div className="font-semibold text-slate-800 text-sm pt-1">Allow AirPlay, View Screen by Classroom, and Screen Sharing</div>
- </div>
- <div className="flex items-start gap-4 p-3 bg-white rounded-lg border border-slate-200 shadow-sm ml-16">
- <Form.Item name="allowClassroomPrompt" valuePropName="checked" className="mb-0 pt-1">
- <Checkbox />
- </Form.Item>
- <div className="font-semibold text-slate-800 text-sm pt-1">Allow Classroom to perform AirPlay and View Screen without prompting (supervised only)</div>
+ {/* Allow FaceTime — not in backend */}
+ <div className="flex items-start gap-4 p-3 bg-white rounded-lg border border-slate-200 shadow-sm ml-8 opacity-50 pointer-events-none select-none">
+  <Form.Item name="allowFaceTime" valuePropName="checked" className="mb-0 pt-1">
+   <Checkbox defaultChecked />
+  </Form.Item>
+  <div className="flex items-center gap-2 font-semibold text-slate-800 text-sm pt-1">
+   Allow FaceTime (supervised only)
+   <span className="text-[10px] bg-slate-200 text-slate-500 px-1.5 py-0.5 rounded font-normal">Not supported</span>
+  </div>
  </div>
 
- {/* Misc Options */}
+ {/* Screenshots — not in backend */}
+ <div className="flex items-start gap-4 p-3 bg-white rounded-lg border border-slate-200 shadow-sm opacity-50 pointer-events-none select-none">
+  <Form.Item name="allowScreenshots" valuePropName="checked" className="mb-0 pt-1">
+   <Checkbox defaultChecked />
+  </Form.Item>
+  <div className="flex items-center gap-2 font-semibold text-slate-800 text-sm pt-1">
+   Allow screenshots and screen recording
+   <span className="text-[10px] bg-slate-200 text-slate-500 px-1.5 py-0.5 rounded font-normal">Not supported</span>
+  </div>
+ </div>
+ <div className="flex items-start gap-4 p-3 bg-white rounded-lg border border-slate-200 shadow-sm ml-8 opacity-50 pointer-events-none select-none">
+  <Form.Item name="allowAirPlayScreen" valuePropName="checked" className="mb-0 pt-1">
+   <Checkbox defaultChecked />
+  </Form.Item>
+  <div className="flex items-center gap-2 font-semibold text-slate-800 text-sm pt-1">
+   Allow AirPlay, View Screen by Classroom, and Screen Sharing
+   <span className="text-[10px] bg-slate-200 text-slate-500 px-1.5 py-0.5 rounded font-normal">Not supported</span>
+  </div>
+ </div>
+ <div className="flex items-start gap-4 p-3 bg-white rounded-lg border border-slate-200 shadow-sm ml-16 opacity-50 pointer-events-none select-none">
+  <Form.Item name="allowClassroomPrompt" valuePropName="checked" className="mb-0 pt-1">
+   <Checkbox />
+  </Form.Item>
+  <div className="flex items-center gap-2 font-semibold text-slate-800 text-sm pt-1">
+   Allow Classroom to perform AirPlay and View Screen without prompting (supervised only)
+   <span className="text-[10px] bg-slate-200 text-slate-500 px-1.5 py-0.5 rounded font-normal">Not supported</span>
+  </div>
+ </div>
+
+ {/* Allow AirDrop ✅ backend: airdrop_enabled | rest not supported */}
  {[
- "Allow AirDrop (supervised only)",
- "Allow iMessage (supervised only)",
- "Allow Apple Music (supervised only)",
- "Allow Radio (supervised only)",
- "Allow Live Voicemail (supervised only)",
- "Allow voice dialing while device is locked (deprecated in iOS 17)"
- ].map((item, index) => (
- <div key={index} className="flex items-start gap-4 p-3 bg-white rounded-lg border border-slate-200 shadow-sm">
- <Form.Item name={`misc_${index}`} valuePropName="checked" className="mb-0 pt-1">
- <Checkbox defaultChecked />
- </Form.Item>
- <div className="font-semibold text-slate-800 text-sm pt-1">{item}</div>
- </div>
+  { name: "misc_0", label: "Allow AirDrop (supervised only)", supported: true },
+  { name: "misc_1", label: "Allow iMessage (supervised only)", supported: false },
+  { name: "misc_2", label: "Allow Apple Music (supervised only)", supported: false },
+  { name: "misc_3", label: "Allow Radio (supervised only)", supported: false },
+  { name: "misc_4", label: "Allow Live Voicemail (supervised only)", supported: false },
+  { name: "misc_5", label: "Allow voice dialing while device is locked (deprecated in iOS 17)", supported: false },
+ ].map((item) => (
+  <div key={item.name} className={`flex items-start gap-4 p-3 bg-white rounded-lg border border-slate-200 shadow-sm${!item.supported ? " opacity-50 pointer-events-none select-none" : ""}`}>
+   <Form.Item name={item.name} valuePropName="checked" className="mb-0 pt-1">
+    <Checkbox defaultChecked />
+   </Form.Item>
+   <div className="flex items-center gap-2 font-semibold text-slate-800 text-sm pt-1">
+    {item.label}
+    {!item.supported && <span className="text-[10px] bg-slate-200 text-slate-500 px-1.5 py-0.5 rounded font-normal">Not supported</span>}
+   </div>
+  </div>
  ))}
 
- {/* Siri Group */}
- <div className="flex items-start gap-4 p-3 bg-white rounded-lg border border-slate-200 shadow-sm">
- <Form.Item name="allowSiri" valuePropName="checked" className="mb-0 pt-1">
- <Checkbox defaultChecked />
- </Form.Item>
- <div className="font-semibold text-slate-800 text-sm pt-1">Allow Siri</div>
- </div>
- <div className="flex items-start gap-4 p-3 bg-white rounded-lg border border-slate-200 shadow-sm ml-8">
- <Form.Item name="allowSiriLocked" valuePropName="checked" className="mb-0 pt-1">
- <Checkbox defaultChecked />
- </Form.Item>
- <div className="font-semibold text-slate-800 text-sm pt-1">Allow Siri while device is locked</div>
- </div>
- <div className="flex items-start gap-4 p-3 bg-white rounded-lg border border-slate-200 shadow-sm ml-8">
- <Form.Item name="enableSiriFilter" valuePropName="checked" className="mb-0 pt-1">
- <Checkbox />
- </Form.Item>
- <div className="font-semibold text-slate-800 text-sm pt-1">Enable Siri profanity filter (supervised only)</div>
- </div>
- <div className="flex items-start gap-4 p-3 bg-white rounded-lg border border-slate-200 shadow-sm ml-8">
- <Form.Item name="showUserContentSiri" valuePropName="checked" className="mb-0 pt-1">
- <Checkbox defaultChecked />
- </Form.Item>
- <div className="font-semibold text-slate-800 text-sm pt-1">Show user-generated content in Siri (supervised only)</div>
- </div>
-
- <div className="flex items-start gap-4 p-3 bg-white rounded-lg border border-slate-200 shadow-sm">
- <Form.Item name="allowSiriSuggestions" valuePropName="checked" className="mb-0 pt-1">
- <Checkbox defaultChecked />
- </Form.Item>
- <div className="font-semibold text-slate-800 text-sm pt-1">Allow Siri Suggestions</div>
- </div>
- 
- <div className="text-center py-4 text-slate-400 text-sm italic">
- Scroll for more functionality options...
- </div>
+ {/* Siri Group — not in backend */}
+ {[
+  { name: "allowSiri", label: "Allow Siri", indent: "" },
+  { name: "allowSiriLocked", label: "Allow Siri while device is locked", indent: " ml-8" },
+  { name: "enableSiriFilter", label: "Enable Siri profanity filter (supervised only)", indent: " ml-8" },
+  { name: "showUserContentSiri", label: "Show user-generated content in Siri (supervised only)", indent: " ml-8" },
+  { name: "allowSiriSuggestions", label: "Allow Siri Suggestions", indent: "" },
+ ].map((item) => (
+  <div key={item.name} className={`flex items-start gap-4 p-3 bg-white rounded-lg border border-slate-200 shadow-sm opacity-50 pointer-events-none select-none${item.indent}`}>
+   <Form.Item name={item.name} valuePropName="checked" className="mb-0 pt-1">
+    <Checkbox defaultChecked />
+   </Form.Item>
+   <div className="flex items-center gap-2 font-semibold text-slate-800 text-sm pt-1">
+    {item.label}
+    <span className="text-[10px] bg-slate-200 text-slate-500 px-1.5 py-0.5 rounded font-normal">Not supported</span>
+   </div>
+  </div>
+ ))}
  </div>
  </Form>
  </div>
@@ -2166,78 +2600,78 @@ export function ProfilesList() {
  <div className="p-8 flex-1 overflow-y-auto max-h-[70vh] scrollbar-hide">
  <Form layout="vertical" className="max-w-3xl mx-auto custom-form">
  <div className="space-y-4">
- <div className="flex items-start gap-4 p-3 bg-white rounded-lg border border-slate-200 shadow-sm">
+ {/* iTunes — not in backend */}
+ <div className="flex items-start gap-4 p-3 bg-white rounded-lg border border-slate-200 shadow-sm opacity-50 pointer-events-none select-none">
  <Form.Item name="allowiTunes" valuePropName="checked" className="mb-0 pt-1">
  <Checkbox defaultChecked />
  </Form.Item>
- <div className="font-semibold text-slate-800 text-sm pt-1">Allow use of iTunes Store (supervised only)</div>
+ <div className="flex items-center gap-2 font-semibold text-slate-800 text-sm pt-1">
+ Allow use of iTunes Store (supervised only)
+ <span className="text-[10px] bg-slate-200 text-slate-500 px-1.5 py-0.5 rounded font-normal">Not supported</span>
  </div>
- <div className="flex items-start gap-4 p-3 bg-white rounded-lg border border-slate-200 shadow-sm">
+ </div>
+ {/* News — not in backend */}
+ <div className="flex items-start gap-4 p-3 bg-white rounded-lg border border-slate-200 shadow-sm opacity-50 pointer-events-none select-none">
  <Form.Item name="allowNews" valuePropName="checked" className="mb-0 pt-1">
  <Checkbox defaultChecked />
  </Form.Item>
- <div className="font-semibold text-slate-800 text-sm pt-1">Allow use of News (supervised only)</div>
+ <div className="flex items-center gap-2 font-semibold text-slate-800 text-sm pt-1">
+ Allow use of News (supervised only)
+ <span className="text-[10px] bg-slate-200 text-slate-500 px-1.5 py-0.5 rounded font-normal">Not supported</span>
  </div>
- <div className="flex items-start gap-4 p-3 bg-white rounded-lg border border-slate-200 shadow-sm">
+ </div>
+ {/* Podcasts — not in backend */}
+ <div className="flex items-start gap-4 p-3 bg-white rounded-lg border border-slate-200 shadow-sm opacity-50 pointer-events-none select-none">
  <Form.Item name="allowPodcasts" valuePropName="checked" className="mb-0 pt-1">
  <Checkbox defaultChecked />
  </Form.Item>
- <div className="font-semibold text-slate-800 text-sm pt-1">Allow use of Podcasts (supervised only)</div>
+ <div className="flex items-center gap-2 font-semibold text-slate-800 text-sm pt-1">
+ Allow use of Podcasts (supervised only)
+ <span className="text-[10px] bg-slate-200 text-slate-500 px-1.5 py-0.5 rounded font-normal">Not supported</span>
+ </div>
  </div>
 
- {/* Game Center */}
- <div className="flex items-start gap-4 p-3 bg-white rounded-lg border border-slate-200 shadow-sm">
- <Form.Item name="allowGameCenter" valuePropName="checked" className="mb-0 pt-1">
- <Checkbox defaultChecked />
- </Form.Item>
- <div className="font-semibold text-slate-800 text-sm pt-1">Allow use of Game Center (supervised only)</div>
- </div>
- <div className="flex items-start gap-4 p-3 bg-white rounded-lg border border-slate-200 shadow-sm ml-8">
- <Form.Item name="allowMultiplayer" valuePropName="checked" className="mb-0 pt-1">
- <Checkbox defaultChecked />
- </Form.Item>
- <div className="font-semibold text-slate-800 text-sm pt-1">Allow multiplayer gaming (supervised only)</div>
- </div>
- <div className="flex items-start gap-4 p-3 bg-white rounded-lg border border-slate-200 shadow-sm ml-8">
- <Form.Item name="allowAddFriends" valuePropName="checked" className="mb-0 pt-1">
- <Checkbox defaultChecked />
- </Form.Item>
- <div className="font-semibold text-slate-800 text-sm pt-1">Allow adding Game Center friends (supervised only)</div>
- </div>
+ {/* Game Center — not in backend */}
+ {[
+  { name: "allowGameCenter", label: "Allow use of Game Center (supervised only)", indent: "" },
+  { name: "allowMultiplayer", label: "Allow multiplayer gaming (supervised only)", indent: " ml-8" },
+  { name: "allowAddFriends", label: "Allow adding Game Center friends (supervised only)", indent: " ml-8" },
+ ].map((item) => (
+  <div key={item.name} className={`flex items-start gap-4 p-3 bg-white rounded-lg border border-slate-200 shadow-sm opacity-50 pointer-events-none select-none${item.indent}`}>
+   <Form.Item name={item.name} valuePropName="checked" className="mb-0 pt-1">
+    <Checkbox defaultChecked />
+   </Form.Item>
+   <div className="flex items-center gap-2 font-semibold text-slate-800 text-sm pt-1">
+    {item.label}
+    <span className="text-[10px] bg-slate-200 text-slate-500 px-1.5 py-0.5 rounded font-normal">Not supported</span>
+   </div>
+  </div>
+ ))}
 
- {/* Safari */}
- <div className="flex items-start gap-4 p-3 bg-white rounded-lg border border-slate-200 shadow-sm">
- <Form.Item name="allowSafari" valuePropName="checked" className="mb-0 pt-1">
- <Checkbox defaultChecked />
- </Form.Item>
- <div className="font-semibold text-slate-800 text-sm pt-1">Allow use of Safari (supervised only)</div>
+ {/* Safari — not in backend */}
+ {[
+  { name: "allowSafari", label: "Allow use of Safari (supervised only)", indent: "" },
+  { name: "enableAutoFill", label: "Enable AutoFill (supervised only)", indent: " ml-8" },
+  { name: "forceFraudWarning", label: "Force fraud warning", indent: " ml-8" },
+  { name: "enableJS", label: "Enable JavaScript", indent: " ml-8" },
+  { name: "blockPopups", label: "Block pop-ups", indent: " ml-8" },
+ ].map((item) => (
+  <div key={item.name} className={`flex items-start gap-4 p-3 bg-white rounded-lg border border-slate-200 shadow-sm opacity-50 pointer-events-none select-none${item.indent}`}>
+   <Form.Item name={item.name} valuePropName="checked" className="mb-0 pt-1">
+    <Checkbox defaultChecked />
+   </Form.Item>
+   <div className="flex items-center gap-2 font-semibold text-slate-800 text-sm pt-1">
+    {item.label}
+    <span className="text-[10px] bg-slate-200 text-slate-500 px-1.5 py-0.5 rounded font-normal">Not supported</span>
+   </div>
+  </div>
+ ))}
+ {/* Accept cookies — not in backend */}
+ <div className="ml-8 p-3 bg-white rounded-lg border border-slate-200 shadow-sm opacity-50 pointer-events-none select-none">
+ <div className="flex items-center gap-2 font-semibold text-slate-800 text-sm mb-2">
+  Accept cookies
+  <span className="text-[10px] bg-slate-200 text-slate-500 px-1.5 py-0.5 rounded font-normal">Not supported</span>
  </div>
- <div className="flex items-start gap-4 p-3 bg-white rounded-lg border border-slate-200 shadow-sm ml-8">
- <Form.Item name="enableAutoFill" valuePropName="checked" className="mb-0 pt-1">
- <Checkbox defaultChecked />
- </Form.Item>
- <div className="font-semibold text-slate-800 text-sm pt-1">Enable AutoFill (supervised only)</div>
- </div>
- <div className="flex items-start gap-4 p-3 bg-white rounded-lg border border-slate-200 shadow-sm ml-8">
- <Form.Item name="forceFraudWarning" valuePropName="checked" className="mb-0 pt-1">
- <Checkbox />
- </Form.Item>
- <div className="font-semibold text-slate-800 text-sm pt-1">Force fraud warning</div>
- </div>
- <div className="flex items-start gap-4 p-3 bg-white rounded-lg border border-slate-200 shadow-sm ml-8">
- <Form.Item name="enableJS" valuePropName="checked" className="mb-0 pt-1">
- <Checkbox defaultChecked />
- </Form.Item>
- <div className="font-semibold text-slate-800 text-sm pt-1">Enable JavaScript</div>
- </div>
- <div className="flex items-start gap-4 p-3 bg-white rounded-lg border border-slate-200 shadow-sm ml-8">
- <Form.Item name="blockPopups" valuePropName="checked" className="mb-0 pt-1">
- <Checkbox />
- </Form.Item>
- <div className="font-semibold text-slate-800 text-sm pt-1">Block pop-ups</div>
- </div>
- <div className="ml-8 p-3 bg-white rounded-lg border border-slate-200 shadow-sm">
- <div className="font-semibold text-slate-800 text-sm mb-2">Accept cookies</div>
  <Select defaultValue="always" className="cursor-pointer w-full max-w-xs cursor-pointer">
  <Select.Option value="always">Always</Select.Option>
  <Select.Option value="never">Never</Select.Option>
@@ -2245,8 +2679,12 @@ export function ProfilesList() {
  </Select>
  </div>
 
- <div className="mt-8 p-4 bg-white rounded-lg border border-slate-200 shadow-sm">
- <div className="font-semibold text-slate-800 text-sm mb-2">Restrict App Usage (supervised only)</div>
+ {/* Restrict App Usage — not in backend */}
+ <div className="mt-8 p-4 bg-white rounded-lg border border-slate-200 shadow-sm opacity-50 pointer-events-none select-none">
+ <div className="flex items-center gap-2 font-semibold text-slate-800 text-sm mb-2">
+  Restrict App Usage (supervised only)
+  <span className="text-[10px] bg-slate-200 text-slate-500 px-1.5 py-0.5 rounded font-normal">Not supported</span>
+ </div>
  <Select defaultValue="allowAll" className="cursor-pointer w-full max-w-xs mb-4 cursor-pointer">
  <Select.Option value="allowAll">Allow all apps</Select.Option>
  <Select.Option value="allowSome">Allow some apps</Select.Option>
@@ -2271,8 +2709,12 @@ export function ProfilesList() {
  <div className="p-8 flex-1 overflow-y-auto max-h-[70vh] scrollbar-hide">
  <Form layout="vertical" className="max-w-3xl mx-auto custom-form">
  <div className="space-y-6">
- <div className="p-4 bg-white rounded-lg border border-slate-200 shadow-sm">
- <div className="font-semibold text-slate-800 text-sm mb-1">Ratings region</div>
+ {/* Ratings region — not in backend */}
+ <div className="p-4 bg-white rounded-lg border border-slate-200 shadow-sm opacity-50 pointer-events-none select-none">
+ <div className="flex items-center gap-2 font-semibold text-slate-800 text-sm mb-1">
+  Ratings region
+  <span className="text-[10px] bg-slate-200 text-slate-500 px-1.5 py-0.5 rounded font-normal">Not supported</span>
+ </div>
  <div className="text-xs text-slate-500 mb-3">Sets the region for the ratings</div>
  <Select defaultValue="us" className="cursor-pointer w-full max-w-xs cursor-pointer">
  <Select.Option value="us">United States</Select.Option>
@@ -2281,10 +2723,14 @@ export function ProfilesList() {
  </Select>
  </div>
 
- <div className="p-4 bg-white rounded-lg border border-slate-200 shadow-sm">
- <div className="font-semibold text-slate-800 text-sm mb-1">Allowed content ratings</div>
+ {/* Allowed content ratings — not in backend */}
+ <div className="p-4 bg-white rounded-lg border border-slate-200 shadow-sm opacity-50 pointer-events-none select-none">
+ <div className="flex items-center gap-2 font-semibold text-slate-800 text-sm mb-1">
+  Allowed content ratings
+  <span className="text-[10px] bg-slate-200 text-slate-500 px-1.5 py-0.5 rounded font-normal">Not supported</span>
+ </div>
  <div className="text-xs text-slate-500 mb-4">Sets the maximum allowed ratings</div>
- 
+
  <div className="grid grid-cols-[100px_1fr] gap-4 items-center mb-3">
  <div className="text-right font-medium text-slate-700 text-sm">Movies:</div>
  <Select defaultValue="all" className="cursor-pointer max-w-xs cursor-pointer">
@@ -2308,18 +2754,26 @@ export function ProfilesList() {
  </div>
  </div>
 
- <div className="flex items-start gap-4 p-3 bg-white rounded-lg border border-slate-200 shadow-sm">
+ {/* Explicit media — not in backend */}
+ <div className="flex items-start gap-4 p-3 bg-white rounded-lg border border-slate-200 shadow-sm opacity-50 pointer-events-none select-none">
  <Form.Item name="allowExplicitMedia" valuePropName="checked" className="mb-0 pt-1">
  <Checkbox defaultChecked />
  </Form.Item>
- <div className="font-semibold text-slate-800 text-sm pt-1">Allow playback of explicit music, podcasts & iTunes U media (supervised only)</div>
+ <div className="flex items-center gap-2 font-semibold text-slate-800 text-sm pt-1">
+  Allow playback of explicit music, podcasts &amp; iTunes U media (supervised only)
+  <span className="text-[10px] bg-slate-200 text-slate-500 px-1.5 py-0.5 rounded font-normal">Not supported</span>
+ </div>
  </div>
 
- <div className="flex items-start gap-4 p-3 bg-white rounded-lg border border-slate-200 shadow-sm">
+ {/* Explicit books — not in backend */}
+ <div className="flex items-start gap-4 p-3 bg-white rounded-lg border border-slate-200 shadow-sm opacity-50 pointer-events-none select-none">
  <Form.Item name="allowExplicitBooks" valuePropName="checked" className="mb-0 pt-1">
  <Checkbox defaultChecked />
  </Form.Item>
- <div className="font-semibold text-slate-800 text-sm pt-1">Allow explicit sexual content in Apple Books</div>
+ <div className="flex items-center gap-2 font-semibold text-slate-800 text-sm pt-1">
+  Allow explicit sexual content in Apple Books
+  <span className="text-[10px] bg-slate-200 text-slate-500 px-1.5 py-0.5 rounded font-normal">Not supported</span>
+ </div>
  </div>
  </div>
  </Form>
@@ -2338,11 +2792,27 @@ export function ProfilesList() {
  >
  CANCEL
  </Button>
- <Button 
+ <Button
  className="font-semibold bg-[#de2a15] hover:bg-[#c22412] text-white border-none px-8"
  onClick={() => {
- setHasRestrictionsConfig(true);
- setIsRestrictionsConfigVisible(false);
+  const values = restrictionsForm.getFieldsValue();
+  setRestrictionsData({
+   camera_enabled: values.allowCamera ?? true,
+   airdrop_enabled: values.allowAirDrop ?? true,
+   bluetooth_enabled: true,
+   usb_debugging_enabled: false,
+   external_app_install_allowed: values.allowiTunes ?? true,
+   facetime_enabled: values.allowFaceTime ?? true,
+   screenshots_enabled: values.allowScreenshots ?? true,
+   siri_enabled: values.allowSiri ?? true,
+   safari_enabled: values.allowSafari ?? true,
+   game_center_enabled: values.allowGameCenter ?? true,
+   itunes_enabled: values.allowiTunes ?? true,
+   news_enabled: values.allowNews ?? true,
+   podcasts_enabled: values.allowPodcasts ?? true,
+  });
+  setHasRestrictionsConfig(true);
+  setIsRestrictionsConfigVisible(false);
  }}
  >
  SAVE
@@ -3418,27 +3888,37 @@ export function ProfilesList() {
  >
  <div className="flex flex-col h-full bg-slate-50">
  <div className="p-8 flex-1 overflow-y-auto max-h-[70vh] scrollbar-hide">
- <Form layout="vertical" className="max-w-3xl mx-auto custom-form">
+ <Form form={wifiForm} layout="vertical" className="max-w-3xl mx-auto custom-form">
  <div className="space-y-6">
  {/* SSID */}
  <div className="p-5 bg-white rounded-lg border border-slate-200 shadow-sm">
  <div className="font-semibold text-slate-800 text-base mb-1">Service Set Identifier (SSID)</div>
  <div className="text-sm text-slate-500 mb-3">Identification of the wireless network to connect to</div>
- <Input placeholder="[required]" className="bg-slate-50 hover:bg-white focus:bg-white transition-colors" />
+ <Input
+  value={wifiSsid}
+  onChange={(e) => setWifiSsid(e.target.value)}
+  placeholder="[required]"
+  className="bg-slate-50 hover:bg-white focus:bg-white transition-colors"
+ />
  </div>
 
  {/* Checkboxes */}
  <div className="flex flex-col gap-4 p-5 bg-white rounded-lg border border-slate-200 shadow-sm">
- <div className="flex items-start gap-4">
+ {/* Hidden Network — not in backend */}
+ <div className="flex items-start gap-4 opacity-50 pointer-events-none select-none">
  <Form.Item name="hiddenNetwork" valuePropName="checked" className="mb-0 pt-0.5">
  <Checkbox />
  </Form.Item>
  <div>
- <div className="font-semibold text-slate-800 text-base">Hidden Network</div>
+ <div className="flex items-center gap-2 font-semibold text-slate-800 text-base">
+  Hidden Network
+  <span className="text-[10px] bg-slate-200 text-slate-500 px-1.5 py-0.5 rounded font-normal">Not supported</span>
+ </div>
  <div className="text-sm text-slate-500">Enable if target network is not open or broadcasting</div>
  </div>
  </div>
 
+ {/* Auto Join — supported */}
  <div className="flex items-start gap-4">
  <Form.Item name="autoJoin" valuePropName="checked" className="mb-0 pt-0.5">
  <Checkbox defaultChecked />
@@ -3449,22 +3929,30 @@ export function ProfilesList() {
  </div>
  </div>
 
- <div className="flex items-start gap-4">
+ {/* Disable Captive Network Detection — not in backend */}
+ <div className="flex items-start gap-4 opacity-50 pointer-events-none select-none">
  <Form.Item name="disableCaptive" valuePropName="checked" className="mb-0 pt-0.5">
  <Checkbox />
  </Form.Item>
  <div>
- <div className="font-semibold text-slate-800 text-base">Disable Captive Network Detection</div>
+ <div className="flex items-center gap-2 font-semibold text-slate-800 text-base">
+  Disable Captive Network Detection
+  <span className="text-[10px] bg-slate-200 text-slate-500 px-1.5 py-0.5 rounded font-normal">Not supported</span>
+ </div>
  <div className="text-sm text-slate-500">Do not show the captive network assistant</div>
  </div>
  </div>
 
- <div className="flex items-start gap-4">
+ {/* Disable MAC Randomization — not in backend */}
+ <div className="flex items-start gap-4 opacity-50 pointer-events-none select-none">
  <Form.Item name="disableMacRand" valuePropName="checked" className="mb-0 pt-0.5">
  <Checkbox />
  </Form.Item>
  <div>
- <div className="font-semibold text-slate-800 text-base">Disable Association MAC Randomization</div>
+ <div className="flex items-center gap-2 font-semibold text-slate-800 text-base">
+  Disable Association MAC Randomization
+  <span className="text-[10px] bg-slate-200 text-slate-500 px-1.5 py-0.5 rounded font-normal">Not supported</span>
+ </div>
  <div className="text-sm text-slate-500">Connections to this Wi-Fi network will use a non-private MAC address</div>
  </div>
  </div>
@@ -3472,20 +3960,28 @@ export function ProfilesList() {
 
  {/* Select Options */}
  <div className="p-5 bg-white rounded-lg border border-slate-200 shadow-sm space-y-5">
- <div>
- <div className="font-semibold text-slate-800 text-base mb-1">Proxy Setup</div>
+ {/* Proxy Setup — not in backend */}
+ <div className="opacity-50 pointer-events-none select-none">
+ <div className="flex items-center gap-2 font-semibold text-slate-800 text-base mb-1">
+  Proxy Setup
+  <span className="text-[10px] bg-slate-200 text-slate-500 px-1.5 py-0.5 rounded font-normal">Not supported</span>
+ </div>
  <div className="text-sm text-slate-500 mb-2">Configures proxies to be used with this network</div>
- <Select defaultValue="none" className="cursor-pointer w-full max-w-xs cursor-pointer">
+ <Select value={wifiProxySetup} onChange={setWifiProxySetup} className="cursor-pointer w-full max-w-xs">
  <Select.Option value="none">None</Select.Option>
  <Select.Option value="manual">Manual</Select.Option>
  <Select.Option value="auto">Auto</Select.Option>
  </Select>
  </div>
 
- <div>
- <div className="font-semibold text-slate-800 text-base mb-1">Security Type</div>
+ {/* Security Type — not in backend */}
+ <div className="opacity-50 pointer-events-none select-none">
+ <div className="flex items-center gap-2 font-semibold text-slate-800 text-base mb-1">
+  Security Type
+  <span className="text-[10px] bg-slate-200 text-slate-500 px-1.5 py-0.5 rounded font-normal">Not supported</span>
+ </div>
  <div className="text-sm text-slate-500 mb-2">Wireless network encryption to use when connecting</div>
- <Select defaultValue="none" className="cursor-pointer w-full max-w-xs cursor-pointer">
+ <Select value={wifiSecurityType} onChange={setWifiSecurityType} className="cursor-pointer w-full max-w-xs">
  <Select.Option value="none">None</Select.Option>
  <Select.Option value="wep">WEP</Select.Option>
  <Select.Option value="wpa">WPA / WPA2</Select.Option>
@@ -3493,8 +3989,12 @@ export function ProfilesList() {
  </Select>
  </div>
 
- <div>
- <div className="font-semibold text-slate-800 text-base mb-1">Network Type</div>
+ {/* Network Type — not in backend */}
+ <div className="opacity-50 pointer-events-none select-none">
+ <div className="flex items-center gap-2 font-semibold text-slate-800 text-base mb-1">
+  Network Type
+  <span className="text-[10px] bg-slate-200 text-slate-500 px-1.5 py-0.5 rounded font-normal">Not supported</span>
+ </div>
  <div className="text-sm text-slate-500 mb-2">Configures network to appear as legacy or Passpoint hotspot</div>
  <Select defaultValue="standard" className="cursor-pointer w-full max-w-xs cursor-pointer">
  <Select.Option value="standard">Standard</Select.Option>
@@ -3503,8 +4003,12 @@ export function ProfilesList() {
  </Select>
  </div>
 
- <div>
- <div className="font-semibold text-slate-800 text-base mb-1">Fast Lane QoS Marking</div>
+ {/* Fast Lane QoS — not in backend */}
+ <div className="opacity-50 pointer-events-none select-none">
+ <div className="flex items-center gap-2 font-semibold text-slate-800 text-base mb-1">
+  Fast Lane QoS Marking
+  <span className="text-[10px] bg-slate-200 text-slate-500 px-1.5 py-0.5 rounded font-normal">Not supported</span>
+ </div>
  <Select defaultValue="not-restrict" className="cursor-pointer w-full max-w-xs mt-1 cursor-pointer">
  <Select.Option value="not-restrict">Do not restrict QoS marking</Select.Option>
  <Select.Option value="restrict">Restrict QoS marking</Select.Option>
@@ -3524,11 +4028,21 @@ export function ProfilesList() {
  >
  CANCEL
  </Button>
- <Button 
+ <Button
  className="font-semibold bg-[#de2a15] hover:bg-[#c22412] text-white border-none px-8"
  onClick={() => {
- setHasWifiConfig(true);
- setIsWifiConfigVisible(false);
+  const values = wifiForm.getFieldsValue();
+  setWifiData({
+   ssid: wifiSsid,
+   auto_join: values.autoJoin ?? true,
+   hidden_network: values.hiddenNetwork ?? false,
+   disable_captive: values.disableCaptive ?? false,
+   disable_mac_randomization: values.disableMacRand ?? false,
+   security_type: wifiSecurityType,
+   proxy_setup: wifiProxySetup,
+  });
+  setHasWifiConfig(true);
+  setIsWifiConfigVisible(false);
  }}
  >
  SAVE
@@ -3563,14 +4077,19 @@ export function ProfilesList() {
  <div className="p-5 bg-white rounded-lg border border-slate-200 shadow-sm">
  <div className="font-semibold text-slate-800 text-base mb-1">Connection Name</div>
  <div className="text-sm text-slate-500 mb-3">Display name of the connection (displayed on the device)</div>
- <Input placeholder="[required]" className="bg-slate-50 hover:bg-white focus:bg-white transition-colors" />
+ <Input
+  value={vpnConnectionName}
+  onChange={(e) => setVpnConnectionName(e.target.value)}
+  placeholder="[required]"
+  className="bg-slate-50 hover:bg-white focus:bg-white transition-colors"
+ />
  </div>
 
  {/* Connection Type */}
  <div className="p-5 bg-white rounded-lg border border-slate-200 shadow-sm">
  <div className="font-semibold text-slate-800 text-base mb-1">Connection Type</div>
  <div className="text-sm text-slate-500 mb-3">Type of connection enabled by this policy</div>
- <Select defaultValue="l2tp" className="cursor-pointer w-full max-w-xs cursor-pointer">
+ <Select value={vpnConnectionType} onChange={setVpnConnectionType} className="cursor-pointer w-full max-w-xs">
  <Select.Option value="l2tp">L2TP</Select.Option>
  <Select.Option value="pptp">PPTP</Select.Option>
  <Select.Option value="ipsec">IPSec</Select.Option>
@@ -3582,24 +4101,33 @@ export function ProfilesList() {
  <div className="p-5 bg-white rounded-lg border border-slate-200 shadow-sm">
  <div className="font-semibold text-slate-800 text-base mb-1">Server</div>
  <div className="text-sm text-slate-500 mb-3">Host name or IP address for server</div>
- <Input placeholder="[required]" className="bg-slate-50 hover:bg-white focus:bg-white transition-colors" />
+ <Input
+  value={vpnServer}
+  onChange={(e) => setVpnServer(e.target.value)}
+  placeholder="[required]"
+  className="bg-slate-50 hover:bg-white focus:bg-white transition-colors"
+ />
  </div>
 
- {/* Account */}
- <div className="p-5 bg-white rounded-lg border border-slate-200 shadow-sm">
+ {/* Account — not in backend */}
+ <div className="p-5 bg-white rounded-lg border border-slate-200 shadow-sm opacity-50 pointer-events-none select-none">
  <div className="font-semibold text-slate-800 text-base mb-1 flex items-center gap-2">
  Account
+ <span className="text-[10px] bg-slate-200 text-slate-500 px-1.5 py-0.5 rounded font-normal">Not supported</span>
  <div className="w-4 h-4 rounded-full bg-yellow-400 text-white flex items-center justify-center text-xs font-bold ml-auto cursor-help" title="Account setting required on device">!</div>
  </div>
  <div className="text-sm text-slate-500 mb-3">User account for authenticating the connection</div>
  <Input placeholder="[set on device]" className="bg-slate-50 hover:bg-white focus:bg-white transition-colors" />
  </div>
 
- {/* User Authentication */}
- <div className="p-5 bg-white rounded-lg border border-slate-200 shadow-sm">
- <div className="font-semibold text-slate-800 text-base mb-1">User Authentication</div>
+ {/* User Authentication — not in backend */}
+ <div className="p-5 bg-white rounded-lg border border-slate-200 shadow-sm opacity-50 pointer-events-none select-none">
+ <div className="font-semibold text-slate-800 text-base mb-1 flex items-center gap-2">
+  User Authentication
+  <span className="text-[10px] bg-slate-200 text-slate-500 px-1.5 py-0.5 rounded font-normal">Not supported</span>
+ </div>
  <div className="text-sm text-slate-500 mb-4">Authentication type for connection</div>
- 
+
  <div className="space-y-4">
  <div className="flex items-center gap-4">
  <div className="flex items-center gap-2">
@@ -3608,7 +4136,7 @@ export function ProfilesList() {
  </div>
  <Input.Password className="max-w-xs bg-slate-50 hover:bg-white focus:bg-white transition-colors" />
  </div>
- 
+
  <div className="flex items-center gap-2">
  <input type="radio" id="auth-rsa" name="userAuth" className="w-4 h-4 text-slate-700 border-slate-300 focus:ring-blue-500" />
  <label htmlFor="auth-rsa" className="font-medium text-slate-700">RSA SecurID</label>
@@ -3623,9 +4151,12 @@ export function ProfilesList() {
  </div>
  </div>
 
- {/* Machine Authentication */}
- <div className="p-5 bg-white rounded-lg border border-slate-200 shadow-sm">
- <div className="font-semibold text-slate-800 text-base mb-1">Machine Authentication</div>
+ {/* Machine Authentication — not in backend */}
+ <div className="p-5 bg-white rounded-lg border border-slate-200 shadow-sm opacity-50 pointer-events-none select-none">
+ <div className="font-semibold text-slate-800 text-base mb-1 flex items-center gap-2">
+  Machine Authentication
+  <span className="text-[10px] bg-slate-200 text-slate-500 px-1.5 py-0.5 rounded font-normal">Not supported</span>
+ </div>
  <div className="text-sm text-slate-500 mb-3">Authentication type for connection</div>
  <Select defaultValue="shared-secret" className="cursor-pointer w-full max-w-xs cursor-pointer">
  <Select.Option value="shared-secret">Shared Secret</Select.Option>
@@ -3633,16 +4164,22 @@ export function ProfilesList() {
  </Select>
  </div>
 
- {/* Shared Secret */}
- <div className="p-5 bg-white rounded-lg border border-slate-200 shadow-sm">
- <div className="font-semibold text-slate-800 text-base mb-1">Shared Secret</div>
+ {/* Shared Secret — not in backend */}
+ <div className="p-5 bg-white rounded-lg border border-slate-200 shadow-sm opacity-50 pointer-events-none select-none">
+ <div className="font-semibold text-slate-800 text-base mb-1 flex items-center gap-2">
+  Shared Secret
+  <span className="text-[10px] bg-slate-200 text-slate-500 px-1.5 py-0.5 rounded font-normal">Not supported</span>
+ </div>
  <div className="text-sm text-slate-500 mb-3">Shared secret for the connection</div>
  <Input.Password placeholder="[optional]" className="bg-slate-50 hover:bg-white focus:bg-white transition-colors" />
  </div>
 
- {/* Proxy Setup */}
- <div className="p-5 bg-white rounded-lg border border-slate-200 shadow-sm">
- <div className="font-semibold text-slate-800 text-base mb-1">Proxy Setup</div>
+ {/* Proxy Configuration — not in backend */}
+ <div className="p-5 bg-white rounded-lg border border-slate-200 shadow-sm opacity-50 pointer-events-none select-none">
+ <div className="font-semibold text-slate-800 text-base mb-1 flex items-center gap-2">
+  Proxy Setup
+  <span className="text-[10px] bg-slate-200 text-slate-500 px-1.5 py-0.5 rounded font-normal">Not supported</span>
+ </div>
  <div className="text-sm text-slate-500 mb-3">Configures proxies to be used with this VPN connection</div>
  <Select defaultValue="none" className="cursor-pointer w-full max-w-xs cursor-pointer">
  <Select.Option value="none">None</Select.Option>
@@ -3663,11 +4200,16 @@ export function ProfilesList() {
  >
  CANCEL
  </Button>
- <Button 
+ <Button
  className="font-semibold bg-[#de2a15] hover:bg-[#c22412] text-white border-none px-8"
  onClick={() => {
- setHasVpnConfig(true);
- setIsVpnConfigVisible(false);
+  setVpnData({
+   connection_name: vpnConnectionName,
+   server: vpnServer,
+   type: vpnConnectionType,
+  });
+  setHasVpnConfig(true);
+  setIsVpnConfigVisible(false);
  }}
  >
  SAVE
@@ -5704,6 +6246,93 @@ export function ProfilesList() {
  <Button className="font-semibold bg-[#de2a15] hover:bg-[#c22412] text-white border-none px-8" onClick={() => { setHasSubscribedCalendarConfig(true); setIsSubscribedCalendarConfigVisible(false); }}>SAVE</Button>
  </div>
  </div>
+ </Modal>
+
+ {/* Assign Profile Modal */}
+ <Modal
+  title={
+   <div className="flex items-center gap-2">
+    <div className="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center">
+     <Users className="w-4 h-4 text-blue-600" />
+    </div>
+    <div>
+     <h3 className="text-base font-bold text-slate-800 m-0">Assign Profile</h3>
+     <p className="text-xs text-slate-500 font-normal m-0">{selectedProfile?.name}</p>
+    </div>
+   </div>
+  }
+  open={isAssignModalVisible}
+  onCancel={() => { setIsAssignModalVisible(false); setAssignDeviceId(""); setAssignGroupId(""); }}
+  footer={
+   <div className="flex justify-end gap-3">
+    <Button onClick={() => { setIsAssignModalVisible(false); setAssignDeviceId(""); setAssignGroupId(""); }}>
+     Cancel
+    </Button>
+    <Button
+     type="primary"
+     loading={assignLoading}
+     className="bg-[#de2a15] hover:bg-[#c22412] border-none"
+     onClick={handleAssignProfile}
+    >
+     Assign
+    </Button>
+   </div>
+  }
+  width={500}
+  className="custom-modal"
+ >
+  <div className="space-y-5 py-2">
+   {/* Target Type */}
+   <div>
+    <div className="text-sm font-semibold text-slate-700 mb-2">Assign to</div>
+    <Select
+     value={assignTargetType}
+     onChange={(val) => { setAssignTargetType(val); setAssignDeviceId(""); setAssignGroupId(""); }}
+     className="w-full"
+    >
+     <Select.Option value="device">Device (by UDID)</Select.Option>
+     <Select.Option value="group">Device Group</Select.Option>
+    </Select>
+   </div>
+
+   {/* Device ID or Group ID */}
+   {assignTargetType === "device" ? (
+    <div>
+     <div className="text-sm font-semibold text-slate-700 mb-2">Device UDID <span className="text-red-500">*</span></div>
+     <Input
+      placeholder="Enter device UDID..."
+      value={assignDeviceId}
+      onChange={(e) => setAssignDeviceId(e.target.value)}
+     />
+    </div>
+   ) : (
+    <div>
+     <div className="text-sm font-semibold text-slate-700 mb-2">Group ID <span className="text-red-500">*</span></div>
+     <Input
+      placeholder="Enter group ID..."
+      value={assignGroupId}
+      onChange={(e) => setAssignGroupId(e.target.value)}
+      type="number"
+     />
+    </div>
+   )}
+
+   {/* Schedule Type */}
+   <div>
+    <div className="text-sm font-semibold text-slate-700 mb-2">Schedule</div>
+    <Select
+     value={assignScheduleType}
+     onChange={setAssignScheduleType}
+     className="w-full"
+    >
+     <Select.Option value="immediate">Immediate — push to device now</Select.Option>
+     <Select.Option value="scheduled">Scheduled — push later</Select.Option>
+    </Select>
+    {assignScheduleType === "immediate" && (
+     <p className="text-xs text-slate-500 mt-2">The profile will be queued and pushed to the device via APNs right away.</p>
+    )}
+   </div>
+  </div>
  </Modal>
 
  {/* Custom Styles for Data-Dense Dashboard */}

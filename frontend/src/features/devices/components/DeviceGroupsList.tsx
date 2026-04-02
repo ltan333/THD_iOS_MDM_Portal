@@ -16,8 +16,10 @@ import {
 } from "lucide-react";
 import type { ColumnsType } from "antd/es/table";
 import { deviceGroupService } from "@/services/device-group.service";
+import { profileService } from "@/services/profile.service";
 import { DeviceGroupResponse } from "@/types/device-group.type";
 import { DeviceResponse } from "@/types/device.type";
+import { ProfileResponse } from "@/types/profile.type";
 import dayjs from "dayjs";
 
 export function DeviceGroupsList() {
@@ -25,8 +27,12 @@ export function DeviceGroupsList() {
     const [groups, setGroups] = useState<DeviceGroupResponse[]>([]);
     const [loading, setLoading] = useState(false);
     const [selectedGroup, setSelectedGroup] = useState<DeviceGroupResponse | null>(null);
+    const [profiles, setProfiles] = useState<ProfileResponse[]>([]);
     const [isDrawerVisible, setIsDrawerVisible] = useState(false);
     const [isCreateModalVisible, setIsCreateModalVisible] = useState(false);
+    const [isAssignProfileModalVisible, setIsAssignProfileModalVisible] = useState(false);
+    const [selectedProfileId, setSelectedProfileId] = useState<number | null>(null);
+    const [targetGroupIds, setTargetGroupIds] = useState<number[]>([]);
     const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
     const [searchQuery, setSearchQuery] = useState("");
     const [form] = Form.useForm();
@@ -51,6 +57,58 @@ export function DeviceGroupsList() {
     useEffect(() => {
         fetchGroups();
     }, [fetchGroups]);
+
+    const fetchProfiles = async () => {
+        try {
+            const response = await profileService.getProfiles({ limit: 100, status: "active" });
+            if (response.is_success && response.data) {
+                setProfiles(response.data.items || []);
+            }
+        } catch (error) {
+            console.error("Fetch profiles error:", error);
+        }
+    };
+
+    useEffect(() => {
+        fetchProfiles();
+    }, []);
+
+    const openAssignProfileModal = (groupIds: number[]) => {
+        setTargetGroupIds(groupIds);
+        setSelectedProfileId(null);
+        fetchProfiles();
+        setIsAssignProfileModalVisible(true);
+    };
+
+    const handleAssignProfileToGroups = async () => {
+        if (!selectedProfileId) {
+            antdMessage.warning("Please select a profile");
+            return;
+        }
+
+        if (targetGroupIds.length === 0) {
+            antdMessage.warning("Please select at least one group");
+            return;
+        }
+
+        try {
+            for (const groupId of targetGroupIds) {
+                await profileService.assignProfile(selectedProfileId, {
+                    target_type: "group",
+                    group_id: groupId,
+                    schedule_type: "immediate",
+                });
+            }
+            antdMessage.success("Profile assigned to group successfully. Devices in group will apply group profile.");
+            setIsAssignProfileModalVisible(false);
+            setSelectedProfileId(null);
+            setTargetGroupIds([]);
+            setSelectedRowKeys([]);
+        } catch (error) {
+            console.error("Assign profile error:", error);
+            antdMessage.error("Failed to assign profile to group");
+        }
+    };
 
     const handleGroupClick = async (group: DeviceGroupResponse) => {
         try {
@@ -167,7 +225,7 @@ export function DeviceGroupsList() {
                         label: 'Assign Profile',
                         onClick: (e) => {
                             e.domEvent.stopPropagation();
-                            console.log('Assign profile to group', record.id);
+                            openAssignProfileModal([record.id]);
                         }
                     },
                     {
@@ -264,7 +322,7 @@ export function DeviceGroupsList() {
             key: 'assign-profile',
             icon: <FilePlus2 className="w-4 h-4" />,
             label: 'Assign Profile to Group',
-            onClick: () => console.log('Assign profile', selectedRowKeys)
+            onClick: () => openAssignProfileModal((selectedRowKeys as number[]).map((key) => Number(key)))
         }
     ];
 
@@ -425,6 +483,32 @@ export function DeviceGroupsList() {
                             <Input.TextArea placeholder="Enter group description..." rows={4} />
                         </Form.Item>
                     </Form>
+                </div>
+            </Modal>
+
+            <Modal
+                title="Assign Profile to Group"
+                open={isAssignProfileModalVisible}
+                onOk={handleAssignProfileToGroups}
+                onCancel={() => {
+                    setIsAssignProfileModalVisible(false);
+                    setSelectedProfileId(null);
+                    setTargetGroupIds([]);
+                }}
+                okText="Assign Profile"
+                okButtonProps={{ className: "bg-[#de2a15] hover:bg-[#c22412]", disabled: !selectedProfileId }}
+            >
+                <div className="py-4">
+                    <p className="mb-4 text-slate-600">
+                        Select a profile to assign to {targetGroupIds.length} group(s). Devices in selected groups will apply this common profile.
+                    </p>
+                    <Select
+                        className="w-full"
+                        placeholder="Select a profile"
+                        value={selectedProfileId ?? undefined}
+                        onChange={(value) => setSelectedProfileId(value)}
+                        options={profiles.map((profile) => ({ value: profile.id, label: profile.name }))}
+                    />
                 </div>
             </Modal>
 

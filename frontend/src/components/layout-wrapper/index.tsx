@@ -20,9 +20,12 @@ export function LayoutWrapper({ children }: { children: React.ReactNode }) {
     // Check authentication status using standard token manager
     const token = tokenManager.getAccessToken();
     
+    // Nếu chưa có token và không ở trang login -> Đẩy về login
     if (!token && !isLoginPage) {
       router.replace('/login');
-    } else if (token && isLoginPage) {
+    } 
+    // CHỈ đẩy về dashboard nếu CÓ TOKEN và đang cố vào trang login
+    else if (token && isLoginPage) {
       router.replace('/dashboard');
     } else {
       setIsAuthenticated(!!token);

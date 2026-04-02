@@ -7,4 +7,5 @@ import (
 
 type ProfileGenerator interface {
 	GenerateXML(ctx context.Context, profile *ent.Profile) ([]byte, error)
+	GetProfileIdentifier(profileID uint) string
 }
