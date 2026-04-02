@@ -7,6 +7,7 @@ import {
     UpdateProfileRequest,
     UpdateProfileStatusRequest,
     AssignProfileRequest,
+    ProfileAssignmentResponse,
     ProfileDeploymentStatusResponse,
 } from "@/types/profile.type";
 
@@ -21,7 +22,7 @@ export const profileService = {
         platform?: string;
         scope?: string;
     }) => {
-        return get<ResponseAPI<ProfileListData>>(BASE_URL, { params });
+        return get<ResponseAPI<ProfileListData>>(BASE_URL, { queryParams: params as Record<string, string | number | boolean | undefined> });
     },
 
     getProfileById: (id: number) => {
@@ -59,10 +60,18 @@ export const profileService = {
     },
 
     assign: (id: number, payload: AssignProfileRequest) => {
-        return post<ResponseAPI<unknown>, AssignProfileRequest>(
+        return post<ResponseAPI<ProfileAssignmentResponse>, AssignProfileRequest>(
             `${BASE_URL}/${id}/assignments`,
             payload
         );
+    },
+
+    listAssignments: (id: number) => {
+        return get<ResponseAPI<ProfileAssignmentResponse[]>>(`${BASE_URL}/${id}/assignments`);
+    },
+
+    unassign: (profileId: number, assignmentId: number) => {
+        return del<ResponseAPI<unknown>>(`${BASE_URL}/${profileId}/assignments/${assignmentId}`);
     },
 
     getDeploymentStatus: (id: number) => {

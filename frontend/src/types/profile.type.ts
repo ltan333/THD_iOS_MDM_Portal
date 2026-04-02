@@ -55,6 +55,17 @@ export interface AssignProfileRequest {
     schedule_type?: string;
 }
 
+export interface ProfileAssignmentResponse {
+    id: number;
+    profile_id: number;
+    target_type: string; // "device" | "group"
+    device_id?: string;
+    group_id?: number;
+    schedule_type: string;
+    scheduled_at?: string;
+    created_at: string;
+}
+
 export interface ProfileDeploymentStatusResponse {
     id: number;
     profile_id: number;

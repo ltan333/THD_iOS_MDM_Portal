@@ -1,6 +1,8 @@
 import { get, post, del } from "@/axios-config/request";
 import { DeviceResponse, DeviceActionResponse, DeviceStatsResponse } from "@/types/device.type";
-import { ResponseAPI, ListResponse } from "@/types/api.type";
+import { ResponseAPI } from "@/types";
+
+interface ListResponse<T> { items: T[]; total: number; page: number; limit: number; total_pages: number; }
 
 const BASE_URL = "/devices";
 
@@ -15,7 +17,7 @@ export const deviceService = {
     model?: string;
     serial_number?: string;
   }) => {
-    return get<ResponseAPI<ListResponse<DeviceResponse>>>(BASE_URL, { params });
+    return get<ResponseAPI<ListResponse<DeviceResponse>>>(BASE_URL, { queryParams: params as Record<string, string | number | boolean | undefined> });
   },
 
   // Get single device by ID

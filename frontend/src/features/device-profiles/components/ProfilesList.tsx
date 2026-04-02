@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import {
     Table, Select, Input, Button, Modal, Tabs, Form, Switch,
-    InputNumber, App, Tag, Tooltip, Dropdown, Popconfirm, Divider
+    InputNumber, App, Tag, Tooltip, Dropdown, Popconfirm, Divider, Radio, Spin
 } from "antd";
 import type { MenuProps } from "antd";
 import type { ColumnsType } from "antd/es/table";
@@ -11,10 +11,14 @@ import {
     Search, Plus, Apple, Smartphone, Monitor, Settings2, RefreshCcw,
     ChevronDown, Filter, CheckCircle2, PenSquare, X, MoreVertical,
     Shield, Lock, Wifi, Server, Globe, Trash2, Copy, RotateCcw,
-    AlertCircle, Archive, Eye
+    AlertCircle, Archive, Eye, UserPlus, Users, Unlink
 } from "lucide-react";
 import { profileService } from "@/services/profile.service";
-import { ProfileResponse, CreateProfileRequest, UpdateProfileRequest } from "@/types/profile.type";
+import { ProfileResponse, CreateProfileRequest, UpdateProfileRequest, ProfileAssignmentResponse } from "@/types/profile.type";
+import { deviceService } from "@/services/device.service";
+import { deviceGroupService } from "@/services/device-group.service";
+import { DeviceResponse } from "@/types/device.type";
+import { DeviceGroupResponse } from "@/types/device-group.type";
 
 // ─── helpers ────────────────────────────────────────────────────────────────
 
@@ -250,12 +254,24 @@ export function ProfilesList() {
     const [platformFilter, setPlatformFilter] = useState("all");
     const [statusFilter, setStatusFilter] = useState("all");
 
-    // modal
+    // create/edit modal
     const [modalOpen, setModalOpen] = useState(false);
     const [editingProfile, setEditingProfile] = useState<ProfileResponse | null>(null);
     const [submitting, setSubmitting] = useState(false);
     const [wifiEnabled, setWifiEnabled] = useState(false);
     const [vpnEnabled, setVpnEnabled] = useState(false);
+
+    // assignment modal
+    const [assignModalOpen, setAssignModalOpen] = useState(false);
+    const [assigningProfile, setAssigningProfile] = useState<ProfileResponse | null>(null);
+    const [assignments, setAssignments] = useState<ProfileAssignmentResponse[]>([]);
+    const [assignmentsLoading, setAssignmentsLoading] = useState(false);
+    const [assignTargetType, setAssignTargetType] = useState<"device" | "group">("device");
+    const [assignDeviceId, setAssignDeviceId] = useState<string>("");
+    const [assignGroupId, setAssignGroupId] = useState<number | null>(null);
+    const [assignSubmitting, setAssignSubmitting] = useState(false);
+    const [devices, setDevices] = useState<DeviceResponse[]>([]);
+    const [groups, setGroups] = useState<DeviceGroupResponse[]>([]);
 
     // ── fetch ─────────────────────────────────────────────────────────────────
     const fetchProfiles = useCallback(async (page = pagination.current, pageSize = pagination.pageSize) => {
@@ -382,6 +398,80 @@ export function ProfilesList() {
         }
     };
 
+    // ── assignment handlers ───────────────────────────────────────────────────
+    const openAssign = async (profile: ProfileResponse) => {
+        setAssigningProfile(profile);
+        setAssignTargetType("device");
+        setAssignDeviceId("");
+        setAssignGroupId(null);
+        setAssignModalOpen(true);
+
+        // load assignments + device/group lists in parallel
+        setAssignmentsLoading(true);
+        try {
+            const [aRes, dRes, gRes] = await Promise.all([
+                profileService.listAssignments(profile.id),
+                deviceService.getDevices({ limit: 200 }),
+                deviceGroupService.getGroups({ limit: 200 }),
+            ]);
+            if (aRes.is_success) setAssignments(aRes.data ?? []);
+            if (dRes.is_success) setDevices(dRes.data?.items ?? []);
+            if (gRes.is_success) setGroups(gRes.data?.items ?? []);
+        } catch {
+            antdMessage.error("Failed to load assignment data");
+        } finally {
+            setAssignmentsLoading(false);
+        }
+    };
+
+    const handleAssign = async () => {
+        if (!assigningProfile) return;
+        if (assignTargetType === "device" && !assignDeviceId) {
+            antdMessage.warning("Please select a device");
+            return;
+        }
+        if (assignTargetType === "group" && !assignGroupId) {
+            antdMessage.warning("Please select a group");
+            return;
+        }
+        setAssignSubmitting(true);
+        try {
+            const res = await profileService.assign(assigningProfile.id, {
+                target_type: assignTargetType,
+                ...(assignTargetType === "device" ? { device_id: assignDeviceId } : { group_id: assignGroupId! }),
+            });
+            if (res.is_success) {
+                antdMessage.success("Profile assigned successfully");
+                setAssignDeviceId("");
+                setAssignGroupId(null);
+                // refresh assignment list
+                const aRes = await profileService.listAssignments(assigningProfile.id);
+                if (aRes.is_success) setAssignments(aRes.data ?? []);
+            } else {
+                antdMessage.error(res.message || "Assignment failed");
+            }
+        } catch {
+            antdMessage.error("Assignment failed");
+        } finally {
+            setAssignSubmitting(false);
+        }
+    };
+
+    const handleUnassign = async (assignmentId: number) => {
+        if (!assigningProfile) return;
+        try {
+            const res = await profileService.unassign(assigningProfile.id, assignmentId);
+            if (res.is_success) {
+                antdMessage.success("Assignment removed");
+                setAssignments(prev => prev.filter(a => a.id !== assignmentId));
+            } else {
+                antdMessage.error(res.message || "Unassign failed");
+            }
+        } catch {
+            antdMessage.error("Unassign failed");
+        }
+    };
+
     // ── row actions dropdown ──────────────────────────────────────────────────
     const rowMenu = (profile: ProfileResponse): MenuProps => ({
         items: [
@@ -397,6 +487,12 @@ export function ProfilesList() {
                 icon: <RotateCcw className="w-4 h-4" />,
                 onClick: () => handleRepush(profile),
                 disabled: profile.status !== "active",
+            },
+            {
+                key: "assign",
+                label: "Assign to Device / Group",
+                icon: <UserPlus className="w-4 h-4" />,
+                onClick: () => openAssign(profile),
             },
             {
                 key: "duplicate",
@@ -978,6 +1074,179 @@ export function ProfilesList() {
                             </Button>
                         </div>
                     </Form>
+                </div>
+            </Modal>
+
+            {/* ── Assignment Manager Modal ── */}
+            <Modal
+                title={null}
+                open={assignModalOpen}
+                onCancel={() => setAssignModalOpen(false)}
+                footer={null}
+                width={680}
+                className="custom-modal"
+                styles={{ body: { padding: 0 } }}
+                centered
+                closeIcon={
+                    <div className="bg-white hover:bg-slate-100 p-2 rounded-full cursor-pointer">
+                        <X className="w-5 h-5 text-slate-700" />
+                    </div>
+                }
+            >
+                <div className="flex flex-col bg-white">
+                    {/* header */}
+                    <div className="px-6 py-4 border-b border-slate-200 flex items-center gap-3 bg-slate-50">
+                        <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center shadow-sm border border-slate-200">
+                            <Users className="w-5 h-5 text-slate-700" />
+                        </div>
+                        <div>
+                            <h2 className="text-lg font-bold text-slate-800 m-0 tracking-wide">ASSIGN PROFILE</h2>
+                            <p className="text-xs text-slate-500 font-medium m-0 truncate max-w-sm">
+                                {assigningProfile?.name}
+                            </p>
+                        </div>
+                    </div>
+
+                    <div className="p-6 flex flex-col gap-6">
+                        {/* ── Add New Assignment ── */}
+                        <div className="border border-slate-200 rounded-xl p-5">
+                            <div className="flex items-center gap-2 mb-4">
+                                <UserPlus className="w-4 h-4 text-[#de2a15]" />
+                                <span className="font-semibold text-slate-700">Add New Assignment</span>
+                            </div>
+
+                            <div className="flex flex-col gap-4">
+                                {/* target type */}
+                                <div className="flex items-center gap-3">
+                                    <span className="text-sm font-medium text-slate-600 w-24 shrink-0">Target:</span>
+                                    <div className="flex gap-2">
+                                        <button
+                                            onClick={() => { setAssignTargetType("device"); setAssignDeviceId(""); setAssignGroupId(null); }}
+                                            className={`flex items-center gap-2 px-4 py-2 rounded-lg border text-sm font-medium transition-all ${assignTargetType === "device" ? "bg-red-50 border-[#de2a15] text-[#de2a15]" : "border-slate-200 text-slate-600 hover:border-slate-300"}`}
+                                        >
+                                            <Smartphone className="w-4 h-4" /> Device
+                                        </button>
+                                        <button
+                                            onClick={() => { setAssignTargetType("group"); setAssignDeviceId(""); setAssignGroupId(null); }}
+                                            className={`flex items-center gap-2 px-4 py-2 rounded-lg border text-sm font-medium transition-all ${assignTargetType === "group" ? "bg-red-50 border-[#de2a15] text-[#de2a15]" : "border-slate-200 text-slate-600 hover:border-slate-300"}`}
+                                        >
+                                            <Users className="w-4 h-4" /> Group
+                                        </button>
+                                    </div>
+                                </div>
+
+                                {/* device / group selector */}
+                                <div className="flex items-center gap-3">
+                                    <span className="text-sm font-medium text-slate-600 w-24 shrink-0">
+                                        {assignTargetType === "device" ? "Device:" : "Group:"}
+                                    </span>
+                                    {assignTargetType === "device" ? (
+                                        <Select
+                                            showSearch
+                                            placeholder="Search and select a device..."
+                                            className="flex-1"
+                                            value={assignDeviceId || undefined}
+                                            onChange={(v: string) => setAssignDeviceId(v)}
+                                            filterOption={(input, option) =>
+                                                String(option?.label ?? "").toLowerCase().includes(input.toLowerCase())
+                                            }
+                                            options={devices.map(d => ({
+                                                value: d.udid ?? d.id,
+                                                label: `${d.name || d.udid || d.id}${d.serial_number ? ` · ${d.serial_number}` : ""}`.trim(),
+                                            }))}
+                                            notFoundContent={assignmentsLoading ? "Loading..." : "No devices found"}
+                                        />
+                                    ) : (
+                                        <Select
+                                            showSearch
+                                            placeholder="Select a group..."
+                                            className="flex-1"
+                                            value={assignGroupId ?? undefined}
+                                            onChange={(v: number) => setAssignGroupId(v)}
+                                            filterOption={(input, option) =>
+                                                String(option?.label ?? "").toLowerCase().includes(input.toLowerCase())
+                                            }
+                                            options={groups.map(g => ({
+                                                value: g.id,
+                                                label: `${g.name ?? `Group #${g.id}`}${g.device_count != null ? ` (${g.device_count} devices)` : ""}`.trim(),
+                                            }))}
+                                            notFoundContent={assignmentsLoading ? "Loading..." : "No groups found"}
+                                        />
+                                    )}
+                                </div>
+
+                                <div className="flex justify-end">
+                                    <Button
+                                        type="primary"
+                                        className="bg-[#de2a15] hover:bg-[#c22412] border-none"
+                                        loading={assignSubmitting}
+                                        onClick={handleAssign}
+                                        icon={<UserPlus className="w-4 h-4" />}
+                                    >
+                                        Assign
+                                    </Button>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* ── Current Assignments ── */}
+                        <div>
+                            <div className="flex items-center gap-2 mb-3">
+                                <Unlink className="w-4 h-4 text-slate-500" />
+                                <span className="font-semibold text-slate-700">Current Assignments</span>
+                                <span className="text-xs text-slate-400 font-normal">({assignments.length})</span>
+                            </div>
+
+                            {assignmentsLoading ? (
+                                <div className="flex items-center justify-center py-8">
+                                    <Spin />
+                                </div>
+                            ) : assignments.length === 0 ? (
+                                <div className="text-center py-8 text-slate-400 text-sm border border-dashed border-slate-200 rounded-xl">
+                                    No assignments yet. Add one above.
+                                </div>
+                            ) : (
+                                <div className="flex flex-col gap-2 max-h-64 overflow-y-auto">
+                                    {assignments.map(a => (
+                                        <div
+                                            key={a.id}
+                                            className="flex items-center justify-between px-4 py-3 bg-slate-50 rounded-lg border border-slate-100"
+                                        >
+                                            <div className="flex items-center gap-3">
+                                                {a.target_type === "device"
+                                                    ? <Smartphone className="w-4 h-4 text-slate-500 shrink-0" />
+                                                    : <Users className="w-4 h-4 text-slate-500 shrink-0" />
+                                                }
+                                                <div>
+                                                    <div className="text-sm font-medium text-slate-700">
+                                                        {a.target_type === "device"
+                                                            ? (devices.find(d => d.udid === a.device_id || d.id === a.device_id)?.name ?? a.device_id ?? "—")
+                                                            : (groups.find(g => g.id === a.group_id)?.name ?? `Group #${a.group_id}`)
+                                                        }
+                                                    </div>
+                                                    <div className="text-xs text-slate-400 capitalize">
+                                                        {a.target_type} · {new Date(a.created_at).toLocaleDateString()}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <Popconfirm
+                                                title="Remove this assignment?"
+                                                onConfirm={() => handleUnassign(a.id)}
+                                                okText="Remove"
+                                                okButtonProps={{ danger: true }}
+                                            >
+                                                <Button
+                                                    type="text" size="small"
+                                                    icon={<Unlink className="w-4 h-4 text-slate-400 hover:text-red-500" />}
+                                                    className="hover:bg-red-50"
+                                                />
+                                            </Popconfirm>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+                    </div>
                 </div>
             </Modal>
         </div>
