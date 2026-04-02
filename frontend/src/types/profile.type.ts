@@ -57,3 +57,18 @@ export interface ProfileAssignmentResponse {
     scheduled_at?: string;
     created_at?: string;
 }
+
+export interface UpdateProfileStatusRequest {
+    status: "active" | "draft" | "archived";
+}
+
+export interface ProfileDeploymentStatusResponse {
+    id: number;
+    profile_id: number;
+    device_id: string;
+    status: "pending" | "success" | "failed";
+    error_message?: string;
+    applied_at?: string;
+    created_at: string;
+    updated_at: string;
+}
