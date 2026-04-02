@@ -273,6 +273,7 @@ func (r *routeRegister) registerDeviceRoutes(rg *gin.RouterGroup) {
 
 		// Device actions
 		devices.POST("/:id/lock", r.device.Lock)
+		devices.POST("/:id/unlock", r.device.Unlock)
 		devices.POST("/:id/wipe", r.device.Wipe)
 		devices.POST("/:id/restart", r.device.Restart)
 		devices.POST("/:id/shutdown", r.device.Shutdown)

@@ -1,6 +1,8 @@
 package handler
 
 import (
+	"encoding/base64"
+
 	"github.com/gin-gonic/gin"
 
 	"github.com/thienel/go-backend-template/internal/ent"
@@ -26,6 +28,7 @@ type DeviceHandler interface {
 	GetByID(c *gin.Context)
 	Export(c *gin.Context)
 	Lock(c *gin.Context)
+	Unlock(c *gin.Context)
 	Wipe(c *gin.Context)
 	Restart(c *gin.Context)
 	Shutdown(c *gin.Context)
@@ -168,13 +171,13 @@ func (h *deviceHandlerImpl) Export(c *gin.Context) {
 }
 
 // Lock godoc
-// @Summary Lock device
-// @Description Enqueue a remote lock command for an MDM-enrolled device. Optionally specify a PIN, message, and phone number to display on the lock screen.
+// @Summary Lock device (Lost Mode)
+// @Description Enqueue an EnableLostMode command for an MDM-enrolled device. This truly locks the device and prevents access even with the passcode.
 // @Tags Device Actions
 // @Accept json
 // @Produce json
 // @Param id path string true "Device ID (UDID)"
-// @Param request body dto.DeviceLockRequest false "Lock configuration options"
+// @Param request body dto.DeviceLockRequest false "Lost Mode configuration options"
 // @Success 200 {object} response.APIResponse[dto.APIResult] "Lock command successfully enqueued"
 // @Failure 400 {object} response.APIResponse[any] "Invalid request data or device ID"
 // @Failure 401 {object} response.APIResponse[any] "Unauthorized"
@@ -201,13 +204,13 @@ func (h *deviceHandlerImpl) Lock(c *gin.Context) {
 		return
 	}
 
-	opts := &mdmcmd.DeviceLockOptions{
-		PIN:         req.PIN,
+	opts := &mdmcmd.EnableLostModeOptions{
 		Message:     req.Message,
 		PhoneNumber: req.PhoneNumber,
+		Footnote:    req.Footnote,
 	}
 
-	cmdData, _, err := h.cmdBuilder.DeviceLock(opts)
+	cmdData, _, err := h.cmdBuilder.EnableLostMode(opts)
 	if err != nil {
 		response.WriteErrorResponse(c, apperror.ErrInternalServerError.WithError(err))
 		return
@@ -220,6 +223,47 @@ func (h *deviceHandlerImpl) Lock(c *gin.Context) {
 	}
 
 	response.OK(c, result, "Lock command queued successfully")
+}
+
+// Unlock godoc
+// @Summary Unlock device (Disable Lost Mode)
+// @Description Enqueue a DisableLostMode command to take the device out of Lost Mode.
+// @Tags Device Actions
+// @Produce json
+// @Param id path string true "Device ID (UDID)"
+// @Success 200 {object} response.APIResponse[dto.APIResult] "Unlock command successfully enqueued"
+// @Failure 400 {object} response.APIResponse[any] "Invalid request data or device ID"
+// @Failure 401 {object} response.APIResponse[any] "Unauthorized"
+// @Failure 404 {object} response.APIResponse[any] "Device not found"
+// @Failure 500 {object} response.APIResponse[any] "Internal server error"
+// @Security BearerAuth
+// @Router /api/v1/devices/{id}/unlock [post]
+func (h *deviceHandlerImpl) Unlock(c *gin.Context) {
+	id := c.Param("id")
+	if id == "" {
+		response.WriteErrorResponse(c, apperror.ErrBadRequest.WithMessage("Device ID is required"))
+		return
+	}
+
+	udid, err := h.deviceService.GetUDID(c.Request.Context(), id)
+	if err != nil {
+		response.WriteErrorResponse(c, err)
+		return
+	}
+
+	cmdData, _, err := h.cmdBuilder.DisableLostMode()
+	if err != nil {
+		response.WriteErrorResponse(c, apperror.ErrInternalServerError.WithError(err))
+		return
+	}
+
+	result, err := h.mdmService.EnqueueCommand(c.Request.Context(), udid, cmdData)
+	if err != nil {
+		response.WriteErrorResponse(c, err)
+		return
+	}
+
+	response.OK(c, result, "Unlock command queued successfully")
 }
 
 // Wipe godoc
@@ -261,6 +305,27 @@ func (h *deviceHandlerImpl) Wipe(c *gin.Context) {
 		PreserveDataPlan:       req.PreserveDataPlan,
 		DisallowProximitySetup: req.DisallowProximitySetup,
 		ObliterationBehavior:   req.ObliterationBehavior,
+	}
+
+	if rts := req.ReturnToService; rts != nil {
+		mdmProfile, err := base64.StdEncoding.DecodeString(rts.MDMProfileData)
+		if err != nil {
+			response.WriteErrorResponse(c, apperror.ErrBadRequest.WithMessage("Invalid mdm_profile_data: must be base64-encoded"))
+			return
+		}
+		rtsConfig := &mdmcmd.ReturnToServiceConfig{
+			Enabled:        true,
+			MDMProfileData: mdmProfile,
+		}
+		if rts.WiFiProfileData != "" {
+			wifiProfile, err := base64.StdEncoding.DecodeString(rts.WiFiProfileData)
+			if err != nil {
+				response.WriteErrorResponse(c, apperror.ErrBadRequest.WithMessage("Invalid wifi_profile_data: must be base64-encoded"))
+				return
+			}
+			rtsConfig.WiFiProfileData = wifiProfile
+		}
+		opts.ReturnToService = rtsConfig
 	}
 
 	cmdData, _, err := h.cmdBuilder.EraseDevice(opts)
