@@ -1,12 +1,12 @@
 import { get, post, put, del } from "@/axios-config/request";
 import { DeviceGroupResponse, CreateDeviceGroupRequest, UpdateDeviceGroupRequest, ManageGroupDevicesRequest } from "@/types/device-group.type";
-import { ResponseAPI, ListResponse } from "@/types/api.type";
+import type { ResponseAPI, ListResponseAPI } from "@/types";
 
 const BASE_URL = "/device-groups";
 
 export const deviceGroupService = {
-  getGroups: (params?: { page?: number; limit?: number; search?: string }) => {
-    return get<ResponseAPI<ListResponse<DeviceGroupResponse>>>(BASE_URL, { params });
+  getGroups: (queryParams?: { page?: number; limit?: number; search?: string }) => {
+    return get<ListResponseAPI<DeviceGroupResponse>>(BASE_URL, { queryParams });
   },
 
   getGroupById: (id: number) => {

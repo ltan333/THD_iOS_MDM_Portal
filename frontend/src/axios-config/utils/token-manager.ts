@@ -66,6 +66,8 @@ class TokenManager {
     if (typeof window !== "undefined") {
       localStorage.removeItem("user_ifo");
       localStorage.removeItem("auth_token");
+      localStorage.removeItem("access_token");
+      localStorage.removeItem("refresh_token");
     }
   }
 

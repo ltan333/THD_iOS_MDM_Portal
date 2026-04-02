@@ -41,4 +41,5 @@ export * from "./modal.type";
 export * from "./navigation.type";
 export * from "./template.type";
 export * from "./report.type";
+export * from "./profile.type";
 
