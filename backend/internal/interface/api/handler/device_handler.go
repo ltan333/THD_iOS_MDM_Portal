@@ -168,13 +168,13 @@ func (h *deviceHandlerImpl) Export(c *gin.Context) {
 }
 
 // Lock godoc
-// @Summary Lock device
-// @Description Enqueue a remote lock command for an MDM-enrolled device. Optionally specify a PIN, message, and phone number to display on the lock screen.
+// @Summary Lock device (Lost Mode)
+// @Description Enqueue an EnableLostMode command for an MDM-enrolled device. This truly locks the device and prevents access even with the passcode.
 // @Tags Device Actions
 // @Accept json
 // @Produce json
 // @Param id path string true "Device ID (UDID)"
-// @Param request body dto.DeviceLockRequest false "Lock configuration options"
+// @Param request body dto.DeviceLockRequest false "Lost Mode configuration options"
 // @Success 200 {object} response.APIResponse[dto.APIResult] "Lock command successfully enqueued"
 // @Failure 400 {object} response.APIResponse[any] "Invalid request data or device ID"
 // @Failure 401 {object} response.APIResponse[any] "Unauthorized"
@@ -201,13 +201,13 @@ func (h *deviceHandlerImpl) Lock(c *gin.Context) {
 		return
 	}
 
-	opts := &mdmcmd.DeviceLockOptions{
-		PIN:         req.PIN,
+	opts := &mdmcmd.EnableLostModeOptions{
 		Message:     req.Message,
 		PhoneNumber: req.PhoneNumber,
+		Footnote:    req.Footnote,
 	}
 
-	cmdData, _, err := h.cmdBuilder.DeviceLock(opts)
+	cmdData, _, err := h.cmdBuilder.EnableLostMode(opts)
 	if err != nil {
 		response.WriteErrorResponse(c, apperror.ErrInternalServerError.WithError(err))
 		return

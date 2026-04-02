@@ -79,11 +79,11 @@ type ManageGroupDevicesRequest struct {
 
 // Device Action DTOs
 
-// DeviceLockRequest contains optional parameters for the lock device action.
+// DeviceLockRequest contains optional parameters for the lock device action (EnableLostMode).
 type DeviceLockRequest struct {
-	PIN         string `json:"pin,omitempty" example:"123456"`
-	Message     string `json:"message,omitempty" example:"Device is locked by IT"`
+	Message     string `json:"message,omitempty" example:"Hãy trả thiết bị này cho tui"`
 	PhoneNumber string `json:"phone_number,omitempty" example:"+84123456789"`
+	Footnote    string `json:"footnote,omitempty" example:"THD"`
 }
 
 // DeviceWipeRequest contains optional parameters for the wipe device action.
