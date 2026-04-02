@@ -58,7 +58,7 @@ interface ProfileType {
 }
 
 export function ProfilesList() {
- const { message } = App.useApp();
+ const { message, modal } = App.useApp();
 
  // Form instances for configs that map to structured backend fields
  const [passcodeForm] = Form.useForm();
@@ -221,16 +221,82 @@ export function ProfilesList() {
 
  const [isProfileDetailModalVisible, setIsProfileDetailModalVisible] = useState(false);
  const [selectedProfile, setSelectedProfile] = useState<ProfileType | null>(null);
+ const [profileAssignments, setProfileAssignments] = useState<any[]>([]);
+ const [assignmentsLoading, setAssignmentsLoading] = useState(false);
+ const [repushLoading, setRepushLoading] = useState(false);
+ const [unassignLoadingId, setUnassignLoadingId] = useState<number | null>(null);
+
+ const fetchProfileAssignments = useCallback(async (profileId: number) => {
+  setAssignmentsLoading(true);
+  try {
+   const res = await profileService.getProfileAssignments(profileId);
+   if (res.is_success && res.data) {
+    setProfileAssignments(res.data);
+   } else {
+    setProfileAssignments([]);
+   }
+  } catch {
+   setProfileAssignments([]);
+  } finally {
+   setAssignmentsLoading(false);
+  }
+ }, []);
 
  const handleProfileClick = (profile: ProfileType) => {
   setSelectedProfile(profile);
+  setProfileAssignments([]);
   setIsProfileDetailModalVisible(true);
+  fetchProfileAssignments(profile.id);
+ };
+
+ const handleUnassign = async (assignmentId: number) => {
+  if (!selectedProfile) return;
+  modal.confirm({
+   title: "Remove Assignment",
+   content: "Are you sure you want to remove this assignment? The profile will be uninstalled from the target.",
+   okText: "Remove",
+   okButtonProps: { danger: true },
+   onOk: async () => {
+    setUnassignLoadingId(assignmentId);
+    try {
+     const res = await profileService.deleteAssignment(selectedProfile.id, assignmentId);
+     if (res.is_success) {
+      message.success("Assignment removed successfully");
+      fetchProfileAssignments(selectedProfile.id);
+      fetchProfiles();
+     } else {
+      message.error(res.message || "Failed to remove assignment");
+     }
+    } catch {
+     message.error("An error occurred while removing assignment");
+    } finally {
+     setUnassignLoadingId(null);
+    }
+   },
+  });
+ };
+
+ const handleRepush = async () => {
+  if (!selectedProfile) return;
+  setRepushLoading(true);
+  try {
+   const res = await profileService.repushProfile(selectedProfile.id);
+   if (res.is_success) {
+    message.success("Profile repush initiated successfully");
+   } else {
+    message.error(res.message || "Failed to repush profile");
+   }
+  } catch {
+   message.error("An error occurred while repushing profile");
+  } finally {
+   setRepushLoading(false);
+  }
  };
 
  const handleDeleteProfile = async () => {
   if (!selectedProfile) return;
   
-  Modal.confirm({
+  modal.confirm({
    title: 'Delete Profile',
    content: `Are you sure you want to delete profile "${selectedProfile.name}"?`,
    okText: 'Delete',
@@ -305,6 +371,8 @@ export function ProfilesList() {
     setIsAssignModalVisible(false);
     setAssignDeviceId("");
     setAssignGroupId("");
+    fetchProfiles();
+    fetchProfileAssignments(selectedProfile.id);
    } else {
     message.error(response.message || "Failed to assign profile");
    }
@@ -760,6 +828,14 @@ const handleSaveProfile = async () => {
           </Button>
         )}
         <Button
+          onClick={handleRepush}
+          loading={repushLoading}
+          icon={<RefreshCcw className="w-4 h-4" />}
+          className="h-10 px-4 rounded-lg font-medium text-violet-600 border-violet-300 hover:bg-violet-50 transition-colors"
+        >
+          Repush
+        </Button>
+        <Button
           onClick={() => { setIsProfileDetailModalVisible(false); setIsAssignModalVisible(true); }}
           className="h-10 px-4 rounded-lg font-medium text-blue-600 border-blue-300 hover:bg-blue-50 transition-colors"
         >
@@ -943,6 +1019,50 @@ const handleSaveProfile = async () => {
                 {selectedProfile.assignedBy}
               </span>
             </div>
+          </div>
+        </div>
+
+        {/* Assignments List */}
+        <div className="bg-slate-50/80 p-5 rounded-2xl border border-slate-100">
+          <div className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-4 flex items-center gap-2">
+            <Users className="w-3.5 h-3.5" /> Assignments
+            {assignmentsLoading && <span className="ml-auto text-[10px] text-slate-400 animate-pulse">Loading...</span>}
+          </div>
+          {!assignmentsLoading && profileAssignments.length === 0 && (
+            <div className="text-sm text-slate-400 text-center py-3">No assignments yet</div>
+          )}
+          <div className="space-y-2">
+            {profileAssignments.map((a) => (
+              <div key={a.id} className="flex items-center justify-between bg-white px-3 py-2.5 rounded-xl border border-slate-200 shadow-sm">
+                <div className="flex flex-col gap-0.5 min-w-0">
+                  <div className="flex items-center gap-2">
+                    <span className="text-[11px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded bg-slate-100 text-slate-500">
+                      {a.target_type}
+                    </span>
+                    <span className="text-sm font-semibold text-slate-700 truncate">
+                      {a.target_type === "device" ? (a.device_id || "—") : `Group #${a.group_id}`}
+                    </span>
+                  </div>
+                  {a.schedule_type && (
+                    <span className="text-[11px] text-slate-400 ml-0.5">
+                      {a.schedule_type === "scheduled" && a.scheduled_at
+                        ? `Scheduled: ${dayjs(a.scheduled_at).format("MMM D, YYYY HH:mm")}`
+                        : "Immediate"}
+                    </span>
+                  )}
+                </div>
+                <Button
+                  size="small"
+                  danger
+                  loading={unassignLoadingId === a.id}
+                  icon={<Minus className="w-3 h-3" />}
+                  onClick={() => handleUnassign(a.id)}
+                  className="ml-3 flex-shrink-0 text-xs font-medium"
+                >
+                  Unassign
+                </Button>
+              </div>
+            ))}
           </div>
         </div>
       </div>
