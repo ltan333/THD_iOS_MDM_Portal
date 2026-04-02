@@ -1,6 +1,8 @@
 package handler
 
 import (
+	"encoding/base64"
+
 	"github.com/gin-gonic/gin"
 
 	"github.com/thienel/go-backend-template/internal/ent"
@@ -303,6 +305,27 @@ func (h *deviceHandlerImpl) Wipe(c *gin.Context) {
 		PreserveDataPlan:       req.PreserveDataPlan,
 		DisallowProximitySetup: req.DisallowProximitySetup,
 		ObliterationBehavior:   req.ObliterationBehavior,
+	}
+
+	if rts := req.ReturnToService; rts != nil {
+		mdmProfile, err := base64.StdEncoding.DecodeString(rts.MDMProfileData)
+		if err != nil {
+			response.WriteErrorResponse(c, apperror.ErrBadRequest.WithMessage("Invalid mdm_profile_data: must be base64-encoded"))
+			return
+		}
+		rtsConfig := &mdmcmd.ReturnToServiceConfig{
+			Enabled:        true,
+			MDMProfileData: mdmProfile,
+		}
+		if rts.WiFiProfileData != "" {
+			wifiProfile, err := base64.StdEncoding.DecodeString(rts.WiFiProfileData)
+			if err != nil {
+				response.WriteErrorResponse(c, apperror.ErrBadRequest.WithMessage("Invalid wifi_profile_data: must be base64-encoded"))
+				return
+			}
+			rtsConfig.WiFiProfileData = wifiProfile
+		}
+		opts.ReturnToService = rtsConfig
 	}
 
 	cmdData, _, err := h.cmdBuilder.EraseDevice(opts)

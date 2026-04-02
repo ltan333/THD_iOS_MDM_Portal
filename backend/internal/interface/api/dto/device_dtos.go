@@ -86,12 +86,21 @@ type DeviceLockRequest struct {
 	Footnote    string `json:"footnote,omitempty" example:"THD"`
 }
 
+// ReturnToServiceRequest configures automatic MDM re-enrollment after a device wipe.
+type ReturnToServiceRequest struct {
+	// MDMProfileData is a base64-encoded MDM enrollment profile (.mobileconfig).
+	MDMProfileData string `json:"mdm_profile_data" example:"<base64-encoded mobileconfig>"`
+	// WiFiProfileData is an optional base64-encoded WiFi configuration profile.
+	WiFiProfileData string `json:"wifi_profile_data,omitempty" example:"<base64-encoded mobileconfig>"`
+}
+
 // DeviceWipeRequest contains optional parameters for the wipe device action.
 type DeviceWipeRequest struct {
-	PIN                    string `json:"pin,omitempty" example:"123456"`
-	PreserveDataPlan       bool   `json:"preserve_data_plan,omitempty"`
-	DisallowProximitySetup bool   `json:"disallow_proximity_setup,omitempty"`
-	ObliterationBehavior   string `json:"obliteration_behavior,omitempty" enums:"Default,DoNotObliterate,ObliterateWithWarning,Always"`
+	PIN                    string                  `json:"pin,omitempty" example:"123456"`
+	PreserveDataPlan       bool                    `json:"preserve_data_plan,omitempty"`
+	DisallowProximitySetup bool                    `json:"disallow_proximity_setup,omitempty"`
+	ObliterationBehavior   string                  `json:"obliteration_behavior,omitempty" enums:"Default,DoNotObliterate,ObliterateWithWarning,Always"`
+	ReturnToService        *ReturnToServiceRequest `json:"return_to_service,omitempty"`
 }
 
 // DeviceRestartRequest contains optional parameters for the restart device action.
