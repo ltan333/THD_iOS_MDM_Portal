@@ -26,6 +26,7 @@ type DeviceHandler interface {
 	GetByID(c *gin.Context)
 	Export(c *gin.Context)
 	Lock(c *gin.Context)
+	Unlock(c *gin.Context)
 	Wipe(c *gin.Context)
 	Restart(c *gin.Context)
 	Shutdown(c *gin.Context)
@@ -220,6 +221,47 @@ func (h *deviceHandlerImpl) Lock(c *gin.Context) {
 	}
 
 	response.OK(c, result, "Lock command queued successfully")
+}
+
+// Unlock godoc
+// @Summary Unlock device (Disable Lost Mode)
+// @Description Enqueue a DisableLostMode command to take the device out of Lost Mode.
+// @Tags Device Actions
+// @Produce json
+// @Param id path string true "Device ID (UDID)"
+// @Success 200 {object} response.APIResponse[dto.APIResult] "Unlock command successfully enqueued"
+// @Failure 400 {object} response.APIResponse[any] "Invalid request data or device ID"
+// @Failure 401 {object} response.APIResponse[any] "Unauthorized"
+// @Failure 404 {object} response.APIResponse[any] "Device not found"
+// @Failure 500 {object} response.APIResponse[any] "Internal server error"
+// @Security BearerAuth
+// @Router /api/v1/devices/{id}/unlock [post]
+func (h *deviceHandlerImpl) Unlock(c *gin.Context) {
+	id := c.Param("id")
+	if id == "" {
+		response.WriteErrorResponse(c, apperror.ErrBadRequest.WithMessage("Device ID is required"))
+		return
+	}
+
+	udid, err := h.deviceService.GetUDID(c.Request.Context(), id)
+	if err != nil {
+		response.WriteErrorResponse(c, err)
+		return
+	}
+
+	cmdData, _, err := h.cmdBuilder.DisableLostMode()
+	if err != nil {
+		response.WriteErrorResponse(c, apperror.ErrInternalServerError.WithError(err))
+		return
+	}
+
+	result, err := h.mdmService.EnqueueCommand(c.Request.Context(), udid, cmdData)
+	if err != nil {
+		response.WriteErrorResponse(c, err)
+		return
+	}
+
+	response.OK(c, result, "Unlock command queued successfully")
 }
 
 // Wipe godoc
