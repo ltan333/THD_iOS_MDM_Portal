@@ -3121,7 +3121,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Enqueue a remote lock command for an MDM-enrolled device. Optionally specify a PIN, message, and phone number to display on the lock screen.",
+                "description": "Enqueue an EnableLostMode command for an MDM-enrolled device. This truly locks the device and prevents access even with the passcode.",
                 "consumes": [
                     "application/json"
                 ],
@@ -3131,7 +3131,7 @@ const docTemplate = `{
                 "tags": [
                     "Device Actions"
                 ],
-                "summary": "Lock device",
+                "summary": "Lock device (Lost Mode)",
                 "parameters": [
                     {
                         "type": "string",
@@ -3141,7 +3141,7 @@ const docTemplate = `{
                         "required": true
                     },
                     {
-                        "description": "Lock configuration options",
+                        "description": "Lost Mode configuration options",
                         "name": "request",
                         "in": "body",
                         "schema": {
@@ -3424,6 +3424,64 @@ const docTemplate = `{
                     },
                     "400": {
                         "description": "Invalid device ID",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any"
+                        }
+                    },
+                    "404": {
+                        "description": "Device not found",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/devices/{id}/unlock": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Enqueue a DisableLostMode command to take the device out of Lost Mode.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Device Actions"
+                ],
+                "summary": "Unlock device (Disable Lost Mode)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Device ID (UDID)",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Unlock command successfully enqueued",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-github_com_thienel_go-backend-template_internal_interface_api_dto_APIResult"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request data or device ID",
                         "schema": {
                             "$ref": "#/definitions/github_com_thienel_go-backend-template_pkg_response.APIResponse-any"
                         }
@@ -8359,17 +8417,17 @@ const docTemplate = `{
         "github_com_thienel_go-backend-template_internal_interface_api_dto.DeviceLockRequest": {
             "type": "object",
             "properties": {
+                "footnote": {
+                    "type": "string",
+                    "example": "THD"
+                },
                 "message": {
                     "type": "string",
-                    "example": "Device is locked by IT"
+                    "example": "Hãy trả thiết bị này cho tui"
                 },
                 "phone_number": {
                     "type": "string",
                     "example": "+84123456789"
-                },
-                "pin": {
-                    "type": "string",
-                    "example": "123456"
                 }
             }
         },
