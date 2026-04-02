@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useCallback } from "react";
-import { Table, Input, Button, Tag, Drawer, Select, Dropdown, MenuProps, Modal, Form, message, App } from "antd";
+import { Table, Input, Button, Tag, Drawer, Select, Dropdown, MenuProps, Modal, Form, App, Tabs } from "antd";
 import { 
     Search, 
     Plus, 
@@ -16,11 +16,19 @@ import {
 } from "lucide-react";
 import type { ColumnsType } from "antd/es/table";
 import { deviceGroupService } from "@/services/device-group.service";
+import { deviceService } from "@/services/device.service";
 import { profileService } from "@/services/profile.service";
 import { DeviceGroupResponse } from "@/types/device-group.type";
 import { DeviceResponse } from "@/types/device.type";
-import { ProfileResponse } from "@/types/profile.type";
+import { ProfileResponse, ProfileAssignmentResponse } from "@/types/profile.type";
 import dayjs from "dayjs";
+
+interface DeviceProfileView {
+    id: number;
+    name: string;
+    status: string;
+    configurations: string[];
+}
 
 export function DeviceGroupsList() {
     const { message: antdMessage, modal } = App.useApp();
@@ -35,6 +43,11 @@ export function DeviceGroupsList() {
     const [targetGroupIds, setTargetGroupIds] = useState<number[]>([]);
     const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
     const [searchQuery, setSearchQuery] = useState("");
+    const [groupAssignedProfiles, setGroupAssignedProfiles] = useState<ProfileResponse[]>([]);
+    const [isDeviceDetailModalVisible, setIsDeviceDetailModalVisible] = useState(false);
+    const [selectedDevice, setSelectedDevice] = useState<DeviceResponse | null>(null);
+    const [selectedDeviceProfiles, setSelectedDeviceProfiles] = useState<DeviceProfileView[]>([]);
+    const [loadingDeviceDetail, setLoadingDeviceDetail] = useState(false);
     const [form] = Form.useForm();
 
     const fetchGroups = useCallback(async () => {
@@ -80,6 +93,88 @@ export function DeviceGroupsList() {
         setIsAssignProfileModalVisible(true);
     };
 
+    const getProfileConfigurations = (profile: ProfileResponse): string[] => {
+        const configurations: string[] = [];
+        if (profile.network_config && Object.keys(profile.network_config).length > 0) configurations.push("Wi-Fi / Network");
+        if (profile.restrictions && Object.keys(profile.restrictions).length > 0) configurations.push("Restrictions");
+        if (profile.security_settings && Object.keys(profile.security_settings).length > 0) configurations.push("Passcode / Security");
+        if (profile.content_filter && Object.keys(profile.content_filter).length > 0) configurations.push("Content Filter");
+        if (profile.payloads && Object.keys(profile.payloads).length > 0) configurations.push("Custom Payloads");
+        if (profile.compliance_rules && Object.keys(profile.compliance_rules).length > 0) configurations.push("Compliance Rules");
+        if (configurations.length === 0) configurations.push("General");
+        return configurations;
+    };
+
+    const getGroupAssignedProfiles = async (groupId: number): Promise<ProfileResponse[]> => {
+        const profilesRes = await profileService.getProfiles({ limit: 100, status: "active" });
+        if (!profilesRes.is_success || !profilesRes.data) {
+            return [];
+        }
+
+        const candidates = profilesRes.data.items || [];
+        const assignmentChecks = await Promise.all(
+            candidates.map(async (profile) => {
+                try {
+                    const assignmentRes = await profileService.getProfileAssignments(profile.id);
+                    if (!assignmentRes.is_success || !assignmentRes.data) {
+                        return null;
+                    }
+
+                    const assignedToGroup = assignmentRes.data.some(
+                        (assignment) => assignment.target_type === "group" && assignment.group_id === groupId
+                    );
+
+                    return assignedToGroup ? profile : null;
+                } catch {
+                    return null;
+                }
+            })
+        );
+
+        return assignmentChecks.filter((item): item is ProfileResponse => item !== null);
+    };
+
+    const getProfilesForDeviceInGroup = async (deviceId: string, groupId: number): Promise<DeviceProfileView[]> => {
+        const profilesRes = await profileService.getProfiles({ limit: 100, status: "active" });
+        if (!profilesRes.is_success || !profilesRes.data) {
+            return [];
+        }
+
+        const candidates = profilesRes.data.items || [];
+        const checks = await Promise.all(
+            candidates.map(async (profile) => {
+                try {
+                    const assignmentRes = await profileService.getProfileAssignments(profile.id);
+                    if (!assignmentRes.is_success || !assignmentRes.data) {
+                        return null;
+                    }
+
+                    const assignedToDevice = assignmentRes.data.some(
+                        (assignment) => assignment.target_type === "device" && assignment.device_id === deviceId
+                    );
+                    const assignedToGroup = assignmentRes.data.some(
+                        (assignment) => assignment.target_type === "group" && assignment.group_id === groupId
+                    );
+
+                    if (!assignedToDevice && !assignedToGroup) {
+                        return null;
+                    }
+
+                    return {
+                        id: profile.id,
+                        name: profile.name,
+                        status: profile.status || "active",
+                        configurations: getProfileConfigurations(profile),
+                    } as DeviceProfileView;
+                } catch {
+                    return null;
+                }
+            })
+        );
+
+        return checks.filter((item): item is DeviceProfileView => item !== null);
+    };
+
     const handleAssignProfileToGroups = async () => {
         if (!selectedProfileId) {
             antdMessage.warning("Please select a profile");
@@ -92,14 +187,49 @@ export function DeviceGroupsList() {
         }
 
         try {
+            const assignmentRes = await profileService.getProfileAssignments(selectedProfileId);
+            const existingAssignments = assignmentRes.is_success && assignmentRes.data ? assignmentRes.data : [];
+            const existingGroupIds = new Set(
+                existingAssignments.filter((item) => item.target_type === "group" && item.group_id).map((item) => item.group_id as number)
+            );
+            const existingDeviceIds = new Set(
+                existingAssignments.filter((item) => item.target_type === "device" && item.device_id).map((item) => item.device_id as string)
+            );
+
+            const affectedDevices = new Set<string>();
+
             for (const groupId of targetGroupIds) {
-                await profileService.assignProfile(selectedProfileId, {
-                    target_type: "group",
-                    group_id: groupId,
-                    schedule_type: "immediate",
+                if (!existingGroupIds.has(groupId)) {
+                    await profileService.assignProfile(selectedProfileId, {
+                        target_type: "group",
+                        group_id: groupId,
+                        schedule_type: "immediate",
+                    });
+                    existingGroupIds.add(groupId);
+                }
+
+                const groupDetailRes = await deviceGroupService.getGroupById(groupId);
+                const devices = groupDetailRes.is_success && groupDetailRes.data?.devices ? groupDetailRes.data.devices : [];
+                devices.forEach((device) => {
+                    if (device.id) {
+                        affectedDevices.add(device.id);
+                    }
                 });
             }
-            antdMessage.success("Profile assigned to group successfully. Devices in group will apply group profile.");
+
+            for (const deviceId of affectedDevices) {
+                if (existingDeviceIds.has(deviceId)) {
+                    continue;
+                }
+                await profileService.assignProfile(selectedProfileId, {
+                    target_type: "device",
+                    device_id: deviceId,
+                    schedule_type: "immediate",
+                });
+                existingDeviceIds.add(deviceId);
+            }
+
+            antdMessage.success("Đã gán profile cho group và toàn bộ thiết bị trong group.");
             setIsAssignProfileModalVisible(false);
             setSelectedProfileId(null);
             setTargetGroupIds([]);
@@ -113,16 +243,49 @@ export function DeviceGroupsList() {
     const handleGroupClick = async (group: DeviceGroupResponse) => {
         try {
             // Fetch detail to get devices in group
-            const response = await deviceGroupService.getGroupById(group.id);
-            if (response.is_success) {
-                setSelectedGroup(response.data);
+            const [groupRes, assignedProfiles] = await Promise.all([
+                deviceGroupService.getGroupById(group.id),
+                getGroupAssignedProfiles(group.id),
+            ]);
+            if (groupRes.is_success) {
+                setSelectedGroup(groupRes.data);
+                setGroupAssignedProfiles(assignedProfiles);
                 setIsDrawerVisible(true);
             } else {
-                antdMessage.error(response.message || "Failed to fetch group details");
+                antdMessage.error(groupRes.message || "Failed to fetch group details");
             }
         } catch (error) {
             console.error("Fetch group detail error:", error);
             antdMessage.error("An error occurred while fetching group details");
+        }
+    };
+
+    const handleGroupDeviceClick = async (device: DeviceResponse) => {
+        if (!selectedGroup?.id || !device.id) {
+            return;
+        }
+
+        setLoadingDeviceDetail(true);
+        setSelectedDeviceProfiles([]);
+        setIsDeviceDetailModalVisible(true);
+        try {
+            const [deviceRes, profilesInScope] = await Promise.all([
+                deviceService.getDeviceById(device.id),
+                getProfilesForDeviceInGroup(device.id, selectedGroup.id),
+            ]);
+
+            if (deviceRes.is_success && deviceRes.data) {
+                setSelectedDevice(deviceRes.data);
+            } else {
+                setSelectedDevice(device);
+            }
+            setSelectedDeviceProfiles(profilesInScope);
+        } catch (error) {
+            console.error("Fetch device detail from group error:", error);
+            antdMessage.error("Failed to load device details");
+            setSelectedDevice(device);
+        } finally {
+            setLoadingDeviceDetail(false);
         }
     };
 
@@ -290,7 +453,16 @@ export function DeviceGroupsList() {
                         )}
                     </div>
                     <div className="flex flex-col">
-                        <span className="font-medium text-slate-800">{text || record.model || "Unknown Device"}</span>
+                        <button
+                            type="button"
+                            className="text-left font-medium text-slate-800 hover:text-[#de2a15] transition-colors"
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                handleGroupDeviceClick(record);
+                            }}
+                        >
+                            {text || record.model || "Unknown Device"}
+                        </button>
                         <span className="text-xs text-slate-500">{record.model || "Unknown Model"}</span>
                     </div>
                 </div>
@@ -433,8 +605,26 @@ export function DeviceGroupsList() {
             >
                 {selectedGroup && (
                     <div className="flex flex-col h-full">
+                        <div className="mb-4">
+                            <h3 className="text-sm font-bold text-slate-800 uppercase tracking-wide mb-2">Profiles Assigned to Group</h3>
+                            <div className="bg-white rounded-xl border border-slate-200 p-3 shadow-sm">
+                                {groupAssignedProfiles.length > 0 ? (
+                                    <div className="flex flex-wrap gap-2">
+                                        {groupAssignedProfiles.map((profile) => (
+                                            <Tag key={profile.id} className="rounded-full px-3 py-1 m-0 bg-indigo-50 text-indigo-700 border-indigo-200">
+                                                {profile.name}
+                                            </Tag>
+                                        ))}
+                                    </div>
+                                ) : (
+                                    <div className="text-sm text-slate-500">No profile is assigned directly to this group.</div>
+                                )}
+                            </div>
+                        </div>
+
                         <div className="flex items-center justify-between mb-4">
                             <h3 className="text-sm font-bold text-slate-800 uppercase tracking-wide">Devices in Group</h3>
+                            <span className="text-xs text-slate-500">Click a device to view details and profile configurations</span>
                         </div>
                         
                         <div className="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm flex-1">
@@ -445,11 +635,92 @@ export function DeviceGroupsList() {
                                 rowKey="id"
                                 size="small"
                                 className="border-none"
+                                rowClassName="cursor-pointer hover:bg-slate-50"
+                                onRow={(record) => ({
+                                    onClick: () => handleGroupDeviceClick(record),
+                                })}
                             />
                         </div>
                     </div>
                 )}
             </Drawer>
+
+            <Modal
+                title={selectedDevice?.name || selectedDevice?.model || "Device Detail"}
+                open={isDeviceDetailModalVisible}
+                onCancel={() => {
+                    setIsDeviceDetailModalVisible(false);
+                    setSelectedDevice(null);
+                    setSelectedDeviceProfiles([]);
+                }}
+                footer={null}
+                width={760}
+            >
+                <Tabs
+                    defaultActiveKey="info"
+                    items={[
+                        {
+                            key: "info",
+                            label: "Device Info",
+                            children: (
+                                <div className="grid grid-cols-2 gap-y-4 gap-x-6 py-2">
+                                    <div>
+                                        <div className="text-xs text-slate-500 font-medium mb-1">Model</div>
+                                        <div className="text-sm text-slate-800 font-medium">{selectedDevice?.model || "-"}</div>
+                                    </div>
+                                    <div>
+                                        <div className="text-xs text-slate-500 font-medium mb-1">Platform</div>
+                                        <div className="text-sm text-slate-800 font-medium">{selectedDevice?.platform || "-"}</div>
+                                    </div>
+                                    <div>
+                                        <div className="text-xs text-slate-500 font-medium mb-1">OS Version</div>
+                                        <div className="text-sm text-slate-800 font-medium">{selectedDevice?.os_version || "-"}</div>
+                                    </div>
+                                    <div>
+                                        <div className="text-xs text-slate-500 font-medium mb-1">Status</div>
+                                        <div className="text-sm text-slate-800 font-medium">{selectedDevice?.status || "-"}</div>
+                                    </div>
+                                    <div>
+                                        <div className="text-xs text-slate-500 font-medium mb-1">Serial Number</div>
+                                        <div className="text-sm text-slate-800 font-mono">{selectedDevice?.serial_number || "-"}</div>
+                                    </div>
+                                    <div>
+                                        <div className="text-xs text-slate-500 font-medium mb-1">UDID</div>
+                                        <div className="text-sm text-slate-800 font-mono break-all">{selectedDevice?.udid || "-"}</div>
+                                    </div>
+                                </div>
+                            ),
+                        },
+                        {
+                            key: "profiles",
+                            label: "Profiles Configuration",
+                            children: (
+                                <div className="py-2">
+                                    {loadingDeviceDetail ? (
+                                        <div className="text-sm text-slate-500">Loading profile configurations...</div>
+                                    ) : selectedDeviceProfiles.length > 0 ? (
+                                        <div className="space-y-3">
+                                            {selectedDeviceProfiles.map((profile) => (
+                                                <div key={profile.id} className="rounded-lg border border-slate-200 p-3 bg-slate-50">
+                                                    <div className="flex items-center justify-between">
+                                                        <div className="text-sm font-semibold text-slate-800">{profile.name}</div>
+                                                        <Tag color={profile.status === "active" ? "success" : "default"} className="rounded-full px-2">
+                                                            {profile.status.toUpperCase()}
+                                                        </Tag>
+                                                    </div>
+                                                    <div className="text-xs text-slate-600 mt-2">{profile.configurations.join(" • ")}</div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    ) : (
+                                        <div className="text-sm text-slate-500">No profile configuration recorded for this device.</div>
+                                    )}
+                                </div>
+                            ),
+                        },
+                    ]}
+                />
+            </Modal>
 
             {/* Create Group Modal */}
             <Modal

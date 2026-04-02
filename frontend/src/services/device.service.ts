@@ -1,5 +1,13 @@
 import { get, post, del } from "@/axios-config/request";
-import { DeviceResponse, DeviceActionResponse, DeviceStatsResponse } from "@/types/device.type";
+import {
+  DeviceResponse,
+  DeviceActionResponse,
+  DeviceStatsResponse,
+  DeviceLockRequest,
+  DeviceWipeRequest,
+  DeviceRestartRequest,
+  DeviceCommandResult,
+} from "@/types/device.type";
 import { ResponseAPI, ListResponseAPI } from "@/types";
 
 const BASE_URL = "/devices";
@@ -24,20 +32,24 @@ export const deviceService = {
   },
 
   // Device Actions
-  lockDevice: (id: string, payload: { message?: string; phone_number?: string; pin?: string }) => {
-    return post<ResponseAPI<DeviceActionResponse>, typeof payload>(`${BASE_URL}/${id}/lock`, payload);
+  lockDevice: (id: string, payload?: DeviceLockRequest) => {
+    return post<ResponseAPI<DeviceCommandResult>, DeviceLockRequest | undefined>(`${BASE_URL}/${id}/lock`, payload);
   },
 
-  wipeDevice: (id: string, payload: { pin?: string; preserve_data_plan?: boolean; disallow_proximity_setup?: boolean; obliteration_behavior?: string }) => {
-    return post<ResponseAPI<DeviceActionResponse>, typeof payload>(`${BASE_URL}/${id}/wipe`, payload);
+  unlockDevice: (id: string) => {
+    return post<ResponseAPI<DeviceCommandResult>, undefined>(`${BASE_URL}/${id}/unlock`);
   },
 
-  restartDevice: (id: string, notify_user: boolean = false) => {
-    return post<ResponseAPI<DeviceActionResponse>, { notify_user: boolean }>(`${BASE_URL}/${id}/restart`, { notify_user });
+  wipeDevice: (id: string, payload?: DeviceWipeRequest) => {
+    return post<ResponseAPI<DeviceCommandResult>, DeviceWipeRequest | undefined>(`${BASE_URL}/${id}/wipe`, payload);
+  },
+
+  restartDevice: (id: string, payload?: DeviceRestartRequest) => {
+    return post<ResponseAPI<DeviceCommandResult>, DeviceRestartRequest | undefined>(`${BASE_URL}/${id}/restart`, payload);
   },
 
   shutdownDevice: (id: string) => {
-    return post<ResponseAPI<DeviceActionResponse>, {}>(`${BASE_URL}/${id}/shutdown`, {});
+    return post<ResponseAPI<DeviceCommandResult>, undefined>(`${BASE_URL}/${id}/shutdown`);
   },
 
   requestInfo: (id: string, queries: string[]) => {

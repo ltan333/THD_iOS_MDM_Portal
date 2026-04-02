@@ -31,6 +31,38 @@ export interface DeviceActionResponse {
     message?: string;
 }
 
+export type DeviceWipeObliterationBehavior =
+    | "Default"
+    | "DoNotObliterate"
+    | "ObliterateWithWarning"
+    | "Always";
+
+export interface DeviceLockRequest {
+    footnote?: string;
+    message?: string;
+    phone_number?: string;
+    pin?: string;
+}
+
+export interface DeviceWipeRequest {
+    disallow_proximity_setup?: boolean;
+    obliteration_behavior?: DeviceWipeObliterationBehavior;
+    pin?: string;
+    preserve_data_plan?: boolean;
+}
+
+export interface DeviceRestartRequest {
+    notify_user?: boolean;
+}
+
+export interface DeviceCommandResult {
+    command_uuid?: string;
+    request_type?: string;
+    no_push?: boolean;
+    push_error?: string;
+    command_error?: string;
+}
+
 export interface DeviceStatsResponse {
     total?: number;
     active?: number;
