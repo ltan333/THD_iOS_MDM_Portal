@@ -25,6 +25,7 @@ import {
     FilePlus2,
     MoreVertical,
     Lock,
+    LockOpen,
     Trash2,
     Power,
     PowerOff
@@ -33,7 +34,7 @@ import type { ColumnsType } from "antd/es/table";
 import { deviceService } from "@/services/device.service";
 import { deviceGroupService } from "@/services/device-group.service";
 import { profileService } from "@/services/profile.service";
-import { DeviceResponse } from "@/types/device.type";
+import { DeviceResponse, DeviceWipeRequest } from "@/types/device.type";
 import { DeviceGroupResponse } from "@/types/device-group.type";
 import { ProfileResponse } from "@/types/profile.type";
 
@@ -46,7 +47,7 @@ interface DeviceProfileView {
 
 
 export function DevicesList() {
-    const { message: antdMessage } = App.useApp();
+    const { message: antdMessage, modal } = App.useApp();
     const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
     const [selectedDevice, setSelectedDevice] = useState<DeviceResponse | null>(null);
     const [isModalVisible, setIsModalVisible] = useState(false);
@@ -203,6 +204,31 @@ export function DevicesList() {
         onChange: onSelectChange,
     };
 
+    const getApiErrorMessage = (error: unknown, fallback: string) => {
+        if (error && typeof error === "object" && "message" in error) {
+            const message = (error as { message?: string }).message;
+            if (typeof message === "string" && message.trim()) {
+                return message;
+            }
+        }
+        return fallback;
+    };
+
+    const executeDeviceAction = async (
+        action: () => Promise<unknown>,
+        successMessage: string,
+        fallbackErrorMessage: string
+    ) => {
+        try {
+            await action();
+            antdMessage.success(successMessage);
+        } catch (error) {
+            antdMessage.error(getApiErrorMessage(error, fallbackErrorMessage));
+        }
+    };
+
+    const actionButtonBaseClass = "h-9 w-full px-2 text-xs whitespace-nowrap justify-center border-slate-300 text-slate-700";
+
     const actionMenu: MenuProps['items'] = [
         {
             key: 'add-to-group',
@@ -281,7 +307,7 @@ export function DevicesList() {
                 return (
                     <div className="flex items-center gap-2">
                         <Battery className={`w-4 h-4 ${percent < 20 ? 'text-red-500' : percent < 50 ? 'text-orange-500' : 'text-emerald-500'}`} />
-                        <span className="text-slate-700">{Math.round(percent * 100)}%</span>
+                        <span className="text-slate-700">{Math.round(percent * 1)}%</span>
                     </div>
                 );
             }
@@ -299,7 +325,7 @@ export function DevicesList() {
                 return (
                     <div className="flex items-center gap-2">
                         <HardDrive className="w-4 h-4 text-slate-400" />
-                        <span className="text-slate-700">{availableGB} GB free</span>
+                        <span className="text-slate-700">{availableGB} GB </span>
                         <span className="text-slate-400 text-xs">/ {totalGB} GB</span>
                     </div>
                 );
@@ -491,75 +517,161 @@ export function DevicesList() {
                                             <h3 className="text-sm font-bold text-slate-800 uppercase tracking-wide mb-4 border-b border-slate-100 pb-2 flex items-center gap-2">
                                                 <AppWindow className="w-4 h-4 text-slate-600" /> Device Actions
                                             </h3>
-                                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                            <div className="grid grid-cols-5 gap-2">
                                                 <Button 
-                                                    icon={<Lock className="w-4 h-4" />} 
-                                                    className="flex flex-col items-center justify-center h-20 text-slate-600 hover:text-[#de2a15] hover:border-[#de2a15] transition-colors"
+                                                    icon={<Lock className="w-4 h-4" />}
+                                                    className={actionButtonBaseClass}
                                                     onClick={() => {
-                                                        Modal.confirm({
+                                                        let lockMessage = "Device locked by Admin";
+                                                        let lockPhoneNumber = "";
+                                                        let lockFootnote = "";
+                                                        modal.confirm({
                                                             title: 'Lock Device',
-                                                            content: 'Are you sure you want to remotely lock this device?',
+                                                            content: (
+                                                                <div className="space-y-2">
+                                                                    <div>Nội dung hiển thị khi khóa thiết bị:</div>
+                                                                    <Input.TextArea
+                                                                        rows={3}
+                                                                        defaultValue={lockMessage}
+                                                                        maxLength={200}
+                                                                        onChange={(e) => {
+                                                                            lockMessage = e.target.value;
+                                                                        }}
+                                                                    />
+                                                                    <Input
+                                                                        placeholder="Phone number (vd: +84123456789)"
+                                                                        maxLength={30}
+                                                                        onChange={(e) => {
+                                                                            lockPhoneNumber = e.target.value;
+                                                                        }}
+                                                                    />
+                                                                    <Input
+                                                                        placeholder="Footnote"
+                                                                        maxLength={100}
+                                                                        onChange={(e) => {
+                                                                            lockFootnote = e.target.value;
+                                                                        }}
+                                                                    />
+                                                                </div>
+                                                            ),
                                                             okText: 'Lock',
                                                             okButtonProps: { danger: true },
                                                             onOk: async () => {
                                                                 if(!selectedDevice?.id) return;
-                                                                try {
-                                                                    await deviceService.lockDevice(selectedDevice.id, { message: "Device locked by Admin" });
-                                                                    antdMessage.success("Lock command sent");
-                                                                } catch(e) { antdMessage.error("Failed to send command"); }
+                                                                await executeDeviceAction(
+                                                                    () => deviceService.lockDevice(selectedDevice.id, {
+                                                                        message: lockMessage.trim(),
+                                                                        phone_number: lockPhoneNumber.trim() || undefined,
+                                                                        footnote: lockFootnote.trim() || undefined,
+                                                                    }),
+                                                                    "Lock command sent",
+                                                                    "Failed to send lock command"
+                                                                );
                                                             }
                                                         });
                                                     }}
                                                 >
-                                                    <span className="mt-1 text-xs">Lock</span>
+                                                    Lock
                                                 </Button>
                                                 <Button 
-                                                    icon={<Trash2 className="w-4 h-4" />} 
-                                                    danger
-                                                    className="flex flex-col items-center justify-center h-20"
+                                                    icon={<LockOpen className="w-4 h-4" />}
+                                                    className={actionButtonBaseClass}
                                                     onClick={() => {
-                                                        Modal.confirm({
+                                                        modal.confirm({
+                                                            title: 'Unlock Device',
+                                                            content: 'This will disable Lost Mode on the device. Continue?',
+                                                            okText: 'Unlock',
+                                                            onOk: async () => {
+                                                                if(!selectedDevice?.id) return;
+                                                                await executeDeviceAction(
+                                                                    () => deviceService.unlockDevice(selectedDevice.id),
+                                                                    "Unlock command sent",
+                                                                    "Failed to send unlock command"
+                                                                );
+                                                            }
+                                                        });
+                                                    }}
+                                                >
+                                                    Unlock
+                                                </Button>
+                                                <Button 
+                                                    icon={<Trash2 className="w-4 h-4" />}
+                                                    danger
+                                                    className={`${actionButtonBaseClass} border-slate-300`}
+                                                    onClick={() => {
+                                                        modal.confirm({
                                                             title: 'Wipe Device',
                                                             content: 'WARNING: This will factory reset the device. All data will be lost. Are you sure?',
-                                                            okText: 'Wipe',
+                                                            okText: 'Continue',
                                                             okButtonProps: { danger: true },
                                                             onOk: async () => {
                                                                 if(!selectedDevice?.id) return;
-                                                                try {
-                                                                    await deviceService.wipeDevice(selectedDevice.id, {});
-                                                                    antdMessage.success("Wipe command sent");
-                                                                } catch(e) { antdMessage.error("Failed to send command"); }
+                                                                modal.confirm({
+                                                                    title: 'Confirm Device Wipe',
+                                                                    content: 'This action is irreversible. Confirm to enqueue wipe command.',
+                                                                    okText: 'Wipe',
+                                                                    okButtonProps: { danger: true },
+                                                                    onOk: async () => {
+                                                                        const wipePayload: DeviceWipeRequest = {
+                                                                            obliteration_behavior: "Always"
+                                                                        };
+                                                                        await executeDeviceAction(
+                                                                            () => deviceService.wipeDevice(selectedDevice.id, wipePayload),
+                                                                            "Wipe command sent",
+                                                                            "Failed to send wipe command"
+                                                                        );
+                                                                    }
+                                                                });
                                                             }
                                                         });
                                                     }}
                                                 >
-                                                    <span className="mt-1 text-xs">Wipe</span>
+                                                    Erase
                                                 </Button>
                                                 <Button 
-                                                    icon={<Power className="w-4 h-4" />} 
-                                                    className="flex flex-col items-center justify-center h-20 text-slate-600 hover:text-orange-500 hover:border-orange-500 transition-colors"
+                                                    icon={<Power className="w-4 h-4" />}
+                                                    className={actionButtonBaseClass}
                                                     onClick={async () => {
                                                         if(!selectedDevice?.id) return;
-                                                        try {
-                                                            await deviceService.restartDevice(selectedDevice.id);
-                                                            antdMessage.success("Restart command sent");
-                                                        } catch(e) { antdMessage.error("Failed to send command"); }
+                                                        await executeDeviceAction(
+                                                            () => deviceService.restartDevice(selectedDevice.id, { notify_user: true }),
+                                                            "Restart command sent",
+                                                            "Failed to send restart command"
+                                                        );
                                                     }}
                                                 >
-                                                    <span className="mt-1 text-xs">Restart</span>
+                                                    Restart
                                                 </Button>
                                                 <Button 
-                                                    icon={<PowerOff className="w-4 h-4" />} 
-                                                    className="flex flex-col items-center justify-center h-20 text-slate-600 hover:text-red-500 hover:border-red-500 transition-colors"
-                                                    onClick={async () => {
-                                                        if(!selectedDevice?.id) return;
-                                                        try {
-                                                            await deviceService.shutdownDevice(selectedDevice.id);
-                                                            antdMessage.success("Shutdown command sent");
-                                                        } catch(e) { antdMessage.error("Failed to send command"); }
+                                                    icon={<PowerOff className="w-4 h-4" />}
+                                                    danger
+                                                    className={`${actionButtonBaseClass} border-slate-300`}
+                                                    onClick={() => {
+                                                        modal.confirm({
+                                                            title: 'Shutdown Device',
+                                                            content: 'Device will power off remotely. Do you want to continue?',
+                                                            okText: 'Continue',
+                                                            okButtonProps: { danger: true },
+                                                            onOk: async () => {
+                                                                if(!selectedDevice?.id) return;
+                                                                modal.confirm({
+                                                                    title: 'Confirm Shutdown',
+                                                                    content: 'Please confirm again to send shutdown command.',
+                                                                    okText: 'Shutdown',
+                                                                    okButtonProps: { danger: true },
+                                                                    onOk: async () => {
+                                                                        await executeDeviceAction(
+                                                                            () => deviceService.shutdownDevice(selectedDevice.id),
+                                                                            "Shutdown command sent",
+                                                                            "Failed to send shutdown command"
+                                                                        );
+                                                                    }
+                                                                });
+                                                            }
+                                                        });
                                                     }}
                                                 >
-                                                    <span className="mt-1 text-xs">Shutdown</span>
+                                                    Shutdown
                                                 </Button>
                                             </div>
                                         </div>
@@ -605,7 +717,7 @@ export function DevicesList() {
                                                     <div className="text-xs text-slate-500 font-medium mb-1">Battery Level</div>
                                                     <div className="flex items-center gap-2">
                                                         <Battery className={`w-4 h-4 ${!selectedDevice.battery_level ? 'text-slate-400' : selectedDevice.battery_level < 0.2 ? 'text-red-500' : selectedDevice.battery_level < 0.5 ? 'text-orange-500' : 'text-emerald-500'}`} />
-                                                        <span className="text-sm text-slate-800 font-medium">{selectedDevice.battery_level ? Math.round(selectedDevice.battery_level * 100) + '%' : "-"}</span>
+                                                        <span className="text-sm text-slate-800 font-medium">{selectedDevice.battery_level ? Math.round(selectedDevice.battery_level * 1) + '%' : "-"}</span>
                                                     </div>
                                                 </div>
                                                 <div>
