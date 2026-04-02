@@ -217,7 +217,7 @@ export function DeviceGroupsList() {
                 });
             }
 
-            for (const deviceId of affectedDevices) {
+            for (const deviceId of Array.from(affectedDevices)) {
                 if (existingDeviceIds.has(deviceId)) {
                     continue;
                 }

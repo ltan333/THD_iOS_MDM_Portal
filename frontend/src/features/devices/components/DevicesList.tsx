@@ -28,7 +28,10 @@ import {
     LockOpen,
     Trash2,
     Power,
-    PowerOff
+    PowerOff,
+    AlertCircle,
+    MessageSquare,
+    Contact
 } from "lucide-react";
 import type { ColumnsType } from "antd/es/table";
 import { deviceService } from "@/services/device.service";
@@ -522,40 +525,98 @@ export function DevicesList() {
                                                     icon={<Lock className="w-4 h-4" />}
                                                     className={actionButtonBaseClass}
                                                     onClick={() => {
-                                                        let lockMessage = "Device locked by Admin";
+                                                        let lockMessage = "Thiết bị bị khóa bởi Quản trị viên";
                                                         let lockPhoneNumber = "";
                                                         let lockFootnote = "";
                                                         modal.confirm({
-                                                            title: 'Lock Device',
-                                                            content: (
-                                                                <div className="space-y-2">
-                                                                    <div>Nội dung hiển thị khi khóa thiết bị:</div>
-                                                                    <Input.TextArea
-                                                                        rows={3}
-                                                                        defaultValue={lockMessage}
-                                                                        maxLength={200}
-                                                                        onChange={(e) => {
-                                                                            lockMessage = e.target.value;
-                                                                        }}
-                                                                    />
-                                                                    <Input
-                                                                        placeholder="Phone number (vd: +84123456789)"
-                                                                        maxLength={30}
-                                                                        onChange={(e) => {
-                                                                            lockPhoneNumber = e.target.value;
-                                                                        }}
-                                                                    />
-                                                                    <Input
-                                                                        placeholder="Footnote"
-                                                                        maxLength={100}
-                                                                        onChange={(e) => {
-                                                                            lockFootnote = e.target.value;
-                                                                        }}
-                                                                    />
+                                                            title: (
+                                                                <div className="flex items-center gap-3 pb-3 border-b border-gray-200">
+                                                                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-error-500 to-error-600 flex items-center justify-center shadow-md">
+                                                                        <Lock className="w-5 h-5 text-white" />
+                                                                    </div>
+                                                                    <div>
+                                                                        <h3 className="text-lg font-semibold text-gray-900 m-0">Khóa Thiết Bị</h3>
+                                                                        <p className="text-sm text-gray-500 m-0">Cấu hình hiển thị màn hình khóa</p>
+                                                                    </div>
                                                                 </div>
                                                             ),
-                                                            okText: 'Lock',
-                                                            okButtonProps: { danger: true },
+                                                            width: 540,
+                                                            content: (
+                                                                <div className="space-y-4 pt-2">
+                                                                    <div className="bg-warning-50 border border-warning-200 rounded-lg p-3 flex items-start gap-3">
+                                                                        <AlertCircle className="w-5 h-5 text-warning-600 flex-shrink-0 mt-0.5" />
+                                                                        <div className="flex-1">
+                                                                            <p className="text-sm font-medium text-warning-900 m-0">Thiết bị sẽ bị khóa ngay lập tức</p>
+                                                                            <p className="text-xs text-warning-700 m-0 mt-1">Người dùng sẽ thấy thông tin này trên màn hình khóa</p>
+                                                                        </div>
+                                                                    </div>
+                                                                    
+                                                                    <div className="space-y-1">
+                                                                        <label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                                                                            <MessageSquare className="w-4 h-4 text-gray-500" />
+                                                                            Thông Báo Màn Hình Khóa
+                                                                        </label>
+                                                                        <Input.TextArea
+                                                                            rows={3}
+                                                                            defaultValue={lockMessage}
+                                                                            maxLength={200}
+                                                                            placeholder="Nhập thông báo hiển thị trên màn hình khóa"
+                                                                            showCount
+                                                                            className="rounded-lg"
+                                                                            onChange={(e) => {
+                                                                                lockMessage = e.target.value;
+                                                                            }}
+                                                                        />
+                                                                        <p className="text-xs text-gray-500 mt-1">Thông báo này sẽ được hiển thị nổi bật trên thiết bị bị khóa</p>
+                                                                    </div>
+                                                                    
+                                                                    <div className="space-y-1">
+                                                                        <label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                                                                            <Contact className="w-4 h-4 text-gray-500" />
+                                                                            Số Điện Thoại Liên Hệ
+                                                                            <span className="text-xs font-normal text-gray-500">(Tùy chọn)</span>
+                                                                        </label>
+                                                                        <Input
+                                                                            prefix={<Contact className="w-4 h-4 text-gray-400" />}
+                                                                            placeholder="Ví dụ: +84 123 456 789"
+                                                                            maxLength={30}
+                                                                            className="rounded-lg h-10"
+                                                                            onChange={(e) => {
+                                                                                lockPhoneNumber = e.target.value;
+                                                                            }}
+                                                                        />
+                                                                        <p className="text-xs text-gray-500 mt-1">Hiển thị số điện thoại liên hệ trên màn hình khóa</p>
+                                                                    </div>
+                                                                    
+                                                                    <div className="space-y-1">
+                                                                        <label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                                                                            <MessageSquare className="w-4 h-4 text-gray-500" />
+                                                                            Ghi Chú Bổ Sung
+                                                                            <span className="text-xs font-normal text-gray-500">(Tùy chọn)</span>
+                                                                        </label>
+                                                                        <Input
+                                                                            prefix={<MessageSquare className="w-4 h-4 text-gray-400" />}
+                                                                            placeholder="Ví dụ: Vui lòng trả lại phòng IT"
+                                                                            maxLength={100}
+                                                                            className="rounded-lg h-10"
+                                                                            onChange={(e) => {
+                                                                                lockFootnote = e.target.value;
+                                                                            }}
+                                                                        />
+                                                                        <p className="text-xs text-gray-500 mt-1">Thêm hướng dẫn hoặc thông tin bổ sung</p>
+                                                                    </div>
+                                                                </div>
+                                                            ),
+                                                            okText: 'Khóa Thiết Bị',
+                                                            cancelText: 'Hủy',
+                                                            okButtonProps: { 
+                                                                danger: true,
+                                                                icon: <Lock className="w-4 h-4" />,
+                                                                className: 'h-10 px-5 rounded-lg font-semibold'
+                                                            },
+                                                            cancelButtonProps: {
+                                                                className: 'h-10 px-5 rounded-lg font-medium'
+                                                            },
                                                             onOk: async () => {
                                                                 if(!selectedDevice?.id) return;
                                                                 await executeDeviceAction(
@@ -564,14 +625,14 @@ export function DevicesList() {
                                                                         phone_number: lockPhoneNumber.trim() || undefined,
                                                                         footnote: lockFootnote.trim() || undefined,
                                                                     }),
-                                                                    "Lock command sent",
-                                                                    "Failed to send lock command"
+                                                                    "Lệnh khóa đã được gửi thành công",
+                                                                    "Không thể gửi lệnh khóa"
                                                                 );
                                                             }
                                                         });
                                                     }}
                                                 >
-                                                    Lock
+                                                    Khóa
                                                 </Button>
                                                 <Button 
                                                     icon={<LockOpen className="w-4 h-4" />}

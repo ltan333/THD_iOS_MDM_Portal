@@ -789,232 +789,269 @@ const handleSaveProfile = async () => {
   {/* Profile Detail Modal */}
   <Modal
     title={
-      <div className="flex items-center gap-2">
-        <div className="w-8 h-8 rounded-lg bg-red-50 flex items-center justify-center">
-          {selectedProfile?.family === "Apple" ? <Apple className="w-4 h-4 text-[#de2a15]" /> : <Smartphone className="w-4 h-4 text-[#de2a15]" />}
-        </div>
-        <div>
-          <h3 className="text-lg font-bold text-slate-800 m-0">{selectedProfile?.name}</h3>
-          <p className="text-xs text-slate-500 font-normal m-0">{selectedProfile?.family} Profile</p>
+      <div className="flex items-center justify-between gap-3 pb-4 border-b border-gray-200">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary-500 to-primary-600 flex items-center justify-center shadow-md">
+            {selectedProfile?.family === "Apple" ? <Apple className="w-5 h-5 text-white" /> : <Smartphone className="w-5 h-5 text-white" />}
+          </div>
+          <div>
+            <h3 className="text-lg font-semibold text-gray-900 m-0">{selectedProfile?.name}</h3>
+            <p className="text-sm text-gray-500 font-normal m-0 flex items-center gap-2">
+              <span>{selectedProfile?.family} Profile</span>
+              {selectedProfile?.status === 'active' ? (
+                <Tag color="success" className="text-xs m-0">Active</Tag>
+              ) : (
+                <Tag color="warning" className="text-xs m-0">Draft</Tag>
+              )}
+            </p>
+          </div>
         </div>
       </div>
     }
     open={isProfileDetailModalVisible}
     onCancel={() => setIsProfileDetailModalVisible(false)}
     footer={
-      <div className="flex justify-end items-center w-full pt-4 border-t border-slate-100 mt-4 gap-3 px-1 pb-1">
+      <div className="flex justify-between items-center w-full pt-4 border-t border-gray-200 gap-3">
         <Button
           danger
           type="text"
           icon={<Trash2 className="w-4 h-4" />}
           onClick={handleDeleteProfile}
-          className="text-red-500 hover:bg-red-50 hover:text-red-600 transition-colors h-10 px-4 rounded-lg font-medium mr-auto"
+          className="text-error-600 hover:bg-error-50 hover:text-error-700 transition-all h-9 px-4 rounded-lg font-medium"
         >
           Delete
         </Button>
-        {selectedProfile?.status === "active" ? (
+        
+        <div className="flex gap-2">
+          {selectedProfile?.status === "active" ? (
+            <Button
+              onClick={() => handleUpdateStatus("draft")}
+              icon={<PenSquare className="w-4 h-4" />}
+              className="h-9 px-4 rounded-lg font-medium text-warning-600 border-warning-300 hover:bg-warning-50 transition-all"
+            >
+              Set Draft
+            </Button>
+          ) : (
+            <Button
+              onClick={() => handleUpdateStatus("active")}
+              icon={<CheckCircle2 className="w-4 h-4" />}
+              className="h-9 px-4 rounded-lg font-medium text-success-600 border-success-300 hover:bg-success-50 transition-all"
+            >
+              Activate
+            </Button>
+          )}
           <Button
-            onClick={() => handleUpdateStatus("draft")}
-            className="h-10 px-4 rounded-lg font-medium text-amber-600 border-amber-300 hover:bg-amber-50 transition-colors"
+            onClick={handleRepush}
+            loading={repushLoading}
+            icon={<RefreshCcw className="w-4 h-4" />}
+            className="h-9 px-4 rounded-lg font-medium text-primary-600 border-primary-300 hover:bg-primary-50 transition-all"
           >
-            Set Draft
+            Repush
           </Button>
-        ) : (
           <Button
-            onClick={() => handleUpdateStatus("active")}
-            className="h-10 px-4 rounded-lg font-medium text-emerald-600 border-emerald-300 hover:bg-emerald-50 transition-colors"
+            onClick={() => { setIsProfileDetailModalVisible(false); setIsAssignModalVisible(true); }}
+            icon={<Users className="w-4 h-4" />}
+            className="h-9 px-4 rounded-lg font-medium text-accent-600 border-accent-300 hover:bg-accent-50 transition-all"
           >
-            Set Active
+            Assign
           </Button>
-        )}
-        <Button
-          onClick={handleRepush}
-          loading={repushLoading}
-          icon={<RefreshCcw className="w-4 h-4" />}
-          className="h-10 px-4 rounded-lg font-medium text-violet-600 border-violet-300 hover:bg-violet-50 transition-colors"
-        >
-          Repush
-        </Button>
-        <Button
-          onClick={() => { setIsProfileDetailModalVisible(false); setIsAssignModalVisible(true); }}
-          className="h-10 px-4 rounded-lg font-medium text-blue-600 border-blue-300 hover:bg-blue-50 transition-colors"
-        >
-          Assign
-        </Button>
-        <Button
-          onClick={() => setIsProfileDetailModalVisible(false)}
-          className="h-10 px-6 rounded-lg font-medium text-slate-600 hover:text-slate-800 hover:bg-slate-50 border-slate-200 transition-colors"
-        >
-          Close
-        </Button>
-        <Button 
-          type="primary" 
-          className="bg-[#de2a15] hover:bg-[#c22412] h-10 px-6 rounded-lg font-medium shadow-sm border-none transition-colors"
-          onClick={async () => {
-            setIsProfileDetailModalVisible(false);
-            setNewProfileName(selectedProfile?.name || "");
-            setEditingProfileId(selectedProfile?.id || null);
-            
-            message.loading({ content: 'Loading profile data...', key: 'loadingProfile' });
-            
-            try {
-              const response = await profileService.getProfileById(selectedProfile!.id);
-              if (response.is_success && response.data) {
-                const detail = response.data;
-                setEditingProfileSnapshot(detail);
-                setNewProfileDesc("");
-                
-                setHasWifiConfig(!!(detail.network_config?.wifi && Object.keys(detail.network_config.wifi).length > 0));
-                setHasVpnConfig(!!(detail.network_config?.vpn && Object.keys(detail.network_config.vpn).length > 0));
-                setHasHttpProxyConfig(!!(detail.network_config?.proxy && Object.keys(detail.network_config.proxy).length > 0));
-                setHasRestrictionsConfig(!!(detail.restrictions && Object.keys(detail.restrictions).length > 0));
-                setHasPasscodeConfig(!!(detail.security_settings?.passcode && Object.keys(detail.security_settings.passcode).length > 0));
-                setHasContentFilterConfig(!!(detail.content_filter && Object.keys(detail.content_filter).length > 0));
-                setSelectedPlatform(detail.platform || "ios");
+          <Button 
+            type="primary" 
+            icon={<PenSquare className="w-4 h-4" />}
+            className="bg-primary-600 hover:bg-primary-700 h-9 px-5 rounded-lg font-medium shadow-sm border-none transition-all"
+            onClick={async () => {
+              setIsProfileDetailModalVisible(false);
+              setNewProfileName(selectedProfile?.name || "");
+              setEditingProfileId(selectedProfile?.id || null);
+              
+              message.loading({ content: 'Loading profile data...', key: 'loadingProfile' });
+              
+              try {
+                const response = await profileService.getProfileById(selectedProfile!.id);
+                if (response.is_success && response.data) {
+                  const detail = response.data;
+                  setEditingProfileSnapshot(detail);
+                  setNewProfileDesc("");
+                  
+                  setHasWifiConfig(!!(detail.network_config?.wifi && Object.keys(detail.network_config.wifi).length > 0));
+                  setHasVpnConfig(!!(detail.network_config?.vpn && Object.keys(detail.network_config.vpn).length > 0));
+                  setHasHttpProxyConfig(!!(detail.network_config?.proxy && Object.keys(detail.network_config.proxy).length > 0));
+                  setHasRestrictionsConfig(!!(detail.restrictions && Object.keys(detail.restrictions).length > 0));
+                  setHasPasscodeConfig(!!(detail.security_settings?.passcode && Object.keys(detail.security_settings.passcode).length > 0));
+                  setHasContentFilterConfig(!!(detail.content_filter && Object.keys(detail.content_filter).length > 0));
+                  setSelectedPlatform(detail.platform || "ios");
 
-                // Pre-populate form values for editing
-                if (detail.security_settings?.passcode) {
-                  const p = detail.security_settings.passcode;
-                  passcodeForm.setFieldsValue({
-                    allowSimple: p.allow_simple ?? true,
-                    requireAlphanumeric: p.require_alphanumeric ?? false,
-                    minLength: p.min_length ?? 0,
-                    minComplexChars: p.min_complex_chars ?? 0,
-                    maxPasscodeAge: p.max_passcode_age,
-                    autoLock: p.auto_lock ?? "none",
-                    passcodeHistory: p.history,
-                    gracePeriod: p.grace_period ?? "none",
-                    maxFailedAttempts: p.retry_limit,
-                  });
-                  setPasscodeData(detail.security_settings.passcode);
-                }
-                if (detail.restrictions && Object.keys(detail.restrictions).length > 0) {
-                  const r = detail.restrictions;
-                  restrictionsForm.setFieldsValue({
-                    allowCamera: r.camera_enabled ?? true,
-                    allowFaceTime: r.facetime_enabled ?? true,
-                    allowScreenshots: r.screenshots_enabled ?? true,
-                    allowAirDrop: r.airdrop_enabled ?? true,
-                    allowSiri: r.siri_enabled ?? true,
-                    allowSafari: r.safari_enabled ?? true,
-                    allowGameCenter: r.game_center_enabled ?? true,
-                    allowiTunes: r.itunes_enabled ?? true,
-                    allowNews: r.news_enabled ?? true,
-                    allowPodcasts: r.podcasts_enabled ?? true,
-                  });
-                  setRestrictionsData(detail.restrictions);
-                }
-                if (detail.network_config?.wifi) {
-                  const w = detail.network_config.wifi;
-                  setWifiSsid(w.ssid || "");
-                  setWifiSecurityType(w.security_type || "none");
-                  setWifiProxySetup(w.proxy_setup || "none");
-                  wifiForm.setFieldsValue({
-                    autoJoin: w.auto_join ?? true,
-                    hiddenNetwork: w.hidden_network ?? false,
-                    disableCaptive: w.disable_captive ?? false,
-                    disableMacRand: w.disable_mac_randomization ?? false,
-                  });
-                  setWifiData(detail.network_config.wifi);
-                }
-                if (detail.network_config?.vpn) {
-                  const v = detail.network_config.vpn;
-                  setVpnConnectionName(v.connection_name || "");
-                  setVpnServer(v.server || "");
-                  setVpnConnectionType(v.type || "l2tp");
-                  setVpnData(detail.network_config.vpn);
-                }
+                  // Pre-populate form values for editing
+                  if (detail.security_settings?.passcode) {
+                    const p = detail.security_settings.passcode;
+                    passcodeForm.setFieldsValue({
+                      allowSimple: p.allow_simple ?? true,
+                      requireAlphanumeric: p.require_alphanumeric ?? false,
+                      minLength: p.min_length ?? 0,
+                      minComplexChars: p.min_complex_chars ?? 0,
+                      maxPasscodeAge: p.max_passcode_age,
+                      autoLock: p.auto_lock ?? "none",
+                      passcodeHistory: p.history,
+                      gracePeriod: p.grace_period ?? "none",
+                      maxFailedAttempts: p.retry_limit,
+                    });
+                    setPasscodeData(detail.security_settings.passcode);
+                  }
+                  if (detail.restrictions && Object.keys(detail.restrictions).length > 0) {
+                    const r = detail.restrictions;
+                    restrictionsForm.setFieldsValue({
+                      allowCamera: r.camera_enabled ?? true,
+                      allowFaceTime: r.facetime_enabled ?? true,
+                      allowScreenshots: r.screenshots_enabled ?? true,
+                      allowAirDrop: r.airdrop_enabled ?? true,
+                      allowSiri: r.siri_enabled ?? true,
+                      allowSafari: r.safari_enabled ?? true,
+                      allowGameCenter: r.game_center_enabled ?? true,
+                      allowiTunes: r.itunes_enabled ?? true,
+                      allowNews: r.news_enabled ?? true,
+                      allowPodcasts: r.podcasts_enabled ?? true,
+                    });
+                    setRestrictionsData(detail.restrictions);
+                  }
+                  if (detail.network_config?.wifi) {
+                    const w = detail.network_config.wifi;
+                    setWifiSsid(w.ssid || "");
+                    setWifiSecurityType(w.security_type || "none");
+                    setWifiProxySetup(w.proxy_setup || "none");
+                    wifiForm.setFieldsValue({
+                      autoJoin: w.auto_join ?? true,
+                      hiddenNetwork: w.hidden_network ?? false,
+                      disableCaptive: w.disable_captive ?? false,
+                      disableMacRand: w.disable_mac_randomization ?? false,
+                    });
+                    setWifiData(detail.network_config.wifi);
+                  }
+                  if (detail.network_config?.vpn) {
+                    const v = detail.network_config.vpn;
+                    setVpnConnectionName(v.connection_name || "");
+                    setVpnServer(v.server || "");
+                    setVpnConnectionType(v.type || "l2tp");
+                    setVpnData(detail.network_config.vpn);
+                  }
 
-                setIsProfileFormModalVisible(true);
-                message.success({ content: 'Profile data loaded', key: 'loadingProfile', duration: 2 });
-              } else {
-                message.error({ content: 'Failed to load profile details', key: 'loadingProfile', duration: 2 });
+                  setIsProfileFormModalVisible(true);
+                  message.success({ content: 'Profile data loaded', key: 'loadingProfile', duration: 2 });
+                } else {
+                  message.error({ content: 'Failed to load profile details', key: 'loadingProfile', duration: 2 });
+                }
+              } catch (error) {
+                message.error({ content: 'Error loading profile details', key: 'loadingProfile', duration: 2 });
               }
-            } catch (error) {
-              message.error({ content: 'Error loading profile details', key: 'loadingProfile', duration: 2 });
-            }
-          }}
-        >
-          Edit Profile
-        </Button>
+            }}
+          >
+            Edit Profile
+          </Button>
+        </div>
       </div>
     }
-    width={600}
-    className="custom-modal"
+    width={680}
+    className="custom-modal profile-detail-modal"
   >
     {selectedProfile && (
-      <div className="py-2 space-y-5">
-        {/* Main Stats Grid */}
-        <div className="grid grid-cols-2 gap-3">
-          <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
-            <div className="flex items-center gap-1.5 text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">
+      <div className="py-3 space-y-6">
+        {/* Main Stats Grid - Enhanced with better visual hierarchy */}
+        <div className="grid grid-cols-2 gap-4">
+          <div className="bg-gradient-to-br from-white to-gray-50 p-5 rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-all hover:border-primary-300">
+            <div className="flex items-center gap-2 text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">
+              <Settings2 className="w-3.5 h-3.5" />
               Status
             </div>
-            <div className="flex items-center gap-2 font-bold text-slate-800 text-[15px]">
+            <div className="flex items-center gap-2.5">
               {selectedProfile.status === 'active' ? (
-                <><span className="relative flex h-2.5 w-2.5"><span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span><span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span></span> <span className="text-emerald-700">Active</span></>
+                <>
+                  <span className="relative flex h-3 w-3">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-success-400 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-3 w-3 bg-success-500"></span>
+                  </span>
+                  <span className="font-semibold text-success-700 text-base">Active</span>
+                </>
               ) : (
-                <><span className="w-2.5 h-2.5 rounded-full bg-amber-500"></span> <span className="text-amber-700">Draft</span></>
+                <>
+                  <span className="w-3 h-3 rounded-full bg-warning-500"></span>
+                  <span className="font-semibold text-warning-700 text-base">Draft</span>
+                </>
               )}
             </div>
           </div>
           
-          <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
-            <div className="flex items-center gap-1.5 text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">
+          <div className="bg-gradient-to-br from-white to-gray-50 p-5 rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-all hover:border-primary-300">
+            <div className="flex items-center gap-2 text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">
+              <Shield className="w-3.5 h-3.5" />
               Version
             </div>
-            <div className="font-bold text-slate-800 text-[15px]">{selectedProfile.version}</div>
+            <div className="font-semibold text-gray-900 text-base">{selectedProfile.version}</div>
           </div>
 
-          <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
-            <div className="flex items-center gap-1.5 text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">
+          <div className="bg-gradient-to-br from-white to-gray-50 p-5 rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-all hover:border-primary-300">
+            <div className="flex items-center gap-2 text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">
+              <MonitorUp className="w-3.5 h-3.5" />
               Install Method
             </div>
-            <div className="font-bold text-slate-800 text-[15px]">{selectedProfile.installMethod}</div>
+            <div className="font-semibold text-gray-900 text-base">{selectedProfile.installMethod}</div>
           </div>
 
-          <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
-            <div className="flex items-center gap-1.5 text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">
+          <div className="bg-gradient-to-br from-white to-gray-50 p-5 rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-all hover:border-primary-300">
+            <div className="flex items-center gap-2 text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">
+              <Settings2 className="w-3.5 h-3.5" />
               Configurations
             </div>
-            <div className="font-bold text-slate-800 text-[15px]">{selectedProfile.configurations} <span className="font-medium text-slate-500 text-sm">Settings</span></div>
+            <div className="flex items-baseline gap-2">
+              <span className="font-bold text-gray-900 text-2xl">{selectedProfile.configurations}</span>
+              <span className="font-medium text-gray-500 text-sm">Settings</span>
+            </div>
           </div>
         </div>
 
-        {/* Active Configurations List */}
+        {/* Active Configurations List - Improved layout */}
         {selectedProfile.activeConfigs && selectedProfile.activeConfigs.length > 0 && (
-          <div className="bg-slate-50/80 p-5 rounded-2xl border border-slate-100">
-            <div className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-4 flex items-center gap-2">
-              <Settings2 className="w-3.5 h-3.5" /> Active Configurations
+          <div className="bg-gradient-to-br from-primary-50 to-white p-5 rounded-xl border border-primary-200 shadow-sm">
+            <div className="text-xs font-semibold text-primary-700 uppercase tracking-wide mb-4 flex items-center gap-2">
+              <Settings2 className="w-4 h-4" /> Active Configurations
+              <span className="ml-auto text-primary-600 bg-primary-100 px-2 py-0.5 rounded-full text-xs font-bold">
+                {selectedProfile.activeConfigs.length}
+              </span>
             </div>
             <div className="grid grid-cols-1 gap-2.5">
               {selectedProfile.activeConfigs.map((config) => (
-                <div key={config.key} className="flex items-center gap-3 bg-white px-4 py-3 rounded-xl border border-slate-200 shadow-sm hover:border-[#de2a15]/30 transition-colors group cursor-default">
-                  <div className="p-2 bg-red-50 text-[#de2a15] rounded-lg group-hover:bg-[#de2a15] group-hover:text-white transition-colors">
+                <div key={config.key} className="flex items-center gap-3 bg-white px-4 py-3.5 rounded-lg border border-gray-200 shadow-sm hover:border-primary-400 hover:shadow-md transition-all group cursor-default">
+                  <div className="p-2.5 bg-primary-50 text-primary-600 rounded-lg group-hover:bg-primary-600 group-hover:text-white transition-all shadow-sm">
                     {config.icon}
                   </div>
-                  <span className="font-semibold text-[14px] text-slate-700 group-hover:text-slate-900 transition-colors">{config.name}</span>
+                  <span className="font-semibold text-sm text-gray-700 group-hover:text-gray-900 transition-colors">{config.name}</span>
                 </div>
               ))}
             </div>
           </div>
         )}
         
-        {/* Assignment Info */}
-        <div className="bg-slate-50/80 p-5 rounded-2xl border border-slate-100">
-          <div className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-4 flex items-center gap-2">
-            <Calendar className="w-3.5 h-3.5" /> Assignment Info
+        {/* Assignment Info - Better visual design */}
+        <div className="bg-gradient-to-br from-gray-50 to-white p-5 rounded-xl border border-gray-200 shadow-sm">
+          <div className="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-4 flex items-center gap-2">
+            <Calendar className="w-4 h-4" /> Assignment Information
           </div>
-          <div className="space-y-3">
-            <div className="flex items-center justify-between py-1 border-b border-slate-200/60 border-dashed pb-3">
-              <span className="text-sm font-medium text-slate-500">Last Modified</span>
-              <span className="text-sm font-bold text-slate-700 bg-white px-2.5 py-1 rounded-md border border-slate-200 shadow-sm">{selectedProfile.assignedDate}</span>
+          <div className="space-y-3.5">
+            <div className="flex items-center justify-between py-2.5 border-b border-gray-200">
+              <span className="text-sm font-medium text-gray-600 flex items-center gap-2">
+                <Calendar className="w-4 h-4 text-gray-400" />
+                Last Modified
+              </span>
+              <span className="text-sm font-semibold text-gray-900 bg-white px-3 py-1.5 rounded-lg border border-gray-200 shadow-sm">
+                {selectedProfile.assignedDate}
+              </span>
             </div>
-            <div className="flex items-center justify-between py-1 pt-1">
-              <span className="text-sm font-medium text-slate-500">Modified By</span>
-              <span className="text-sm font-bold text-slate-700 flex items-center gap-1.5">
-                <div className="w-5 h-5 rounded-full bg-slate-200 flex items-center justify-center text-[10px] text-slate-600">
-                  {selectedProfile.assignedBy.charAt(0)}
+            <div className="flex items-center justify-between py-2">
+              <span className="text-sm font-medium text-gray-600 flex items-center gap-2">
+                <Contact className="w-4 h-4 text-gray-400" />
+                Modified By
+              </span>
+              <span className="text-sm font-semibold text-gray-900 flex items-center gap-2 bg-white px-3 py-1.5 rounded-lg border border-gray-200 shadow-sm">
+                <div className="w-6 h-6 rounded-full bg-gradient-to-br from-primary-500 to-primary-600 flex items-center justify-center text-xs font-bold text-white shadow-sm">
+                  {selectedProfile.assignedBy.charAt(0).toUpperCase()}
                 </div>
                 {selectedProfile.assignedBy}
               </span>
@@ -1022,32 +1059,42 @@ const handleSaveProfile = async () => {
           </div>
         </div>
 
-        {/* Assignments List */}
-        <div className="bg-slate-50/80 p-5 rounded-2xl border border-slate-100">
-          <div className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-4 flex items-center gap-2">
-            <Users className="w-3.5 h-3.5" /> Assignments
-            {assignmentsLoading && <span className="ml-auto text-[10px] text-slate-400 animate-pulse">Loading...</span>}
+        {/* Assignments List - Enhanced with better empty state */}
+        <div className="bg-gradient-to-br from-accent-50 to-white p-5 rounded-xl border border-accent-200 shadow-sm">
+          <div className="text-xs font-semibold text-accent-700 uppercase tracking-wide mb-4 flex items-center gap-2">
+            <Users className="w-4 h-4" /> Assignments
+            {assignmentsLoading && <span className="ml-auto text-xs text-gray-500 animate-pulse">Loading...</span>}
+            {!assignmentsLoading && profileAssignments.length > 0 && (
+              <span className="ml-auto text-accent-600 bg-accent-100 px-2 py-0.5 rounded-full text-xs font-bold">
+                {profileAssignments.length}
+              </span>
+            )}
           </div>
           {!assignmentsLoading && profileAssignments.length === 0 && (
-            <div className="text-sm text-slate-400 text-center py-3">No assignments yet</div>
+            <div className="text-center py-8 bg-white rounded-lg border border-dashed border-gray-300">
+              <Users className="w-12 h-12 mx-auto text-gray-300 mb-3" />
+              <p className="text-sm font-medium text-gray-500">No assignments yet</p>
+              <p className="text-xs text-gray-400 mt-1">Click &quot;Assign&quot; to assign this profile</p>
+            </div>
           )}
-          <div className="space-y-2">
+          <div className="space-y-2.5">
             {profileAssignments.map((a) => (
-              <div key={a.id} className="flex items-center justify-between bg-white px-3 py-2.5 rounded-xl border border-slate-200 shadow-sm">
-                <div className="flex flex-col gap-0.5 min-w-0">
-                  <div className="flex items-center gap-2">
-                    <span className="text-[11px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded bg-slate-100 text-slate-500">
-                      {a.target_type}
-                    </span>
-                    <span className="text-sm font-semibold text-slate-700 truncate">
+              <div key={a.id} className="flex items-center justify-between bg-white px-4 py-3.5 rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-all">
+                <div className="flex flex-col gap-1.5 min-w-0 flex-1">
+                  <div className="flex items-center gap-2.5">
+                    <Tag color={a.target_type === "device" ? "blue" : "purple"} className="text-xs font-semibold m-0">
+                      {a.target_type === "device" ? "Device" : "Group"}
+                    </Tag>
+                    <span className="text-sm font-semibold text-gray-800 truncate">
                       {a.target_type === "device" ? (a.device_id || "—") : `Group #${a.group_id}`}
                     </span>
                   </div>
                   {a.schedule_type && (
-                    <span className="text-[11px] text-slate-400 ml-0.5">
+                    <span className="text-xs text-gray-500 flex items-center gap-1.5 ml-1">
+                      <Calendar className="w-3 h-3" />
                       {a.schedule_type === "scheduled" && a.scheduled_at
                         ? `Scheduled: ${dayjs(a.scheduled_at).format("MMM D, YYYY HH:mm")}`
-                        : "Immediate"}
+                        : "Immediate deployment"}
                     </span>
                   )}
                 </div>
@@ -1055,9 +1102,9 @@ const handleSaveProfile = async () => {
                   size="small"
                   danger
                   loading={unassignLoadingId === a.id}
-                  icon={<Minus className="w-3 h-3" />}
+                  icon={<Minus className="w-3.5 h-3.5" />}
                   onClick={() => handleUnassign(a.id)}
-                  className="ml-3 flex-shrink-0 text-xs font-medium"
+                  className="ml-3 flex-shrink-0 text-xs font-medium hover:bg-error-50 transition-all rounded-lg"
                 >
                   Unassign
                 </Button>
