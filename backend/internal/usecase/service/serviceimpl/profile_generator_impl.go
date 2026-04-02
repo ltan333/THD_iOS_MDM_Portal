@@ -72,6 +72,10 @@ func (g *profileGeneratorImpl) GenerateXML(ctx context.Context, p *ent.Profile) 
 	return buf.Bytes(), nil
 }
 
+func (g *profileGeneratorImpl) GetProfileIdentifier(profileID uint) string {
+	return fmt.Sprintf("%s.profile.%d", g.prefix, profileID)
+}
+
 // mapSecuritySettings converts portal security_settings to com.apple.mobiledevice.passwordpolicy keys.
 // Apple MDM reference: https://developer.apple.com/documentation/devicemanagement/passwordpolicy
 func (g *profileGeneratorImpl) mapSecuritySettings(s map[string]any) map[string]any {
