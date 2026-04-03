@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import { Table, Select, Input, Button, Dropdown, MenuProps, Tag, Modal, Tabs, Form, Checkbox, InputNumber, App } from "antd";
 import { 
  Search, 
@@ -39,7 +39,48 @@ import {
 import type { ColumnsType } from "antd/es/table";
 import { profileService } from "@/services/profile.service";
 import { AssignProfileRequest, CreateProfileRequest, ProfileResponse, UpdateProfileRequest } from "@/types/profile.type";
+import { useDebounce } from "@/hooks";
 import dayjs from "dayjs";
+
+const FastInput = ({ value, onChange, placeholder, className, status, bordered, maxLength, autoFocus, prefix, type }: any) => {
+  const [localValue, setLocalValue] = useState(value || "");
+  const inputRef = useRef<any>(null);
+
+  useEffect(() => { setLocalValue(value || ""); }, [value]);
+
+  return (
+    <Input
+      ref={inputRef}
+      value={localValue}
+      onChange={(e) => setLocalValue(e.target.value)}
+      onBlur={(e) => onChange(e.target.value)}
+      onPressEnter={(e) => onChange((e.target as HTMLInputElement).value)}
+      placeholder={placeholder}
+      className={className}
+      status={status}
+      bordered={bordered}
+      maxLength={maxLength}
+      autoFocus={autoFocus}
+      prefix={prefix}
+      type={type}
+    />
+  );
+};
+
+const FastTextArea = ({ value, onChange, placeholder, className, rows }: any) => {
+  const [localValue, setLocalValue] = useState(value || "");
+  useEffect(() => { setLocalValue(value || ""); }, [value]);
+  return (
+    <Input.TextArea
+      value={localValue}
+      onChange={(e) => setLocalValue(e.target.value)}
+      onBlur={(e) => onChange(e.target.value)}
+      placeholder={placeholder}
+      className={className}
+      rows={rows}
+    />
+  );
+};
 
 interface ProfileType {
  key: string;
@@ -100,6 +141,7 @@ export function ProfilesList() {
     total: 0
  });
  const [searchQuery, setSearchQuery] = useState("");
+const debouncedSearchQuery = useDebounce(searchQuery, 320);
  const [familyFilter, setFamilyFilter] = useState("all");
  const [statusFilter, setStatusFilter] = useState("none");
  const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
@@ -499,7 +541,7 @@ const handleSaveProfile = async () => {
    const params = {
     page: pagination.current,
     limit: pagination.pageSize,
-    search: searchQuery || undefined,
+    search: debouncedSearchQuery || undefined,
     platform: familyFilter !== "all" ? familyFilter : undefined,
     status: statusFilter !== "none" ? statusFilter : undefined,
    };
@@ -546,7 +588,7 @@ const handleSaveProfile = async () => {
   } finally {
    setLoading(false);
   }
- }, [pagination.current, pagination.pageSize, searchQuery, familyFilter, statusFilter, message]);
+ }, [pagination.current, pagination.pageSize, debouncedSearchQuery, familyFilter, statusFilter, message]);
 
  useEffect(() => {
   fetchProfiles();
@@ -588,7 +630,7 @@ const handleSaveProfile = async () => {
  )}
  <a 
       href="#" 
-      className="text-slate-700 hover:text-[#de2a15] font-medium"
+      className="text-slate-700 hover:text-primary-600 font-medium"
       onClick={(e) => {
         e.preventDefault();
         e.stopPropagation();
@@ -666,12 +708,12 @@ const handleSaveProfile = async () => {
  ];
 
  return (
- <div className="flex flex-col h-[calc(100vh-64px)] bg-slate-50 relative border-none overflow-hidden rounded-none shadow-none z-0">
+<div className="profile-layout-shell motion-safe-fade flex flex-col h-[calc(100vh-64px)] bg-transparent relative border-none overflow-hidden rounded-none shadow-none z-0">
  {/* Top Toolbar */}
-        <div className="flex flex-wrap items-center justify-between p-4 gap-4 bg-white border-b border-slate-200 z-10 shadow-sm">
+       <div className="profile-toolbar liquid-glass liquid-layout-toolbar motion-safe-fade flex flex-wrap items-center justify-between p-4 gap-4 bg-white border-b border-slate-200 z-10 shadow-sm">
         <div className="flex items-center gap-6">
         <div className="flex items-center gap-2">
-        <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Family:</span>
+        <span className="liquid-label">Family:</span>
         <Select className="cursor-pointer" value={familyFilter}
         onChange={(val) => { setFamilyFilter(val); setPagination(prev => ({ ...prev, current: 1 })); }}
         style={{ width: 120 }}
@@ -683,7 +725,7 @@ const handleSaveProfile = async () => {
         />
         </div>
         <div className="flex items-center gap-2">
-        <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Filters:</span>
+        <span className="liquid-label">Filters:</span>
         <Select className="cursor-pointer" value={statusFilter}
         onChange={(val) => { setStatusFilter(val); setPagination(prev => ({ ...prev, current: 1 })); }}
         style={{ width: 120 }}
@@ -698,25 +740,27 @@ const handleSaveProfile = async () => {
 
         <div className="flex items-center gap-3">
         <div className="flex group">
-        <Input
+        <FastInput
         placeholder="Search profile name"
         value={searchQuery}
-        onChange={(e) => setSearchQuery(e.target.value)}
-        onPressEnter={() => setPagination(prev => ({ ...prev, current: 1 }))}
+        onChange={(val: string) => {
+          setSearchQuery(val);
+          setPagination(prev => ({ ...prev, current: 1 }));
+        }}
         prefix={<Search className="w-4 h-4 text-slate-400 group-hover:text-current transition-colors" />}
-        className="w-64 h-8 rounded-r-none border-r-0 hover:border-[#de2a15] focus:border-[#de2a15] focus:shadow-none transition-colors"
+        className="w-64 h-8 rounded-r-none border-r-0 hover:border-primary-600 focus:border-primary-600 focus:shadow-none transition-colors"
         />
         <Button 
         type="primary" 
         onClick={() => setPagination(prev => ({ ...prev, current: 1 }))}
-        className="bg-[#de2a15] hover:bg-[#c22412] rounded-l-none h-8 w-10 px-0 flex items-center justify-center border-none shadow-sm transition-colors"
+        className="liquid-btn bg-primary-600 hover:bg-primary-700 rounded-l-none h-8 w-10 px-0 flex items-center justify-center border-none shadow-sm transition-colors"
         icon={<Search className="w-4 h-4 text-white" strokeWidth={2.5} />}
         />
         </div>
         <Button 
         type="primary" 
         icon={<Plus className="w-4 h-4" />}
-        className="bg-[#de2a15] hover:bg-[#c22412] text-white font-medium px-5 h-8 border-none shadow-sm transition-colors rounded-md"
+        className="liquid-btn bg-primary-600 hover:bg-primary-700 text-white font-medium px-5 h-8 border-none shadow-sm transition-colors rounded-md"
         onClick={handleAddProfileClick}
         >
         ADD PROFILE
@@ -725,7 +769,7 @@ const handleSaveProfile = async () => {
         </div>
 
         {/* Sub Toolbar / Table Controls */}
-        <div className="flex items-center justify-between px-4 py-3 bg-slate-50 dark:bg-slate-800 border-b border-slate-200 dark:border-slate-800 z-10">
+        <div className="profile-subtoolbar liquid-glass liquid-layout-toolbar motion-safe-fade flex items-center justify-between px-4 py-3 bg-slate-50 dark:bg-slate-800 border-b border-slate-200 dark:border-slate-800 z-10">
         <div className="flex items-center gap-4 text-sm text-slate-600 dark:text-slate-400">
         <span className="font-bold text-slate-800 dark:text-slate-200 tracking-wide uppercase">
         PROFILES <span className="font-normal text-slate-500">({profiles.length > 0 ? (pagination.current - 1) * pagination.pageSize + 1 : 0} - {Math.min(pagination.current * pagination.pageSize, pagination.total)} of {pagination.total})</span>
@@ -750,7 +794,7 @@ const handleSaveProfile = async () => {
          disabled={pagination.current === 1} 
          onClick={() => setPagination(prev => ({ ...prev, current: prev.current - 1 }))}
          className={pagination.current === 1 ? "text-slate-400" : "text-slate-700 hover:text-slate-900"}>&larr;</Button>
-        <span className="text-[#de2a15] font-bold">{pagination.current} of {Math.max(1, Math.ceil(pagination.total / pagination.pageSize))}</span>
+        <span className="text-primary-600 font-bold">{pagination.current} of {Math.max(1, Math.ceil(pagination.total / pagination.pageSize))}</span>
         <Button type="text" size="small" 
          disabled={pagination.current >= Math.ceil(pagination.total / pagination.pageSize) || pagination.total === 0}
          onClick={() => setPagination(prev => ({ ...prev, current: prev.current + 1 }))}
@@ -766,12 +810,12 @@ const handleSaveProfile = async () => {
         <span className="flex items-center gap-1 cursor-pointer text-slate-700 hover:text-slate-900 font-medium">
         Columns (9) <ChevronDown className="w-4 h-4" />
         </span>
-        <Button type="text" icon={<Filter className="w-4 h-4 text-[#de2a15]" />} className="text-[#de2a15] bg-red-50 hover:bg-red-100 rounded-full w-8 h-8 flex items-center justify-center p-0 border border-red-200 transition-colors" />
+        <Button type="text" icon={<Filter className="w-4 h-4 text-primary-600" />} className="text-primary-600 bg-primary-50 hover:bg-primary-100 rounded-full w-8 h-8 flex items-center justify-center p-0 border border-primary-200 transition-colors" />
         </div>
         </div>
 
         {/* Table */}
-        <div className="flex-1 overflow-auto border-t border-slate-200 dark:border-slate-800 z-10 relative scrollbar-hide">
+        <div className="profile-table-wrap liquid-glass liquid-layout-content motion-safe-fade flex-1 overflow-auto border-t border-slate-200 dark:border-slate-800 z-10 relative scrollbar-hide">
         <Table
         rowSelection={rowSelection}
         columns={columns}
@@ -779,7 +823,7 @@ const handleSaveProfile = async () => {
         loading={loading}
         pagination={false}
         className="custom-data-table"
-        rowClassName="hover:bg-red-50 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+        rowClassName="motion-safe-lift hover:bg-primary-50 dark:hover:bg-slate-800 transition-colors cursor-pointer"
         onRow={(record) => ({
           onClick: () => handleProfileClick(record),
         })}
@@ -806,28 +850,21 @@ const handleSaveProfile = async () => {
             </p>
           </div>
         </div>
-      </div>
-    }
-    open={isProfileDetailModalVisible}
-    onCancel={() => setIsProfileDetailModalVisible(false)}
-    footer={
-      <div className="flex justify-between items-center w-full pt-4 border-t border-gray-200 gap-3">
-        <Button
-          danger
-          type="text"
-          icon={<Trash2 className="w-4 h-4" />}
-          onClick={handleDeleteProfile}
-          className="text-error-600 hover:bg-error-50 hover:text-error-700 transition-all h-9 px-4 rounded-lg font-medium"
-        >
-          Delete
-        </Button>
-        
-        <div className="flex gap-2">
+        <div className="flex flex-wrap justify-end gap-2 pr-10">
+          <Button
+            danger
+            type="text"
+            icon={<Trash2 className="w-4 h-4" />}
+            onClick={handleDeleteProfile}
+            className="text-error-600 hover:bg-error-50 hover:text-error-700 transition-all h-8 px-3 rounded-lg font-medium"
+          >
+            Delete
+          </Button>
           {selectedProfile?.status === "active" ? (
             <Button
               onClick={() => handleUpdateStatus("draft")}
               icon={<PenSquare className="w-4 h-4" />}
-              className="h-9 px-4 rounded-lg font-medium text-warning-600 border-warning-300 hover:bg-warning-50 transition-all"
+              className="h-8 px-3 rounded-lg font-medium text-warning-600 border-warning-300 hover:bg-warning-50 transition-all"
             >
               Set Draft
             </Button>
@@ -835,7 +872,7 @@ const handleSaveProfile = async () => {
             <Button
               onClick={() => handleUpdateStatus("active")}
               icon={<CheckCircle2 className="w-4 h-4" />}
-              className="h-9 px-4 rounded-lg font-medium text-success-600 border-success-300 hover:bg-success-50 transition-all"
+              className="h-8 px-3 rounded-lg font-medium text-success-600 border-success-300 hover:bg-success-50 transition-all"
             >
               Activate
             </Button>
@@ -844,21 +881,21 @@ const handleSaveProfile = async () => {
             onClick={handleRepush}
             loading={repushLoading}
             icon={<RefreshCcw className="w-4 h-4" />}
-            className="h-9 px-4 rounded-lg font-medium text-primary-600 border-primary-300 hover:bg-primary-50 transition-all"
+            className="h-8 px-3 rounded-lg font-medium text-primary-600 border-primary-300 hover:bg-primary-50 transition-all"
           >
             Repush
           </Button>
           <Button
             onClick={() => { setIsProfileDetailModalVisible(false); setIsAssignModalVisible(true); }}
             icon={<Users className="w-4 h-4" />}
-            className="h-9 px-4 rounded-lg font-medium text-accent-600 border-accent-300 hover:bg-accent-50 transition-all"
+            className="h-8 px-3 rounded-lg font-medium text-accent-600 border-accent-300 hover:bg-accent-50 transition-all"
           >
             Assign
           </Button>
           <Button 
             type="primary" 
             icon={<PenSquare className="w-4 h-4" />}
-            className="bg-primary-600 hover:bg-primary-700 h-9 px-5 rounded-lg font-medium shadow-sm border-none transition-all"
+            className="bg-primary-600 hover:bg-primary-700 h-8 px-4 rounded-lg font-medium shadow-sm border-none transition-all"
             onClick={async () => {
               setIsProfileDetailModalVisible(false);
               setNewProfileName(selectedProfile?.name || "");
@@ -881,7 +918,6 @@ const handleSaveProfile = async () => {
                   setHasContentFilterConfig(!!(detail.content_filter && Object.keys(detail.content_filter).length > 0));
                   setSelectedPlatform(detail.platform || "ios");
 
-                  // Pre-populate form values for editing
                   if (detail.security_settings?.passcode) {
                     const p = detail.security_settings.passcode;
                     passcodeForm.setFieldsValue({
@@ -949,15 +985,19 @@ const handleSaveProfile = async () => {
         </div>
       </div>
     }
-    width={680}
+    open={isProfileDetailModalVisible}
+    onCancel={() => setIsProfileDetailModalVisible(false)}
+    footer={null}
+    width={1120}
+    style={{ top: 15 }}
     className="custom-modal profile-detail-modal"
   >
     {selectedProfile && (
-      <div className="py-3 space-y-6">
+      <div className="py-2 space-y-3 h-[calc(100vh-250px)] overflow-hidden">
         {/* Main Stats Grid - Enhanced with better visual hierarchy */}
-        <div className="grid grid-cols-2 gap-4">
-          <div className="bg-gradient-to-br from-white to-gray-50 p-5 rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-all hover:border-primary-300">
-            <div className="flex items-center gap-2 text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">
+        <div className="grid grid-cols-4 gap-2 max-w-[860px] mx-auto">
+          <div className="bg-gradient-to-br from-white to-gray-50 p-3.5 rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-all hover:border-primary-300">
+            <div className="flex items-center gap-2 text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
               <Settings2 className="w-3.5 h-3.5" />
               Status
             </div>
@@ -979,24 +1019,24 @@ const handleSaveProfile = async () => {
             </div>
           </div>
           
-          <div className="bg-gradient-to-br from-white to-gray-50 p-5 rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-all hover:border-primary-300">
-            <div className="flex items-center gap-2 text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">
+          <div className="bg-gradient-to-br from-white to-gray-50 p-3.5 rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-all hover:border-primary-300">
+            <div className="flex items-center gap-2 text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
               <Shield className="w-3.5 h-3.5" />
               Version
             </div>
             <div className="font-semibold text-gray-900 text-base">{selectedProfile.version}</div>
           </div>
 
-          <div className="bg-gradient-to-br from-white to-gray-50 p-5 rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-all hover:border-primary-300">
-            <div className="flex items-center gap-2 text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">
+          <div className="bg-gradient-to-br from-white to-gray-50 p-3.5 rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-all hover:border-primary-300">
+            <div className="flex items-center gap-2 text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
               <MonitorUp className="w-3.5 h-3.5" />
               Install Method
             </div>
             <div className="font-semibold text-gray-900 text-base">{selectedProfile.installMethod}</div>
           </div>
 
-          <div className="bg-gradient-to-br from-white to-gray-50 p-5 rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-all hover:border-primary-300">
-            <div className="flex items-center gap-2 text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">
+          <div className="bg-gradient-to-br from-white to-gray-50 p-3.5 rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-all hover:border-primary-300">
+            <div className="flex items-center gap-2 text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
               <Settings2 className="w-3.5 h-3.5" />
               Configurations
             </div>
@@ -1007,109 +1047,115 @@ const handleSaveProfile = async () => {
           </div>
         </div>
 
-        {/* Active Configurations List - Improved layout */}
-        {selectedProfile.activeConfigs && selectedProfile.activeConfigs.length > 0 && (
-          <div className="bg-gradient-to-br from-primary-50 to-white p-5 rounded-xl border border-primary-200 shadow-sm">
-            <div className="text-xs font-semibold text-primary-700 uppercase tracking-wide mb-4 flex items-center gap-2">
-              <Settings2 className="w-4 h-4" /> Active Configurations
-              <span className="ml-auto text-primary-600 bg-primary-100 px-2 py-0.5 rounded-full text-xs font-bold">
-                {selectedProfile.activeConfigs.length}
-              </span>
-            </div>
-            <div className="grid grid-cols-1 gap-2.5">
-              {selectedProfile.activeConfigs.map((config) => (
-                <div key={config.key} className="flex items-center gap-3 bg-white px-4 py-3.5 rounded-lg border border-gray-200 shadow-sm hover:border-primary-400 hover:shadow-md transition-all group cursor-default">
-                  <div className="p-2.5 bg-primary-50 text-primary-600 rounded-lg group-hover:bg-primary-600 group-hover:text-white transition-all shadow-sm">
-                    {config.icon}
-                  </div>
-                  <span className="font-semibold text-sm text-gray-700 group-hover:text-gray-900 transition-colors">{config.name}</span>
+        <div className="grid grid-cols-12 gap-3 h-[calc(100%-120px)]">
+          <div className="col-span-5 flex flex-col gap-3 min-h-0">
+            {/* Active Configurations List */}
+            {selectedProfile.activeConfigs && selectedProfile.activeConfigs.length > 0 && (
+              <div className="bg-gradient-to-br from-primary-50 to-white p-3 rounded-xl border border-primary-200 shadow-sm">
+                <div className="text-xs font-semibold text-primary-700 uppercase tracking-wide mb-2.5 flex items-center gap-2">
+                  <Settings2 className="w-4 h-4" /> Active Configurations
+                  <span className="ml-auto text-primary-600 bg-primary-100 px-2 py-0.5 rounded-full text-xs font-bold">
+                    {selectedProfile.activeConfigs.length}
+                  </span>
                 </div>
-              ))}
-            </div>
-          </div>
-        )}
-        
-        {/* Assignment Info - Better visual design */}
-        <div className="bg-gradient-to-br from-gray-50 to-white p-5 rounded-xl border border-gray-200 shadow-sm">
-          <div className="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-4 flex items-center gap-2">
-            <Calendar className="w-4 h-4" /> Assignment Information
-          </div>
-          <div className="space-y-3.5">
-            <div className="flex items-center justify-between py-2.5 border-b border-gray-200">
-              <span className="text-sm font-medium text-gray-600 flex items-center gap-2">
-                <Calendar className="w-4 h-4 text-gray-400" />
-                Last Modified
-              </span>
-              <span className="text-sm font-semibold text-gray-900 bg-white px-3 py-1.5 rounded-lg border border-gray-200 shadow-sm">
-                {selectedProfile.assignedDate}
-              </span>
-            </div>
-            <div className="flex items-center justify-between py-2">
-              <span className="text-sm font-medium text-gray-600 flex items-center gap-2">
-                <Contact className="w-4 h-4 text-gray-400" />
-                Modified By
-              </span>
-              <span className="text-sm font-semibold text-gray-900 flex items-center gap-2 bg-white px-3 py-1.5 rounded-lg border border-gray-200 shadow-sm">
-                <div className="w-6 h-6 rounded-full bg-gradient-to-br from-primary-500 to-primary-600 flex items-center justify-center text-xs font-bold text-white shadow-sm">
-                  {selectedProfile.assignedBy.charAt(0).toUpperCase()}
+                <div className="grid grid-cols-1 gap-2 max-h-[180px] overflow-y-auto pr-1">
+                  {selectedProfile.activeConfigs.map((config) => (
+                    <div key={config.key} className="flex items-center gap-2.5 bg-white px-3 py-2.5 rounded-lg border border-gray-200 shadow-sm hover:border-primary-400 transition-all group cursor-default">
+                      <div className="p-2 bg-primary-50 text-primary-600 rounded-lg group-hover:bg-primary-600 group-hover:text-white transition-all shadow-sm">
+                        {config.icon}
+                      </div>
+                      <span className="font-semibold text-sm text-gray-700 group-hover:text-gray-900 transition-colors">{config.name}</span>
+                    </div>
+                  ))}
                 </div>
-                {selectedProfile.assignedBy}
-              </span>
-            </div>
-          </div>
-        </div>
-
-        {/* Assignments List - Enhanced with better empty state */}
-        <div className="bg-gradient-to-br from-accent-50 to-white p-5 rounded-xl border border-accent-200 shadow-sm">
-          <div className="text-xs font-semibold text-accent-700 uppercase tracking-wide mb-4 flex items-center gap-2">
-            <Users className="w-4 h-4" /> Assignments
-            {assignmentsLoading && <span className="ml-auto text-xs text-gray-500 animate-pulse">Loading...</span>}
-            {!assignmentsLoading && profileAssignments.length > 0 && (
-              <span className="ml-auto text-accent-600 bg-accent-100 px-2 py-0.5 rounded-full text-xs font-bold">
-                {profileAssignments.length}
-              </span>
-            )}
-          </div>
-          {!assignmentsLoading && profileAssignments.length === 0 && (
-            <div className="text-center py-8 bg-white rounded-lg border border-dashed border-gray-300">
-              <Users className="w-12 h-12 mx-auto text-gray-300 mb-3" />
-              <p className="text-sm font-medium text-gray-500">No assignments yet</p>
-              <p className="text-xs text-gray-400 mt-1">Click &quot;Assign&quot; to assign this profile</p>
-            </div>
-          )}
-          <div className="space-y-2.5">
-            {profileAssignments.map((a) => (
-              <div key={a.id} className="flex items-center justify-between bg-white px-4 py-3.5 rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-all">
-                <div className="flex flex-col gap-1.5 min-w-0 flex-1">
-                  <div className="flex items-center gap-2.5">
-                    <Tag color={a.target_type === "device" ? "blue" : "purple"} className="text-xs font-semibold m-0">
-                      {a.target_type === "device" ? "Device" : "Group"}
-                    </Tag>
-                    <span className="text-sm font-semibold text-gray-800 truncate">
-                      {a.target_type === "device" ? (a.device_id || "—") : `Group #${a.group_id}`}
-                    </span>
-                  </div>
-                  {a.schedule_type && (
-                    <span className="text-xs text-gray-500 flex items-center gap-1.5 ml-1">
-                      <Calendar className="w-3 h-3" />
-                      {a.schedule_type === "scheduled" && a.scheduled_at
-                        ? `Scheduled: ${dayjs(a.scheduled_at).format("MMM D, YYYY HH:mm")}`
-                        : "Immediate deployment"}
-                    </span>
-                  )}
-                </div>
-                <Button
-                  size="small"
-                  danger
-                  loading={unassignLoadingId === a.id}
-                  icon={<Minus className="w-3.5 h-3.5" />}
-                  onClick={() => handleUnassign(a.id)}
-                  className="ml-3 flex-shrink-0 text-xs font-medium hover:bg-error-50 transition-all rounded-lg"
-                >
-                  Unassign
-                </Button>
               </div>
-            ))}
+            )}
+
+            {/* Assignment Info */}
+            <div className="bg-gradient-to-br from-gray-50 to-white p-3 rounded-xl border border-gray-200 shadow-sm">
+              <div className="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-2.5 flex items-center gap-2">
+                <Calendar className="w-4 h-4" /> Assignment Information
+              </div>
+              <div className="space-y-2">
+                <div className="flex items-center justify-between py-2 border-b border-gray-200">
+                  <span className="text-sm font-medium text-gray-600 flex items-center gap-2">
+                    <Calendar className="w-4 h-4 text-gray-400" />
+                    Last Modified
+                  </span>
+                  <span className="text-sm font-semibold text-gray-900 bg-white px-2.5 py-1 rounded-lg border border-gray-200 shadow-sm">
+                    {selectedProfile.assignedDate}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between py-1.5">
+                  <span className="text-sm font-medium text-gray-600 flex items-center gap-2">
+                    <Contact className="w-4 h-4 text-gray-400" />
+                    Modified By
+                  </span>
+                  <span className="text-sm font-semibold text-gray-900 flex items-center gap-2 bg-white px-2.5 py-1 rounded-lg border border-gray-200 shadow-sm">
+                    <div className="w-6 h-6 rounded-full bg-gradient-to-br from-primary-500 to-primary-600 flex items-center justify-center text-xs font-bold text-white shadow-sm">
+                      {selectedProfile.assignedBy.charAt(0).toUpperCase()}
+                    </div>
+                    {selectedProfile.assignedBy}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Assignments List */}
+          <div className="col-span-7 min-h-0">
+            <div className="bg-gradient-to-br from-accent-50 to-white p-3 rounded-xl border border-accent-200 shadow-sm h-full flex flex-col">
+              <div className="text-xs font-semibold text-accent-700 uppercase tracking-wide mb-2.5 flex items-center gap-2">
+                <Users className="w-4 h-4" /> Assignments
+                {assignmentsLoading && <span className="ml-auto text-xs text-gray-500 animate-pulse">Loading...</span>}
+                {!assignmentsLoading && profileAssignments.length > 0 && (
+                  <span className="ml-auto text-accent-600 bg-accent-100 px-2 py-0.5 rounded-full text-xs font-bold">
+                    {profileAssignments.length}
+                  </span>
+                )}
+              </div>
+              {!assignmentsLoading && profileAssignments.length === 0 && (
+                <div className="text-center py-6 bg-white rounded-lg border border-dashed border-gray-300 flex-1 flex flex-col justify-center">
+                  <Users className="w-10 h-10 mx-auto text-gray-300 mb-2" />
+                  <p className="text-sm font-medium text-gray-500">No assignments yet</p>
+                  <p className="text-xs text-gray-400 mt-1">Click &quot;Assign&quot; to assign this profile</p>
+                </div>
+              )}
+              <div className="space-y-2 overflow-y-auto pr-1 min-h-0">
+                {profileAssignments.map((a) => (
+                  <div key={a.id} className="flex items-center justify-between bg-white px-3 py-2.5 rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-all">
+                    <div className="flex flex-col gap-1 min-w-0 flex-1">
+                      <div className="flex items-center gap-2">
+                        <Tag color={a.target_type === "device" ? "blue" : "purple"} className="text-xs font-semibold m-0">
+                          {a.target_type === "device" ? "Device" : "Group"}
+                        </Tag>
+                        <span className="text-sm font-semibold text-gray-800 truncate">
+                          {a.target_type === "device" ? (a.device_id || "—") : `Group #${a.group_id}`}
+                        </span>
+                      </div>
+                      {a.schedule_type && (
+                        <span className="text-xs text-gray-500 flex items-center gap-1.5 ml-1">
+                          <Calendar className="w-3 h-3" />
+                          {a.schedule_type === "scheduled" && a.scheduled_at
+                            ? `Scheduled: ${dayjs(a.scheduled_at).format("MMM D, YYYY HH:mm")}`
+                            : "Immediate deployment"}
+                        </span>
+                      )}
+                    </div>
+                    <Button
+                      size="small"
+                      danger
+                      loading={unassignLoadingId === a.id}
+                      icon={<Minus className="w-3.5 h-3.5" />}
+                      onClick={() => handleUnassign(a.id)}
+                      className="ml-2 flex-shrink-0 text-xs font-medium hover:bg-error-50 transition-all rounded-lg"
+                    >
+                      Unassign
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -1143,9 +1189,9 @@ const handleSaveProfile = async () => {
  <div className="grid grid-cols-1 gap-2 p-3 bg-slate-50 rounded-2xl border border-slate-200 shadow-inner">
  <button
  onClick={() => handleAppleClick("ios")}
- className="flex items-center gap-4 text-slate-700 hover:text-[#de2a15] hover:bg-red-50 py-3.5 px-5 rounded-xl transition-all font-semibold text-left border border-transparent hover:border-red-200 hover:shadow-md group cursor-pointer"
+ className="flex items-center gap-4 text-slate-700 hover:text-primary-600 hover:bg-primary-50 py-3.5 px-5 rounded-xl transition-all font-semibold text-left border border-transparent hover:border-primary-200 hover:shadow-md group cursor-pointer"
  >
- <div className="w-10 h-10 rounded-lg bg-red-50 text-[#de2a15] flex items-center justify-center group-hover:bg-red-100 transition-colors">
+ <div className="w-10 h-10 rounded-lg bg-primary-50 text-primary-600 flex items-center justify-center group-hover:bg-primary-100 transition-colors">
  <Smartphone className="w-5 h-5" />
  </div>
  <div className="flex flex-col">
@@ -1155,9 +1201,9 @@ const handleSaveProfile = async () => {
  </button>
  <button
  onClick={() => handleAppleClick("macos")}
- className="flex items-center gap-4 text-slate-700 hover:text-[#de2a15] hover:bg-red-50 py-3.5 px-5 rounded-xl transition-all font-semibold text-left border border-transparent hover:border-red-200 hover:shadow-md group cursor-pointer"
+ className="flex items-center gap-4 text-slate-700 hover:text-primary-600 hover:bg-primary-50 py-3.5 px-5 rounded-xl transition-all font-semibold text-left border border-transparent hover:border-primary-200 hover:shadow-md group cursor-pointer"
  >
- <div className="w-10 h-10 rounded-lg bg-red-50 text-[#de2a15] flex items-center justify-center group-hover:bg-red-100 transition-colors">
+ <div className="w-10 h-10 rounded-lg bg-primary-50 text-primary-600 flex items-center justify-center group-hover:bg-primary-100 transition-colors">
  <Monitor className="w-5 h-5" />
  </div>
  <div className="flex flex-col">
@@ -1167,9 +1213,9 @@ const handleSaveProfile = async () => {
  </button>
  <button
  onClick={() => handleAppleClick("macos")}
- className="flex items-center gap-4 text-slate-700 hover:text-[#de2a15] hover:bg-red-50 py-3.5 px-5 rounded-xl transition-all font-semibold text-left border border-transparent hover:border-red-200 hover:shadow-md group cursor-pointer"
+ className="flex items-center gap-4 text-slate-700 hover:text-primary-600 hover:bg-primary-50 py-3.5 px-5 rounded-xl transition-all font-semibold text-left border border-transparent hover:border-primary-200 hover:shadow-md group cursor-pointer"
  >
- <div className="w-10 h-10 rounded-lg bg-red-50 text-[#de2a15] flex items-center justify-center group-hover:bg-red-100 transition-colors">
+ <div className="w-10 h-10 rounded-lg bg-primary-50 text-primary-600 flex items-center justify-center group-hover:bg-primary-100 transition-colors">
  <Server className="w-5 h-5" />
  </div>
  <div className="flex flex-col">
@@ -1179,9 +1225,9 @@ const handleSaveProfile = async () => {
  </button>
  <button
  onClick={() => handleAppleClick("ios")}
- className="flex items-center gap-4 text-slate-700 hover:text-[#de2a15] hover:bg-red-50 py-3.5 px-5 rounded-xl transition-all font-semibold text-left border border-transparent hover:border-red-200 hover:shadow-md group cursor-pointer"
+ className="flex items-center gap-4 text-slate-700 hover:text-primary-600 hover:bg-primary-50 py-3.5 px-5 rounded-xl transition-all font-semibold text-left border border-transparent hover:border-primary-200 hover:shadow-md group cursor-pointer"
  >
- <div className="w-10 h-10 rounded-lg bg-red-50 text-[#de2a15] flex items-center justify-center group-hover:bg-red-100 transition-colors">
+ <div className="w-10 h-10 rounded-lg bg-primary-50 text-primary-600 flex items-center justify-center group-hover:bg-primary-100 transition-colors">
  <Users className="w-5 h-5" />
  </div>
  <div className="flex flex-col">
@@ -1191,9 +1237,9 @@ const handleSaveProfile = async () => {
  </button>
  <button
  onClick={() => handleAppleClick("tvos")}
- className="flex items-center gap-4 text-slate-700 hover:text-[#de2a15] hover:bg-red-50 py-3.5 px-5 rounded-xl transition-all font-semibold text-left border border-transparent hover:border-red-200 hover:shadow-md group cursor-pointer"
+ className="flex items-center gap-4 text-slate-700 hover:text-primary-600 hover:bg-primary-50 py-3.5 px-5 rounded-xl transition-all font-semibold text-left border border-transparent hover:border-primary-200 hover:shadow-md group cursor-pointer"
  >
- <div className="w-10 h-10 rounded-lg bg-red-50 text-[#de2a15] flex items-center justify-center group-hover:bg-red-100 transition-colors">
+ <div className="w-10 h-10 rounded-lg bg-primary-50 text-primary-600 flex items-center justify-center group-hover:bg-primary-100 transition-colors">
  <Tv className="w-5 h-5" />
  </div>
  <div className="flex flex-col">
@@ -1248,17 +1294,17 @@ const handleSaveProfile = async () => {
  
  <div className="flex-1 overflow-y-auto p-8 relative z-10 scrollbar-hide">
  <div className="max-w-[1200px] mx-auto pb-16">
- <Form layout="vertical" className="max-w-4xl mx-auto custom-form">
+<Form layout="vertical" className="max-w-4xl mx-auto custom-form profile-form">
  <div className="flex flex-col md:flex-row gap-6 mb-6">
  <div className="w-full md:w-1/3">
  <div className="font-semibold text-slate-700 text-sm mb-1">Profile Name <span className="text-red-500">*</span></div>
  <div className="text-xs text-slate-500 mb-2">Tên hiển thị của cấu hình trên hệ thống</div>
  </div>
  <div className="w-full md:w-2/3">
- <Input 
+ <FastInput 
  placeholder="Nhập tên cấu hình..." 
  value={newProfileName}
- onChange={(e) => setNewProfileName(e.target.value)}
+ onChange={(val: string) => setNewProfileName(val)}
  status={!newProfileName ? "error" : ""} 
  className="w-full h-10 rounded-md"
  />
@@ -1272,10 +1318,10 @@ const handleSaveProfile = async () => {
  <div className="text-xs text-slate-500 mb-2">Mô tả chi tiết mục đích của cấu hình này (tuỳ chọn)</div>
  </div>
  <div className="w-full md:w-2/3">
- <Input.TextArea 
+ <FastTextArea 
  placeholder="Nhập mô tả cấu hình..." 
  value={newProfileDesc}
- onChange={(e) => setNewProfileDesc(e.target.value)}
+ onChange={(val: string) => setNewProfileDesc(val)}
  rows={4}
  className="w-full rounded-md resize-none"
  />
@@ -1346,7 +1392,7 @@ const handleSaveProfile = async () => {
  type="primary" 
  shape="circle"
  icon={<Plus className="w-5 h-5" strokeWidth={2.5} />} 
- className="bg-[#de2a15] hover:bg-[#c22412] flex items-center justify-center shadow-md w-10 h-10"
+ className="bg-primary-600 hover:bg-primary-700 flex items-center justify-center shadow-md w-10 h-10"
  onClick={() => setIsAddConfigModalVisible(true)}
  />
  </div>
@@ -1362,12 +1408,12 @@ const handleSaveProfile = async () => {
  {hasPasscodeConfig && (
  <div className="grid grid-cols-12 gap-4 p-4 items-center hover:bg-white transition-colors border-b border-slate-200 last:border-b-0 cursor-pointer group">
  <div className="col-span-4 flex items-center gap-3">
- <div className="w-8 h-8 rounded bg-white flex items-center justify-center text-slate-500 group-hover:bg-red-50 group-hover:text-[#de2a15] transition-colors border border-slate-200">
+ <div className="w-8 h-8 rounded bg-white flex items-center justify-center text-slate-500 group-hover:bg-primary-50 group-hover:text-primary-600 transition-colors border border-slate-200">
  <Lock className="w-4 h-4" />
  </div>
  <button 
  onClick={() => setIsPasscodeConfigVisible(true)}
- className="text-slate-800 hover:text-[#de2a15] font-medium text-[15px] text-left transition-colors"
+ className="text-slate-800 hover:text-primary-600 font-medium text-[15px] text-left transition-colors"
  >
  Passcode
  </button>
@@ -1380,7 +1426,7 @@ const handleSaveProfile = async () => {
  type="text" 
  shape="circle" 
  icon={<Trash2 className="w-5 h-5" />} 
- className="text-slate-400 hover:text-red-500 hover:bg-red-50 flex items-center justify-center"
+ className="text-slate-400 hover:text-red-500 hover:bg-primary-50 flex items-center justify-center"
  onClick={() => setHasPasscodeConfig(false)}
  />
  </div>
@@ -1391,12 +1437,12 @@ const handleSaveProfile = async () => {
  {hasRestrictionsConfig && (
  <div className="grid grid-cols-12 gap-4 p-4 items-center hover:bg-slate-50 transition-colors border-b border-slate-100 last:border-b-0 cursor-pointer group">
  <div className="col-span-4 flex items-center gap-3">
- <div className="w-8 h-8 rounded bg-slate-100 flex items-center justify-center text-slate-500 group-hover:bg-red-50 group-hover:text-[#de2a15] transition-colors">
+ <div className="w-8 h-8 rounded bg-slate-100 flex items-center justify-center text-slate-500 group-hover:bg-primary-50 group-hover:text-primary-600 transition-colors">
  <Shield className="w-4 h-4" />
  </div>
  <button 
  onClick={() => setIsRestrictionsConfigVisible(true)}
- className="text-slate-800 hover:text-[#de2a15] font-medium text-[15px] text-left transition-colors"
+ className="text-slate-800 hover:text-primary-600 font-medium text-[15px] text-left transition-colors"
  >
  Restrictions
  </button>
@@ -1409,7 +1455,7 @@ const handleSaveProfile = async () => {
  type="text" 
  shape="circle" 
  icon={<Trash2 className="w-5 h-5" />} 
- className="text-slate-400 hover:text-red-500 hover:bg-red-50 flex items-center justify-center"
+ className="text-slate-400 hover:text-red-500 hover:bg-primary-50 flex items-center justify-center"
  onClick={() => setHasRestrictionsConfig(false)}
  />
  </div>
@@ -1420,12 +1466,12 @@ const handleSaveProfile = async () => {
  {hasDomainsConfig && (
  <div className="grid grid-cols-12 gap-4 p-4 items-center hover:bg-slate-50 transition-colors border-b border-slate-100 last:border-b-0 cursor-pointer group">
  <div className="col-span-4 flex items-center gap-3">
- <div className="w-8 h-8 rounded bg-slate-100 flex items-center justify-center text-slate-500 group-hover:bg-red-50 group-hover:text-[#de2a15] transition-colors">
+ <div className="w-8 h-8 rounded bg-slate-100 flex items-center justify-center text-slate-500 group-hover:bg-primary-50 group-hover:text-primary-600 transition-colors">
  <Globe className="w-4 h-4" />
  </div>
  <button 
  onClick={() => setIsDomainsConfigVisible(true)}
- className="text-slate-800 hover:text-[#de2a15] font-medium text-[15px] text-left transition-colors"
+ className="text-slate-800 hover:text-primary-600 font-medium text-[15px] text-left transition-colors"
  >
  Domains
  </button>
@@ -1438,7 +1484,7 @@ const handleSaveProfile = async () => {
  type="text" 
  shape="circle" 
  icon={<Trash2 className="w-5 h-5" />} 
- className="text-slate-400 hover:text-red-500 hover:bg-red-50 flex items-center justify-center"
+ className="text-slate-400 hover:text-red-500 hover:bg-primary-50 flex items-center justify-center"
  onClick={() => setHasDomainsConfig(false)}
  />
  </div>
@@ -1449,12 +1495,12 @@ const handleSaveProfile = async () => {
  {hasHttpProxyConfig && (
  <div className="grid grid-cols-12 gap-4 p-4 items-center hover:bg-slate-50 transition-colors border-b border-slate-100 last:border-b-0 cursor-pointer group">
  <div className="col-span-4 flex items-center gap-3">
- <div className="w-8 h-8 rounded bg-slate-100 flex items-center justify-center text-slate-500 group-hover:bg-red-50 group-hover:text-[#de2a15] transition-colors">
+ <div className="w-8 h-8 rounded bg-slate-100 flex items-center justify-center text-slate-500 group-hover:bg-primary-50 group-hover:text-primary-600 transition-colors">
  <Globe className="w-4 h-4" />
  </div>
  <button 
  onClick={() => setIsHttpProxyConfigVisible(true)}
- className="text-slate-800 hover:text-[#de2a15] font-medium text-[15px] text-left transition-colors"
+ className="text-slate-800 hover:text-primary-600 font-medium text-[15px] text-left transition-colors"
  >
  Global HTTP Proxy
  </button>
@@ -1467,7 +1513,7 @@ const handleSaveProfile = async () => {
  type="text" 
  shape="circle" 
  icon={<Trash2 className="w-5 h-5" />} 
- className="text-slate-400 hover:text-red-500 hover:bg-red-50 flex items-center justify-center"
+ className="text-slate-400 hover:text-red-500 hover:bg-primary-50 flex items-center justify-center"
  onClick={() => setHasHttpProxyConfig(false)}
  />
  </div>
@@ -1478,12 +1524,12 @@ const handleSaveProfile = async () => {
  {hasDnsProxyConfig && (
  <div className="grid grid-cols-12 gap-4 p-4 items-center hover:bg-slate-50 transition-colors border-b border-slate-100 last:border-b-0 cursor-pointer group">
  <div className="col-span-4 flex items-center gap-3">
- <div className="w-8 h-8 rounded bg-slate-100 flex items-center justify-center text-slate-500 group-hover:bg-red-50 group-hover:text-[#de2a15] transition-colors">
+ <div className="w-8 h-8 rounded bg-slate-100 flex items-center justify-center text-slate-500 group-hover:bg-primary-50 group-hover:text-primary-600 transition-colors">
  <Server className="w-4 h-4" />
  </div>
  <button 
  onClick={() => setIsDnsProxyConfigVisible(true)}
- className="text-slate-800 hover:text-[#de2a15] font-medium text-[15px] text-left transition-colors"
+ className="text-slate-800 hover:text-primary-600 font-medium text-[15px] text-left transition-colors"
  >
  DNS Proxy
  </button>
@@ -1496,7 +1542,7 @@ const handleSaveProfile = async () => {
  type="text" 
  shape="circle" 
  icon={<Trash2 className="w-5 h-5" />} 
- className="text-slate-400 hover:text-red-500 hover:bg-red-50 flex items-center justify-center"
+ className="text-slate-400 hover:text-red-500 hover:bg-primary-50 flex items-center justify-center"
  onClick={() => setHasDnsProxyConfig(false)}
  />
  </div>
@@ -1507,12 +1553,12 @@ const handleSaveProfile = async () => {
  {hasContentFilterConfig && (
  <div className="grid grid-cols-12 gap-4 p-4 items-center hover:bg-slate-50 transition-colors border-b border-slate-100 last:border-b-0 cursor-pointer group">
  <div className="col-span-4 flex items-center gap-3">
- <div className="w-8 h-8 rounded bg-slate-100 flex items-center justify-center text-slate-500 group-hover:bg-red-50 group-hover:text-[#de2a15] transition-colors">
+ <div className="w-8 h-8 rounded bg-slate-100 flex items-center justify-center text-slate-500 group-hover:bg-primary-50 group-hover:text-primary-600 transition-colors">
  <Filter className="w-4 h-4" />
  </div>
  <button 
  onClick={() => setIsContentFilterConfigVisible(true)}
- className="text-slate-800 hover:text-[#de2a15] font-medium text-[15px] text-left transition-colors"
+ className="text-slate-800 hover:text-primary-600 font-medium text-[15px] text-left transition-colors"
  >
  Content Filter
  </button>
@@ -1525,7 +1571,7 @@ const handleSaveProfile = async () => {
  type="text" 
  shape="circle" 
  icon={<Trash2 className="w-5 h-5" />} 
- className="text-slate-400 hover:text-red-500 hover:bg-red-50 flex items-center justify-center"
+ className="text-slate-400 hover:text-red-500 hover:bg-primary-50 flex items-center justify-center"
  onClick={() => setHasContentFilterConfig(false)}
  />
  </div>
@@ -1536,12 +1582,12 @@ const handleSaveProfile = async () => {
  {hasCertificateTransparencyConfig && (
  <div className="grid grid-cols-12 gap-4 p-4 items-center hover:bg-slate-50 transition-colors border-b border-slate-100 last:border-b-0 cursor-pointer group">
  <div className="col-span-4 flex items-center gap-3">
- <div className="w-8 h-8 rounded bg-slate-100 flex items-center justify-center text-slate-500 group-hover:bg-red-50 group-hover:text-[#de2a15] transition-colors">
+ <div className="w-8 h-8 rounded bg-slate-100 flex items-center justify-center text-slate-500 group-hover:bg-primary-50 group-hover:text-primary-600 transition-colors">
  <CheckCircle2 className="w-4 h-4" />
  </div>
  <button 
  onClick={() => setIsCertificateTransparencyConfigVisible(true)}
- className="text-slate-800 hover:text-[#de2a15] font-medium text-[15px] text-left transition-colors"
+ className="text-slate-800 hover:text-primary-600 font-medium text-[15px] text-left transition-colors"
  >
  Certificate Transparency
  </button>
@@ -1554,7 +1600,7 @@ const handleSaveProfile = async () => {
  type="text" 
  shape="circle" 
  icon={<Trash2 className="w-5 h-5" />} 
- className="text-slate-400 hover:text-red-500 hover:bg-red-50 flex items-center justify-center"
+ className="text-slate-400 hover:text-red-500 hover:bg-primary-50 flex items-center justify-center"
  onClick={() => setHasCertificateTransparencyConfig(false)}
  />
  </div>
@@ -1565,12 +1611,12 @@ const handleSaveProfile = async () => {
  {hasWifiConfig && (
  <div className="grid grid-cols-12 gap-4 p-4 items-center hover:bg-slate-50 transition-colors border-b border-slate-100 last:border-b-0 cursor-pointer group">
  <div className="col-span-4 flex items-center gap-3">
- <div className="w-8 h-8 rounded bg-slate-100 flex items-center justify-center text-slate-500 group-hover:bg-red-50 group-hover:text-[#de2a15] transition-colors">
+ <div className="w-8 h-8 rounded bg-slate-100 flex items-center justify-center text-slate-500 group-hover:bg-primary-50 group-hover:text-primary-600 transition-colors">
  <Wifi className="w-4 h-4" />
  </div>
  <button 
  onClick={() => setIsWifiConfigVisible(true)}
- className="text-slate-800 hover:text-[#de2a15] font-medium text-[15px] text-left transition-colors"
+ className="text-slate-800 hover:text-primary-600 font-medium text-[15px] text-left transition-colors"
  >
  Wi-Fi
  </button>
@@ -1583,7 +1629,7 @@ const handleSaveProfile = async () => {
  type="text" 
  shape="circle" 
  icon={<Trash2 className="w-5 h-5" />} 
- className="text-slate-400 hover:text-red-500 hover:bg-red-50 flex items-center justify-center"
+ className="text-slate-400 hover:text-red-500 hover:bg-primary-50 flex items-center justify-center"
  onClick={() => setHasWifiConfig(false)}
  />
  </div>
@@ -1594,12 +1640,12 @@ const handleSaveProfile = async () => {
  {hasVpnConfig && (
  <div className="grid grid-cols-12 gap-4 p-4 items-center hover:bg-slate-50 transition-colors border-b border-slate-100 last:border-b-0 cursor-pointer group">
  <div className="col-span-4 flex items-center gap-3">
- <div className="w-8 h-8 rounded bg-slate-100 flex items-center justify-center text-slate-500 group-hover:bg-red-50 group-hover:text-[#de2a15] transition-colors">
+ <div className="w-8 h-8 rounded bg-slate-100 flex items-center justify-center text-slate-500 group-hover:bg-primary-50 group-hover:text-primary-600 transition-colors">
  <Server className="w-4 h-4" />
  </div>
  <button 
  onClick={() => setIsVpnConfigVisible(true)}
- className="text-slate-800 hover:text-[#de2a15] font-medium text-[15px] text-left transition-colors"
+ className="text-slate-800 hover:text-primary-600 font-medium text-[15px] text-left transition-colors"
  >
  VPN
  </button>
@@ -1612,7 +1658,7 @@ const handleSaveProfile = async () => {
  type="text" 
  shape="circle" 
  icon={<Trash2 className="w-5 h-5" />} 
- className="text-slate-400 hover:text-red-500 hover:bg-red-50 flex items-center justify-center"
+ className="text-slate-400 hover:text-red-500 hover:bg-primary-50 flex items-center justify-center"
  onClick={() => setHasVpnConfig(false)}
  />
  </div>
@@ -1623,12 +1669,12 @@ const handleSaveProfile = async () => {
  {hasAirPlayConfig && (
  <div className="grid grid-cols-12 gap-4 p-4 items-center hover:bg-slate-50 transition-colors border-b border-slate-100 last:border-b-0 cursor-pointer group">
  <div className="col-span-4 flex items-center gap-3">
- <div className="w-8 h-8 rounded bg-slate-100 flex items-center justify-center text-slate-500 group-hover:bg-red-50 group-hover:text-[#de2a15] transition-colors">
+ <div className="w-8 h-8 rounded bg-slate-100 flex items-center justify-center text-slate-500 group-hover:bg-primary-50 group-hover:text-primary-600 transition-colors">
  <MonitorUp className="w-4 h-4" />
  </div>
  <button 
  onClick={() => setIsAirPlayConfigVisible(true)}
- className="text-slate-800 hover:text-[#de2a15] font-medium text-[15px] text-left transition-colors"
+ className="text-slate-800 hover:text-primary-600 font-medium text-[15px] text-left transition-colors"
  >
  AirPlay
  </button>
@@ -1641,7 +1687,7 @@ const handleSaveProfile = async () => {
  type="text" 
  shape="circle" 
  icon={<Trash2 className="w-5 h-5" />} 
- className="text-slate-400 hover:text-red-500 hover:bg-red-50 flex items-center justify-center"
+ className="text-slate-400 hover:text-red-500 hover:bg-primary-50 flex items-center justify-center"
  onClick={() => setHasAirPlayConfig(false)}
  />
  </div>
@@ -1652,12 +1698,12 @@ const handleSaveProfile = async () => {
  {hasAirPlaySecurityConfig && (
  <div className="grid grid-cols-12 gap-4 p-4 items-center hover:bg-slate-50 transition-colors border-b border-slate-100 last:border-b-0 cursor-pointer group">
  <div className="col-span-4 flex items-center gap-3">
- <div className="w-8 h-8 rounded bg-slate-100 flex items-center justify-center text-slate-500 group-hover:bg-red-50 group-hover:text-[#de2a15] transition-colors">
+ <div className="w-8 h-8 rounded bg-slate-100 flex items-center justify-center text-slate-500 group-hover:bg-primary-50 group-hover:text-primary-600 transition-colors">
  <Shield className="w-4 h-4" />
  </div>
  <button 
  onClick={() => setIsAirPlaySecurityConfigVisible(true)}
- className="text-slate-800 hover:text-[#de2a15] font-medium text-[15px] text-left transition-colors"
+ className="text-slate-800 hover:text-primary-600 font-medium text-[15px] text-left transition-colors"
  >
  AirPlay Security
  </button>
@@ -1670,7 +1716,7 @@ const handleSaveProfile = async () => {
  type="text" 
  shape="circle" 
  icon={<Trash2 className="w-5 h-5" />} 
- className="text-slate-400 hover:text-red-500 hover:bg-red-50 flex items-center justify-center"
+ className="text-slate-400 hover:text-red-500 hover:bg-primary-50 flex items-center justify-center"
  onClick={() => setHasAirPlaySecurityConfig(false)}
  />
  </div>
@@ -1681,12 +1727,12 @@ const handleSaveProfile = async () => {
  {hasAirPrintConfig && (
  <div className="grid grid-cols-12 gap-4 p-4 items-center hover:bg-slate-50 transition-colors border-b border-slate-100 last:border-b-0 cursor-pointer group">
  <div className="col-span-4 flex items-center gap-3">
- <div className="w-8 h-8 rounded bg-slate-100 flex items-center justify-center text-slate-500 group-hover:bg-red-50 group-hover:text-[#de2a15] transition-colors">
+ <div className="w-8 h-8 rounded bg-slate-100 flex items-center justify-center text-slate-500 group-hover:bg-primary-50 group-hover:text-primary-600 transition-colors">
  <Printer className="w-4 h-4" />
  </div>
  <button 
  onClick={() => setIsAirPrintConfigVisible(true)}
- className="text-slate-800 hover:text-[#de2a15] font-medium text-[15px] text-left transition-colors"
+ className="text-slate-800 hover:text-primary-600 font-medium text-[15px] text-left transition-colors"
  >
  AirPrint
  </button>
@@ -1699,7 +1745,7 @@ const handleSaveProfile = async () => {
  type="text" 
  shape="circle" 
  icon={<Trash2 className="w-5 h-5" />} 
- className="text-slate-400 hover:text-red-500 hover:bg-red-50 flex items-center justify-center"
+ className="text-slate-400 hover:text-red-500 hover:bg-primary-50 flex items-center justify-center"
  onClick={() => setHasAirPrintConfig(false)}
  />
  </div>
@@ -1710,12 +1756,12 @@ const handleSaveProfile = async () => {
  {hasCalendarConfig && (
  <div className="grid grid-cols-12 gap-4 p-4 items-center hover:bg-slate-50 transition-colors border-b border-slate-100 last:border-b-0 cursor-pointer group">
  <div className="col-span-4 flex items-center gap-3">
- <div className="w-8 h-8 rounded bg-slate-100 flex items-center justify-center text-slate-500 group-hover:bg-red-50 group-hover:text-[#de2a15] transition-colors">
+ <div className="w-8 h-8 rounded bg-slate-100 flex items-center justify-center text-slate-500 group-hover:bg-primary-50 group-hover:text-primary-600 transition-colors">
  <Calendar className="w-4 h-4" />
  </div>
  <button 
  onClick={() => setIsCalendarConfigVisible(true)}
- className="text-slate-800 hover:text-[#de2a15] font-medium text-[15px] text-left transition-colors"
+ className="text-slate-800 hover:text-primary-600 font-medium text-[15px] text-left transition-colors"
  >
  Calendar
  </button>
@@ -1728,7 +1774,7 @@ const handleSaveProfile = async () => {
  type="text" 
  shape="circle" 
  icon={<Trash2 className="w-5 h-5" />} 
- className="text-slate-400 hover:text-red-500 hover:bg-red-50 flex items-center justify-center"
+ className="text-slate-400 hover:text-red-500 hover:bg-primary-50 flex items-center justify-center"
  onClick={() => setHasCalendarConfig(false)}
  />
  </div>
@@ -1739,12 +1785,12 @@ const handleSaveProfile = async () => {
  {hasContactsConfig && (
  <div className="grid grid-cols-12 gap-4 p-4 items-center hover:bg-slate-50 transition-colors border-b border-slate-100 last:border-b-0 cursor-pointer group">
  <div className="col-span-4 flex items-center gap-3">
- <div className="w-8 h-8 rounded bg-slate-100 flex items-center justify-center text-slate-500 group-hover:bg-red-50 group-hover:text-[#de2a15] transition-colors">
+ <div className="w-8 h-8 rounded bg-slate-100 flex items-center justify-center text-slate-500 group-hover:bg-primary-50 group-hover:text-primary-600 transition-colors">
  <Contact className="w-4 h-4" />
  </div>
  <button 
  onClick={() => setIsContactsConfigVisible(true)}
- className="text-slate-800 hover:text-[#de2a15] font-medium text-[15px] text-left transition-colors"
+ className="text-slate-800 hover:text-primary-600 font-medium text-[15px] text-left transition-colors"
  >
  Contacts
  </button>
@@ -1757,7 +1803,7 @@ const handleSaveProfile = async () => {
  type="text" 
  shape="circle" 
  icon={<Trash2 className="w-5 h-5" />} 
- className="text-slate-400 hover:text-red-500 hover:bg-red-50 flex items-center justify-center"
+ className="text-slate-400 hover:text-red-500 hover:bg-primary-50 flex items-center justify-center"
  onClick={() => setHasContactsConfig(false)}
  />
  </div>
@@ -1768,12 +1814,12 @@ const handleSaveProfile = async () => {
  {hasExchangeConfig && (
  <div className="grid grid-cols-12 gap-4 p-4 items-center hover:bg-slate-50 transition-colors border-b border-slate-100 last:border-b-0 cursor-pointer group">
  <div className="col-span-4 flex items-center gap-3">
- <div className="w-8 h-8 rounded bg-slate-100 flex items-center justify-center text-slate-500 group-hover:bg-red-50 group-hover:text-[#de2a15] transition-colors">
+ <div className="w-8 h-8 rounded bg-slate-100 flex items-center justify-center text-slate-500 group-hover:bg-primary-50 group-hover:text-primary-600 transition-colors">
  <Mail className="w-4 h-4" />
  </div>
  <button 
  onClick={() => setIsExchangeConfigVisible(true)}
- className="text-slate-800 hover:text-[#de2a15] font-medium text-[15px] text-left transition-colors"
+ className="text-slate-800 hover:text-primary-600 font-medium text-[15px] text-left transition-colors"
  >
  Exchange ActiveSync
  </button>
@@ -1786,7 +1832,7 @@ const handleSaveProfile = async () => {
  type="text" 
  shape="circle" 
  icon={<Trash2 className="w-5 h-5" />} 
- className="text-slate-400 hover:text-red-500 hover:bg-red-50 flex items-center justify-center"
+ className="text-slate-400 hover:text-red-500 hover:bg-primary-50 flex items-center justify-center"
  onClick={() => setHasExchangeConfig(false)}
  />
  </div>
@@ -1797,12 +1843,12 @@ const handleSaveProfile = async () => {
  {hasGoogleAccountConfig && (
  <div className="grid grid-cols-12 gap-4 p-4 items-center hover:bg-slate-50 transition-colors border-b border-slate-100 last:border-b-0 cursor-pointer group">
  <div className="col-span-4 flex items-center gap-3">
- <div className="w-8 h-8 rounded bg-slate-100 flex items-center justify-center text-slate-500 group-hover:bg-red-50 group-hover:text-[#de2a15] transition-colors">
+ <div className="w-8 h-8 rounded bg-slate-100 flex items-center justify-center text-slate-500 group-hover:bg-primary-50 group-hover:text-primary-600 transition-colors">
  <Mail className="w-4 h-4" />
  </div>
  <button 
  onClick={() => setIsGoogleAccountConfigVisible(true)}
- className="text-slate-800 hover:text-[#de2a15] font-medium text-[15px] text-left transition-colors"
+ className="text-slate-800 hover:text-primary-600 font-medium text-[15px] text-left transition-colors"
  >
  Google Account
  </button>
@@ -1815,7 +1861,7 @@ const handleSaveProfile = async () => {
  type="text" 
  shape="circle" 
  icon={<Trash2 className="w-5 h-5" />} 
- className="text-slate-400 hover:text-red-500 hover:bg-red-50 flex items-center justify-center"
+ className="text-slate-400 hover:text-red-500 hover:bg-primary-50 flex items-center justify-center"
  onClick={() => setHasGoogleAccountConfig(false)}
  />
  </div>
@@ -1826,12 +1872,12 @@ const handleSaveProfile = async () => {
  {hasLdapConfig && (
  <div className="grid grid-cols-12 gap-4 p-4 items-center hover:bg-slate-50 transition-colors border-b border-slate-100 last:border-b-0 cursor-pointer group">
  <div className="col-span-4 flex items-center gap-3">
- <div className="w-8 h-8 rounded bg-slate-100 flex items-center justify-center text-slate-500 group-hover:bg-red-50 group-hover:text-[#de2a15] transition-colors">
+ <div className="w-8 h-8 rounded bg-slate-100 flex items-center justify-center text-slate-500 group-hover:bg-primary-50 group-hover:text-primary-600 transition-colors">
  <Key className="w-4 h-4" />
  </div>
  <button 
  onClick={() => setIsLdapConfigVisible(true)}
- className="text-slate-800 hover:text-[#de2a15] font-medium text-[15px] text-left transition-colors"
+ className="text-slate-800 hover:text-primary-600 font-medium text-[15px] text-left transition-colors"
  >
  LDAP
  </button>
@@ -1844,7 +1890,7 @@ const handleSaveProfile = async () => {
  type="text" 
  shape="circle" 
  icon={<Trash2 className="w-5 h-5" />} 
- className="text-slate-400 hover:text-red-500 hover:bg-red-50 flex items-center justify-center"
+ className="text-slate-400 hover:text-red-500 hover:bg-primary-50 flex items-center justify-center"
  onClick={() => setHasLdapConfig(false)}
  />
  </div>
@@ -1855,12 +1901,12 @@ const handleSaveProfile = async () => {
  {hasMailConfig && (
  <div className="grid grid-cols-12 gap-4 p-4 items-center hover:bg-slate-50 transition-colors border-b border-slate-100 last:border-b-0 cursor-pointer group">
  <div className="col-span-4 flex items-center gap-3">
- <div className="w-8 h-8 rounded bg-slate-100 flex items-center justify-center text-slate-500 group-hover:bg-red-50 group-hover:text-[#de2a15] transition-colors">
+ <div className="w-8 h-8 rounded bg-slate-100 flex items-center justify-center text-slate-500 group-hover:bg-primary-50 group-hover:text-primary-600 transition-colors">
  <Mail className="w-4 h-4" />
  </div>
  <button 
  onClick={() => setIsMailConfigVisible(true)}
- className="text-slate-800 hover:text-[#de2a15] font-medium text-[15px] text-left transition-colors"
+ className="text-slate-800 hover:text-primary-600 font-medium text-[15px] text-left transition-colors"
  >
  Mail
  </button>
@@ -1873,7 +1919,7 @@ const handleSaveProfile = async () => {
  type="text" 
  shape="circle" 
  icon={<Trash2 className="w-5 h-5" />} 
- className="text-slate-400 hover:text-red-500 hover:bg-red-50 flex items-center justify-center"
+ className="text-slate-400 hover:text-red-500 hover:bg-primary-50 flex items-center justify-center"
  onClick={() => setHasMailConfig(false)}
  />
  </div>
@@ -1884,12 +1930,12 @@ const handleSaveProfile = async () => {
  {hasMacOsServerConfig && (
  <div className="grid grid-cols-12 gap-4 p-4 items-center hover:bg-slate-50 transition-colors border-b border-slate-100 last:border-b-0 cursor-pointer group">
  <div className="col-span-4 flex items-center gap-3">
- <div className="w-8 h-8 rounded bg-slate-100 flex items-center justify-center text-slate-500 group-hover:bg-red-50 group-hover:text-[#de2a15] transition-colors">
+ <div className="w-8 h-8 rounded bg-slate-100 flex items-center justify-center text-slate-500 group-hover:bg-primary-50 group-hover:text-primary-600 transition-colors">
  <Server className="w-4 h-4" />
  </div>
  <button 
  onClick={() => setIsMacOsServerConfigVisible(true)}
- className="text-slate-800 hover:text-[#de2a15] font-medium text-[15px] text-left transition-colors"
+ className="text-slate-800 hover:text-primary-600 font-medium text-[15px] text-left transition-colors"
  >
  macOS Server Account
  </button>
@@ -1902,7 +1948,7 @@ const handleSaveProfile = async () => {
  type="text" 
  shape="circle" 
  icon={<Trash2 className="w-5 h-5" />} 
- className="text-slate-400 hover:text-red-500 hover:bg-red-50 flex items-center justify-center"
+ className="text-slate-400 hover:text-red-500 hover:bg-primary-50 flex items-center justify-center"
  onClick={() => setHasMacOsServerConfig(false)}
  />
  </div>
@@ -1913,12 +1959,12 @@ const handleSaveProfile = async () => {
  {hasScepConfig && (
  <div className="grid grid-cols-12 gap-4 p-4 items-center hover:bg-slate-50 transition-colors border-b border-slate-100 last:border-b-0 cursor-pointer group">
  <div className="col-span-4 flex items-center gap-3">
- <div className="w-8 h-8 rounded bg-slate-100 flex items-center justify-center text-slate-500 group-hover:bg-red-50 group-hover:text-[#de2a15] transition-colors">
+ <div className="w-8 h-8 rounded bg-slate-100 flex items-center justify-center text-slate-500 group-hover:bg-primary-50 group-hover:text-primary-600 transition-colors">
  <Key className="w-4 h-4" />
  </div>
  <button 
  onClick={() => setIsScepConfigVisible(true)}
- className="text-slate-800 hover:text-[#de2a15] font-medium text-[15px] text-left transition-colors"
+ className="text-slate-800 hover:text-primary-600 font-medium text-[15px] text-left transition-colors"
  >
  SCEP
  </button>
@@ -1931,7 +1977,7 @@ const handleSaveProfile = async () => {
  type="text" 
  shape="circle" 
  icon={<Trash2 className="w-5 h-5" />} 
- className="text-slate-400 hover:text-red-500 hover:bg-red-50 flex items-center justify-center"
+ className="text-slate-400 hover:text-red-500 hover:bg-primary-50 flex items-center justify-center"
  onClick={() => setHasScepConfig(false)}
  />
  </div>
@@ -1942,12 +1988,12 @@ const handleSaveProfile = async () => {
  {hasCellularConfig && (
  <div className="grid grid-cols-12 gap-4 p-4 items-center hover:bg-slate-50 transition-colors border-b border-slate-100 last:border-b-0 cursor-pointer group">
  <div className="col-span-4 flex items-center gap-3">
- <div className="w-8 h-8 rounded bg-slate-100 flex items-center justify-center text-slate-500 group-hover:bg-red-50 group-hover:text-[#de2a15] transition-colors">
+ <div className="w-8 h-8 rounded bg-slate-100 flex items-center justify-center text-slate-500 group-hover:bg-primary-50 group-hover:text-primary-600 transition-colors">
  <Radio className="w-4 h-4" />
  </div>
  <button 
  onClick={() => setIsCellularConfigVisible(true)}
- className="text-slate-800 hover:text-[#de2a15] font-medium text-[15px] text-left transition-colors"
+ className="text-slate-800 hover:text-primary-600 font-medium text-[15px] text-left transition-colors"
  >
  Cellular
  </button>
@@ -1960,7 +2006,7 @@ const handleSaveProfile = async () => {
  type="text" 
  shape="circle" 
  icon={<Trash2 className="w-5 h-5" />} 
- className="text-slate-400 hover:text-red-500 hover:bg-red-50 flex items-center justify-center"
+ className="text-slate-400 hover:text-red-500 hover:bg-primary-50 flex items-center justify-center"
  onClick={() => setHasCellularConfig(false)}
  />
  </div>
@@ -1971,12 +2017,12 @@ const handleSaveProfile = async () => {
  {hasNotificationsConfig && (
  <div className="grid grid-cols-12 gap-4 p-4 items-center hover:bg-slate-50 transition-colors border-b border-slate-100 last:border-b-0 cursor-pointer group">
  <div className="col-span-4 flex items-center gap-3">
- <div className="w-8 h-8 rounded bg-slate-100 flex items-center justify-center text-slate-500 group-hover:bg-red-50 group-hover:text-[#de2a15] transition-colors">
+ <div className="w-8 h-8 rounded bg-slate-100 flex items-center justify-center text-slate-500 group-hover:bg-primary-50 group-hover:text-primary-600 transition-colors">
  <AlertCircle className="w-4 h-4" />
  </div>
  <button 
  onClick={() => setIsNotificationsConfigVisible(true)}
- className="text-slate-800 hover:text-[#de2a15] font-medium text-[15px] text-left transition-colors"
+ className="text-slate-800 hover:text-primary-600 font-medium text-[15px] text-left transition-colors"
  >
  Notifications
  </button>
@@ -1989,7 +2035,7 @@ const handleSaveProfile = async () => {
  type="text" 
  shape="circle" 
  icon={<Trash2 className="w-5 h-5" />} 
- className="text-slate-400 hover:text-red-500 hover:bg-red-50 flex items-center justify-center"
+ className="text-slate-400 hover:text-red-500 hover:bg-primary-50 flex items-center justify-center"
  onClick={() => setHasNotificationsConfig(false)}
  />
  </div>
@@ -1999,12 +2045,12 @@ const handleSaveProfile = async () => {
  {hasConferenceRoomConfig && (
  <div className="grid grid-cols-12 gap-4 p-4 items-center hover:bg-slate-50 transition-colors border-b border-slate-100 last:border-b-0 cursor-pointer group">
  <div className="col-span-4 flex items-center gap-3">
- <div className="w-8 h-8 rounded bg-slate-100 flex items-center justify-center text-slate-500 group-hover:bg-red-50 group-hover:text-[#de2a15] transition-colors">
+ <div className="w-8 h-8 rounded bg-slate-100 flex items-center justify-center text-slate-500 group-hover:bg-primary-50 group-hover:text-primary-600 transition-colors">
  <Monitor className="w-4 h-4" />
  </div>
  <button 
  onClick={() => setIsConferenceRoomConfigVisible(true)}
- className="text-slate-800 hover:text-[#de2a15] font-medium text-[15px] text-left transition-colors"
+ className="text-slate-800 hover:text-primary-600 font-medium text-[15px] text-left transition-colors"
  >
  Conference Room Display
  </button>
@@ -2017,7 +2063,7 @@ const handleSaveProfile = async () => {
  type="text" 
  shape="circle" 
  icon={<Trash2 className="w-5 h-5" />} 
- className="text-slate-400 hover:text-red-500 hover:bg-red-50 flex items-center justify-center"
+ className="text-slate-400 hover:text-red-500 hover:bg-primary-50 flex items-center justify-center"
  onClick={() => setHasConferenceRoomConfig(false)}
  />
  </div>
@@ -2028,12 +2074,12 @@ const handleSaveProfile = async () => {
  {hasTvRemoteConfig && (
  <div className="grid grid-cols-12 gap-4 p-4 items-center hover:bg-slate-50 transition-colors border-b border-slate-100 last:border-b-0 cursor-pointer group">
  <div className="col-span-4 flex items-center gap-3">
- <div className="w-8 h-8 rounded bg-slate-100 flex items-center justify-center text-slate-500 group-hover:bg-red-50 group-hover:text-[#de2a15] transition-colors">
+ <div className="w-8 h-8 rounded bg-slate-100 flex items-center justify-center text-slate-500 group-hover:bg-primary-50 group-hover:text-primary-600 transition-colors">
  <Tv className="w-4 h-4" />
  </div>
  <button 
  onClick={() => setIsTvRemoteConfigVisible(true)}
- className="text-slate-800 hover:text-[#de2a15] font-medium text-[15px] text-left transition-colors"
+ className="text-slate-800 hover:text-primary-600 font-medium text-[15px] text-left transition-colors"
  >
  TV Remote
  </button>
@@ -2046,7 +2092,7 @@ const handleSaveProfile = async () => {
  type="text" 
  shape="circle" 
  icon={<Trash2 className="w-5 h-5" />} 
- className="text-slate-400 hover:text-red-500 hover:bg-red-50 flex items-center justify-center"
+ className="text-slate-400 hover:text-red-500 hover:bg-primary-50 flex items-center justify-center"
  onClick={() => setHasTvRemoteConfig(false)}
  />
  </div>
@@ -2057,12 +2103,12 @@ const handleSaveProfile = async () => {
  {hasLockScreenMessageConfig && (
  <div className="grid grid-cols-12 gap-4 p-4 items-center hover:bg-slate-50 transition-colors border-b border-slate-100 last:border-b-0 cursor-pointer group">
  <div className="col-span-4 flex items-center gap-3">
- <div className="w-8 h-8 rounded bg-slate-100 flex items-center justify-center text-slate-500 group-hover:bg-red-50 group-hover:text-[#de2a15] transition-colors">
+ <div className="w-8 h-8 rounded bg-slate-100 flex items-center justify-center text-slate-500 group-hover:bg-primary-50 group-hover:text-primary-600 transition-colors">
  <MessageSquare className="w-4 h-4" />
  </div>
  <button 
  onClick={() => setIsLockScreenMessageConfigVisible(true)}
- className="text-slate-800 hover:text-[#de2a15] font-medium text-[15px] text-left transition-colors"
+ className="text-slate-800 hover:text-primary-600 font-medium text-[15px] text-left transition-colors"
  >
  Lock Screen Message
  </button>
@@ -2075,7 +2121,7 @@ const handleSaveProfile = async () => {
  type="text" 
  shape="circle" 
  icon={<Trash2 className="w-5 h-5" />} 
- className="text-slate-400 hover:text-red-500 hover:bg-red-50 flex items-center justify-center"
+ className="text-slate-400 hover:text-red-500 hover:bg-primary-50 flex items-center justify-center"
  onClick={() => setHasLockScreenMessageConfig(false)}
  />
  </div>
@@ -2086,12 +2132,12 @@ const handleSaveProfile = async () => {
  {hasWebClipConfig && (
  <div className="grid grid-cols-12 gap-4 p-4 items-center hover:bg-slate-50 transition-colors border-b border-slate-100 last:border-b-0 cursor-pointer group">
  <div className="col-span-4 flex items-center gap-3">
- <div className="w-8 h-8 rounded bg-slate-100 flex items-center justify-center text-slate-500 group-hover:bg-red-50 group-hover:text-[#de2a15] transition-colors">
+ <div className="w-8 h-8 rounded bg-slate-100 flex items-center justify-center text-slate-500 group-hover:bg-primary-50 group-hover:text-primary-600 transition-colors">
  <LinkIcon className="w-4 h-4" />
  </div>
  <button 
  onClick={() => setIsWebClipConfigVisible(true)}
- className="text-slate-800 hover:text-[#de2a15] font-medium text-[15px] text-left transition-colors"
+ className="text-slate-800 hover:text-primary-600 font-medium text-[15px] text-left transition-colors"
  >
  Web Clip
  </button>
@@ -2104,7 +2150,7 @@ const handleSaveProfile = async () => {
  type="text" 
  shape="circle" 
  icon={<Trash2 className="w-5 h-5" />} 
- className="text-slate-400 hover:text-red-500 hover:bg-red-50 flex items-center justify-center"
+ className="text-slate-400 hover:text-red-500 hover:bg-primary-50 flex items-center justify-center"
  onClick={() => setHasWebClipConfig(false)}
  />
  </div>
@@ -2115,12 +2161,12 @@ const handleSaveProfile = async () => {
  {hasSubscribedCalendarConfig && (
  <div className="grid grid-cols-12 gap-4 p-4 items-center hover:bg-slate-50 transition-colors border-b border-slate-100 last:border-b-0 cursor-pointer group">
  <div className="col-span-4 flex items-center gap-3">
- <div className="w-8 h-8 rounded bg-slate-100 flex items-center justify-center text-slate-500 group-hover:bg-red-50 group-hover:text-[#de2a15] transition-colors">
+ <div className="w-8 h-8 rounded bg-slate-100 flex items-center justify-center text-slate-500 group-hover:bg-primary-50 group-hover:text-primary-600 transition-colors">
  <Calendar className="w-4 h-4" />
  </div>
  <button 
  onClick={() => setIsSubscribedCalendarConfigVisible(true)}
- className="text-slate-800 hover:text-[#de2a15] font-medium text-[15px] text-left transition-colors"
+ className="text-slate-800 hover:text-primary-600 font-medium text-[15px] text-left transition-colors"
  >
  Subscribed Calendar
  </button>
@@ -2133,7 +2179,7 @@ const handleSaveProfile = async () => {
  type="text" 
  shape="circle" 
  icon={<Trash2 className="w-5 h-5" />} 
- className="text-slate-400 hover:text-red-500 hover:bg-red-50 flex items-center justify-center"
+ className="text-slate-400 hover:text-red-500 hover:bg-primary-50 flex items-center justify-center"
  onClick={() => setHasSubscribedCalendarConfig(false)}
  />
  </div>
@@ -2151,7 +2197,7 @@ const handleSaveProfile = async () => {
  <Button 
  type="primary" 
  icon={<Plus className="w-4 h-4" />} 
- className="bg-[#de2a15] hover:bg-[#c22412] text-white border-none transition-colors h-10 px-6 font-medium"
+ className="bg-primary-600 hover:bg-primary-700 text-white border-none transition-colors h-10 px-6 font-medium"
  onClick={() => setIsAddConfigModalVisible(true)}
  >
  THÊM CẤU HÌNH (ADD CONFIGURATION)
@@ -2180,7 +2226,7 @@ onClick={() => {
  CANCEL
  </Button>
  <Button 
- className="font-semibold bg-[#de2a15] hover:bg-[#c22412] text-white border-none px-8 transition-colors"
+ className="font-semibold bg-primary-600 hover:bg-primary-700 text-white border-none px-8 transition-colors"
 onClick={handleSaveProfile}
  >
  SAVE
@@ -2353,7 +2399,7 @@ onClick={handleSaveProfile}
  >
  <div className="flex flex-col h-full bg-slate-50">
  <div className="p-8 flex-1 overflow-y-auto max-h-[70vh] scrollbar-hide">
- <Form form={passcodeForm} layout="vertical" className="max-w-3xl mx-auto custom-form">
+<Form form={passcodeForm} layout="vertical" className="max-w-3xl mx-auto custom-form profile-form">
  <div className="space-y-6">
  {/* Allow simple value — not in backend schema */}
  <div className="relative flex items-start gap-4 p-4 bg-white rounded-lg border border-slate-200 shadow-sm opacity-50 pointer-events-none select-none">
@@ -2495,7 +2541,7 @@ onClick={handleSaveProfile}
  CANCEL
  </Button>
  <Button
- className="font-semibold bg-[#de2a15] hover:bg-[#c22412] text-white border-none px-8"
+ className="font-semibold bg-primary-600 hover:bg-primary-700 text-white border-none px-8"
  onClick={() => {
   const values = passcodeForm.getFieldsValue();
   setPasscodeData({
@@ -2547,7 +2593,7 @@ onClick={handleSaveProfile}
  label: <div className="px-4 font-semibold uppercase tracking-wider text-[13px]">Functionality</div>,
  children: (
  <div className="p-8 flex-1 overflow-y-auto max-h-[70vh] scrollbar-hide">
- <Form form={restrictionsForm} layout="vertical" className="max-w-3xl mx-auto custom-form">
+<Form form={restrictionsForm} layout="vertical" className="max-w-3xl mx-auto custom-form profile-form">
  <div className="space-y-4">
  {/* Allow Camera ✅ backend: camera_enabled */}
  <div className="flex items-start gap-4 p-3 bg-white rounded-lg border border-slate-200 shadow-sm">
@@ -2645,7 +2691,7 @@ onClick={handleSaveProfile}
  label: <div className="px-4 font-semibold uppercase tracking-wider text-[13px]">Apps</div>,
  children: (
  <div className="p-8 flex-1 overflow-y-auto max-h-[70vh] scrollbar-hide">
- <Form layout="vertical" className="max-w-3xl mx-auto custom-form">
+<Form layout="vertical" className="max-w-3xl mx-auto custom-form profile-form">
  <div className="space-y-4">
  {/* iTunes — not in backend */}
  <div className="flex items-start gap-4 p-3 bg-white rounded-lg border border-slate-200 shadow-sm opacity-50 pointer-events-none select-none">
@@ -2754,7 +2800,7 @@ onClick={handleSaveProfile}
  label: <div className="px-4 font-semibold uppercase tracking-wider text-[13px]">Media Content</div>,
  children: (
  <div className="p-8 flex-1 overflow-y-auto max-h-[70vh] scrollbar-hide">
- <Form layout="vertical" className="max-w-3xl mx-auto custom-form">
+<Form layout="vertical" className="max-w-3xl mx-auto custom-form profile-form">
  <div className="space-y-6">
  {/* Ratings region — not in backend */}
  <div className="p-4 bg-white rounded-lg border border-slate-200 shadow-sm opacity-50 pointer-events-none select-none">
@@ -2840,7 +2886,7 @@ onClick={handleSaveProfile}
  CANCEL
  </Button>
  <Button
- className="font-semibold bg-[#de2a15] hover:bg-[#c22412] text-white border-none px-8"
+ className="font-semibold bg-primary-600 hover:bg-primary-700 text-white border-none px-8"
  onClick={() => {
   const values = restrictionsForm.getFieldsValue();
   setRestrictionsData({
@@ -2888,55 +2934,44 @@ onClick={handleSaveProfile}
  >
  <div className="flex flex-col h-full bg-slate-50">
  <div className="p-8 flex-1 overflow-y-auto max-h-[70vh] scrollbar-hide">
- <Form layout="vertical" className="max-w-3xl mx-auto custom-form">
+<Form layout="vertical" className="max-w-3xl mx-auto custom-form profile-form">
  <div className="space-y-8">
  {/* Unmarked Email Domains */}
  <div className="p-5 bg-white rounded-lg border border-slate-200 shadow-sm">
  <div className="font-semibold text-slate-800 text-base mb-1">Unmarked Email Domains</div>
  <div className="text-sm text-slate-500 mb-4">Email addresses not matching any of these domains will be marked in Mail</div>
  
- <div className="border border-slate-200 rounded-md overflow-hidden mb-3">
- <div className="h-32 bg-slate-50 flex flex-col overflow-y-auto">
- {unmarkedEmailDomains.length === 0 ? (
- <>
- <div className="h-8 border-b border-slate-200 bg-white"></div>
- <div className="h-8 border-b border-slate-200 bg-slate-50"></div>
- <div className="h-8 border-b border-slate-200 bg-white"></div>
- <div className="h-8 bg-slate-50"></div>
- </>
- ) : (
- unmarkedEmailDomains.map((domain, idx) => (
- <div 
- key={idx} 
- className={`h-8 border-b border-slate-200 flex items-center px-2 cursor-pointer transition-colors ${selectedEmailDomainIdx === idx ? 'bg-blue-100' : (idx % 2 === 0 ? 'bg-white hover:bg-slate-100' : 'bg-slate-50 hover:bg-slate-100')}`}
- onClick={() => setSelectedEmailDomainIdx(idx)}
- >
- <Input 
- value={domain}
- onChange={(e) => {
- const newDomains = [...unmarkedEmailDomains];
- newDomains[idx] = e.target.value;
- setUnmarkedEmailDomains(newDomains);
- }}
- bordered={false}
- className="p-0 h-full bg-transparent focus:shadow-none text-sm"
- placeholder="example.com"
- />
- </div>
- ))
- )}
- {/* Fill remaining empty space to keep the look consistent */}
- {unmarkedEmailDomains.length > 0 && unmarkedEmailDomains.length < 4 && (
- Array.from({ length: 4 - unmarkedEmailDomains.length }).map((_, i) => (
- <div key={`empty-${i}`} className={`h-8 border-b border-slate-200 ${(i + unmarkedEmailDomains.length) % 2 === 0 ? 'bg-white' : 'bg-slate-50'}`}></div>
- ))
- )}
- </div>
- </div>
+<div className="bg-slate-50 rounded-lg border border-slate-200 p-2 mb-3 max-h-44 overflow-y-auto space-y-2">
+{unmarkedEmailDomains.length === 0 ? (
+<div className="text-center py-6 text-sm text-slate-400">No domains configured</div>
+) : (
+unmarkedEmailDomains.map((domain, idx) => (
+<div 
+key={idx} 
+className={`rounded-md border bg-white transition-all duration-200 ${selectedEmailDomainIdx === idx ? "border-primary-400 ring-2 ring-primary-100 shadow-sm" : "border-slate-200 hover:border-slate-300"}`}
+onClick={() => setSelectedEmailDomainIdx(idx)}
+>
+<div className="px-3 py-1.5">
+<FastInput 
+value={domain}
+onChange={(val: string) => {
+const newDomains = [...unmarkedEmailDomains];
+newDomains[idx] = val;
+setUnmarkedEmailDomains(newDomains);
+}}
+bordered={false}
+className="p-0 bg-transparent text-sm w-full"
+placeholder="example.com"
+/>
+</div>
+</div>
+))
+)}
+</div>
  <div className="flex gap-2">
  <Button 
  size="small" 
- className="w-8 h-8 flex items-center justify-center bg-white border-slate-300 text-slate-600 hover:text-slate-700 hover:border-blue-600" 
+className="w-8 h-8 flex items-center justify-center bg-white border-slate-300 text-slate-600 hover:text-primary-600 hover:border-primary-400" 
  icon={<Plus className="w-4 h-4" />} 
  onClick={() => {
  setUnmarkedEmailDomains([...unmarkedEmailDomains, ""]);
@@ -2945,7 +2980,7 @@ onClick={handleSaveProfile}
  />
  <Button 
  size="small" 
- className={`w-8 h-8 flex items-center justify-center bg-white border-slate-300 ${selectedEmailDomainIdx !== null ? 'text-slate-600 hover:text-red-500 hover:border-red-500' : 'text-slate-300'}`}
+className={`w-8 h-8 flex items-center justify-center bg-white border-slate-300 ${selectedEmailDomainIdx !== null ? 'text-slate-600 hover:text-primary-600 hover:border-primary-400' : 'text-slate-300'}`}
  icon={<Minus className="w-4 h-4" />} 
  disabled={selectedEmailDomainIdx === null}
  onClick={() => {
@@ -2964,48 +2999,37 @@ onClick={handleSaveProfile}
  <div className="font-semibold text-slate-800 text-base mb-1">Managed Safari Web Domains</div>
  <div className="text-sm text-slate-500 mb-4">URL patterns of domains from which documents will be considered managed</div>
  
- <div className="border border-slate-200 rounded-md overflow-hidden mb-3">
- <div className="h-32 bg-slate-50 flex flex-col overflow-y-auto">
- {managedSafariDomains.length === 0 ? (
- <>
- <div className="h-8 border-b border-slate-200 bg-white"></div>
- <div className="h-8 border-b border-slate-200 bg-slate-50"></div>
- <div className="h-8 border-b border-slate-200 bg-white"></div>
- <div className="h-8 bg-slate-50"></div>
- </>
- ) : (
- managedSafariDomains.map((domain, idx) => (
- <div 
- key={idx} 
- className={`h-8 border-b border-slate-200 flex items-center px-2 cursor-pointer transition-colors ${selectedSafariDomainIdx === idx ? 'bg-blue-100' : (idx % 2 === 0 ? 'bg-white hover:bg-slate-100' : 'bg-slate-50 hover:bg-slate-100')}`}
- onClick={() => setSelectedSafariDomainIdx(idx)}
- >
- <Input 
- value={domain}
- onChange={(e) => {
- const newDomains = [...managedSafariDomains];
- newDomains[idx] = e.target.value;
- setManagedSafariDomains(newDomains);
- }}
- bordered={false}
- className="p-0 h-full bg-transparent focus:shadow-none text-sm"
- placeholder="example.com"
- />
- </div>
- ))
- )}
- {/* Fill remaining empty space */}
- {managedSafariDomains.length > 0 && managedSafariDomains.length < 4 && (
- Array.from({ length: 4 - managedSafariDomains.length }).map((_, i) => (
- <div key={`empty-${i}`} className={`h-8 border-b border-slate-200 ${(i + managedSafariDomains.length) % 2 === 0 ? 'bg-white' : 'bg-slate-50'}`}></div>
- ))
- )}
- </div>
- </div>
+<div className="bg-slate-50 rounded-lg border border-slate-200 p-2 mb-3 max-h-44 overflow-y-auto space-y-2">
+{managedSafariDomains.length === 0 ? (
+<div className="text-center py-6 text-sm text-slate-400">No domains configured</div>
+) : (
+managedSafariDomains.map((domain, idx) => (
+<div 
+key={idx} 
+className={`rounded-md border bg-white transition-all duration-200 ${selectedSafariDomainIdx === idx ? "border-primary-400 ring-2 ring-primary-100 shadow-sm" : "border-slate-200 hover:border-slate-300"}`}
+onClick={() => setSelectedSafariDomainIdx(idx)}
+>
+<div className="px-3 py-1.5">
+<FastInput 
+value={domain}
+onChange={(val: string) => {
+const newDomains = [...managedSafariDomains];
+newDomains[idx] = val;
+setManagedSafariDomains(newDomains);
+}}
+bordered={false}
+className="p-0 bg-transparent text-sm w-full"
+placeholder="example.com"
+/>
+</div>
+</div>
+))
+)}
+</div>
  <div className="flex gap-2">
  <Button 
  size="small" 
- className="w-8 h-8 flex items-center justify-center bg-white border-slate-300 text-slate-600 hover:text-slate-700 hover:border-blue-600" 
+className="w-8 h-8 flex items-center justify-center bg-white border-slate-300 text-slate-600 hover:text-primary-600 hover:border-primary-400" 
  icon={<Plus className="w-4 h-4" />} 
  onClick={() => {
  setManagedSafariDomains([...managedSafariDomains, ""]);
@@ -3014,7 +3038,7 @@ onClick={handleSaveProfile}
  />
  <Button 
  size="small" 
- className={`w-8 h-8 flex items-center justify-center bg-white border-slate-300 ${selectedSafariDomainIdx !== null ? 'text-slate-600 hover:text-red-500 hover:border-red-500' : 'text-slate-300'}`}
+className={`w-8 h-8 flex items-center justify-center bg-white border-slate-300 ${selectedSafariDomainIdx !== null ? 'text-slate-600 hover:text-primary-600 hover:border-primary-400' : 'text-slate-300'}`}
  icon={<Minus className="w-4 h-4" />} 
  disabled={selectedSafariDomainIdx === null}
  onClick={() => {
@@ -3033,48 +3057,37 @@ onClick={handleSaveProfile}
  <div className="font-semibold text-slate-800 text-base mb-1">Safari Password Autofill Domains (supervised only)</div>
  <div className="text-sm text-slate-500 mb-4">URL patterns of websites for which passwords can be saved</div>
  
- <div className="border border-slate-200 rounded-md overflow-hidden mb-3">
- <div className="h-32 bg-slate-50 flex flex-col overflow-y-auto">
- {safariPasswordDomains.length === 0 ? (
- <>
- <div className="h-8 border-b border-slate-200 bg-white"></div>
- <div className="h-8 border-b border-slate-200 bg-slate-50"></div>
- <div className="h-8 border-b border-slate-200 bg-white"></div>
- <div className="h-8 bg-slate-50"></div>
- </>
- ) : (
- safariPasswordDomains.map((domain, idx) => (
- <div 
- key={idx} 
- className={`h-8 border-b border-slate-200 flex items-center px-2 cursor-pointer transition-colors ${selectedPasswordDomainIdx === idx ? 'bg-blue-100' : (idx % 2 === 0 ? 'bg-white hover:bg-slate-100' : 'bg-slate-50 hover:bg-slate-100')}`}
- onClick={() => setSelectedPasswordDomainIdx(idx)}
- >
- <Input 
- value={domain}
- onChange={(e) => {
- const newDomains = [...safariPasswordDomains];
- newDomains[idx] = e.target.value;
- setSafariPasswordDomains(newDomains);
- }}
- bordered={false}
- className="p-0 h-full bg-transparent focus:shadow-none text-sm"
- placeholder="example.com"
- />
- </div>
- ))
- )}
- {/* Fill remaining empty space */}
- {safariPasswordDomains.length > 0 && safariPasswordDomains.length < 4 && (
- Array.from({ length: 4 - safariPasswordDomains.length }).map((_, i) => (
- <div key={`empty-${i}`} className={`h-8 border-b border-slate-200 ${(i + safariPasswordDomains.length) % 2 === 0 ? 'bg-white' : 'bg-slate-50'}`}></div>
- ))
- )}
- </div>
- </div>
+<div className="bg-slate-50 rounded-lg border border-slate-200 p-2 mb-3 max-h-44 overflow-y-auto space-y-2">
+{safariPasswordDomains.length === 0 ? (
+<div className="text-center py-6 text-sm text-slate-400">No domains configured</div>
+) : (
+safariPasswordDomains.map((domain, idx) => (
+<div 
+key={idx} 
+className={`rounded-md border bg-white transition-all duration-200 ${selectedPasswordDomainIdx === idx ? "border-primary-400 ring-2 ring-primary-100 shadow-sm" : "border-slate-200 hover:border-slate-300"}`}
+onClick={() => setSelectedPasswordDomainIdx(idx)}
+>
+<div className="px-3 py-1.5">
+<FastInput 
+value={domain}
+onChange={(val: string) => {
+const newDomains = [...safariPasswordDomains];
+newDomains[idx] = val;
+setSafariPasswordDomains(newDomains);
+}}
+bordered={false}
+className="p-0 bg-transparent text-sm w-full"
+placeholder="example.com"
+/>
+</div>
+</div>
+))
+)}
+</div>
  <div className="flex gap-2">
  <Button 
  size="small" 
- className="w-8 h-8 flex items-center justify-center bg-white border-slate-300 text-slate-600 hover:text-slate-700 hover:border-blue-600" 
+className="w-8 h-8 flex items-center justify-center bg-white border-slate-300 text-slate-600 hover:text-primary-600 hover:border-primary-400" 
  icon={<Plus className="w-4 h-4" />} 
  onClick={() => {
  setSafariPasswordDomains([...safariPasswordDomains, ""]);
@@ -3083,7 +3096,7 @@ onClick={handleSaveProfile}
  />
  <Button 
  size="small" 
- className={`w-8 h-8 flex items-center justify-center bg-white border-slate-300 ${selectedPasswordDomainIdx !== null ? 'text-slate-600 hover:text-red-500 hover:border-red-500' : 'text-slate-300'}`}
+className={`w-8 h-8 flex items-center justify-center bg-white border-slate-300 ${selectedPasswordDomainIdx !== null ? 'text-slate-600 hover:text-primary-600 hover:border-primary-400' : 'text-slate-300'}`}
  icon={<Minus className="w-4 h-4" />} 
  disabled={selectedPasswordDomainIdx === null}
  onClick={() => {
@@ -3110,7 +3123,7 @@ onClick={handleSaveProfile}
  CANCEL
  </Button>
  <Button 
- className="font-semibold bg-[#de2a15] hover:bg-[#c22412] text-white border-none px-8"
+ className="font-semibold bg-primary-600 hover:bg-primary-700 text-white border-none px-8"
  onClick={() => {
  setHasDomainsConfig(true);
  setIsDomainsConfigVisible(false);
@@ -3142,7 +3155,7 @@ onClick={handleSaveProfile}
  >
  <div className="flex flex-col h-full bg-slate-50">
  <div className="p-8 flex-1 overflow-y-auto max-h-[70vh] scrollbar-hide">
- <Form layout="vertical" className="max-w-3xl mx-auto custom-form">
+<Form layout="vertical" className="max-w-3xl mx-auto custom-form profile-form">
  <div className="space-y-6">
  {/* Proxy Type */}
  <div className="p-5 bg-white rounded-lg border border-slate-200 shadow-sm">
@@ -3199,7 +3212,7 @@ onClick={handleSaveProfile}
  CANCEL
  </Button>
  <Button 
- className="font-semibold bg-[#de2a15] hover:bg-[#c22412] text-white border-none px-8"
+ className="font-semibold bg-primary-600 hover:bg-primary-700 text-white border-none px-8"
  onClick={() => {
  setHasHttpProxyConfig(true);
  setIsHttpProxyConfigVisible(false);
@@ -3231,7 +3244,7 @@ onClick={handleSaveProfile}
  >
  <div className="flex flex-col h-full bg-slate-50">
  <div className="p-8 flex-1 overflow-y-auto max-h-[70vh] scrollbar-hide">
- <Form layout="vertical" className="max-w-3xl mx-auto custom-form">
+<Form layout="vertical" className="max-w-3xl mx-auto custom-form profile-form">
  <div className="space-y-6">
  {/* App Bundle ID */}
  <div className="p-5 bg-white rounded-lg border border-slate-200 shadow-sm">
@@ -3275,7 +3288,7 @@ onClick={handleSaveProfile}
  CANCEL
  </Button>
  <Button 
- className="font-semibold bg-[#de2a15] hover:bg-[#c22412] text-white border-none px-8"
+ className="font-semibold bg-primary-600 hover:bg-primary-700 text-white border-none px-8"
  onClick={() => {
  setHasDnsProxyConfig(true);
  setIsDnsProxyConfigVisible(false);
@@ -3307,7 +3320,7 @@ onClick={handleSaveProfile}
  >
  <div className="flex flex-col h-full bg-slate-50">
  <div className="p-8 flex-1 overflow-y-auto max-h-[70vh] scrollbar-hide">
- <Form layout="vertical" className="max-w-3xl mx-auto custom-form">
+<Form layout="vertical" className="max-w-3xl mx-auto custom-form profile-form">
  <div className="space-y-6">
  {/* Filter Type */}
  <div className="p-5 bg-white rounded-lg border border-slate-200 shadow-sm">
@@ -3331,46 +3344,37 @@ onClick={handleSaveProfile}
  <div className="font-semibold text-slate-800 text-base mb-1">Allowed URLs</div>
  <div className="text-sm text-slate-500 mb-4">Specific URLs that will be allowed</div>
  
- <div className="border border-slate-200 rounded-md overflow-hidden mb-3">
- <div className="h-32 bg-slate-50 flex flex-col overflow-y-auto">
- {allowedUrls.length === 0 ? (
- <>
- <div className="h-8 border-b border-slate-200 bg-white"></div>
- <div className="h-8 border-b border-slate-200 bg-slate-50"></div>
- <div className="h-8 border-b border-slate-200 bg-white"></div>
- <div className="h-8 bg-slate-50"></div>
- </>
- ) : (
- allowedUrls.map((url, idx) => (
- <div 
- key={idx} 
- className={`h-8 border-b border-slate-200 flex items-center px-2 cursor-pointer transition-colors ${selectedAllowedUrlIdx === idx ? 'bg-blue-100' : (idx % 2 === 0 ? 'bg-white hover:bg-slate-100' : 'bg-slate-50 hover:bg-slate-100')}`}
- onClick={() => setSelectedAllowedUrlIdx(idx)}
- >
- <Input 
- value={url}
- onChange={(e) => {
- const newUrls = [...allowedUrls];
- newUrls[idx] = e.target.value;
- setAllowedUrls(newUrls);
- }}
- bordered={false}
- className="p-0 h-full bg-transparent focus:shadow-none text-sm"
- />
- </div>
- ))
- )}
- {allowedUrls.length > 0 && allowedUrls.length < 4 && (
- Array.from({ length: 4 - allowedUrls.length }).map((_, i) => (
- <div key={`empty-${i}`} className={`h-8 border-b border-slate-200 ${(i + allowedUrls.length) % 2 === 0 ? 'bg-white' : 'bg-slate-50'}`}></div>
- ))
- )}
- </div>
- </div>
+<div className="bg-slate-50 rounded-lg border border-slate-200 p-2 mb-3 max-h-44 overflow-y-auto space-y-2">
+{allowedUrls.length === 0 ? (
+<div className="text-center py-6 text-sm text-slate-400">No URLs configured</div>
+) : (
+allowedUrls.map((url, idx) => (
+<div 
+key={idx} 
+className={`rounded-md border bg-white transition-all duration-200 ${selectedAllowedUrlIdx === idx ? "border-primary-400 ring-2 ring-primary-100 shadow-sm" : "border-slate-200 hover:border-slate-300"}`}
+onClick={() => setSelectedAllowedUrlIdx(idx)}
+>
+<div className="px-3 py-1.5">
+<FastInput 
+value={url}
+onChange={(val: string) => {
+const newUrls = [...allowedUrls];
+newUrls[idx] = val;
+setAllowedUrls(newUrls);
+}}
+bordered={false}
+className="p-0 bg-transparent text-sm w-full"
+placeholder="https://example.com"
+/>
+</div>
+</div>
+))
+)}
+</div>
  <div className="flex gap-2">
  <Button 
  size="small" 
- className="w-8 h-8 flex items-center justify-center bg-white border-slate-300 text-slate-600 hover:text-slate-700 hover:border-blue-600" 
+className="w-8 h-8 flex items-center justify-center bg-white border-slate-300 text-slate-600 hover:text-primary-600 hover:border-primary-400" 
  icon={<Plus className="w-4 h-4" />} 
  onClick={() => {
  setAllowedUrls([...allowedUrls, ""]);
@@ -3379,7 +3383,7 @@ onClick={handleSaveProfile}
  />
  <Button 
  size="small" 
- className={`w-8 h-8 flex items-center justify-center bg-white border-slate-300 ${selectedAllowedUrlIdx !== null ? 'text-slate-600 hover:text-red-500 hover:border-red-500' : 'text-slate-300'}`}
+className={`w-8 h-8 flex items-center justify-center bg-white border-slate-300 ${selectedAllowedUrlIdx !== null ? 'text-slate-600 hover:text-primary-600 hover:border-primary-400' : 'text-slate-300'}`}
  icon={<Minus className="w-4 h-4" />} 
  disabled={selectedAllowedUrlIdx === null}
  onClick={() => {
@@ -3398,46 +3402,37 @@ onClick={handleSaveProfile}
  <div className="font-semibold text-slate-800 text-base mb-1">Unallowed URLs</div>
  <div className="text-sm text-slate-500 mb-4">Additional URLs that will not be allowed</div>
  
- <div className="border border-slate-200 rounded-md overflow-hidden mb-3">
- <div className="h-32 bg-slate-50 flex flex-col overflow-y-auto">
- {unallowedUrls.length === 0 ? (
- <>
- <div className="h-8 border-b border-slate-200 bg-white"></div>
- <div className="h-8 border-b border-slate-200 bg-slate-50"></div>
- <div className="h-8 border-b border-slate-200 bg-white"></div>
- <div className="h-8 bg-slate-50"></div>
- </>
- ) : (
- unallowedUrls.map((url, idx) => (
- <div 
- key={idx} 
- className={`h-8 border-b border-slate-200 flex items-center px-2 cursor-pointer transition-colors ${selectedUnallowedUrlIdx === idx ? 'bg-blue-100' : (idx % 2 === 0 ? 'bg-white hover:bg-slate-100' : 'bg-slate-50 hover:bg-slate-100')}`}
- onClick={() => setSelectedUnallowedUrlIdx(idx)}
- >
- <Input 
- value={url}
- onChange={(e) => {
- const newUrls = [...unallowedUrls];
- newUrls[idx] = e.target.value;
- setUnallowedUrls(newUrls);
- }}
- bordered={false}
- className="p-0 h-full bg-transparent focus:shadow-none text-sm"
- />
- </div>
- ))
- )}
- {unallowedUrls.length > 0 && unallowedUrls.length < 4 && (
- Array.from({ length: 4 - unallowedUrls.length }).map((_, i) => (
- <div key={`empty-${i}`} className={`h-8 border-b border-slate-200 ${(i + unallowedUrls.length) % 2 === 0 ? 'bg-white' : 'bg-slate-50'}`}></div>
- ))
- )}
- </div>
- </div>
+<div className="bg-slate-50 rounded-lg border border-slate-200 p-2 mb-3 max-h-44 overflow-y-auto space-y-2">
+{unallowedUrls.length === 0 ? (
+<div className="text-center py-6 text-sm text-slate-400">No URLs configured</div>
+) : (
+unallowedUrls.map((url, idx) => (
+<div 
+key={idx} 
+className={`rounded-md border bg-white transition-all duration-200 ${selectedUnallowedUrlIdx === idx ? "border-primary-400 ring-2 ring-primary-100 shadow-sm" : "border-slate-200 hover:border-slate-300"}`}
+onClick={() => setSelectedUnallowedUrlIdx(idx)}
+>
+<div className="px-3 py-1.5">
+<FastInput 
+value={url}
+onChange={(val: string) => {
+const newUrls = [...unallowedUrls];
+newUrls[idx] = val;
+setUnallowedUrls(newUrls);
+}}
+bordered={false}
+className="p-0 bg-transparent text-sm w-full"
+placeholder="https://example.com"
+/>
+</div>
+</div>
+))
+)}
+</div>
  <div className="flex gap-2">
  <Button 
  size="small" 
- className="w-8 h-8 flex items-center justify-center bg-white border-slate-300 text-slate-600 hover:text-slate-700 hover:border-blue-600" 
+className="w-8 h-8 flex items-center justify-center bg-white border-slate-300 text-slate-600 hover:text-primary-600 hover:border-primary-400" 
  icon={<Plus className="w-4 h-4" />} 
  onClick={() => {
  setUnallowedUrls([...unallowedUrls, ""]);
@@ -3446,7 +3441,7 @@ onClick={handleSaveProfile}
  />
  <Button 
  size="small" 
- className={`w-8 h-8 flex items-center justify-center bg-white border-slate-300 ${selectedUnallowedUrlIdx !== null ? 'text-slate-600 hover:text-red-500 hover:border-red-500' : 'text-slate-300'}`}
+className={`w-8 h-8 flex items-center justify-center bg-white border-slate-300 ${selectedUnallowedUrlIdx !== null ? 'text-slate-600 hover:text-primary-600 hover:border-primary-400' : 'text-slate-300'}`}
  icon={<Minus className="w-4 h-4" />} 
  disabled={selectedUnallowedUrlIdx === null}
  onClick={() => {
@@ -3468,57 +3463,50 @@ onClick={handleSaveProfile}
  <div className="font-semibold text-slate-800 text-base mb-1">Specific Websites</div>
  <div className="text-sm text-slate-500 mb-4">Allowed domains which will be shown as bookmarks</div>
  
- <div className="border border-slate-200 rounded-md overflow-hidden mb-3">
- <div className="grid grid-cols-2 bg-slate-100 border-b border-slate-200 font-semibold text-slate-700 text-xs px-2 py-2">
+<div className="bg-slate-50 rounded-lg border border-slate-200 overflow-hidden mb-3">
+<div className="grid grid-cols-2 bg-slate-100/70 border-b border-slate-200 font-semibold text-slate-700 text-xs px-3 py-2">
  <div>URL</div>
  <div className="border-l border-slate-300 pl-2">Name</div>
  </div>
- <div className="h-40 bg-slate-50 flex flex-col overflow-y-auto">
+<div className="max-h-52 bg-slate-50 flex flex-col overflow-y-auto gap-2 p-2">
  {specificWebsites.length === 0 ? (
  <>
- <div className="h-8 border-b border-slate-200 bg-white"></div>
- <div className="h-8 border-b border-slate-200 bg-slate-50"></div>
- <div className="h-8 border-b border-slate-200 bg-white"></div>
- <div className="h-8 border-b border-slate-200 bg-slate-50"></div>
- <div className="h-8 bg-white"></div>
+<div className="text-center py-6 text-sm text-slate-400 col-span-2">No websites configured</div>
  </>
  ) : (
  specificWebsites.map((item, idx) => (
  <div 
  key={idx} 
- className={`h-8 border-b border-slate-200 grid grid-cols-2 cursor-pointer transition-colors ${selectedSpecificWebsiteIdx === idx ? 'bg-blue-100' : (idx % 2 === 0 ? 'bg-white hover:bg-slate-100' : 'bg-slate-50 hover:bg-slate-100')}`}
+className={`grid grid-cols-2 rounded-md border bg-white cursor-pointer transition-all duration-200 ${selectedSpecificWebsiteIdx === idx ? 'border-primary-400 ring-2 ring-primary-100 shadow-sm' : 'border-slate-200 hover:border-slate-300'}`}
  onClick={() => setSelectedSpecificWebsiteIdx(idx)}
  >
- <div className="px-2">
- <Input 
+<div className="px-3 py-1.5">
+ <FastInput 
  value={item.url}
- onChange={(e) => {
+ onChange={(val: string) => {
  const newSites = [...specificWebsites];
- newSites[idx].url = e.target.value;
+ newSites[idx].url = val;
  setSpecificWebsites(newSites);
  }}
  bordered={false}
- className="p-0 h-full bg-transparent focus:shadow-none text-sm"
+className="p-0 bg-transparent text-sm w-full"
+placeholder="URL (e.g. https://example.com)"
  />
  </div>
- <div className="px-2 border-l border-slate-200">
- <Input 
+<div className="px-3 py-1.5 border-l border-slate-200">
+ <FastInput 
  value={item.name}
- onChange={(e) => {
+ onChange={(val: string) => {
  const newSites = [...specificWebsites];
- newSites[idx].name = e.target.value;
+ newSites[idx].name = val;
  setSpecificWebsites(newSites);
  }}
  bordered={false}
- className="p-0 h-full bg-transparent focus:shadow-none text-sm"
+className="p-0 bg-transparent text-sm w-full"
+placeholder="Name (e.g. Example Site)"
  />
  </div>
  </div>
- ))
- )}
- {specificWebsites.length > 0 && specificWebsites.length < 5 && (
- Array.from({ length: 5 - specificWebsites.length }).map((_, i) => (
- <div key={`empty-${i}`} className={`h-8 border-b border-slate-200 ${(i + specificWebsites.length) % 2 === 0 ? 'bg-white' : 'bg-slate-50'}`}></div>
  ))
  )}
  </div>
@@ -3526,7 +3514,7 @@ onClick={handleSaveProfile}
  <div className="flex gap-2">
  <Button 
  size="small" 
- className="w-8 h-8 flex items-center justify-center bg-white border-slate-300 text-slate-600 hover:text-slate-700 hover:border-blue-600" 
+className="w-8 h-8 flex items-center justify-center bg-white border-slate-300 text-slate-600 hover:text-primary-600 hover:border-primary-400" 
  icon={<Plus className="w-4 h-4" />} 
  onClick={() => {
  setSpecificWebsites([...specificWebsites, {url: "", name: ""}]);
@@ -3535,7 +3523,7 @@ onClick={handleSaveProfile}
  />
  <Button 
  size="small" 
- className={`w-8 h-8 flex items-center justify-center bg-white border-slate-300 ${selectedSpecificWebsiteIdx !== null ? 'text-slate-600 hover:text-red-500 hover:border-red-500' : 'text-slate-300'}`}
+className={`w-8 h-8 flex items-center justify-center bg-white border-slate-300 ${selectedSpecificWebsiteIdx !== null ? 'text-slate-600 hover:text-primary-600 hover:border-primary-400' : 'text-slate-300'}`}
  icon={<Minus className="w-4 h-4" />} 
  disabled={selectedSpecificWebsiteIdx === null}
  onClick={() => {
@@ -3712,7 +3700,7 @@ onClick={handleSaveProfile}
  CANCEL
  </Button>
  <Button 
- className="font-semibold bg-[#de2a15] hover:bg-[#c22412] text-white border-none px-8"
+ className="font-semibold bg-primary-600 hover:bg-primary-700 text-white border-none px-8"
  onClick={() => {
  setHasContentFilterConfig(true);
  setIsContentFilterConfigVisible(false);
@@ -3744,7 +3732,7 @@ onClick={handleSaveProfile}
  >
  <div className="flex flex-col h-full bg-slate-50">
  <div className="p-8 flex-1 overflow-y-auto max-h-[70vh] scrollbar-hide">
- <Form layout="vertical" className="max-w-3xl mx-auto custom-form">
+<Form layout="vertical" className="max-w-3xl mx-auto custom-form profile-form">
  <div className="space-y-6">
  {/* Excluded Certificates */}
  <div className="p-5 bg-white rounded-lg border border-slate-200 shadow-sm">
@@ -3903,7 +3891,7 @@ onClick={handleSaveProfile}
  CANCEL
  </Button>
  <Button 
- className="font-semibold bg-[#de2a15] hover:bg-[#c22412] text-white border-none px-8"
+ className="font-semibold bg-primary-600 hover:bg-primary-700 text-white border-none px-8"
  onClick={() => {
  setHasCertificateTransparencyConfig(true);
  setIsCertificateTransparencyConfigVisible(false);
@@ -3935,15 +3923,15 @@ onClick={handleSaveProfile}
  >
  <div className="flex flex-col h-full bg-slate-50">
  <div className="p-8 flex-1 overflow-y-auto max-h-[70vh] scrollbar-hide">
- <Form form={wifiForm} layout="vertical" className="max-w-3xl mx-auto custom-form">
+<Form form={wifiForm} layout="vertical" className="max-w-3xl mx-auto custom-form profile-form">
  <div className="space-y-6">
  {/* SSID */}
  <div className="p-5 bg-white rounded-lg border border-slate-200 shadow-sm">
  <div className="font-semibold text-slate-800 text-base mb-1">Service Set Identifier (SSID)</div>
  <div className="text-sm text-slate-500 mb-3">Identification of the wireless network to connect to</div>
- <Input
+ <FastInput
   value={wifiSsid}
-  onChange={(e) => setWifiSsid(e.target.value)}
+  onChange={(val: string) => setWifiSsid(val)}
   placeholder="[required]"
   className="bg-slate-50 hover:bg-white focus:bg-white transition-colors"
  />
@@ -4076,7 +4064,7 @@ onClick={handleSaveProfile}
  CANCEL
  </Button>
  <Button
- className="font-semibold bg-[#de2a15] hover:bg-[#c22412] text-white border-none px-8"
+ className="font-semibold bg-primary-600 hover:bg-primary-700 text-white border-none px-8"
  onClick={() => {
   const values = wifiForm.getFieldsValue();
   setWifiData({
@@ -4118,15 +4106,15 @@ onClick={handleSaveProfile}
  >
  <div className="flex flex-col h-full bg-slate-50">
  <div className="p-8 flex-1 overflow-y-auto max-h-[70vh] scrollbar-hide">
- <Form layout="vertical" className="max-w-3xl mx-auto custom-form">
+<Form layout="vertical" className="max-w-3xl mx-auto custom-form profile-form">
  <div className="space-y-6">
  {/* Connection Name */}
  <div className="p-5 bg-white rounded-lg border border-slate-200 shadow-sm">
  <div className="font-semibold text-slate-800 text-base mb-1">Connection Name</div>
  <div className="text-sm text-slate-500 mb-3">Display name of the connection (displayed on the device)</div>
- <Input
+ <FastInput
   value={vpnConnectionName}
-  onChange={(e) => setVpnConnectionName(e.target.value)}
+  onChange={(val: string) => setVpnConnectionName(val)}
   placeholder="[required]"
   className="bg-slate-50 hover:bg-white focus:bg-white transition-colors"
  />
@@ -4148,9 +4136,9 @@ onClick={handleSaveProfile}
  <div className="p-5 bg-white rounded-lg border border-slate-200 shadow-sm">
  <div className="font-semibold text-slate-800 text-base mb-1">Server</div>
  <div className="text-sm text-slate-500 mb-3">Host name or IP address for server</div>
- <Input
+ <FastInput
   value={vpnServer}
-  onChange={(e) => setVpnServer(e.target.value)}
+  onChange={(val: string) => setVpnServer(val)}
   placeholder="[required]"
   className="bg-slate-50 hover:bg-white focus:bg-white transition-colors"
  />
@@ -4248,7 +4236,7 @@ onClick={handleSaveProfile}
  CANCEL
  </Button>
  <Button
- className="font-semibold bg-[#de2a15] hover:bg-[#c22412] text-white border-none px-8"
+ className="font-semibold bg-primary-600 hover:bg-primary-700 text-white border-none px-8"
  onClick={() => {
   setVpnData({
    connection_name: vpnConnectionName,
@@ -4285,7 +4273,7 @@ onClick={handleSaveProfile}
  >
  <div className="flex flex-col h-full bg-slate-50">
  <div className="p-8 flex-1 overflow-y-auto max-h-[70vh] scrollbar-hide">
- <Form layout="vertical" className="max-w-3xl mx-auto custom-form">
+<Form layout="vertical" className="max-w-3xl mx-auto custom-form profile-form">
  <div className="space-y-6">
  {/* Passwords */}
  <div className="p-5 bg-white rounded-lg border border-slate-200 shadow-sm">
@@ -4455,7 +4443,7 @@ onClick={handleSaveProfile}
  CANCEL
  </Button>
  <Button 
- className="font-semibold bg-[#de2a15] hover:bg-[#c22412] text-white border-none px-8"
+ className="font-semibold bg-primary-600 hover:bg-primary-700 text-white border-none px-8"
  onClick={() => {
  setHasAirPlayConfig(true);
  setIsAirPlayConfigVisible(false);
@@ -4487,7 +4475,7 @@ onClick={handleSaveProfile}
  >
  <div className="flex flex-col h-full bg-slate-50">
  <div className="p-8 flex-1 overflow-y-auto max-h-[70vh] scrollbar-hide">
- <Form layout="vertical" className="max-w-3xl mx-auto custom-form">
+<Form layout="vertical" className="max-w-3xl mx-auto custom-form profile-form">
  <div className="space-y-6">
  {/* Access */}
  <div className="p-5 bg-white rounded-lg border border-slate-200 shadow-sm">
@@ -4524,7 +4512,7 @@ onClick={handleSaveProfile}
  CANCEL
  </Button>
  <Button 
- className="font-semibold bg-[#de2a15] hover:bg-[#c22412] text-white border-none px-8"
+ className="font-semibold bg-primary-600 hover:bg-primary-700 text-white border-none px-8"
  onClick={() => {
  setHasAirPlaySecurityConfig(true);
  setIsAirPlaySecurityConfigVisible(false);
@@ -4556,7 +4544,7 @@ onClick={handleSaveProfile}
  >
  <div className="flex flex-col h-full bg-slate-50">
  <div className="p-8 flex-1 overflow-y-auto max-h-[70vh] scrollbar-hide">
- <Form layout="vertical" className="max-w-3xl mx-auto custom-form">
+<Form layout="vertical" className="max-w-3xl mx-auto custom-form profile-form">
  <div className="space-y-6">
  {/* Printers */}
  <div className="p-5 bg-white rounded-lg border border-slate-200 shadow-sm">
@@ -4681,7 +4669,7 @@ onClick={handleSaveProfile}
  CANCEL
  </Button>
  <Button 
- className="font-semibold bg-[#de2a15] hover:bg-[#c22412] text-white border-none px-8"
+ className="font-semibold bg-primary-600 hover:bg-primary-700 text-white border-none px-8"
  onClick={() => {
  setHasAirPrintConfig(true);
  setIsAirPrintConfigVisible(false);
@@ -4713,7 +4701,7 @@ onClick={handleSaveProfile}
  >
  <div className="flex flex-col h-full bg-slate-50">
  <div className="p-8 flex-1 overflow-y-auto max-h-[70vh] scrollbar-hide">
- <Form layout="vertical" className="max-w-3xl mx-auto custom-form">
+<Form layout="vertical" className="max-w-3xl mx-auto custom-form profile-form">
  <div className="space-y-6">
  {/* Account Description */}
  <div className="p-5 bg-white rounded-lg border border-slate-200 shadow-sm">
@@ -4781,7 +4769,7 @@ onClick={handleSaveProfile}
  CANCEL
  </Button>
  <Button 
- className="font-semibold bg-[#de2a15] hover:bg-[#c22412] text-white border-none px-8"
+ className="font-semibold bg-primary-600 hover:bg-primary-700 text-white border-none px-8"
  onClick={() => {
  setHasCalendarConfig(true);
  setIsCalendarConfigVisible(false);
@@ -4813,7 +4801,7 @@ onClick={handleSaveProfile}
  >
  <div className="flex flex-col h-full bg-slate-50">
  <div className="p-8 flex-1 overflow-y-auto max-h-[70vh] scrollbar-hide">
- <Form layout="vertical" className="max-w-3xl mx-auto custom-form">
+<Form layout="vertical" className="max-w-3xl mx-auto custom-form profile-form">
  <div className="space-y-6">
  {/* Account Description */}
  <div className="p-5 bg-white rounded-lg border border-slate-200 shadow-sm">
@@ -4891,7 +4879,7 @@ onClick={handleSaveProfile}
  CANCEL
  </Button>
  <Button 
- className="font-semibold bg-[#de2a15] hover:bg-[#c22412] text-white border-none px-8"
+ className="font-semibold bg-primary-600 hover:bg-primary-700 text-white border-none px-8"
  onClick={() => {
  setHasContactsConfig(true);
  setIsContactsConfigVisible(false);
@@ -4923,7 +4911,7 @@ onClick={handleSaveProfile}
  >
  <div className="flex flex-col h-full bg-slate-50">
  <div className="p-8 flex-1 overflow-y-auto max-h-[70vh] scrollbar-hide">
- <Form layout="vertical" className="max-w-3xl mx-auto custom-form">
+<Form layout="vertical" className="max-w-3xl mx-auto custom-form profile-form">
  <div className="space-y-6">
  {/* Account Name */}
  <div className="p-5 bg-white rounded-lg border border-slate-200 shadow-sm">
@@ -5107,7 +5095,7 @@ onClick={handleSaveProfile}
  CANCEL
  </Button>
  <Button 
- className="font-semibold bg-[#de2a15] hover:bg-[#c22412] text-white border-none px-8"
+ className="font-semibold bg-primary-600 hover:bg-primary-700 text-white border-none px-8"
  onClick={() => {
  setHasExchangeConfig(true);
  setIsExchangeConfigVisible(false);
@@ -5139,7 +5127,7 @@ onClick={handleSaveProfile}
  >
  <div className="flex flex-col h-full bg-slate-50">
  <div className="p-8 flex-1 overflow-y-auto max-h-[70vh] scrollbar-hide">
- <Form layout="vertical" className="max-w-3xl mx-auto custom-form">
+<Form layout="vertical" className="max-w-3xl mx-auto custom-form profile-form">
  <div className="space-y-6">
  {/* Account Description */}
  <div className="p-5 bg-white rounded-lg border border-slate-200 shadow-sm">
@@ -5185,7 +5173,7 @@ onClick={handleSaveProfile}
  CANCEL
  </Button>
  <Button 
- className="font-semibold bg-[#de2a15] hover:bg-[#c22412] text-white border-none px-8"
+ className="font-semibold bg-primary-600 hover:bg-primary-700 text-white border-none px-8"
  onClick={() => {
  setHasGoogleAccountConfig(true);
  setIsGoogleAccountConfigVisible(false);
@@ -5217,7 +5205,7 @@ onClick={handleSaveProfile}
  >
  <div className="flex flex-col h-full bg-slate-50">
  <div className="p-8 flex-1 overflow-y-auto max-h-[70vh] scrollbar-hide">
- <Form layout="vertical" className="max-w-3xl mx-auto custom-form">
+<Form layout="vertical" className="max-w-3xl mx-auto custom-form profile-form">
  <div className="space-y-6">
  {/* Basic Info */}
  <div className="p-5 bg-white rounded-lg border border-slate-200 shadow-sm space-y-5">
@@ -5370,7 +5358,7 @@ onClick={handleSaveProfile}
  CANCEL
  </Button>
  <Button 
- className="font-semibold bg-[#de2a15] hover:bg-[#c22412] text-white border-none px-8"
+ className="font-semibold bg-primary-600 hover:bg-primary-700 text-white border-none px-8"
  onClick={() => {
  setHasLdapConfig(true);
  setIsLdapConfigVisible(false);
@@ -5400,7 +5388,7 @@ onClick={handleSaveProfile}
  >
  <div className="flex flex-col h-full bg-slate-50">
  <div className="p-8 flex-1 overflow-y-auto max-h-[70vh] scrollbar-hide">
- <Form layout="vertical" className="max-w-3xl mx-auto custom-form">
+<Form layout="vertical" className="max-w-3xl mx-auto custom-form profile-form">
  <div className="space-y-6">
  <div className="p-5 bg-white rounded-lg border border-slate-200 shadow-sm space-y-5">
  <div>
@@ -5539,7 +5527,7 @@ onClick={handleSaveProfile}
  </div>
  <div className="modal-footer-sticky">
  <Button type="text" className="font-semibold text-slate-600 hover:text-slate-800 hover:bg-slate-100 px-6" onClick={() => setIsMailConfigVisible(false)}>CANCEL</Button>
- <Button className="font-semibold bg-[#de2a15] hover:bg-[#c22412] text-white border-none px-8 transition-colors" onClick={() => { setHasDomainsConfig(true); setIsDomainsConfigVisible(false); }}>SAVE</Button>
+ <Button className="font-semibold bg-primary-600 hover:bg-primary-700 text-white border-none px-8 transition-colors" onClick={() => { setHasDomainsConfig(true); setIsDomainsConfigVisible(false); }}>SAVE</Button>
  </div>
  </div>
  </Modal>
@@ -5562,7 +5550,7 @@ onClick={handleSaveProfile}
  >
  <div className="flex flex-col h-full bg-slate-50">
  <div className="p-8 flex-1 overflow-y-auto max-h-[70vh] scrollbar-hide">
- <Form layout="vertical" className="max-w-3xl mx-auto custom-form">
+<Form layout="vertical" className="max-w-3xl mx-auto custom-form profile-form">
  <div className="space-y-6">
  <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 flex items-start gap-3">
  <div className="mt-0.5 text-yellow-500"><AlertCircle className="w-5 h-5" /></div>
@@ -5578,7 +5566,7 @@ onClick={handleSaveProfile}
  <div>
  <div className="font-semibold text-slate-800 text-base mb-1 flex items-center gap-2">
  Server Address
- <div className="w-4 h-4 rounded-full bg-red-500 text-white flex items-center justify-center text-xs font-bold ml-auto cursor-help" title="Required">!</div>
+ <div className="w-4 h-4 rounded-full bg-primary-500 text-white flex items-center justify-center text-xs font-bold ml-auto cursor-help" title="Required">!</div>
  </div>
  <div className="text-sm text-slate-500 mb-2">The host name, IP address, or URL of the server</div>
  <Input placeholder="[required]" className="bg-slate-50 hover:bg-white focus:bg-white transition-colors" />
@@ -5586,7 +5574,7 @@ onClick={handleSaveProfile}
  <div>
  <div className="font-semibold text-slate-800 text-base mb-1 flex items-center gap-2">
  User Name
- <div className="w-4 h-4 rounded-full bg-red-500 text-white flex items-center justify-center text-xs font-bold ml-auto cursor-help" title="Required">!</div>
+ <div className="w-4 h-4 rounded-full bg-primary-500 text-white flex items-center justify-center text-xs font-bold ml-auto cursor-help" title="Required">!</div>
  </div>
  <div className="text-sm text-slate-500 mb-2">The user name of the account</div>
  <Input placeholder="[required]" className="bg-slate-50 hover:bg-white focus:bg-white transition-colors" />
@@ -5610,7 +5598,7 @@ onClick={handleSaveProfile}
  </div>
  <div className="modal-footer-sticky">
  <Button type="text" className="font-semibold text-slate-600 hover:text-slate-800 hover:bg-slate-100 px-6" onClick={() => setIsMacOsServerConfigVisible(false)}>CANCEL</Button>
- <Button className="font-semibold bg-[#de2a15] hover:bg-[#c22412] text-white border-none px-8" onClick={() => { setHasMacOsServerConfig(true); setIsMacOsServerConfigVisible(false); }}>SAVE</Button>
+ <Button className="font-semibold bg-primary-600 hover:bg-primary-700 text-white border-none px-8" onClick={() => { setHasMacOsServerConfig(true); setIsMacOsServerConfigVisible(false); }}>SAVE</Button>
  </div>
  </div>
  </Modal>
@@ -5633,13 +5621,13 @@ onClick={handleSaveProfile}
  >
  <div className="flex flex-col h-full bg-slate-50">
  <div className="p-8 flex-1 overflow-y-auto max-h-[70vh] scrollbar-hide">
- <Form layout="vertical" className="max-w-3xl mx-auto custom-form">
+<Form layout="vertical" className="max-w-3xl mx-auto custom-form profile-form">
  <div className="space-y-6">
  <div className="p-5 bg-white rounded-lg border border-slate-200 shadow-sm space-y-5">
  <div>
  <div className="font-semibold text-slate-800 text-base mb-1 flex items-center gap-2">
  URL
- <div className="w-4 h-4 rounded-full bg-red-500 text-white flex items-center justify-center text-xs font-bold ml-auto cursor-help" title="Required">!</div>
+ <div className="w-4 h-4 rounded-full bg-primary-500 text-white flex items-center justify-center text-xs font-bold ml-auto cursor-help" title="Required">!</div>
  </div>
  <div className="text-sm text-slate-500 mb-2">The base URL for the SCEP server</div>
  <Input placeholder="[required]" className="bg-slate-50 hover:bg-white focus:bg-white transition-colors" />
@@ -5718,7 +5706,7 @@ onClick={handleSaveProfile}
  </div>
  <div className="modal-footer-sticky">
  <Button type="text" className="font-semibold text-slate-600 hover:text-slate-800 hover:bg-slate-100 px-6" onClick={() => setIsScepConfigVisible(false)}>CANCEL</Button>
- <Button className="font-semibold bg-[#de2a15] hover:bg-[#c22412] text-white border-none px-8 transition-colors" onClick={() => { setHasHttpProxyConfig(true); setIsHttpProxyConfigVisible(false); }}>SAVE</Button>
+ <Button className="font-semibold bg-primary-600 hover:bg-primary-700 text-white border-none px-8 transition-colors" onClick={() => { setHasHttpProxyConfig(true); setIsHttpProxyConfigVisible(false); }}>SAVE</Button>
  </div>
  </div>
  </Modal>
@@ -5741,7 +5729,7 @@ onClick={handleSaveProfile}
  >
  <div className="flex flex-col h-full bg-slate-50">
  <div className="p-8 flex-1 overflow-y-auto max-h-[70vh] scrollbar-hide">
- <Form layout="vertical" className="max-w-3xl mx-auto custom-form">
+<Form layout="vertical" className="max-w-3xl mx-auto custom-form profile-form">
  <div className="space-y-6">
  <div className="p-5 bg-white rounded-lg border border-slate-200 shadow-sm space-y-5">
  <div>
@@ -5753,7 +5741,7 @@ onClick={handleSaveProfile}
  <div>
  <div className="font-semibold text-slate-800 text-base mb-1 flex items-center gap-2">
  Default APN Name
- <div className="w-4 h-4 rounded-full bg-red-500 text-white flex items-center justify-center text-xs font-bold ml-auto cursor-help" title="Required">!</div>
+ <div className="w-4 h-4 rounded-full bg-primary-500 text-white flex items-center justify-center text-xs font-bold ml-auto cursor-help" title="Required">!</div>
  </div>
  <div className="text-sm text-slate-500 mb-2">Access Point Name for the default APN configuration</div>
  <Input placeholder="[required]" className="bg-slate-50 hover:bg-white focus:bg-white transition-colors" />
@@ -5792,7 +5780,7 @@ onClick={handleSaveProfile}
  </div>
  <div className="modal-footer-sticky">
  <Button type="text" className="font-semibold text-slate-600 hover:text-slate-800 hover:bg-slate-100 px-6" onClick={() => setIsCellularConfigVisible(false)}>CANCEL</Button>
- <Button className="font-semibold bg-[#de2a15] hover:bg-[#c22412] text-white border-none px-8 transition-colors" onClick={() => { setHasContentFilterConfig(true); setIsContentFilterConfigVisible(false); }}>SAVE</Button>
+ <Button className="font-semibold bg-primary-600 hover:bg-primary-700 text-white border-none px-8 transition-colors" onClick={() => { setHasContentFilterConfig(true); setIsContentFilterConfigVisible(false); }}>SAVE</Button>
  </div>
  </div>
  </Modal>
@@ -5815,7 +5803,7 @@ onClick={handleSaveProfile}
  >
  <div className="flex flex-col h-full bg-slate-50">
  <div className="p-8 flex-1 overflow-y-auto max-h-[70vh] scrollbar-hide">
- <Form layout="vertical" className="max-w-3xl mx-auto custom-form">
+<Form layout="vertical" className="max-w-3xl mx-auto custom-form profile-form">
  <div className="space-y-6">
  <div className="font-medium text-slate-600">Notifications (supervised only)</div>
  <div className="p-5 bg-white rounded-lg border border-slate-200 shadow-sm">
@@ -5893,7 +5881,7 @@ onClick={handleSaveProfile}
  </div>
  <div className="modal-footer-sticky">
  <Button type="text" className="font-semibold text-slate-600 hover:text-slate-800 hover:bg-slate-100 px-6" onClick={() => setIsNotificationsConfigVisible(false)}>CANCEL</Button>
- <Button className="font-semibold bg-[#de2a15] hover:bg-[#c22412] text-white border-none px-8 transition-colors" onClick={() => { setHasRestrictionsConfig(true); setIsRestrictionsConfigVisible(false); }}>SAVE</Button>
+ <Button className="font-semibold bg-primary-600 hover:bg-primary-700 text-white border-none px-8 transition-colors" onClick={() => { setHasRestrictionsConfig(true); setIsRestrictionsConfigVisible(false); }}>SAVE</Button>
  </div>
  </div>
  </Modal>
@@ -5916,7 +5904,7 @@ onClick={handleSaveProfile}
  >
  <div className="flex flex-col h-full bg-slate-50">
  <div className="p-8 flex-1 overflow-y-auto max-h-[70vh] scrollbar-hide">
- <Form layout="vertical" className="max-w-3xl mx-auto custom-form">
+<Form layout="vertical" className="max-w-3xl mx-auto custom-form profile-form">
  <div className="space-y-6">
  <div className="font-medium text-slate-600">Conference Room Display (supervised only)</div>
  <div className="p-5 bg-white rounded-lg border border-slate-200 shadow-sm space-y-5">
@@ -5931,7 +5919,7 @@ onClick={handleSaveProfile}
  </div>
  <div className="modal-footer-sticky">
  <Button type="text" className="font-semibold text-slate-600 hover:text-slate-800 hover:bg-slate-100 px-6" onClick={() => setIsConferenceRoomConfigVisible(false)}>CANCEL</Button>
- <Button className="font-semibold bg-[#de2a15] hover:bg-[#c22412] text-white border-none px-8" onClick={() => { setHasConferenceRoomConfig(true); setIsConferenceRoomConfigVisible(false); }}>SAVE</Button>
+ <Button className="font-semibold bg-primary-600 hover:bg-primary-700 text-white border-none px-8" onClick={() => { setHasConferenceRoomConfig(true); setIsConferenceRoomConfigVisible(false); }}>SAVE</Button>
  </div>
  </div>
  </Modal>
@@ -5954,7 +5942,7 @@ onClick={handleSaveProfile}
  >
  <div className="flex flex-col h-full bg-slate-50">
  <div className="p-8 flex-1 overflow-y-auto max-h-[70vh] scrollbar-hide">
- <Form layout="vertical" className="max-w-3xl mx-auto custom-form">
+<Form layout="vertical" className="max-w-3xl mx-auto custom-form profile-form">
  <div className="space-y-6">
  <div className="font-medium text-slate-600">TV Remote (supervised only)</div>
  <div className="p-5 bg-white rounded-lg border border-slate-200 shadow-sm">
@@ -6100,7 +6088,7 @@ onClick={handleSaveProfile}
  </div>
  <div className="modal-footer-sticky">
  <Button type="text" className="font-semibold text-slate-600 hover:text-slate-800 hover:bg-slate-100 px-6" onClick={() => setIsTvRemoteConfigVisible(false)}>CANCEL</Button>
- <Button className="font-semibold bg-[#de2a15] hover:bg-[#c22412] text-white border-none px-8 transition-colors" onClick={() => { setHasPasscodeConfig(true); setIsPasscodeConfigVisible(false); }}>SAVE</Button>
+ <Button className="font-semibold bg-primary-600 hover:bg-primary-700 text-white border-none px-8 transition-colors" onClick={() => { setHasPasscodeConfig(true); setIsPasscodeConfigVisible(false); }}>SAVE</Button>
  </div>
  </div>
  </Modal>
@@ -6123,7 +6111,7 @@ onClick={handleSaveProfile}
  >
  <div className="flex flex-col h-full bg-slate-50">
  <div className="p-8 flex-1 overflow-y-auto max-h-[70vh] scrollbar-hide">
- <Form layout="vertical" className="max-w-3xl mx-auto custom-form">
+<Form layout="vertical" className="max-w-3xl mx-auto custom-form profile-form">
  <div className="space-y-6">
  <div className="font-medium text-slate-600">Lock Screen Message (supervised only)</div>
  <div className="p-5 bg-white rounded-lg border border-slate-200 shadow-sm space-y-5">
@@ -6143,7 +6131,7 @@ onClick={handleSaveProfile}
  </div>
  <div className="modal-footer-sticky">
  <Button type="text" className="font-semibold text-slate-600 hover:text-slate-800 hover:bg-slate-100 px-6" onClick={() => setIsLockScreenMessageConfigVisible(false)}>CANCEL</Button>
- <Button className="font-semibold bg-[#de2a15] hover:bg-[#c22412] text-white border-none px-8" onClick={() => { setHasLockScreenMessageConfig(true); setIsLockScreenMessageConfigVisible(false); }}>SAVE</Button>
+ <Button className="font-semibold bg-primary-600 hover:bg-primary-700 text-white border-none px-8" onClick={() => { setHasLockScreenMessageConfig(true); setIsLockScreenMessageConfigVisible(false); }}>SAVE</Button>
  </div>
  </div>
  </Modal>
@@ -6166,13 +6154,13 @@ onClick={handleSaveProfile}
  >
  <div className="flex flex-col h-full bg-slate-50">
  <div className="p-8 flex-1 overflow-y-auto max-h-[70vh] scrollbar-hide">
- <Form layout="vertical" className="max-w-3xl mx-auto custom-form">
+<Form layout="vertical" className="max-w-3xl mx-auto custom-form profile-form">
  <div className="space-y-6">
  <div className="p-5 bg-white rounded-lg border border-slate-200 shadow-sm space-y-5">
  <div>
  <div className="font-semibold text-slate-800 text-base mb-1 flex items-center gap-2">
  Label
- <div className="w-4 h-4 rounded-full bg-red-500 text-white flex items-center justify-center text-xs font-bold ml-auto cursor-help" title="Required">!</div>
+ <div className="w-4 h-4 rounded-full bg-primary-500 text-white flex items-center justify-center text-xs font-bold ml-auto cursor-help" title="Required">!</div>
  </div>
  <div className="text-sm text-slate-500 mb-2">The name to display for the Web Clip</div>
  <Input placeholder="[required]" className="bg-slate-50 hover:bg-white focus:bg-white transition-colors" />
@@ -6180,7 +6168,7 @@ onClick={handleSaveProfile}
  <div>
  <div className="font-semibold text-slate-800 text-base mb-1 flex items-center gap-2">
  URL
- <div className="w-4 h-4 rounded-full bg-red-500 text-white flex items-center justify-center text-xs font-bold ml-auto cursor-help" title="Required">!</div>
+ <div className="w-4 h-4 rounded-full bg-primary-500 text-white flex items-center justify-center text-xs font-bold ml-auto cursor-help" title="Required">!</div>
  </div>
  <div className="text-sm text-slate-500 mb-2">The URL to be displayed when opening the Web Clip</div>
  <Input placeholder="[required]" className="bg-slate-50 hover:bg-white focus:bg-white transition-colors" />
@@ -6230,7 +6218,7 @@ onClick={handleSaveProfile}
  </div>
  <div className="modal-footer-sticky">
  <Button type="text" className="font-semibold text-slate-600 hover:text-slate-800 hover:bg-slate-100 px-6" onClick={() => setIsWebClipConfigVisible(false)}>CANCEL</Button>
- <Button className="font-semibold bg-[#de2a15] hover:bg-[#c22412] text-white border-none px-8 transition-colors" onClick={() => { setHasDnsProxyConfig(true); setIsDnsProxyConfigVisible(false); }}>SAVE</Button>
+ <Button className="font-semibold bg-primary-600 hover:bg-primary-700 text-white border-none px-8 transition-colors" onClick={() => { setHasDnsProxyConfig(true); setIsDnsProxyConfigVisible(false); }}>SAVE</Button>
  </div>
  </div>
  </Modal>
@@ -6253,7 +6241,7 @@ onClick={handleSaveProfile}
  >
  <div className="flex flex-col h-full bg-slate-50">
  <div className="p-8 flex-1 overflow-y-auto max-h-[70vh] scrollbar-hide">
- <Form layout="vertical" className="max-w-3xl mx-auto custom-form">
+<Form layout="vertical" className="max-w-3xl mx-auto custom-form profile-form">
  <div className="space-y-6">
  <div className="p-5 bg-white rounded-lg border border-slate-200 shadow-sm space-y-5">
  <div>
@@ -6264,7 +6252,7 @@ onClick={handleSaveProfile}
  <div>
  <div className="font-semibold text-slate-800 text-base mb-1 flex items-center gap-2">
  URL
- <div className="w-4 h-4 rounded-full bg-red-500 text-white flex items-center justify-center text-xs font-bold ml-auto cursor-help" title="Required">!</div>
+ <div className="w-4 h-4 rounded-full bg-primary-500 text-white flex items-center justify-center text-xs font-bold ml-auto cursor-help" title="Required">!</div>
  </div>
  <div className="text-sm text-slate-500 mb-2">The URL of the calendar file</div>
  <Input placeholder="[required]" className="bg-slate-50 hover:bg-white focus:bg-white transition-colors" />
@@ -6290,7 +6278,7 @@ onClick={handleSaveProfile}
  </div>
  <div className="modal-footer-sticky">
  <Button type="text" className="font-semibold text-slate-600 hover:text-slate-800 hover:bg-slate-100 px-6" onClick={() => setIsSubscribedCalendarConfigVisible(false)}>CANCEL</Button>
- <Button className="font-semibold bg-[#de2a15] hover:bg-[#c22412] text-white border-none px-8" onClick={() => { setHasSubscribedCalendarConfig(true); setIsSubscribedCalendarConfigVisible(false); }}>SAVE</Button>
+ <Button className="font-semibold bg-primary-600 hover:bg-primary-700 text-white border-none px-8" onClick={() => { setHasSubscribedCalendarConfig(true); setIsSubscribedCalendarConfigVisible(false); }}>SAVE</Button>
  </div>
  </div>
  </Modal>
@@ -6318,7 +6306,7 @@ onClick={handleSaveProfile}
     <Button
      type="primary"
      loading={assignLoading}
-     className="bg-[#de2a15] hover:bg-[#c22412] border-none"
+     className="bg-primary-600 hover:bg-primary-700 border-none"
      onClick={handleAssignProfile}
     >
      Assign
@@ -6420,8 +6408,8 @@ onClick={handleSaveProfile}
  transition: all 0.2s ease;
  }
  .glass-input:focus {
- border-color: #de2a15 !important;
- box-shadow: 0 0 0 2px rgba(222, 42, 21, 0.1) !important;
+border-color: #1890ff !important;
+box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.12) !important;
  }
 
  /* Table modifications */
@@ -6496,6 +6484,23 @@ onClick={handleSaveProfile}
  right: 24px;
  }
 
+.custom-modal .ant-modal-footer {
+padding: 14px 20px 18px !important;
+margin: 0 !important;
+}
+
+.profile-detail-modal .ant-modal-footer {
+padding: 12px 20px 18px !important;
+}
+
+.profile-detail-footer {
+padding-inline: 2px;
+}
+
+.profile-detail-footer-actions {
+padding-right: 2px;
+}
+
  .custom-modal-header-red .ant-modal-content {
  padding: 0 !important;
  overflow: hidden;
@@ -6507,8 +6512,8 @@ onClick={handleSaveProfile}
  .custom-modal-header-red .ant-modal-header {
  padding: 16px 24px;
  margin: 0;
- background: #de2a15 !important;
- border-bottom: 1px solid #c22412;
+background: #1890ff !important;
+border-bottom: 1px solid #1677ff;
  }
  .custom-modal-header-red .ant-modal-title {
  color: white !important;
@@ -6538,6 +6543,27 @@ onClick={handleSaveProfile}
  .config-modal .ant-modal-body > div > div:first-child {
  background: #f8fafc !important;
  }
+
+.profile-layout-shell {
+padding: 12px;
+gap: 12px;
+}
+
+.profile-toolbar,
+.profile-subtoolbar,
+.profile-table-wrap {
+border-radius: 14px;
+}
+
+.profile-toolbar,
+.profile-subtoolbar {
+padding: 14px 16px !important;
+}
+
+.profile-table-wrap {
+background: #ffffff;
+box-shadow: 0 6px 18px rgba(15, 23, 42, 0.04);
+}
  
  /* Update form fields inside modals */
  .config-modal .bg-white {
@@ -6554,8 +6580,8 @@ onClick={handleSaveProfile}
  }
  .config-modal input:focus, .config-modal .ant-select-focused .ant-select-selector {
  background: #ffffff !important;
- border-color: #de2a15 !important;
- box-shadow: 0 0 0 2px rgba(222, 42, 21, 0.1) !important;
+border-color: #1890ff !important;
+box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.12) !important;
  }
 
  /* Form Modal Tabs Customization */
@@ -6572,8 +6598,8 @@ onClick={handleSaveProfile}
  }
  .form-modal input:focus, .form-modal textarea:focus {
  background: #ffffff !important;
- border-color: #de2a15 !important;
- box-shadow: 0 0 0 2px rgba(222, 42, 21, 0.1) !important;
+border-color: #1890ff !important;
+box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.12) !important;
  }
  
  .form-modal .ant-modal-content {
@@ -6608,11 +6634,11 @@ onClick={handleSaveProfile}
  margin: 0 16px 0 0 !important;
  }
  .custom-tabs .ant-tabs-tab-active .ant-tabs-tab-btn {
- color: #de2a15 !important;
+color: #1890ff !important;
  font-weight: 600 !important;
  }
  .custom-tabs .ant-tabs-ink-bar {
- background: #de2a15 !important;
+background: #1890ff !important;
  height: 3px !important;
  border-radius: 3px 3px 0 0;
  }
@@ -6627,6 +6653,88 @@ onClick={handleSaveProfile}
  .custom-tabs .ant-tabs-tabpane {
  height: 100%;
  }
+
+.profile-form {
+display: grid;
+gap: 22px;
+font-size: 14px;
+line-height: 1.45;
+}
+
+.profile-form .ant-form-item {
+margin-bottom: 14px !important;
+}
+
+.profile-form .ant-form-item-label > label {
+font-size: 13px !important;
+font-weight: 700 !important;
+color: #0f172a !important;
+letter-spacing: 0.02em;
+}
+
+.profile-form .ant-form-item-explain {
+font-size: 12px !important;
+}
+
+.profile-form .ant-input,
+.profile-form .ant-input-affix-wrapper,
+.profile-form .ant-select-selector,
+.profile-form textarea {
+border-radius: 10px !important;
+min-height: 38px;
+transition: all 0.2s ease !important;
+}
+
+.profile-form .ant-input:focus,
+.profile-form .ant-input-focused,
+.profile-form .ant-input-affix-wrapper-focused,
+.profile-form .ant-select-focused .ant-select-selector,
+.profile-form textarea:focus {
+border-color: #1890ff !important;
+box-shadow: 0 0 0 3px rgba(24, 144, 255, 0.14) !important;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .motion-safe-fade {
+    animation: uiFadeIn 240ms ease-out;
+  }
+
+  .motion-safe-lift {
+    transition: transform 180ms ease, box-shadow 180ms ease;
+  }
+
+  .motion-safe-lift:hover {
+    transform: translateY(-1px);
+  }
+
+  .custom-modal .ant-modal-content,
+  .custom-modal-header-red .ant-modal-content,
+  .dropdown-modal .ant-modal-content {
+    animation: uiModalIn 220ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+}
+
+@keyframes uiFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes uiModalIn {
+  from {
+    opacity: 0;
+    transform: scale(0.985) translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
  
  /* Footer sticky container */
  .modal-footer-sticky {
@@ -6638,6 +6746,17 @@ onClick={handleSaveProfile}
  gap: 12px;
  z-index: 10;
  }
+
+.modal-footer-sticky .ant-btn {
+min-height: 36px;
+padding-inline: 18px;
+border-radius: 10px;
+font-weight: 600;
+}
+
+.modal-footer-sticky .ant-btn-primary {
+box-shadow: 0 6px 14px rgba(24, 144, 255, 0.24);
+}
  `}</style>
  </div>
  );

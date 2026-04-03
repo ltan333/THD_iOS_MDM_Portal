@@ -43,7 +43,7 @@ export function LayoutWrapper({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <div className="flex h-screen overflow-hidden bg-gray-50 dark:bg-gray-950">
+    <div className="app-liquid-ui flex h-screen overflow-hidden bg-gradient-to-br from-slate-100 via-slate-50 to-blue-50 dark:from-gray-950 dark:via-slate-950 dark:to-slate-900">
       <Sidebar />
       <div 
         className={cn(
@@ -52,9 +52,11 @@ export function LayoutWrapper({ children }: { children: React.ReactNode }) {
         )}
       >
         <Header />
-        <main className="flex-1 overflow-y-auto bg-gray-50 dark:bg-gray-950">
-          <div className="w-full h-full max-w-[1600px] mx-auto p-6">
-            {children}
+        <main className="flex-1 overflow-y-auto">
+          <div className="w-full h-full max-w-[1600px] mx-auto p-5 liquid-layout-main liquid-glass">
+            <div key={pathname} className="motion-safe-page h-full">
+              {children}
+            </div>
           </div>
         </main>
       </div>

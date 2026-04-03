@@ -104,27 +104,26 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="h-screen w-screen relative flex items-center justify-center overflow-hidden bg-white">
+    <div className="h-screen w-screen relative flex items-center justify-center overflow-hidden bg-slate-950">
       
-      {/* Background Image */}
+      {/* Custom background image */}
       <div className="absolute inset-0 z-0">
         <Image
-          src="/assets/images/abstract-light-pink-wallpaper-background-image.jpg"
-          alt="Background"
+          src="/assets/images/456c795b-d275-44d2-b958-fa6ba4f5e5ec.jpg"
+          alt="Login Background"
           fill
           priority
-          className="object-cover object-center opacity-100 brightness-110"
+          className="object-cover object-center"
           quality={100}
         />
-        {/* Subtle light overlay to maintain airy feel while allowing text contrast */}
-        <div className="absolute inset-0 bg-white/20 backdrop-blur-[2px]"></div>
+        <div className="absolute inset-0 bg-slate-900/35"></div>
       </div>
 
       {/* Main Layout Container */}
       <div className="relative z-10 w-full max-w-[1200px] h-[90vh] max-h-[850px] min-h-[600px] p-4 lg:p-8 flex items-center justify-center opacity-0 transition-opacity duration-300" style={{ opacity: mounted ? 1 : 0 }}>
         
         {/* Unified Glass Container - Lighter Theme */}
-        <div className="w-full h-full flex flex-col lg:flex-row bg-white/40 dark:bg-black/20 backdrop-blur-[40px] border border-white/60 shadow-[0_8px_32px_0_rgba(222,42,21,0.1)] rounded-[32px] overflow-hidden relative">
+        <div className="w-full h-full flex flex-col lg:flex-row bg-white/12 dark:bg-white/5 backdrop-blur-[32px] border border-white/25 shadow-[0_20px_60px_rgba(2,6,23,0.45)] rounded-[32px] overflow-hidden relative">
           
           {/* Inner highlight ring */}
           <div className="absolute inset-0 rounded-[32px] border border-white/80 pointer-events-none mix-blend-overlay"></div>
@@ -133,8 +132,8 @@ export default function LoginPage() {
           <div className="w-full lg:w-[45%] p-8 lg:p-12 flex flex-col justify-between relative border-b lg:border-b-0 lg:border-r border-white/30">
             
             <div className="flex flex-col items-center lg:items-start text-center lg:text-left space-y-6">
-              <div className="bg-white/60 backdrop-blur-md p-3 rounded-3xl border border-white/80 shadow-[0_4px_12px_rgba(222,42,21,0.15)] flex items-center justify-center h-20 w-20 relative group transition-transform duration-500 hover:scale-105">
-                <div className="absolute inset-0 bg-gradient-to-tr from-[#de2a15]/20 to-transparent rounded-3xl blur-md opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+              <div className="bg-white/15 backdrop-blur-md p-3 rounded-3xl border border-white/30 shadow-[0_8px_18px_rgba(15,23,42,0.35)] flex items-center justify-center h-20 w-20 relative group transition-transform duration-500 hover:scale-105">
+                <div className="absolute inset-0 bg-gradient-to-tr from-blue-400/30 to-transparent rounded-3xl blur-md opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
                 <Image 
                   src="/assets/images/favicon.png" 
                   alt="THD Logo" 
@@ -142,58 +141,58 @@ export default function LoginPage() {
                   height={60} 
                   className="object-contain relative z-10"
                   style={{
-                    filter: 'drop-shadow(0 2px 4px rgba(222,42,21,0.3))'
+                    filter: 'drop-shadow(0 4px 8px rgba(59,130,246,0.35))'
                   }}
                 />
               </div>
               
               <div className="space-y-2">
-                <h1 className="text-3xl lg:text-4xl font-bold tracking-tight text-slate-800 drop-shadow-sm leading-tight">
+                <h1 className="text-3xl lg:text-4xl font-bold tracking-tight text-white drop-shadow-sm leading-tight">
                   {mounted ? t[language].heroTitle : t.vi.heroTitle}
                 </h1>
-                <p className="text-base text-slate-600 font-medium max-w-sm">
+                <p className="text-base text-slate-200/90 font-medium max-w-sm">
                   {mounted ? t[language].heroDesc : t.vi.heroDesc}
                 </p>
               </div>
             </div>
 
             <div className="hidden lg:grid grid-cols-1 gap-3 mt-8">
-              <div className="flex items-center gap-4 p-3 rounded-2xl bg-white/40 backdrop-blur-md border border-white/50 shadow-sm hover:bg-white/60 transition-colors duration-300">
-                <div className="p-2.5 rounded-full bg-rose-100 text-rose-600 shadow-inner">
+              <div className="flex items-center gap-4 p-3 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 shadow-sm hover:bg-white/15 transition-colors duration-300">
+                <div className="p-2.5 rounded-full bg-blue-500/20 text-blue-200 shadow-inner">
                   <Smartphone className="w-4 h-4" />
                 </div>
-                <span className="text-sm font-semibold text-slate-700">{mounted ? t[language].deviceControl : t.vi.deviceControl}</span>
+                <span className="text-sm font-semibold text-slate-100">{mounted ? t[language].deviceControl : t.vi.deviceControl}</span>
               </div>
-              <div className="flex items-center gap-4 p-3 rounded-2xl bg-white/40 backdrop-blur-md border border-white/50 shadow-sm hover:bg-white/60 transition-colors duration-300">
-                <div className="p-2.5 rounded-full bg-pink-100 text-pink-600 shadow-inner">
+              <div className="flex items-center gap-4 p-3 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 shadow-sm hover:bg-white/15 transition-colors duration-300">
+                <div className="p-2.5 rounded-full bg-indigo-500/20 text-indigo-200 shadow-inner">
                   <Lock className="w-4 h-4" />
                 </div>
-                <span className="text-sm font-semibold text-slate-700">{mounted ? t[language].securityPolicy : t.vi.securityPolicy}</span>
+                <span className="text-sm font-semibold text-slate-100">{mounted ? t[language].securityPolicy : t.vi.securityPolicy}</span>
               </div>
-              <div className="flex items-center gap-4 p-3 rounded-2xl bg-white/40 backdrop-blur-md border border-white/50 shadow-sm hover:bg-white/60 transition-colors duration-300">
-                <div className="p-2.5 rounded-full bg-red-100 text-[#de2a15] shadow-inner">
+              <div className="flex items-center gap-4 p-3 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 shadow-sm hover:bg-white/15 transition-colors duration-300">
+                <div className="p-2.5 rounded-full bg-cyan-500/20 text-cyan-200 shadow-inner">
                   <Globe className="w-4 h-4" />
                 </div>
-                <span className="text-sm font-semibold text-slate-700">{mounted ? t[language].globalAccess : t.vi.globalAccess}</span>
+                <span className="text-sm font-semibold text-slate-100">{mounted ? t[language].globalAccess : t.vi.globalAccess}</span>
               </div>
             </div>
             
-            <div className="mt-8 text-xs text-slate-500 font-medium hidden lg:block">
+            <div className="mt-8 text-xs text-slate-300/80 font-medium hidden lg:block">
               {mounted ? t[language].footer : t.vi.footer}
             </div>
           </div>
 
           {/* Right Side - Login Form */}
-          <div className="w-full lg:w-[55%] p-8 lg:p-12 flex flex-col justify-center relative bg-white/20 h-full overflow-y-auto custom-scrollbar">
+          <div className="w-full lg:w-[55%] p-8 lg:p-12 flex flex-col justify-center relative bg-white/10 h-full overflow-y-auto custom-scrollbar">
             
             {/* Language Toggle Button */}
-            <div className="absolute top-6 right-6 flex items-center gap-2 z-20 bg-white/60 backdrop-blur-md px-3 py-1.5 rounded-full border border-white/80 shadow-sm">
+            <div className="absolute top-6 right-6 flex items-center gap-2 z-20 bg-white/15 backdrop-blur-md px-3 py-1.5 rounded-full border border-white/30 shadow-sm">
               <span className={`text-[10px] font-bold tracking-wider transition-colors ${language === 'en' ? 'text-slate-800' : 'text-slate-400'}`}>
                 EN
               </span>
               <button 
                 onClick={toggleLanguage}
-                className="relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-[#de2a15]/50 bg-slate-200 shadow-inner cursor-pointer"
+                className="relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-400/50 bg-slate-300/80 shadow-inner cursor-pointer"
                 role="switch"
                 aria-checked={language === 'vi'}
               >
@@ -211,8 +210,8 @@ export default function LoginPage() {
 
             <div className="w-full max-w-sm mx-auto space-y-8 my-auto">
               <div className="text-center lg:text-left">
-                <h2 className="text-2xl lg:text-3xl font-bold tracking-tight text-slate-800">{mounted ? t[language].title : t.vi.title}</h2>
-                <p className="mt-2 text-sm text-slate-600 font-medium">
+                <h2 className="text-2xl lg:text-3xl font-bold tracking-tight text-white">{mounted ? t[language].title : t.vi.title}</h2>
+                <p className="mt-2 text-sm text-slate-200/90 font-medium">
                   {mounted ? t[language].subtitle : t.vi.subtitle}
                 </p>
               </div>
@@ -225,11 +224,11 @@ export default function LoginPage() {
                     </div>
                   )}
                   <div className="space-y-1.5">
-                    <label htmlFor="email" className="block text-sm font-semibold text-slate-700 ml-1">
+                    <label htmlFor="email" className="block text-sm font-semibold text-slate-100 ml-1">
                       {mounted ? t[language].email : t.vi.email}
                     </label>
                     <div className="relative group">
-                      <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none transition-colors group-focus-within:text-[#de2a15] text-slate-400">
+                      <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none transition-colors group-focus-within:text-blue-500 text-slate-400">
                         <Mail className="h-4 w-4" />
                       </div>
                       <input
@@ -240,18 +239,18 @@ export default function LoginPage() {
                         required
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
-                        className="block w-full pl-10 pr-4 py-3 bg-white/60 border border-white/80 rounded-xl text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#de2a15]/50 focus:bg-white/80 transition-all backdrop-blur-md shadow-[inset_0_2px_4px_rgba(0,0,0,0.02)]"
+                        className="block w-full pl-10 pr-4 py-3 bg-white/85 border border-white/70 rounded-xl text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/35 focus:bg-white transition-all backdrop-blur-md shadow-[inset_0_2px_4px_rgba(0,0,0,0.02)]"
                         placeholder="admin@thd.com hoặc admin"
                       />
                     </div>
                   </div>
 
                   <div className="space-y-1.5">
-                    <label htmlFor="password" className="block text-sm font-semibold text-slate-700 ml-1">
+                    <label htmlFor="password" className="block text-sm font-semibold text-slate-100 ml-1">
                       {mounted ? t[language].password : t.vi.password}
                     </label>
                     <div className="relative group">
-                      <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none transition-colors group-focus-within:text-[#de2a15] text-slate-400">
+                      <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none transition-colors group-focus-within:text-blue-500 text-slate-400">
                         <Lock className="h-4 w-4" />
                       </div>
                       <input
@@ -262,7 +261,7 @@ export default function LoginPage() {
                         required
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
-                        className="block w-full pl-10 pr-10 py-3 bg-white/60 border border-white/80 rounded-xl text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#de2a15]/50 focus:bg-white/80 transition-all backdrop-blur-md shadow-[inset_0_2px_4px_rgba(0,0,0,0.02)]"
+                        className="block w-full pl-10 pr-10 py-3 bg-white/85 border border-white/70 rounded-xl text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/35 focus:bg-white transition-all backdrop-blur-md shadow-[inset_0_2px_4px_rgba(0,0,0,0.02)]"
                         placeholder="••••••••"
                       />
                       <button
@@ -286,7 +285,7 @@ export default function LoginPage() {
                       id="remember-me"
                       name="remember-me"
                       type="checkbox"
-                      className="h-3.5 w-3.5 rounded border-slate-300 bg-white text-[#de2a15] focus:ring-[#de2a15]/50 cursor-pointer"
+                      className="h-3.5 w-3.5 rounded border-slate-300 bg-white text-blue-600 focus:ring-blue-500/50 cursor-pointer"
                     />
                     <label htmlFor="remember-me" className="ml-2 block text-xs font-medium text-slate-600 cursor-pointer select-none">
                       {mounted ? t[language].remember : t.vi.remember}
@@ -294,7 +293,7 @@ export default function LoginPage() {
                   </div>
 
                   <div className="text-xs">
-                    <Link href="#" className="font-semibold text-[#de2a15] hover:text-red-700 transition-colors">
+                    <Link href="#" className="font-semibold text-blue-300 hover:text-blue-200 transition-colors">
                       {mounted ? t[language].forgot : t.vi.forgot}
                     </Link>
                   </div>
@@ -303,7 +302,7 @@ export default function LoginPage() {
                 <div className="pt-2">
                   <button
                     type="submit"
-                    className="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-bold rounded-xl text-white bg-gradient-to-r from-[#de2a15] to-[#f03b26] hover:from-[#c22412] hover:to-[#de2a15] focus:outline-none focus:ring-2 focus:ring-[#de2a15]/50 transition-all duration-300 shadow-[0_4px_12px_rgba(222,42,21,0.3)] hover:shadow-[0_6px_16px_rgba(222,42,21,0.4)] overflow-hidden cursor-pointer"
+                    className="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-bold rounded-xl text-white bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-700 hover:to-cyan-600 focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all duration-300 shadow-[0_6px_16px_rgba(37,99,235,0.35)] hover:shadow-[0_8px_20px_rgba(37,99,235,0.45)] overflow-hidden cursor-pointer"
                   >
                     <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-[100%] group-hover:translate-x-[100%] transition-transform duration-1000 ease-out"></div>
                     <span className="absolute left-0 inset-y-0 flex items-center pl-3.5">
@@ -316,7 +315,7 @@ export default function LoginPage() {
             </div>
             
             {/* Mobile Footer */}
-            <div className="mt-6 text-center text-xs text-slate-500 font-medium lg:hidden pb-4">
+            <div className="mt-6 text-center text-xs text-slate-300/80 font-medium lg:hidden pb-4">
               {mounted ? t[language].footer : t.vi.footer}
             </div>
           </div>

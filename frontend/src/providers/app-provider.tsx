@@ -49,7 +49,7 @@ export function AppProvider({
                                             colorWarning: "#faad14",
                                             colorError: "#ff4d4f",
                                             colorInfo: "#1890ff",
-                                            borderRadius: 6,
+                                            borderRadius: 10,
                                             fontFamily: "Inter, system-ui, sans-serif",
                                         },
                                         components: {

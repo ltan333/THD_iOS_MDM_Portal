@@ -21,6 +21,7 @@ import { profileService } from "@/services/profile.service";
 import { DeviceGroupResponse } from "@/types/device-group.type";
 import { DeviceResponse } from "@/types/device.type";
 import { ProfileResponse, ProfileAssignmentResponse } from "@/types/profile.type";
+import { useDebounce } from "@/hooks";
 import dayjs from "dayjs";
 
 interface DeviceProfileView {
@@ -43,6 +44,7 @@ export function DeviceGroupsList() {
     const [targetGroupIds, setTargetGroupIds] = useState<number[]>([]);
     const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
     const [searchQuery, setSearchQuery] = useState("");
+    const debouncedSearchQuery = useDebounce(searchQuery, 320);
     const [groupAssignedProfiles, setGroupAssignedProfiles] = useState<ProfileResponse[]>([]);
     const [isDeviceDetailModalVisible, setIsDeviceDetailModalVisible] = useState(false);
     const [selectedDevice, setSelectedDevice] = useState<DeviceResponse | null>(null);
@@ -53,7 +55,7 @@ export function DeviceGroupsList() {
     const fetchGroups = useCallback(async () => {
         try {
             setLoading(true);
-            const response = await deviceGroupService.getGroups({ search: searchQuery });
+            const response = await deviceGroupService.getGroups({ search: debouncedSearchQuery });
             if (response.is_success) {
                 setGroups(response.data.items || []);
             } else {
@@ -65,7 +67,7 @@ export function DeviceGroupsList() {
         } finally {
             setLoading(false);
         }
-    }, [searchQuery, antdMessage]);
+    }, [debouncedSearchQuery, antdMessage]);
 
     useEffect(() => {
         fetchGroups();
@@ -346,7 +348,7 @@ export function DeviceGroupsList() {
                     <div className="flex flex-col">
                         <a 
                             href="#" 
-                            className="text-[#de2a15] hover:text-[#c22412] font-medium transition-colors"
+                            className="text-primary-600 hover:text-primary-700 font-medium transition-colors"
                             onClick={(e) => {
                                 e.preventDefault();
                                 handleGroupClick(record);
@@ -455,7 +457,7 @@ export function DeviceGroupsList() {
                     <div className="flex flex-col">
                         <button
                             type="button"
-                            className="text-left font-medium text-slate-800 hover:text-[#de2a15] transition-colors"
+                            className="text-left font-medium text-slate-800 hover:text-primary-600 transition-colors"
                             onClick={(e) => {
                                 e.stopPropagation();
                                 handleGroupDeviceClick(record);
@@ -499,23 +501,22 @@ export function DeviceGroupsList() {
     ];
 
     return (
-        <div className="flex flex-col h-[calc(100vh-64px)] bg-slate-50 relative border-none overflow-hidden rounded-none shadow-none z-0">
+        <div className="motion-safe-fade flex flex-col h-[calc(100vh-64px)] bg-transparent relative border-none overflow-hidden rounded-none shadow-none z-0">
             {/* Top Toolbar */}
-            <div className="flex flex-wrap items-center justify-between p-4 gap-4 bg-white border-b border-slate-200 z-10 shadow-sm">
+            <div className="liquid-glass liquid-layout-toolbar motion-safe-fade flex flex-wrap items-center justify-between p-4 gap-4 bg-white border-b border-slate-200 z-10 shadow-sm">
                 <div className="flex items-center gap-3">
                     <div className="flex group">
                         <Input
                             placeholder="Search group name..."
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
-                            onPressEnter={() => fetchGroups()}
                             prefix={<Search className="w-4 h-4 text-slate-400 group-hover:text-current transition-colors" />}
-                            className="w-64 h-8 rounded-r-none border-r-0 hover:border-[#de2a15] focus:border-[#de2a15] focus:shadow-none transition-colors"
+                            className="w-64 h-8 rounded-r-none border-r-0 hover:border-primary-600 focus:border-primary-600 focus:shadow-none transition-colors"
                         />
                         <Button 
                             type="primary" 
                             onClick={() => fetchGroups()}
-                            className="bg-[#de2a15] hover:bg-[#c22412] rounded-l-none h-8 w-10 px-0 flex items-center justify-center border-none shadow-sm transition-colors"
+                            className="liquid-btn bg-primary-600 hover:bg-primary-700 rounded-l-none h-8 w-10 px-0 flex items-center justify-center border-none shadow-sm transition-colors"
                             icon={<Search className="w-4 h-4 text-white" strokeWidth={2.5} />}
                         />
                     </div>
@@ -524,7 +525,7 @@ export function DeviceGroupsList() {
                 <Button 
                     type="primary" 
                     icon={<Plus className="w-4 h-4" />}
-                    className="bg-[#de2a15] hover:bg-[#c22412] text-white font-medium px-5 h-8 border-none shadow-sm transition-colors rounded-md"
+                    className="liquid-btn bg-primary-600 hover:bg-primary-700 text-white font-medium px-5 h-8 border-none shadow-sm transition-colors rounded-md"
                     onClick={() => setIsCreateModalVisible(true)}
                 >
                     CREATE GROUP
@@ -532,7 +533,7 @@ export function DeviceGroupsList() {
             </div>
 
             {/* Sub Toolbar */}
-            <div className="flex items-center justify-between px-4 py-3 bg-slate-50 border-b border-slate-200 z-10">
+            <div className="liquid-glass liquid-layout-toolbar motion-safe-fade flex items-center justify-between px-4 py-3 bg-slate-50 border-b border-slate-200 z-10">
                 <div className="flex items-center gap-4 text-sm text-slate-600">
                     <span className="font-bold text-slate-800 tracking-wide uppercase">
                         DEVICE GROUPS <span className="font-normal text-slate-500">(1 - {groups.length} of {groups.length})</span>
@@ -542,9 +543,9 @@ export function DeviceGroupsList() {
                 <div className="flex items-center gap-4 text-sm">
                     {selectedRowKeys.length > 0 && (
                         <div className="flex items-center gap-2 mr-4 border-r border-slate-300 pr-4">
-                            <span className="text-[#de2a15] font-medium">{selectedRowKeys.length} selected</span>
+                            <span className="text-primary-600 font-medium">{selectedRowKeys.length} selected</span>
                             <Dropdown menu={{ items: actionMenu }} trigger={['click']} placement="bottomRight">
-                                <Button size="small" type="primary" className="bg-[#de2a15] hover:bg-[#c22412] flex items-center gap-1">
+                                <Button size="small" type="primary" className="liquid-btn bg-primary-600 hover:bg-primary-700 flex items-center gap-1">
                                     Actions <ChevronDown className="w-3 h-3" />
                                 </Button>
                             </Dropdown>
@@ -554,7 +555,7 @@ export function DeviceGroupsList() {
             </div>
 
             {/* Table */}
-            <div className="flex-1 overflow-auto border-t border-slate-200 z-10 relative scrollbar-hide">
+            <div className="liquid-glass liquid-layout-content motion-safe-fade flex-1 overflow-auto border-t border-slate-200 z-10 relative scrollbar-hide">
                 <Table
                     rowSelection={rowSelection}
                     columns={columns}
@@ -563,7 +564,7 @@ export function DeviceGroupsList() {
                     pagination={false}
                     rowKey="id"
                     className="custom-data-table"
-                    rowClassName="hover:bg-slate-50 transition-colors cursor-pointer"
+                    rowClassName="motion-safe-lift hover:bg-slate-50 transition-colors cursor-pointer"
                     onRow={(record) => ({
                         onClick: (e) => {
                             // Ngăn không cho sự kiện click lan truyền nếu click vào các phần tử tương tác khác (như Dropdown)
@@ -736,7 +737,7 @@ export function DeviceGroupsList() {
                     form.resetFields();
                 }}
                 okText="Create Group"
-                okButtonProps={{ className: "bg-[#de2a15] hover:bg-[#c22412]" }}
+                okButtonProps={{ className: "bg-primary-600 hover:bg-primary-700" }}
             >
                 <div className="py-4">
                     <Form form={form} layout="vertical">
@@ -767,7 +768,7 @@ export function DeviceGroupsList() {
                     setTargetGroupIds([]);
                 }}
                 okText="Assign Profile"
-                okButtonProps={{ className: "bg-[#de2a15] hover:bg-[#c22412]", disabled: !selectedProfileId }}
+                okButtonProps={{ className: "bg-primary-600 hover:bg-primary-700", disabled: !selectedProfileId }}
             >
                 <div className="py-4">
                     <p className="mb-4 text-slate-600">

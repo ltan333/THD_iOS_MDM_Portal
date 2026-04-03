@@ -40,6 +40,7 @@ import { profileService } from "@/services/profile.service";
 import { DeviceResponse, DeviceWipeRequest } from "@/types/device.type";
 import { DeviceGroupResponse } from "@/types/device-group.type";
 import { ProfileResponse } from "@/types/profile.type";
+import { useDebounce } from "@/hooks";
 
 interface DeviceProfileView {
     id: number;
@@ -71,6 +72,7 @@ export function DevicesList() {
     const [search, setSearch] = useState("");
     const [statusFilter, setStatusFilter] = useState("all");
     const [platformFilter, setPlatformFilter] = useState("all");
+    const debouncedSearch = useDebounce(search, 320);
 
     const fetchDevices = useCallback(async () => {
         setLoading(true);
@@ -79,7 +81,7 @@ export function DevicesList() {
                 page: pagination.current,
                 limit: pagination.pageSize,
             };
-            if (search) params.search = search;
+            if (debouncedSearch) params.search = debouncedSearch;
             if (statusFilter !== "all") params.status = statusFilter;
             if (platformFilter !== "all") params.platform = platformFilter;
 
@@ -94,7 +96,7 @@ export function DevicesList() {
         } finally {
             setLoading(false);
         }
-    }, [pagination.current, pagination.pageSize, search, statusFilter, platformFilter, antdMessage]);
+    }, [pagination.current, pagination.pageSize, debouncedSearch, statusFilter, platformFilter, antdMessage]);
 
     const fetchGroups = async () => {
         try {
@@ -230,7 +232,7 @@ export function DevicesList() {
         }
     };
 
-    const actionButtonBaseClass = "h-9 w-full px-2 text-xs whitespace-nowrap justify-center border-slate-300 text-slate-700";
+    const actionButtonBaseClass = "h-9 w-full px-2 text-xs font-medium whitespace-nowrap justify-center bg-white border-slate-200 text-slate-700 hover:bg-slate-50 hover:text-primary-600 hover:border-primary-300 transition-all duration-200 shadow-sm rounded-lg";
 
     const actionMenu: MenuProps['items'] = [
         {
@@ -271,7 +273,7 @@ export function DevicesList() {
                     <div className="flex flex-col">
                         <a 
                             href="#" 
-                            className="text-[#de2a15] hover:text-[#c22412] font-medium transition-colors"
+                            className="text-primary-600 hover:text-primary-700 font-medium transition-colors"
                             onClick={(e) => {
                                 e.preventDefault();
                                 handleDeviceClick(record);
@@ -356,13 +358,17 @@ export function DevicesList() {
     ];
 
     return (
-        <div className="flex flex-col h-[calc(100vh-64px)] bg-slate-50 relative border-none overflow-hidden rounded-none shadow-none z-0">
+        <div className="motion-safe-fade flex flex-col h-[calc(100vh-64px)] bg-transparent relative border-none overflow-hidden rounded-none shadow-none z-0">
             {/* Top Toolbar */}
-            <div className="flex flex-wrap items-center justify-between p-4 gap-4 bg-white border-b border-slate-200 z-10 shadow-sm">
+            <div className="liquid-glass liquid-layout-toolbar motion-safe-fade flex flex-wrap items-center justify-between p-4 gap-4 bg-white border-b border-slate-200 z-10 shadow-sm">
                 <div className="flex items-center gap-6">
                     <div className="flex items-center gap-2">
                         <span className="text-sm font-medium text-slate-700">OS:</span>
-                        <Select className="cursor-pointer" defaultValue="all"
+                        <Select className="cursor-pointer" value={platformFilter}
+                            onChange={(val) => {
+                                setPlatformFilter(val);
+                                setPagination(prev => ({ ...prev, current: 1 }));
+                            }}
                             style={{ width: 120 }}
                             options={[
                                 { value: "all", label: "All" },
@@ -374,7 +380,11 @@ export function DevicesList() {
                     </div>
                     <div className="flex items-center gap-2">
                         <span className="text-sm font-medium text-slate-700">Status:</span>
-                        <Select className="cursor-pointer" defaultValue="all"
+                        <Select className="cursor-pointer" value={statusFilter}
+                            onChange={(val) => {
+                                setStatusFilter(val);
+                                setPagination(prev => ({ ...prev, current: 1 }));
+                            }}
                             style={{ width: 120 }}
                             options={[
                                 { value: "all", label: "All" },
@@ -389,12 +399,17 @@ export function DevicesList() {
                     <div className="flex group">
                         <Input
                             placeholder="Search device name, model..."
+                            value={search}
+                            onChange={(e) => {
+                                setSearch(e.target.value);
+                                setPagination(prev => ({ ...prev, current: 1 }));
+                            }}
                             prefix={<Search className="w-4 h-4 text-slate-400 group-hover:text-current transition-colors" />}
-                            className="w-64 h-8 rounded-r-none border-r-0 hover:border-[#de2a15] focus:border-[#de2a15] focus:shadow-none transition-colors"
+                            className="w-64 h-8 rounded-r-none border-r-0 hover:border-primary-600 focus:border-primary-600 focus:shadow-none transition-colors"
                         />
                         <Button 
                             type="primary" 
-                            className="bg-[#de2a15] hover:bg-[#c22412] rounded-l-none h-8 w-10 px-0 flex items-center justify-center border-none shadow-sm transition-colors"
+                            className="liquid-btn bg-primary-600 hover:bg-primary-700 rounded-l-none h-8 w-10 px-0 flex items-center justify-center border-none shadow-sm transition-colors"
                             icon={<Search className="w-4 h-4 text-white" strokeWidth={2.5} />}
                         />
                     </div>
@@ -402,7 +417,7 @@ export function DevicesList() {
             </div>
 
             {/* Sub Toolbar / Table Controls */}
-            <div className="flex items-center justify-between px-4 py-3 bg-slate-50 border-b border-slate-200 z-10">
+            <div className="liquid-glass liquid-layout-toolbar motion-safe-fade flex items-center justify-between px-4 py-3 bg-slate-50 border-b border-slate-200 z-10">
                 <div className="flex items-center gap-4 text-sm text-slate-600">
                     <span className="font-bold text-slate-800 tracking-wide uppercase">
                         DEVICES <span className="font-normal text-slate-500">(1 - 4 of 4)</span>
@@ -423,7 +438,7 @@ export function DevicesList() {
 
                     <div className="flex items-center gap-2 border-l border-slate-300 pl-4">
                         <Button type="text" size="small" disabled className="text-slate-400">&larr;</Button>
-                        <span className="text-[#de2a15] font-bold">1 of 1</span>
+                        <span className="text-primary-600 font-bold">1 of 1</span>
                         <Button type="text" size="small" disabled className="text-slate-400">&rarr;</Button>
                     </div>
 
@@ -435,9 +450,9 @@ export function DevicesList() {
                 <div className="flex items-center gap-4 text-sm">
                     {selectedRowKeys.length > 0 && (
                         <div className="flex items-center gap-2 mr-4 border-r border-slate-300 pr-4">
-                            <span className="text-[#de2a15] font-medium">{selectedRowKeys.length} selected</span>
+                            <span className="text-primary-600 font-medium">{selectedRowKeys.length} selected</span>
                             <Dropdown menu={{ items: actionMenu }} trigger={['click']} placement="bottomRight">
-                                <Button size="small" type="primary" className="bg-[#de2a15] hover:bg-[#c22412] flex items-center gap-1">
+                                <Button size="small" type="primary" className="liquid-btn bg-primary-600 hover:bg-primary-700 flex items-center gap-1">
                                     Actions <ChevronDown className="w-3 h-3" />
                                 </Button>
                             </Dropdown>
@@ -446,12 +461,12 @@ export function DevicesList() {
                     <span className="flex items-center gap-1 cursor-pointer text-slate-700 hover:text-slate-900 font-medium">
                         Columns (7) <ChevronDown className="w-4 h-4" />
                     </span>
-                    <Button type="text" icon={<Filter className="w-4 h-4 text-[#de2a15]" />} className="text-[#de2a15] bg-red-50 hover:bg-red-100 rounded-full w-8 h-8 flex items-center justify-center p-0 border border-red-200 transition-colors" />
+                    <Button type="text" icon={<Filter className="w-4 h-4 text-primary-600" />} className="text-primary-600 bg-primary-50 hover:bg-primary-100 rounded-full w-8 h-8 flex items-center justify-center p-0 border border-primary-200 transition-colors" />
                 </div>
             </div>
 
             {/* Table */}
-            <div className="flex-1 overflow-auto border-t border-slate-200 z-10 relative scrollbar-hide">
+            <div className="liquid-glass liquid-layout-content motion-safe-fade flex-1 overflow-auto border-t border-slate-200 z-10 relative scrollbar-hide">
                 <Table
                     rowSelection={rowSelection}
                     columns={columns}
@@ -460,7 +475,7 @@ export function DevicesList() {
                     loading={loading}
                     pagination={false}
                     className="custom-data-table"
-                    rowClassName="hover:bg-slate-50 transition-colors cursor-pointer"
+                    rowClassName="motion-safe-lift hover:bg-slate-50 transition-colors cursor-pointer"
                     onRow={(record) => ({
                         onClick: () => handleDeviceClick(record),
                     })}
@@ -944,7 +959,7 @@ export function DevicesList() {
                 }}
                 onCancel={() => setIsGroupModalVisible(false)}
                 okText="Add to Group"
-                okButtonProps={{ className: "bg-[#de2a15] hover:bg-[#c22412]", disabled: !selectedGroupToAdd }}
+                okButtonProps={{ className: "bg-primary-600 hover:bg-primary-700", disabled: !selectedGroupToAdd }}
             >
                 <div className="py-4">
                     <p className="mb-4 text-slate-600">
@@ -993,7 +1008,7 @@ export function DevicesList() {
                     setSelectedProfileToAdd(null);
                 }}
                 okText="Assign Profile"
-                okButtonProps={{ className: "bg-[#de2a15] hover:bg-[#c22412]", disabled: !selectedProfileToAdd }}
+                okButtonProps={{ className: "bg-primary-600 hover:bg-primary-700", disabled: !selectedProfileToAdd }}
             >
                 <div className="py-4">
                     <p className="mb-4 text-slate-600">
@@ -1070,11 +1085,11 @@ export function DevicesList() {
                     margin: 0 16px 0 0 !important;
                 }
                 .custom-tabs .ant-tabs-tab-active .ant-tabs-tab-btn {
-                    color: #de2a15 !important;
+                    color: #1890ff !important;
                     font-weight: 600 !important;
                 }
                 .custom-tabs .ant-tabs-ink-bar {
-                    background: #de2a15 !important;
+                    background: #1890ff !important;
                     height: 3px !important;
                     border-radius: 3px 3px 0 0;
                 }
